@@ -36,8 +36,8 @@ export class SessionManager {
     containerId: string,
     command: string[],
     label: string,
-    appId: string,
     options: {
+      appIdentifier: string | null
       mode: SessionMode
       protocol: TunnelProtocol
       tty: boolean
@@ -70,7 +70,7 @@ export class SessionManager {
       agentReady: false,
       publicId,
       label,
-      appId,
+      appIdentifier: options.appIdentifier,
     }
 
     this.sessions.set(session.id, session)

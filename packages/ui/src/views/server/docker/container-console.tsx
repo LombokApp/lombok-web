@@ -3,12 +3,14 @@ import '@xterm/xterm/css/xterm.css'
 import { useAuthContext } from '@lombokapp/auth-utils'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import { cn } from '@lombokapp/ui-toolkit/utils'
+import type { BridgeConnection } from '@lombokapp/utils'
+import { createBridgeConnection } from '@lombokapp/utils'
 import { FitAddon } from '@xterm/addon-fit'
 import { Terminal } from '@xterm/xterm'
-import { RefreshCcw, TerminalSquare } from 'lucide-react'
+import { RefreshCcw, SquareX, TerminalSquare } from 'lucide-react'
 import React from 'react'
-import type { Socket } from 'socket.io-client'
-import { io } from 'socket.io-client'
+
+import { $apiClient } from '@/src/services/api'
 
 interface ContainerConsoleProps {
   hostId: string
@@ -26,14 +28,14 @@ export function ContainerConsole({
   const termRef = React.useRef<HTMLDivElement>(null)
   const terminalRef = React.useRef<Terminal | null>(null)
   const fitAddonRef = React.useRef<FitAddon | null>(null)
-  const socketRef = React.useRef<Socket | null>(null)
+  const connectionRef = React.useRef<BridgeConnection | null>(null)
   const [state, setState] = React.useState<ConsoleState>('idle')
   const [errorMessage, setErrorMessage] = React.useState<string>()
   const authContext = useAuthContext()
 
   const connect = React.useCallback(async () => {
     // Cleanup previous session
-    socketRef.current?.disconnect()
+    connectionRef.current?.destroy()
     terminalRef.current?.dispose()
 
     setState('connecting')
@@ -71,71 +73,72 @@ export function ContainerConsole({
     terminalRef.current = terminal
     fitAddonRef.current = fitAddon
 
-    // Connect socket
-    const configuredBaseURL = import.meta.env.VITE_BACKEND_HOST ?? ''
-    const baseURL = configuredBaseURL.length
-      ? configuredBaseURL
-      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
-
-    const socket = io(`${baseURL}/container-exec/${hostId}:${containerId}`, {
-      transports: ['websocket'],
-      auth: {
-        token,
-        command: ['/bin/sh'],
-        cols: terminal.cols,
-        rows: terminal.rows,
+    // Create bridge session via REST
+    const { data: credentials, error } = await $apiClient.POST(
+      '/api/v1/docker/admin-bridge-sessions/tunnel',
+      {
+        body: {
+          hostId,
+          containerId,
+        },
       },
-      reconnection: false,
-    })
+    )
 
-    socketRef.current = socket
-
-    socket.on('exec:ready', () => {
-      setState('connected')
-    })
-
-    socket.on('exec:data', (data: { dataBase64: string }) => {
-      const bytes = Uint8Array.from(atob(data.dataBase64), (c) =>
-        c.charCodeAt(0),
-      )
-      terminal.write(bytes)
-    })
-
-    socket.on('exec:error', (data: { message?: string }) => {
+    if (error) {
       setState('error')
-      setErrorMessage(data.message ?? 'Connection error')
-    })
+      setErrorMessage('Failed to create bridge session')
+      return
+    }
 
-    socket.on('exec:exit', () => {
-      setState('exited')
-      terminal.write('\r\n\x1b[90m[Session ended]\x1b[0m\r\n')
-    })
-
-    socket.on('disconnect', () => {
-      setState((prev) => {
-        if (prev !== 'exited' && prev !== 'error') {
-          terminal.write('\r\n\x1b[90m[Disconnected]\x1b[0m\r\n')
-          return 'exited'
-        }
-        return prev
+    // Connect directly to bridge via WebSocket
+    try {
+      const connection = await createBridgeConnection({
+        credentials,
+        onData: (data: Uint8Array) => terminal.write(data),
+        onClose: () => {
+          setState((prev) => {
+            if (prev !== 'error') {
+              terminal.write('\r\n\x1b[90m[Session ended]\x1b[0m\r\n')
+              return 'exited'
+            }
+            return prev
+          })
+        },
+        onError: (msg) => {
+          setState('error')
+          setErrorMessage(msg)
+        },
       })
-    })
 
-    socket.on('connect_error', (err: Error) => {
+      connectionRef.current = connection
+      setState('connected')
+
+      // Send initial resize
+      void connection.resize(terminal.cols, terminal.rows)
+
+      // Wire terminal input
+      terminal.onData((data) => {
+        connection.sendInput(data)
+      })
+
+      // Wire terminal resize
+      terminal.onResize(({ cols, rows }) => {
+        void connection.resize(cols, rows)
+      })
+    } catch (err) {
       setState('error')
-      setErrorMessage(err.message)
-    })
-
-    // Send input to backend
-    terminal.onData((data) => {
-      socket.emit('exec:input', { input: data })
-    })
-
-    // Handle resize
-    terminal.onResize(({ cols, rows }) => {
-      socket.emit('exec:resize', { cols, rows })
-    })
+      setErrorMessage(
+        err instanceof Error ? err.message : 'Failed to connect to bridge',
+      )
+    }
   }, [hostId, containerId, authContext])
+
+  const disconnect = React.useCallback(() => {
+    connectionRef.current?.destroy()
+    connectionRef.current = null
+    terminalRef.current?.write('\r\n\x1b[90m[Session ended]\x1b[0m\r\n')
+    setState('exited')
+  }, [])
 
   // Fit terminal on window resize
   React.useEffect(() => {
@@ -149,7 +152,7 @@ export function ContainerConsole({
   // Cleanup on unmount
   React.useEffect(() => {
     return () => {
-      socketRef.current?.disconnect()
+      connectionRef.current?.destroy()
       terminalRef.current?.dispose()
     }
   }, [])
@@ -160,7 +163,7 @@ export function ContainerConsole({
         {state === 'idle' && (
           <Button
             variant="outline"
-            size="sm"
+            size="xs"
             onClick={() => void connect()}
             disabled={disabled}
           >
@@ -169,7 +172,7 @@ export function ContainerConsole({
           </Button>
         )}
         {(state === 'exited' || state === 'error') && (
-          <Button variant="outline" size="sm" onClick={() => void connect()}>
+          <Button variant="outline" size="xs" onClick={() => void connect()}>
             <RefreshCcw className="mr-2 size-4" />
             Reconnect
           </Button>
@@ -178,9 +181,15 @@ export function ContainerConsole({
           <span className="text-sm text-muted-foreground">Connecting...</span>
         )}
         {state === 'connected' && (
-          <span className="text-xs text-muted-foreground">
-            Connected to {containerId.slice(0, 12)}
-          </span>
+          <>
+            <span className="text-xs text-muted-foreground">
+              Connected to {containerId.slice(0, 12)}
+            </span>
+            <Button variant="outline" size="xs" onClick={disconnect}>
+              <SquareX className="mr-2 size-4" />
+              End Session
+            </Button>
+          </>
         )}
         {errorMessage && (
           <span className="text-xs text-destructive">{errorMessage}</span>

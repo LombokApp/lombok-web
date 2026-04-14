@@ -366,16 +366,13 @@ export class AppService {
     }
 
     const tunnelSession = await this.dockerClientService.createTunnelSession(
+      params.hostId,
       params.containerId,
       params.command,
       params.label,
-      requestingAppIdentifier,
       params.mode,
       params.protocol,
-      {
-        hostId: params.hostId,
-        public: params.public,
-      },
+      { public: params.public, appIdentifier: requestingAppIdentifier },
     )
     return {
       sessionId: tunnelSession.sessionId,

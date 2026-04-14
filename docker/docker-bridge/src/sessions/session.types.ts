@@ -21,7 +21,7 @@ export interface TunnelSession {
   agentReady: boolean
   publicId: string | null
   label: string
-  appId: string
+  appIdentifier: string | null
 }
 
 export type Session = TunnelSession

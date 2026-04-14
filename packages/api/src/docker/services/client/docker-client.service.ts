@@ -1017,19 +1017,20 @@ export class DockerClientService {
    * For framed protocol: used for HTTP tunnel-agent proxying.
    */
   async createTunnelSession(
+    hostId: string,
     containerId: string,
     command: string[],
     label: string,
-    appIdentifier: string,
     mode: 'ephemeral' | 'persistent',
     protocol: 'framed' | 'raw',
     options?: {
-      hostId?: string
       public?: boolean
+      appIdentifier: string
     },
   ): Promise<TunnelSessionDetails> {
     const backendToken = this.dockerBridgeService.getSecret()
     const isPublic = options?.public ?? false
+    const appIdentifier = options?.appIdentifier
 
     const createResponse = await fetch(`${BRIDGE_HTTP_URL}/sessions/tunnel`, {
       method: 'POST',
@@ -1040,12 +1041,13 @@ export class DockerClientService {
       body: JSON.stringify({
         container_id: containerId,
         command,
-        host_id: options?.hostId,
+        host_id: hostId,
         label,
-        app_id: appIdentifier,
         mode,
         protocol,
-        public: isPublic,
+        options: appIdentifier
+          ? { app_identifier: appIdentifier, public: isPublic }
+          : undefined,
       }),
     })
 
@@ -1059,7 +1061,7 @@ export class DockerClientService {
     }
 
     const session = (await createResponse.json()) as BridgeSessionResponse
-    const publicId = session.public_id || undefined
+    const publicId = (isPublic && session.public_id) || undefined
 
     this.logger.debug(
       `Bridge tunnel session created: ${session.id} for container ${containerId}${publicId ? ` publicId ${publicId}` : ''}`,
@@ -1073,10 +1075,9 @@ export class DockerClientService {
     const { wsUrl, httpUrl } = this.buildBridgeUrls()
 
     return {
-      ...(publicId ? { publicId } : {}),
       sessionId: session.id,
       token,
-      ...(publicId
+      ...(appIdentifier && publicId
         ? {
             public: {
               id: publicId,

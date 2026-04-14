@@ -1468,6 +1468,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docker/admin-bridge-sessions/tunnel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an admin bridge tunnel session
+         * @description Creates an ephemeral raw PTY tunnel session on the Docker bridge for admin container exec. Returns session credentials for direct WebSocket access to the bridge.
+         */
+        post: operations["AdminBridgeSession_createAdminTunnelSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/docker/bridge-sessions/tunnel": {
         parameters: {
             query?: never;
@@ -6884,6 +6904,26 @@ export interface components {
                 updatedAt: string;
             }[];
         };
+        CreateAdminBridgeTunnelSessionRequestDTO: {
+            hostId: string;
+            containerId: string;
+            command?: string[];
+            /** @default admin-console */
+            label: string;
+        };
+        CreateBridgeTunnelSessionResponseDTO: {
+            publicId?: string;
+            sessionId: string;
+            token: string;
+            urls: {
+                ws: string;
+                http: string;
+            };
+            public?: {
+                id: string;
+                url: string;
+            };
+        };
         CreateBridgeTunnelSessionRequestDTO: {
             hostId: string;
             containerId: string;
@@ -6901,19 +6941,6 @@ export interface components {
             protocol: "framed" | "raw";
             /** @default false */
             public: boolean;
-        };
-        CreateBridgeTunnelSessionResponseDTO: {
-            publicId?: string;
-            sessionId: string;
-            token: string;
-            urls: {
-                ws: string;
-                http: string;
-            };
-            public?: {
-                id: string;
-                url: string;
-            };
         };
         DockerJobPresignedUrlsRequestDTO: {
             /** Format: uuid */
@@ -12475,6 +12502,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserSessionListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    AdminBridgeSession_createAdminTunnelSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAdminBridgeTunnelSessionRequestDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateBridgeTunnelSessionResponseDTO"];
                 };
             };
             /** @description Server Error */

@@ -128,23 +128,25 @@ export class TunnelSessionHandler {
     containerId: string,
     command: string[],
     label: string,
-    appId: string,
     mode: SessionMode,
     protocol: TunnelProtocol,
-    tty = true,
-    isPublic = false,
+    tty: boolean,
+    options: {
+      appIdentifier: string
+      public?: boolean
+    } | null,
   ): Promise<TunnelSession> {
     const session = this.sessionManager.create(
       hostId,
       containerId,
       command,
       label,
-      appId,
       {
         mode,
         protocol,
         tty,
-        isPublic,
+        appIdentifier: options?.appIdentifier ?? null,
+        isPublic: options?.public ?? false,
       },
     )
 
@@ -159,7 +161,7 @@ export class TunnelSessionHandler {
       containerId,
       publicId: session.publicId,
       label,
-      appId,
+      appIdentifier: options?.appIdentifier ?? null,
       command: command.join(' '),
       mode,
       protocol,

@@ -87,6 +87,18 @@ export const buildMockDockerClientService = (): MockDockerClientService => {
     }),
     testAllHostConnections: async () => ({}),
     getHostDescription: () => 'Mock Docker Host',
+    getDockerHostStates: async () => [],
+    getDockerHostState: async (hostId: string) => ({
+      id: hostId,
+      description: 'Mock Docker Host',
+      connection: { success: true, message: 'Mock Docker Host Test Successful' },
+      resources: {
+        cpuCores: 4,
+        memoryBytes: 0,
+        info: { MemTotal: 0, NCPU: 4 },
+      },
+      containers: [],
+    }),
     listContainersByLabels: async () => [],
     createContainer: async () => ({
       id: '1',

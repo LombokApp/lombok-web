@@ -17,6 +17,11 @@ import { waitForCondition } from 'src/core/utils/wait.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerClientService } from 'src/docker/services/client/docker-client.service'
 import { DockerWorkerHookService } from 'src/docker/services/docker-worker-hook.service'
+import { dockerHostsTable } from 'src/docker/entities/docker-host.entity'
+import {
+  type DockerResourceConfig,
+  dockerProfileResourceAssignmentsTable,
+} from 'src/docker/entities/docker-profile-resource-assignment.entity'
 import { buildMockDockerClientService } from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
@@ -374,6 +379,56 @@ export async function buildTestModule({
       )
     },
   }
+}
+
+export const TEST_DOCKER_HOST_ID = '00000000-0000-4000-8000-00000000d0c5'
+
+export async function seedDockerHost(
+  testModule: TestModule,
+  {
+    profileAssignments = [],
+  }: {
+    profileAssignments?: {
+      appIdentifier: string
+      profileKey: string
+      config: DockerResourceConfig
+    }[]
+  } = {},
+): Promise<{ hostId: string }> {
+  const db = testModule.services.ormService.db
+  const now = new Date()
+  await db
+    .insert(dockerHostsTable)
+    .values({
+      id: TEST_DOCKER_HOST_ID,
+      label: 'Test Docker Host',
+      type: 'docker_endpoint',
+      host: '/var/run/docker.sock',
+      isDefault: true,
+      enabled: true,
+      healthStatus: 'healthy',
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing()
+
+  for (const assignment of profileAssignments) {
+    await db
+      .insert(dockerProfileResourceAssignmentsTable)
+      .values({
+        id: crypto.randomUUID(),
+        appIdentifier: assignment.appIdentifier,
+        profileKey: assignment.profileKey,
+        dockerHostId: TEST_DOCKER_HOST_ID,
+        config: assignment.config,
+        configHashes: {},
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoNothing()
+  }
+
+  return { hostId: TEST_DOCKER_HOST_ID }
 }
 
 export async function createTestUser(

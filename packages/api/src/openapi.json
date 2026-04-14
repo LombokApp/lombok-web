@@ -7342,6 +7342,64 @@
         ]
       }
     },
+    "/api/v1/docker/admin-bridge-sessions/tunnel": {
+      "post": {
+        "description": "Creates an ephemeral raw PTY tunnel session on the Docker bridge for admin container exec. Returns session credentials for direct WebSocket access to the bridge.",
+        "operationId": "AdminBridgeSession_createAdminTunnelSession",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminBridgeTunnelSessionRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBridgeTunnelSessionResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an admin bridge tunnel session",
+        "tags": [
+          "AdminBridgeSessions"
+        ]
+      }
+    },
     "/api/v1/docker/bridge-sessions/tunnel": {
       "post": {
         "description": "Creates a tunnel session on the Docker bridge. For framed protocol, spawns a tunnel-agent that proxies HTTP/WebSocket traffic. For raw protocol, creates a PTY exec for direct terminal access. Returns a tunnel URL for browser access and session credentials for direct WebSocket access.",
@@ -30583,7 +30641,7 @@
           "result"
         ]
       },
-      "CreateBridgeTunnelSessionRequestDTO": {
+      "CreateAdminBridgeTunnelSessionRequestDTO": {
         "type": "object",
         "properties": {
           "hostId": {
@@ -30603,35 +30661,14 @@
           },
           "label": {
             "type": "string",
+            "default": "admin-console",
             "minLength": 1,
             "maxLength": 63
-          },
-          "mode": {
-            "type": "string",
-            "default": "persistent",
-            "enum": [
-              "ephemeral",
-              "persistent"
-            ]
-          },
-          "protocol": {
-            "type": "string",
-            "default": "framed",
-            "enum": [
-              "framed",
-              "raw"
-            ]
-          },
-          "public": {
-            "type": "boolean",
-            "default": false
           }
         },
         "required": [
           "hostId",
-          "containerId",
-          "command",
-          "label"
+          "containerId"
         ]
       },
       "CreateBridgeTunnelSessionResponseDTO": {
@@ -30681,6 +30718,57 @@
           "sessionId",
           "token",
           "urls"
+        ]
+      },
+      "CreateBridgeTunnelSessionRequestDTO": {
+        "type": "object",
+        "properties": {
+          "hostId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "containerId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "mode": {
+            "type": "string",
+            "default": "persistent",
+            "enum": [
+              "ephemeral",
+              "persistent"
+            ]
+          },
+          "protocol": {
+            "type": "string",
+            "default": "framed",
+            "enum": [
+              "framed",
+              "raw"
+            ]
+          },
+          "public": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "hostId",
+          "containerId",
+          "command",
+          "label"
         ]
       },
       "DockerJobPresignedUrlsRequestDTO": {

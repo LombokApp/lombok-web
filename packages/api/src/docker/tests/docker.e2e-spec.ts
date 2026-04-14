@@ -32,6 +32,8 @@ import {
   buildTestModule,
   createTestFolder,
   createTestUser,
+  seedDockerHost,
+  TEST_DOCKER_HOST_ID,
 } from 'src/test/test.util'
 
 import { DockerClientService } from '../services/client/docker-client.service'
@@ -345,6 +347,18 @@ describe('Docker Jobs', () => {
 
   beforeEach(async () => {
     await testModule!.installLocalAppBundles([TEST_APP_SLUG])
+    await seedDockerHost(testModule!, {
+      profileAssignments: [
+        {
+          appIdentifier: TEST_APP_SLUG,
+          profileKey: 'dummy_profile',
+          config: {
+            gpus: { driver: 'nvidia', deviceIds: ['0'] },
+            volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
+          },
+        },
+      ],
+    })
   })
 
   afterEach(async () => {
@@ -378,7 +392,7 @@ describe('Docker Jobs', () => {
     })
 
     expect(execSpy.mock.calls[0]).toEqual([
-      'local',
+      TEST_DOCKER_HOST_ID,
       '1',
       [
         'lombok-worker-agent',
@@ -391,7 +405,7 @@ describe('Docker Jobs', () => {
     ])
 
     expect(execSpy.mock.calls[1]).toEqual([
-      'local',
+      TEST_DOCKER_HOST_ID,
       '1',
       ['lombok-worker-agent', 'run-job', expect.any(String)],
     ])
@@ -412,7 +426,6 @@ describe('Docker Jobs', () => {
       env: {
         LOMBOK_PROVISION_SECRET: expect.any(String),
       },
-      extraHosts: undefined,
       gpus: {
         deviceIds: ['0'],
         driver: 'nvidia',
@@ -423,10 +436,10 @@ describe('Docker Jobs', () => {
         'lombok.container_image': 'dummy-namespace/dummy-image',
         'lombok.container_profile_hash': '59da6c5f',
         'lombok.container_profile_id': `lombok:profile_${appIdentifier}:dummy_profile`,
+        'lombok.container_type': 'worker',
         'lombok.platform_host': 'localhost',
         'lombok.platform_url': 'http://localhost:3000',
       },
-      networkMode: undefined,
       start: true,
       volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
     })
@@ -441,7 +454,7 @@ describe('Docker Jobs', () => {
     const execCall2 = execSpy.mock.calls[3]!
 
     expect(execCall2).toEqual([
-      'local',
+      TEST_DOCKER_HOST_ID,
       '1',
       ['lombok-worker-agent', 'run-job', expect.any(String)],
     ])
@@ -510,7 +523,7 @@ describe('Docker Jobs', () => {
     const execCall = execSpy.mock.calls[1]!
 
     expect(execCall).toEqual([
-      'local',
+      TEST_DOCKER_HOST_ID,
       '1',
       ['lombok-worker-agent', 'run-job', expect.any(String)],
     ])
@@ -530,7 +543,6 @@ describe('Docker Jobs', () => {
       env: {
         LOMBOK_PROVISION_SECRET: expect.any(String),
       },
-      extraHosts: undefined,
       volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
       gpus: {
         deviceIds: ['0'],
@@ -541,10 +553,10 @@ describe('Docker Jobs', () => {
         'lombok.container_image': 'dummy-namespace/dummy-image',
         'lombok.container_profile_hash': '59da6c5f',
         'lombok.container_profile_id': `lombok:profile_${appIdentifier}:dummy_profile`,
+        'lombok.container_type': 'worker',
         'lombok.platform_host': 'localhost',
         'lombok.platform_url': 'http://localhost:3000',
       },
-      networkMode: undefined,
       start: true,
     })
   })
@@ -1957,7 +1969,7 @@ describe('Docker Jobs', () => {
             type: 'docker',
             metadata: {
               containerId: '1',
-              hostId: 'local',
+              hostId: TEST_DOCKER_HOST_ID,
 
               jobIdentifier: 'test_job_other',
               profileHash: '679f45ae',
@@ -1999,7 +2011,7 @@ describe('Docker Jobs', () => {
             metadata: {
               containerId: '1',
 
-              hostId: 'local',
+              hostId: TEST_DOCKER_HOST_ID,
               jobIdentifier: 'test_job_other',
               profileHash: '679f45ae',
               profileKey: `${TEST_APP_SLUG}:dummy_profile_two`,

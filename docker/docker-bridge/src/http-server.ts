@@ -58,7 +58,7 @@ interface SessionToJSON {
   agent_ready: boolean
   public_id: string | null
   label: string
-  app_id: string
+  app_identifier: string | null
   client_count: number
   created_at: number
   last_activity_at: number
@@ -77,7 +77,7 @@ function sessionToJSON(session: TunnelSession): SessionToJSON {
     agent_ready: session.agentReady,
     public_id: session.publicId,
     label: session.label,
-    app_id: session.appId,
+    app_identifier: session.appIdentifier,
     client_count: session.clients.size,
     created_at: session.createdAt,
     last_activity_at: session.lastActivityAt,
@@ -211,11 +211,13 @@ async function handleRoute(
       container_id?: string
       command?: string[]
       label?: string
-      app_id?: string
       mode?: 'ephemeral' | 'persistent'
       protocol?: 'framed' | 'raw'
       tty?: boolean
-      public?: boolean
+      options?: {
+        app_identifier: string
+        public?: boolean
+      }
     }
 
     if (!body.host_id) {
@@ -234,8 +236,11 @@ async function handleRoute(
     if (!body.label) {
       return jsonResponse({ error: 'label is required' }, 400)
     }
-    if (!body.app_id) {
-      return jsonResponse({ error: 'app_id is required' }, 400)
+    if (body.options?.public === true && !body.options.app_identifier) {
+      return jsonResponse(
+        { error: 'app_id is required for public sessions' },
+        400,
+      )
     }
 
     const mode = body.mode ?? 'persistent'
@@ -248,11 +253,15 @@ async function handleRoute(
       body.container_id,
       body.command,
       body.label,
-      body.app_id,
       mode,
       protocol,
       tty,
-      body.public ?? false,
+      body.options
+        ? {
+            appIdentifier: body.options.app_identifier,
+            public: body.options.public ?? false,
+          }
+        : null,
     )
     return jsonResponse(sessionToJSON(session), 201)
   }
