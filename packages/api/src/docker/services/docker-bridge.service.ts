@@ -1,15 +1,14 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
-import type { ConfigType } from '@nestjs/config'
+import { Injectable, Logger } from '@nestjs/common'
 import crypto from 'crypto'
 import fs from 'fs'
 import { createServer, Socket } from 'net'
 import path from 'path'
-import { coreConfig } from 'src/core/config'
 
 import {
   createSocketServer,
   writeSocketMessage,
 } from '../../core-worker/socket-utils'
+import { DockerHostManagementService } from './docker-host-management.service'
 
 interface BridgeIpcResponse {
   type: 'response'
@@ -42,8 +41,7 @@ export class DockerBridgeService {
   >()
 
   constructor(
-    @Inject(coreConfig.KEY)
-    private readonly config: ConfigType<typeof coreConfig>,
+    private readonly dockerHostManagementService: DockerHostManagementService,
   ) {
     this.bridgeSecret = this.loadOrCreateSecret()
   }
@@ -57,8 +55,8 @@ export class DockerBridgeService {
   }
 
   async startBridge(): Promise<void> {
-    const hosts = this.config.dockerHostConfig.hosts
-    if (!hosts || Object.keys(hosts).length === 0) {
+    const hosts = await this.buildHostsMap()
+    if (Object.keys(hosts).length === 0) {
       this.logger.warn('No Docker hosts configured, skipping bridge startup')
       return
     }
@@ -150,15 +148,43 @@ export class DockerBridgeService {
     this.logger.log('Docker bridge started and ready')
   }
 
-  async updateHosts(
-    hosts: Record<string, { type: string; host: string }>,
-  ): Promise<void> {
+  async syncHosts(): Promise<void> {
+    const hosts = await this.buildHostsMap()
+
+    if (Object.keys(hosts).length === 0) {
+      this.logger.warn(
+        'No enabled Docker hosts remain — bridge will reject new sessions',
+      )
+    }
+
+    if (!this.ready) {
+      // Bridge not running yet — start it if we now have hosts
+      if (Object.keys(hosts).length > 0) {
+        await this.startBridge()
+      }
+      return
+    }
+
     await this.sendRequest('update_hosts', hosts)
   }
 
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
+
+  private async buildHostsMap(): Promise<
+    Record<string, { type: string; host: string }>
+  > {
+    const dbHosts = await this.dockerHostManagementService.listHosts()
+    const map: Record<string, { type: string; host: string }> = {}
+    for (const h of dbHosts) {
+      if (!h.enabled) {
+        continue
+      }
+      map[h.id] = { type: h.type, host: h.host }
+    }
+    return map
+  }
 
   private async sendInit(
     hosts: Record<string, { type: string; host: string }>,

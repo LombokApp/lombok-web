@@ -1,2 +1,1 @@
-export * from './theme-plugin'
-export { baseTheme } from './themes'
+export { themePlugin, baseTheme } from '@lombokapp/ui-toolkit/styles'

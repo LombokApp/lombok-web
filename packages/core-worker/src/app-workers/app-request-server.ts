@@ -150,11 +150,7 @@ export const buildAppRequestServer = ({
       const host = req.headers.get('host') || ''
       const hostParts = host.split('.')
 
-      if (
-        hostParts.length < 2 ||
-        hostParts[1] !== 'apps' ||
-        !hostParts[0]?.startsWith('app-server--')
-      ) {
+      if (hostParts.length < 2 || !hostParts[0]?.startsWith('app-server--')) {
         return new Response('Invalid host format', { status: 404 })
       }
 

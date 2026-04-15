@@ -16,11 +16,39 @@ export interface FindOrCreateContainerOptions {
   env?: Record<string, string>
   extraHosts?: string[]
   volumes?: string[]
-  networkMode?: 'host' | 'bridge' | `container:${string}`
+  networkMode?: string
   gpus?: { driver: string; deviceIds: string[] }
   capAdd?: string[]
+  capDrop?: string[]
   securityOpt?: string[]
-  startIfNotRunning?: boolean
+  ports?: { host: number; container: number; protocol: 'tcp' | 'udp' }[]
+  restartPolicy?: 'no' | 'always' | 'unless-stopped' | 'on-failure'
+  shmSize?: number
+  tmpfs?: Record<string, string>
+  devices?: string[]
+  ulimits?: Record<string, { soft: number; hard: number }>
+  sysctls?: Record<string, string>
+  privileged?: boolean
+  readOnly?: boolean
+  user?: string
+  workingDir?: string
+  hostname?: string
+  domainName?: string
+  dns?: string[]
+  dnsSearch?: string[]
+  entrypoint?: string[]
+  command?: string[]
+  stopSignal?: string
+  stopTimeout?: number
+  memoryLimit?: number
+  cpuShares?: number
+  cpuQuota?: number
+  pidsLimit?: number
+  ipcMode?: string
+  pidMode?: string
+  cgroupParent?: string
+  runtime?: string
+  start: boolean
 }
 
 export interface ConnectionTestResult {

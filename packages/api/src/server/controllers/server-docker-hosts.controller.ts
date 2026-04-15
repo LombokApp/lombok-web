@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Inject,
   Param,
   Post,
   Query,
@@ -10,13 +9,12 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import nestjsConfig from '@nestjs/config'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { coreConfig } from 'src/core/config'
 import { DockerClientService } from 'src/docker/services/client/docker-client.service'
+import { DockerHostManagementService } from 'src/docker/services/docker-host-management.service'
 import { DockerJobsService } from 'src/docker/services/docker-jobs.service'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
@@ -33,7 +31,6 @@ import { DockerContainerPurgeJobsResponse } from '../dto/responses/docker-contai
 import { DockerContainerStatsResponse } from '../dto/responses/docker-container-stats-response.dto'
 import { DockerContainerWorkerDetailResponse } from '../dto/responses/docker-container-worker-detail-response.dto'
 import { DockerContainerWorkersResponse } from '../dto/responses/docker-container-workers-response.dto'
-import { DockerHostsConfigResponse } from '../dto/responses/docker-hosts-config-response.dto'
 import { DockerHostsStateResponse } from '../dto/responses/docker-hosts-state-response.dto'
 
 @Controller('/api/v1/server/docker-hosts')
@@ -44,62 +41,10 @@ import { DockerHostsStateResponse } from '../dto/responses/docker-hosts-state-re
 @ApiStandardErrorResponses()
 export class ServerDockerHostsController {
   constructor(
-    @Inject(coreConfig.KEY)
-    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly dockerJobsService: DockerJobsService,
     private readonly dockerClientService: DockerClientService,
+    private readonly dockerHostManagementService: DockerHostManagementService,
   ) {}
-
-  /**
-   * Get the configured docker hosts.
-   */
-  @Get()
-  getDockerHostsConfig(@Req() req: express.Request): DockerHostsConfigResponse {
-    if (!req.user?.isAdmin) {
-      throw new UnauthorizedException()
-    }
-
-    const hostConfig = this._coreConfig.dockerHostConfig
-    const profileHostAssignments = hostConfig.profileHostAssignments ?? {}
-
-    const hosts = Object.entries(hostConfig.hosts ?? {}).map(
-      ([hostId, config]) => {
-        const assignedProfiles = Object.entries(profileHostAssignments)
-          .filter(([, assignedHostId]) => assignedHostId === hostId)
-          .map(([profileKey]) => profileKey)
-          .sort()
-
-        const environmentVariableKeys = config.env
-          ? Object.fromEntries(
-              Object.entries(config.env).map(([profileKey, variables]) => [
-                profileKey,
-                Object.keys(variables).sort(),
-              ]),
-            )
-          : undefined
-
-        return {
-          id: hostId,
-          host: config.host,
-          type: config.type,
-          assignedProfiles,
-          networkMode: config.networkMode,
-          gpus: config.gpus,
-          volumes: config.volumes,
-          extraHosts: config.extraHosts,
-          environmentVariableKeys,
-        }
-      },
-    )
-
-    return {
-      profileHostAssignments:
-        Object.keys(profileHostAssignments).length > 0
-          ? profileHostAssignments
-          : undefined,
-      hosts,
-    }
-  }
 
   /**
    * Get the current runtime state of docker hosts.
@@ -113,7 +58,7 @@ export class ServerDockerHostsController {
     }
 
     return {
-      hosts: await this.dockerJobsService.getDockerHostStates(),
+      hosts: await this.dockerClientService.getDockerHostStates(),
     }
   }
 

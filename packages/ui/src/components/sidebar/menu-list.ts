@@ -8,11 +8,11 @@ import {
   Folders,
   LayoutGrid,
   ListChecks,
-  Server,
   Settings,
   Users,
 } from 'lucide-react'
 
+import { DockerIcon } from '@/src/components/icons/docker-icon'
 import type { AppPathContribution } from '@/src/contexts/server'
 
 interface Submenu {
@@ -115,7 +115,7 @@ export function getMenuList(
                 href: '/server/docker',
                 active: pathname?.startsWith('/server/docker'),
                 label: 'Docker',
-                icon: Server,
+                icon: DockerIcon,
               },
               {
                 href: '/server/events',

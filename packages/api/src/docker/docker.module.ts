@@ -6,7 +6,14 @@ import { coreConfig } from 'src/core/config'
 import { OrmModule } from 'src/orm/orm.module'
 import { OrmService } from 'src/orm/orm.service'
 
+import { AdminBridgeSessionController } from './controllers/admin-bridge-session.controller'
 import { BridgeSessionController } from './controllers/bridge-session.controller'
+import {
+  DockerHostsController,
+  DockerProfileAssignmentsController,
+  DockerRegistryCredentialsController,
+  DockerStandaloneContainersController,
+} from './controllers/docker-host-management.controller'
 import { DockerWorkerHooksController } from './controllers/docker-worker-hooks.controller'
 import { TunnelAuthController } from './controllers/tunnel-auth.controller'
 import { DockerJobGuard } from './guards/docker-job.guard'
@@ -14,6 +21,7 @@ import { DockerWorkerGuard } from './guards/docker-worker.guard'
 import { RunDockerWorkerTaskProcessor } from './processors/run-docker-worker.task-processor'
 import { DockerClientService } from './services/client/docker-client.service'
 import { DockerBridgeService } from './services/docker-bridge.service'
+import { DockerHostManagementService } from './services/docker-host-management.service'
 import { DockerJobsService } from './services/docker-jobs.service'
 import { DockerWorkerHookService } from './services/docker-worker-hook.service'
 
@@ -25,14 +33,20 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     forwardRef(() => AppModule),
   ],
   controllers: [
+    AdminBridgeSessionController,
     BridgeSessionController,
     DockerWorkerHooksController,
     TunnelAuthController,
+    DockerHostsController,
+    DockerRegistryCredentialsController,
+    DockerProfileAssignmentsController,
+    DockerStandaloneContainersController,
   ],
   providers: [
     DockerBridgeService,
     DockerClientService,
     DockerJobsService,
+    DockerHostManagementService,
     RunDockerWorkerTaskProcessor,
     DockerWorkerHookService,
     DockerJobGuard,
@@ -41,6 +55,7 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
   exports: [
     DockerBridgeService,
     DockerJobsService,
+    DockerHostManagementService,
     RunDockerWorkerTaskProcessor,
     DockerWorkerHookService,
     DockerClientService,

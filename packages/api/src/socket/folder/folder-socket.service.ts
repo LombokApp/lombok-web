@@ -1,6 +1,8 @@
 import { FolderPushMessage } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
 import {
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   OnModuleInit,
@@ -32,12 +34,16 @@ export class FolderSocketService implements OnModuleInit {
     this.namespace = namespace
   }
   private folderService!: FolderService
+  private readonly userService: UserService
 
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
-    private readonly userService: UserService,
-  ) {}
+    @Inject(forwardRef(() => UserService))
+    _userService,
+  ) {
+    this.userService = _userService as UserService
+  }
 
   onModuleInit() {
     this.folderService = this.moduleRef.get(FolderService)

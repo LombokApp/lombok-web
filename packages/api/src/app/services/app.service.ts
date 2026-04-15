@@ -366,16 +366,13 @@ export class AppService {
     }
 
     const tunnelSession = await this.dockerClientService.createTunnelSession(
+      params.hostId,
       params.containerId,
       params.command,
       params.label,
-      requestingAppIdentifier,
       params.mode,
       params.protocol,
-      {
-        hostId: params.hostId,
-        public: params.public,
-      },
+      { public: params.public, appIdentifier: requestingAppIdentifier },
     )
     return {
       sessionId: tunnelSession.sessionId,
@@ -2272,7 +2269,7 @@ export class AppService {
    * Destroy Docker containers belonging to the requesting app.
    * The hostId is always resolved from the profile configuration.
    */
-  async destroyAppDockerContainers(
+  async destroyAppWorkerDockerContainers(
     appIdentifier: string,
     params:
       | { profileIdentifier: string; userId?: string; containerId: string }
@@ -2285,7 +2282,7 @@ export class AppService {
       profileIdentifier,
     )
     const { hostId } =
-      this.dockerJobsService.resolveDockerHostConfigForProfile(profileKey)
+      await this.dockerJobsService.resolveDockerHostConfigForProfile(profileKey)
 
     const hasContainerId = 'containerId' in params
     if (hasContainerId) {
@@ -2302,19 +2299,20 @@ export class AppService {
         throw new BadRequestException('Container does not belong to this app')
       }
     }
-    const destroyedCount = await this.dockerJobsService.destroyContainers({
-      hostId,
-      ...(hasContainerId
-        ? { containerId: params.containerId }
-        : {
-            profileKey,
-            appIdentifier,
-            profileSpec,
-            isolationKey: params.userId
-              ? `user:${params.userId}:${params.isolationKey}`
-              : params.isolationKey,
-          }),
-    })
+    const destroyedCount =
+      await this.dockerJobsService.destroyAppWorkerContainers({
+        hostId,
+        ...(hasContainerId
+          ? { containerId: params.containerId }
+          : {
+              profileKey,
+              appIdentifier,
+              profileSpec,
+              isolationKey: params.userId
+                ? `user:${params.userId}:${params.isolationKey}`
+                : params.isolationKey,
+            }),
+      })
     return { destroyedCount }
   }
 

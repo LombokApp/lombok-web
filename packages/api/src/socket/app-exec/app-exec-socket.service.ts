@@ -163,7 +163,7 @@ export class AppExecSocketService {
       hostId,
       containerId,
       {
-        startIfNotRunning: true,
+        start: true,
       },
     )
 

@@ -584,7 +584,7 @@ describe('Tunnel Agent Integration E2E (real Go binary)', () => {
         return new Response('Not found', { status: 404 })
       },
     })
-    mockServerPort = mockServer.port
+    mockServerPort = mockServer.port!
 
     // 2. Set up bridge with mock adapter that spawns the REAL Go tunnel-agent
     config = makeConfig()

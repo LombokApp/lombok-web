@@ -1,4 +1,7 @@
-import { convertUnknownToJsonSerializableObject } from '@lombokapp/types'
+import {
+  convertUnknownToJsonSerializableObject,
+  JsonSerializableValue,
+} from '@lombokapp/types'
 import { convertErrorToAsyncWorkError } from '@lombokapp/worker-utils'
 import {
   HttpException,
@@ -13,7 +16,8 @@ import * as jwt from 'jsonwebtoken'
 import { coreConfig } from 'src/core/config'
 
 import { DockerBridgeService } from '../docker-bridge.service'
-import { DOCKER_LABELS } from '../docker-jobs.service'
+import { DockerHostManagementService } from '../docker-host-management.service'
+import { DOCKER_CONTAINER_TYPES, DOCKER_LABELS } from '../docker-jobs.service'
 import {
   type ConnectionTestResult,
   type ContainerInfo,
@@ -91,6 +95,7 @@ export class DockerClientService {
     @Inject(coreConfig.KEY)
     private readonly config: ConfigType<typeof coreConfig>,
     private readonly dockerBridgeService: DockerBridgeService,
+    private readonly dockerHostManagementService: DockerHostManagementService,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -100,7 +105,7 @@ export class DockerClientService {
   private async bridgeRequest<T>(
     method: string,
     path: string,
-    body?: unknown,
+    body?: JsonSerializableValue,
     queryParams?: Record<string, string>,
   ): Promise<T> {
     const secret = this.dockerBridgeService.getSecret()
@@ -149,12 +154,14 @@ export class DockerClientService {
       string,
       { result: ConnectionTestResult; id: string }
     > = {}
-    for (const hostId of Object.keys(
-      this.config.dockerHostConfig.hosts ?? {},
-    )) {
-      results[hostId] = {
-        id: `[BRIDGE]: ${hostId}`,
-        result: await this.testHostConnection(hostId),
+    const hosts = await this.dockerHostManagementService.listHosts()
+    for (const host of hosts) {
+      if (!host.enabled) {
+        continue
+      }
+      results[host.id] = {
+        id: `[BRIDGE]: ${host.id}`,
+        result: await this.testHostConnection(host.id),
       }
     }
     return results
@@ -181,20 +188,11 @@ export class DockerClientService {
     hostId: string,
     options: FindOrCreateContainerOptions,
   ): Promise<ContainerInfo> {
+    const { ...createPayload } = options
     const result = await this.bridgeRequest<BridgeContainerInfo>(
       'POST',
       `/docker/${hostId}/containers`,
-      {
-        image: options.image,
-        labels: options.labels,
-        env: options.env,
-        extraHosts: options.extraHosts,
-        volumes: options.volumes,
-        networkMode: options.networkMode,
-        gpus: options.gpus,
-        capAdd: options.capAdd,
-        securityOpt: options.securityOpt,
-      },
+      createPayload,
     )
     return toBridgeContainerInfo(result)
   }
@@ -364,7 +362,7 @@ export class DockerClientService {
     await this.bridgeRequest(
       'POST',
       `/docker/${hostId}/containers/${containerId}/remove`,
-      { force: options?.force },
+      { force: options?.force ? true : null },
     )
   }
 
@@ -380,7 +378,7 @@ export class DockerClientService {
   ): Promise<void> {
     await this.bridgeRequest('POST', `/docker/${hostId}/images/pull`, {
       image,
-      registry_auth: authconfig,
+      registry_auth: authconfig ?? null,
     })
   }
 
@@ -404,7 +402,7 @@ export class DockerClientService {
       command,
       env: options?.env
         ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
-        : undefined,
+        : null,
     })
 
     return result
@@ -554,6 +552,38 @@ export class DockerClientService {
     }
   }
 
+  /**
+   * Look up registry credentials for an image. Returns auth config if the
+   * image's registry matches a stored credential, otherwise undefined.
+   */
+  private async resolveRegistryAuth(
+    image: string,
+  ): Promise<
+    { username: string; password: string; serveraddress: string } | undefined
+  > {
+    const authMap = await this.dockerHostManagementService.getRegistryAuthMap()
+    if (Object.keys(authMap).length === 0) {
+      return undefined
+    }
+
+    // Extract registry from image (e.g. "ghcr.io/org/img:tag" → "ghcr.io")
+    // Images without a registry prefix (e.g. "nginx:latest") use Docker Hub
+    const firstSegment = image.split('/')[0] ?? ''
+    const hasRegistry = firstSegment.includes('.') || firstSegment.includes(':')
+    const registry = hasRegistry ? firstSegment : 'docker.io'
+
+    const cred = authMap[registry]
+    if (!cred) {
+      return undefined
+    }
+
+    return {
+      username: cred.username,
+      password: cred.password,
+      serveraddress: cred.serverAddress,
+    }
+  }
+
   private async ensureContainerRunning(
     hostId: string,
     container: ContainerInfo,
@@ -583,7 +613,7 @@ export class DockerClientService {
   async findContainerById(
     hostId: string,
     containerId: string,
-    options?: { startIfNotRunning?: boolean },
+    options?: { start?: boolean },
   ): Promise<ContainerInfo | undefined> {
     const container = await this.withErrorGuard(
       async () => this.getContainerInspect(hostId, containerId),
@@ -618,7 +648,7 @@ export class DockerClientService {
       }
     })
 
-    if (options?.startIfNotRunning) {
+    if (options?.start) {
       return this.ensureContainerRunning(hostId, container)
     }
 
@@ -683,7 +713,7 @@ export class DockerClientService {
     )
 
     if (stoppedContainer) {
-      if (options.startIfNotRunning) {
+      if (options.start) {
         return this.ensureContainerRunning(hostId, stoppedContainer)
       }
       return stoppedContainer
@@ -705,7 +735,16 @@ export class DockerClientService {
 
     return this.withErrorGuard(
       async () => {
-        const created = await this.createContainer(hostId, createOptions)
+        // Pull image with registry auth if configured
+        const registryAuth = await this.resolveRegistryAuth(createOptions.image)
+        if (registryAuth) {
+          await this.pullImage(hostId, createOptions.image, registryAuth)
+        }
+
+        const created = await this.createContainer(hostId, {
+          ...createOptions,
+          start: true,
+        })
         await this.ensureContainerRunning(hostId, created)
         return created
       },
@@ -725,6 +764,79 @@ export class DockerClientService {
             },
           },
         ),
+    )
+  }
+
+  // ---------------------------------------------------------------------------
+  // Host state
+  // ---------------------------------------------------------------------------
+
+  async getDockerHostState(hostId: string): Promise<DockerHostState> {
+    let connection: ConnectionTestResult
+    try {
+      connection = await this.testHostConnection(hostId)
+    } catch (error) {
+      connection = {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+
+    let resources: DockerHostResources | undefined
+    if (connection.success) {
+      try {
+        resources = await this.getHostResources(hostId)
+      } catch {
+        resources = undefined
+      }
+    }
+
+    let containers: DockerHostContainerState[] = []
+    let containersError: string | undefined
+    try {
+      const rawContainers = await this.listContainersByLabels(hostId, {
+        [DOCKER_LABELS.PLATFORM_HOST]: this.config.platformHost,
+      })
+      containers = rawContainers.map((container): DockerHostContainerState => {
+        const isWorker =
+          container.labels[DOCKER_LABELS.CONTAINER_TYPE] ===
+          DOCKER_CONTAINER_TYPES.WORKER
+
+        if (isWorker) {
+          return {
+            ...container,
+            containerType: 'worker',
+            profileId: container.labels[DOCKER_LABELS.PROFILE_ID] ?? '',
+            profileHash: container.labels[DOCKER_LABELS.PROFILE_HASH] ?? '',
+          }
+        }
+
+        return {
+          ...container,
+          containerType: 'standalone',
+          standaloneContainerId:
+            container.labels[DOCKER_LABELS.STANDALONE_CONTAINER_ID] ?? '',
+        }
+      })
+    } catch (error) {
+      containersError = error instanceof Error ? error.message : String(error)
+    }
+
+    return {
+      id: hostId,
+      description: this.getHostDescription(hostId),
+      connection,
+      resources,
+      containers,
+      containersError,
+    }
+  }
+
+  async getDockerHostStates(): Promise<DockerHostState[]> {
+    const hosts = await this.dockerHostManagementService.listHosts()
+    const enabledHostIds = hosts.filter((h) => h.enabled).map((h) => h.id)
+    return Promise.all(
+      enabledHostIds.map((hostId) => this.getDockerHostState(hostId)),
     )
   }
 
@@ -905,19 +1017,20 @@ export class DockerClientService {
    * For framed protocol: used for HTTP tunnel-agent proxying.
    */
   async createTunnelSession(
+    hostId: string,
     containerId: string,
     command: string[],
     label: string,
-    appIdentifier: string,
     mode: 'ephemeral' | 'persistent',
     protocol: 'framed' | 'raw',
     options?: {
-      hostId?: string
       public?: boolean
+      appIdentifier: string
     },
   ): Promise<TunnelSessionDetails> {
     const backendToken = this.dockerBridgeService.getSecret()
     const isPublic = options?.public ?? false
+    const appIdentifier = options?.appIdentifier
 
     const createResponse = await fetch(`${BRIDGE_HTTP_URL}/sessions/tunnel`, {
       method: 'POST',
@@ -928,12 +1041,13 @@ export class DockerClientService {
       body: JSON.stringify({
         container_id: containerId,
         command,
-        host_id: options?.hostId,
+        host_id: hostId,
         label,
-        app_id: appIdentifier,
         mode,
         protocol,
-        public: isPublic,
+        options: appIdentifier
+          ? { app_identifier: appIdentifier, public: isPublic }
+          : undefined,
       }),
     })
 
@@ -947,7 +1061,7 @@ export class DockerClientService {
     }
 
     const session = (await createResponse.json()) as BridgeSessionResponse
-    const publicId = session.public_id || undefined
+    const publicId = (isPublic && session.public_id) || undefined
 
     this.logger.debug(
       `Bridge tunnel session created: ${session.id} for container ${containerId}${publicId ? ` publicId ${publicId}` : ''}`,
@@ -961,10 +1075,9 @@ export class DockerClientService {
     const { wsUrl, httpUrl } = this.buildBridgeUrls()
 
     return {
-      ...(publicId ? { publicId } : {}),
       sessionId: session.id,
       token,
-      ...(publicId
+      ...(appIdentifier && publicId
         ? {
             public: {
               id: publicId,
@@ -1076,4 +1189,42 @@ export class DockerClientService {
         : ''
     return `${protocol}://${label}--${publicId}--${appIdentifier}.${platformHost}${portSuffix}`
   }
+}
+
+// ---------------------------------------------------------------------------
+// Host state types (exported for controller/DTO alignment)
+// ---------------------------------------------------------------------------
+
+interface DockerHostContainerStateBase {
+  id: string
+  image: string
+  labels: Record<string, string>
+  state: 'running' | 'exited' | 'paused' | 'created' | 'unknown'
+  createdAt: string
+}
+
+export interface DockerHostWorkerContainerState
+  extends DockerHostContainerStateBase {
+  containerType: 'worker'
+  profileId: string
+  profileHash: string
+}
+
+export interface DockerHostStandaloneContainerState
+  extends DockerHostContainerStateBase {
+  containerType: 'standalone'
+  standaloneContainerId: string
+}
+
+export type DockerHostContainerState =
+  | DockerHostWorkerContainerState
+  | DockerHostStandaloneContainerState
+
+export interface DockerHostState {
+  id: string
+  description: string
+  connection: ConnectionTestResult
+  resources?: DockerHostResources
+  containers: DockerHostContainerState[]
+  containersError?: string
 }

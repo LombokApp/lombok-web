@@ -1674,11 +1674,6 @@ describe('Task lifecycle', () => {
         clearTimeout(timeout)
         resolve(data)
       })
-
-      void testModule!.services.taskService.registerTaskStarted({
-        taskId: task.id,
-        executorMetadata: TEST_EXECUTOR_METADATA,
-      })
     })
 
     expect(received).toBeDefined()
@@ -1857,7 +1852,7 @@ describe('Task lifecycle', () => {
     await enableAppForUser(user!.id, appIdentifier)
 
     // Create task WITHOUT targetUserId or targetLocation
-    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+    await runWithThreadContext(crypto.randomUUID(), async () => {
       return testModule!.services.taskService.triggerAppActionTask({
         appIdentifier,
         taskIdentifier: APP_ACTION_TASK_ID,
@@ -1870,10 +1865,6 @@ describe('Task lifecycle', () => {
 
     const received = await new Promise<boolean>((resolve) => {
       socket!.once('ASYNC_UPDATE', () => resolve(true))
-      void testModule!.services.taskService.registerTaskStarted({
-        taskId: task.id,
-        executorMetadata: TEST_EXECUTOR_METADATA,
-      })
       setTimeout(() => resolve(false), 1500)
     })
 

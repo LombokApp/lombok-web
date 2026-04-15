@@ -409,7 +409,7 @@ export async function handleAppSocketMessage(
     }
     case 'DESTROY_APP_DOCKER_CONTAINERS': {
       try {
-        const result = await appService.destroyAppDockerContainers(
+        const result = await appService.destroyAppWorkerDockerContainers(
           requestingAppIdentifier,
           parsedRequest.data,
         )

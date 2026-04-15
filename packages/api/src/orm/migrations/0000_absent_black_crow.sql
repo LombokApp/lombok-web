@@ -116,6 +116,55 @@ CREATE TABLE "comments" (
 	CONSTRAINT "no_self_quote" CHECK (quote_id != id)
 );
 --> statement-breakpoint
+CREATE TABLE "docker_hosts" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"label" text NOT NULL,
+	"type" text NOT NULL,
+	"host" text NOT NULL,
+	"tls_config" jsonb,
+	"is_default" boolean DEFAULT false NOT NULL,
+	"enabled" boolean DEFAULT true NOT NULL,
+	"health_status" text DEFAULT 'unknown' NOT NULL,
+	"last_health_check" timestamp,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "docker_profile_resource_assignments" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"app_identifier" text NOT NULL,
+	"profile_key" text NOT NULL,
+	"docker_host_id" uuid NOT NULL,
+	"config" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"config_hashes" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "docker_registry_credentials" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"registry" text NOT NULL,
+	"server_address" text NOT NULL,
+	"username" text NOT NULL,
+	"password" text NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "docker_standalone_containers" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"docker_host_id" uuid NOT NULL,
+	"label" text NOT NULL,
+	"image" text NOT NULL,
+	"tag" text DEFAULT 'latest' NOT NULL,
+	"desired_status" text DEFAULT 'stopped' NOT NULL,
+	"container_id" text NOT NULL,
+	"config" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"config_hashes" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"event_identifier" text NOT NULL,
@@ -337,6 +386,9 @@ ALTER TABLE "comments" ADD CONSTRAINT "comments_folder_object_id_folder_objects_
 ALTER TABLE "comments" ADD CONSTRAINT "comments_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_root_id_comments_id_fk" FOREIGN KEY ("root_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_quote_id_comments_id_fk" FOREIGN KEY ("quote_id") REFERENCES "public"."comments"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "docker_profile_resource_assignments" ADD CONSTRAINT "docker_profile_resource_assignments_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "docker_profile_resource_assignments" ADD CONSTRAINT "docker_profile_resource_assignments_docker_host_id_docker_hosts_id_fk" FOREIGN KEY ("docker_host_id") REFERENCES "public"."docker_hosts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "docker_standalone_containers" ADD CONSTRAINT "docker_standalone_containers_docker_host_id_docker_hosts_id_fk" FOREIGN KEY ("docker_host_id") REFERENCES "public"."docker_hosts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_objects" ADD CONSTRAINT "folder_objects_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -369,6 +421,14 @@ CREATE INDEX "idx_comments_folder_object_roots" ON "comments" USING btree ("fold
 CREATE INDEX "idx_comments_thread_flat" ON "comments" USING btree ("root_id","created_at") WHERE root_id IS NOT NULL AND deleted_at IS NULL;--> statement-breakpoint
 CREATE INDEX "idx_comments_tombstone_lookup" ON "comments" USING btree ("id","deleted_at","author_id");--> statement-breakpoint
 CREATE INDEX "idx_comments_folder_id" ON "comments" USING btree ("folder_id","created_at");--> statement-breakpoint
+CREATE INDEX "docker_hosts_is_default_idx" ON "docker_hosts" USING btree ("is_default");--> statement-breakpoint
+CREATE INDEX "docker_hosts_enabled_idx" ON "docker_hosts" USING btree ("enabled");--> statement-breakpoint
+CREATE UNIQUE INDEX "docker_profile_resource_assignments_app_profile_unique" ON "docker_profile_resource_assignments" USING btree ("app_identifier","profile_key");--> statement-breakpoint
+CREATE INDEX "docker_profile_resource_assignments_app_identifier_idx" ON "docker_profile_resource_assignments" USING btree ("app_identifier");--> statement-breakpoint
+CREATE INDEX "docker_profile_resource_assignments_docker_host_id_idx" ON "docker_profile_resource_assignments" USING btree ("docker_host_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "docker_registry_credentials_registry_unique" ON "docker_registry_credentials" USING btree ("registry");--> statement-breakpoint
+CREATE INDEX "docker_standalone_containers_desired_status_idx" ON "docker_standalone_containers" USING btree ("desired_status");--> statement-breakpoint
+CREATE INDEX "docker_standalone_containers_docker_host_id_idx" ON "docker_standalone_containers" USING btree ("docker_host_id");--> statement-breakpoint
 CREATE INDEX "events_target_location_folder_id_idx" ON "events" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "events_actor_user_id_idx" ON "events" USING btree ("actor_user_id");--> statement-breakpoint
 CREATE INDEX "events_target_user_id_idx" ON "events" USING btree ("target_location_folder_id");--> statement-breakpoint

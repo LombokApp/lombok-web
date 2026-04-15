@@ -36,6 +36,15 @@ import {
 } from '../app/entities/app-user-settings.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
 import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
+import {
+  dockerHostsRelations,
+  dockerHostsTable,
+  dockerProfileResourceAssignmentsRelations,
+  dockerProfileResourceAssignmentsTable,
+  dockerRegistryCredentialsTable,
+  dockerStandaloneContainersRelations,
+  dockerStandaloneContainersTable,
+} from '../docker/entities'
 import { eventsTable } from '../event/entities/event.entity'
 import {
   foldersRelations,
@@ -99,6 +108,13 @@ export const dbSchema = {
   mcpUserSettingsRelations,
   mcpFolderSettingsTable,
   mcpFolderSettingsRelations,
+  dockerHostsTable,
+  dockerHostsRelations,
+  dockerRegistryCredentialsTable,
+  dockerProfileResourceAssignmentsTable,
+  dockerProfileResourceAssignmentsRelations,
+  dockerStandaloneContainersTable,
+  dockerStandaloneContainersRelations,
 }
 
 export type LombokDatabase = NodePgDatabase<typeof dbSchema>

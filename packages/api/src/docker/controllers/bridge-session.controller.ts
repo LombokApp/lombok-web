@@ -90,7 +90,7 @@ export class BridgeSessionController {
     const container = await this.dockerClientService.findContainerById(
       hostId,
       containerId,
-      { startIfNotRunning: true },
+      { start: true },
     )
 
     if (!container) {
@@ -140,16 +140,13 @@ export class BridgeSessionController {
     )
 
     const credentials = await this.dockerClientService.createTunnelSession(
+      body.hostId,
       body.containerId,
       body.command,
       body.label,
-      appIdentifier,
       body.mode,
       body.protocol,
-      {
-        hostId: body.hostId,
-        public: body.public,
-      },
+      { public: body.public, appIdentifier },
     )
 
     this.logger.debug(

@@ -146,7 +146,7 @@ export function DataTable<TData, TValue>({
         />
       )}
       <div className="relative max-h-max min-h-0 self-stretch">
-        <div className="absolute inset-x-0 top-0 z-10 h-12 rounded-t-md border bg-background shadow-sm"></div>
+        <div className="absolute inset-x-0 top-0 z-10 h-12 rounded-t-md border bg-background"></div>
         <ScrollArea
           type="always"
           className="h-full"
