@@ -11,9 +11,13 @@ import {
 } from '@lombokapp/ui-toolkit/components/form/form'
 import { Input } from '@lombokapp/ui-toolkit/components/input/input'
 import { useForm } from 'react-hook-form'
-import type { z } from 'zod'
+import { z } from 'zod'
 
-export type CustomLocationFormValues = z.infer<typeof s3LocationSchema>
+const customLocationFormSchema = s3LocationSchema.extend({
+  prefix: z.string().nullable(),
+})
+
+export type CustomLocationFormValues = z.infer<typeof customLocationFormSchema>
 
 export interface CustomLocationFormProps {
   onSubmit: (values: CustomLocationFormValues) => Promise<void>
@@ -25,7 +29,7 @@ export const CustomLocationForm = ({
   onCancel,
 }: CustomLocationFormProps) => {
   const form = useForm<CustomLocationFormValues>({
-    resolver: zodResolver(s3LocationSchema),
+    resolver: zodResolver(customLocationFormSchema),
     defaultValues: {
       accessKeyId: '',
       secretAccessKey: '',
@@ -128,7 +132,7 @@ export const CustomLocationForm = ({
                 <FormItem>
                   <FormLabel>Prefix</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

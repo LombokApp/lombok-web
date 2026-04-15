@@ -23,7 +23,7 @@ import { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.d
 import { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
 import { AccessKeyRotateResponse } from '../dto/responses/access-key-rotate-response.dto'
 import { RotateAccessKeyInputDTO } from '../dto/rotate-access-key-input.dto'
-import { transformAccessKeyToPublicDTO } from '../dto/transforms/access-key.transforms'
+import { transformAccessKeyToDTO } from '../dto/transforms/access-key.transforms'
 import { StorageLocationService } from '../storage-location.service'
 
 @Controller('/api/v1/server/access-keys')
@@ -55,7 +55,7 @@ export class ServerAccessKeysController {
       })
     return {
       ...result,
-      result: result.result.map(transformAccessKeyToPublicDTO),
+      result: result.result.map(transformAccessKeyToDTO),
     }
   }
 
@@ -75,7 +75,7 @@ export class ServerAccessKeysController {
       accessKeyHashId,
     )
 
-    return { accessKey: transformAccessKeyToPublicDTO(result) }
+    return { accessKey: transformAccessKeyToDTO(result) }
   }
 
   /**

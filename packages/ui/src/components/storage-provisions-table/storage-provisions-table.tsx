@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type { StorageProvision } from '@lombokapp/types'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import React from 'react'
 
@@ -10,15 +10,15 @@ export function StorageProvisionsTable({
   openRotateModal,
   onDelete,
 }: {
-  storageProvision: StorageProvisionDTO[]
-  onUpdate: (storageProvision: StorageProvisionDTO) => void
+  storageProvision: StorageProvision[]
+  onUpdate: (storageProvision: StorageProvision) => void
   openRotateModal: (accessKey: {
     accessKeyHashId: string
     accessKeyId: string
     endpoint: string
     region: string
   }) => void
-  onDelete: (storageProvision: StorageProvisionDTO) => void
+  onDelete: (storageProvision: StorageProvision) => void
 }) {
   const columns = React.useMemo(
     () => storageProvisionsTableColumns(onUpdate, openRotateModal, onDelete),

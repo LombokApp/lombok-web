@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type { StorageProvision } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
@@ -9,7 +9,7 @@ const VALUE_TEXT_COLOR = ''
 export function ServerStorageAttributesList({
   storageProvision,
 }: {
-  storageProvision?: StorageProvisionDTO
+  storageProvision?: StorageProvision
 }) {
   return (
     <div className="rounded-lg pl-4 dark:rounded-none">

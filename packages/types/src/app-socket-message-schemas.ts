@@ -126,7 +126,7 @@ export const triggerAppTaskSchema = z.object({
   outputLocation: z
     .object({
       folderId: z.string(),
-      prefix: z.string().optional(),
+      prefix: z.string().nonempty().nullable(),
     })
     .optional(),
   dontStartBefore: z

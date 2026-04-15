@@ -35,9 +35,7 @@ interface SearchConfig {
 }
 
 interface ServerGeneralConfigTabProps {
-  settings?: ServerSettingsGetResponse['settings'] & {
-    GOOGLE_OAUTH_CONFIG?: GoogleOAuthConfig
-  }
+  settings?: ServerSettingsGetResponse['settings']
   onSaveServerHostname?: (hostname: string) => Promise<void>
   onSaveEnableNewSignups?: (enabled: boolean) => Promise<void>
   onSaveGoogleOAuthConfig?: (config: GoogleOAuthConfig) => Promise<void>
@@ -65,9 +63,9 @@ export function ServerGeneralConfigTab({
   const [googleClientId, setGoogleClientId] = React.useState(
     settings?.GOOGLE_OAUTH_CONFIG?.clientId ?? '',
   )
-  const [googleClientSecret, setGoogleClientSecret] = React.useState(
-    settings?.GOOGLE_OAUTH_CONFIG?.clientSecret ?? '',
-  )
+  const [googleClientSecret, setGoogleClientSecret] = React.useState<
+    string | null
+  >(null)
 
   // Search configuration state
   const [selectedSearchConfig, setSearchConfig] = React.useState<SearchConfig>(
@@ -100,7 +98,11 @@ export function ServerGeneralConfigTab({
     setIsSignupEnabled(settings?.SIGNUP_ENABLED ?? false)
     setGoogleOAuthEnabled(settings?.GOOGLE_OAUTH_CONFIG?.enabled ?? false)
     setGoogleClientId(settings?.GOOGLE_OAUTH_CONFIG?.clientId ?? '')
-    setGoogleClientSecret(settings?.GOOGLE_OAUTH_CONFIG?.clientSecret ?? '')
+    setGoogleClientSecret(
+      typeof settings?.GOOGLE_OAUTH_CONFIG?.clientSecret === 'undefined'
+        ? null
+        : settings.GOOGLE_OAUTH_CONFIG.clientSecret,
+    )
     setSearchConfig(settings?.SEARCH_CONFIG ?? { app: null })
   }, [settings])
 
@@ -134,7 +136,7 @@ export function ServerGeneralConfigTab({
     await onSaveGoogleOAuthConfig?.({
       enabled: googleOAuthEnabled,
       clientId: googleClientId,
-      clientSecret: googleClientSecret,
+      clientSecret: googleClientSecret ?? '',
     })
   }
 
@@ -296,7 +298,7 @@ export function ServerGeneralConfigTab({
                     id="google-client-secret"
                     type="password"
                     placeholder="Google OAuth Client Secret"
-                    value={googleClientSecret}
+                    value={googleClientSecret ?? '********'}
                     onChange={handleGoogleClientSecretChange}
                     className="mt-1"
                   />
@@ -311,14 +313,15 @@ export function ServerGeneralConfigTab({
             disabled={
               !onSaveGoogleOAuthConfig ||
               (googleOAuthEnabled &&
-                (!googleClientId || !googleClientSecret)) ||
+                (!googleClientId ||
+                  (!googleClientSecret && googleClientSecret !== null))) ||
               // Check if values have changed from current settings
               (googleOAuthEnabled ===
                 (settings?.GOOGLE_OAUTH_CONFIG?.enabled ?? false) &&
                 googleClientId ===
                   (settings?.GOOGLE_OAUTH_CONFIG?.clientId ?? '') &&
                 googleClientSecret ===
-                  (settings?.GOOGLE_OAUTH_CONFIG?.clientSecret ?? ''))
+                  settings?.GOOGLE_OAUTH_CONFIG?.clientSecret)
             }
           >
             Save Google OAuth Settings

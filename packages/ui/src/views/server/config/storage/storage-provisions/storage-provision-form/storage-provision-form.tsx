@@ -1,5 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type {
+  StorageProvision,
+  StorageProvisionInputDTO,
+  StorageProvisionUpdateDTO,
+} from '@lombokapp/types'
 import {
   s3LocationEndpointSchema,
   StorageProvisionTypeEnum,
@@ -28,72 +32,143 @@ const formSchema = z.object({
   label: z.string().nonempty(),
   endpoint: s3LocationEndpointSchema,
   accessKeyId: z.string().nonempty(),
-  secretAccessKey: z.string().nonempty(),
+  secretAccessKey: z.string().nonempty().nullable(),
   description: z.string().nonempty(),
   provisionTypes: z.array(StorageProvisionTypeZodEnum),
   bucket: z.string().nonempty(),
   region: z.string(),
-  prefix: z.string(),
+  prefix: z.string().nullable(),
 })
 
 export type StorageProvisionFormValues = z.infer<typeof formSchema>
 
-export const StorageProvisionForm = ({
-  onSubmit,
-  onCancel,
-  value: storageProvision,
-  className,
-  submitText = 'Save',
-  mutationType,
-}: {
+interface CreateProps {
+  input: {
+    mutationType: 'CREATE'
+    values?: StorageProvisionInputDTO
+  }
+  onSubmit: (payload: {
+    mutationType: 'CREATE'
+    values: StorageProvisionInputDTO
+  }) => void
+}
+
+interface UpdateProps {
+  input: {
+    mutationType: 'UPDATE'
+    values: StorageProvision
+  }
+  onSubmit: (payload: {
+    mutationType: 'UPDATE'
+    values: StorageProvisionUpdateDTO
+  }) => void
+}
+
+type StorageProvisionFormProps = {
   submitText?: string
-  onSubmit: (values: StorageProvisionFormValues) => void
   onCancel: () => void
-  value?: Partial<StorageProvisionDTO>
   className?: string
-  mutationType: MutationType
-}) => {
+} & (CreateProps | UpdateProps)
+
+const emptyFormValues: StorageProvisionFormValues = {
+  label: '',
+  description: '',
+  provisionTypes: [
+    StorageProvisionTypeEnum.CONTENT,
+    StorageProvisionTypeEnum.METADATA,
+  ],
+  accessKeyId: '',
+  secretAccessKey: '',
+  bucket: '',
+  endpoint: '',
+  prefix: '',
+  region: '',
+}
+
+const toFormValues = (
+  props: StorageProvisionFormProps,
+): StorageProvisionFormValues => {
+  if (props.input.mutationType === 'UPDATE') {
+    const v = props.input.values
+    return {
+      label: v.label,
+      description: v.description,
+      endpoint: v.endpoint,
+      bucket: v.bucket,
+      region: v.region,
+      accessKeyId: v.accessKeyId,
+      secretAccessKey: '********',
+      prefix: v.prefix ?? '',
+      provisionTypes: v.provisionTypes,
+    }
+  }
+  const v = props.input.values
+  if (!v) {
+    return emptyFormValues
+  }
+  return {
+    label: v.label,
+    description: v.description,
+    endpoint: v.endpoint,
+    bucket: v.bucket,
+    region: v.region,
+    accessKeyId: v.accessKeyId,
+    secretAccessKey: v.secretAccessKey,
+    prefix: v.prefix ?? '',
+    provisionTypes: v.provisionTypes,
+  }
+}
+
+export const StorageProvisionForm = (props: StorageProvisionFormProps) => {
+  const { onCancel, className, submitText = 'Save', input } = props
+  const { mutationType } = input
+
   const form = useForm<StorageProvisionFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: storageProvision
-      ? { ...storageProvision, secretAccessKey: '' }
-      : {
-          label: '',
-          description: '',
-          provisionTypes: [
-            StorageProvisionTypeEnum.CONTENT,
-            StorageProvisionTypeEnum.METADATA,
-          ],
-          accessKeyId: '',
-          secretAccessKey: '',
-          bucket: '',
-          endpoint: '',
-          prefix: '',
-          region: '',
-        },
+    defaultValues: toFormValues(props),
   })
 
   React.useEffect(() => {
-    if (storageProvision?.id) {
-      form.reset(storageProvision)
-      form.setValue('secretAccessKey', '********')
-    } else {
-      form.reset({
-        label: '',
-        description: '',
-        provisionTypes: [
-          StorageProvisionTypeEnum.CONTENT,
-          StorageProvisionTypeEnum.METADATA,
-        ],
-        accessKeyId: '',
-        secretAccessKey: '',
-        bucket: '',
-        endpoint: '',
-        prefix: '',
-        region: '',
+    form.reset(toFormValues(props))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input.values, mutationType])
+
+  const handleSubmit = React.useCallback(
+    (values: StorageProvisionFormValues) => {
+      if (props.input.mutationType === 'CREATE') {
+        const createOnSubmit = props.onSubmit as CreateProps['onSubmit']
+        createOnSubmit({
+          mutationType: 'CREATE',
+          values: {
+            label: values.label,
+            description: values.description,
+            endpoint: values.endpoint,
+            bucket: values.bucket,
+            region: values.region,
+            accessKeyId: values.accessKeyId,
+            secretAccessKey: values.secretAccessKey ?? '',
+            prefix: values.prefix?.length ? values.prefix : null,
+            provisionTypes: values.provisionTypes,
+          },
+        })
+        return
+      }
+      const updateOnSubmit = props.onSubmit as UpdateProps['onSubmit']
+      updateOnSubmit({
+        mutationType: 'UPDATE',
+        values: {
+          label: values.label,
+          description: values.description,
+          endpoint: values.endpoint,
+          bucket: values.bucket,
+          region: values.region,
+          prefix: values.prefix?.length ? values.prefix : null,
+          provisionTypes: values.provisionTypes,
+        },
       })
-    }
-  }, [storageProvision, form.reset, form])
+    },
+    [props],
+  )
 
   return (
     <div className={cn('grid gap-6', className)}>
@@ -103,7 +178,7 @@ export const StorageProvisionForm = ({
             e.preventDefault()
             void form.trigger().then(() => {
               if (form.formState.isValid) {
-                void form.handleSubmit(onSubmit)(e)
+                void form.handleSubmit(handleSubmit)(e)
               }
             })
           }}
@@ -163,7 +238,11 @@ export const StorageProvisionForm = ({
                 <FormItem>
                   <FormLabel>Secret Access Key</FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={mutationType === 'UPDATE'} />
+                    <Input
+                      {...field}
+                      disabled={mutationType === 'UPDATE'}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -215,7 +294,7 @@ export const StorageProvisionForm = ({
                 <FormItem>
                   <FormLabel>Prefix</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

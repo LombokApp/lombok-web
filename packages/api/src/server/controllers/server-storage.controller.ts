@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -45,7 +46,9 @@ export class ServerStorageController {
     const result =
       await this.serverConfigurationService.getServerStorageAsAdmin(req.user)
     return {
-      serverStorageLocation: SERVER_STORAGE_CONFIG.transformForResponse!(result) as ServerStorageLocationGetResponse['serverStorageLocation'],
+      serverStorageLocation: result
+        ? (SERVER_STORAGE_CONFIG.transformForResponse(result) ?? undefined)
+        : undefined,
     }
   }
 
@@ -66,9 +69,12 @@ export class ServerStorageController {
         req.user,
         serverStorageLocation,
       )
-
+    if (!setResult) {
+      throw new BadRequestException('Failed to set server storage location')
+    }
     return {
-      serverStorageLocation: SERVER_STORAGE_CONFIG.transformForResponse!(setResult) as ServerStorageLocationGetResponse['serverStorageLocation'],
+      serverStorageLocation:
+        SERVER_STORAGE_CONFIG.transformForResponse(setResult) ?? undefined,
     }
   }
 

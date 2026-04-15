@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type { StorageProvision } from '@lombokapp/types'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import type { LombokDatabase } from 'src/orm/orm.service'
 import {
@@ -170,7 +170,7 @@ export async function seed(db: LombokDatabase): Promise<void> {
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
   // add server storage provisions
-  const storageProvision: StorageProvisionDTO = {
+  const storageProvision: StorageProvision = {
     ...S3_CREDENTIALS,
     id: uuidV4(),
     bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
@@ -179,8 +179,9 @@ export async function seed(db: LombokDatabase): Promise<void> {
     label: process.env.DEV_S3_LABEL ?? '',
     endpoint: process.env.DEV_S3_ENDPOINT ?? '',
     region: process.env.DEV_S3_REGION ?? '',
-    prefix: process.env.DEV_S3_PREFIX,
+    prefix: process.env.DEV_S3_PREFIX ?? null,
     provisionTypes: ['CONTENT', 'METADATA'],
+    secretAccessKey: null,
     accessKeyHashId: buildAccessKeyHashId({
       accessKeyId: S3_CREDENTIALS.accessKeyId,
       secretAccessKey: S3_CREDENTIALS.secretAccessKey,

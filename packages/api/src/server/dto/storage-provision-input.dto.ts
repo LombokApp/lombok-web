@@ -13,7 +13,7 @@ export const storageProvisionInputSchema = z.object({
   region: z.string(),
   accessKeyId: z.string(),
   secretAccessKey: z.string(),
-  prefix: z.string().optional(),
+  prefix: z.string().nonempty().nullable(),
   provisionTypes: z.array(StorageProvisionTypeZodEnum).min(1),
 })
 

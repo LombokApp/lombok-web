@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type { StorageProvision } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   DropdownMenu,
@@ -14,8 +14,8 @@ export function StorageLocationDropdown({
   onSelectStorageProvision,
   onSelectCustom,
 }: {
-  storageProvisions: StorageProvisionDTO[]
-  onSelectStorageProvision: (storageProvision: StorageProvisionDTO) => void
+  storageProvisions: StorageProvision[]
+  onSelectStorageProvision: (storageProvision: StorageProvision) => void
   onSelectCustom: () => void
 }) {
   return (

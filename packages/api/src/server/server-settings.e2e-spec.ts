@@ -55,11 +55,10 @@ describe('Server - Settings', () => {
     expect(getSettingsResponse.data).toEqual({
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
-        GOOGLE_OAUTH_CONFIG: {
-          enabled: false,
-          clientId: '',
-        },
+        GOOGLE_OAUTH_CONFIG: null,
         SERVER_HOSTNAME: null,
+        STORAGE_PROVISIONS: [],
+        SERVER_STORAGE: null,
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
@@ -92,10 +91,9 @@ describe('Server - Settings', () => {
     expect(newSettingsResponse.data).toEqual({
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
-        GOOGLE_OAUTH_CONFIG: {
-          enabled: false,
-          clientId: '',
-        },
+        STORAGE_PROVISIONS: [],
+        SERVER_STORAGE: null,
+        GOOGLE_OAUTH_CONFIG: null,
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
         SEARCH_CONFIG: { app: null },
@@ -129,10 +127,9 @@ describe('Server - Settings', () => {
     expect(newSettingsResponse.data).toEqual({
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
-        GOOGLE_OAUTH_CONFIG: {
-          enabled: false,
-          clientId: '',
-        },
+        GOOGLE_OAUTH_CONFIG: null,
+        STORAGE_PROVISIONS: [],
+        SERVER_STORAGE: null,
         SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
@@ -262,10 +259,9 @@ describe('Server - Settings', () => {
     expect(newSettingsResponse.data).toEqual({
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
-        GOOGLE_OAUTH_CONFIG: {
-          enabled: false,
-          clientId: '',
-        },
+        GOOGLE_OAUTH_CONFIG: null,
+        STORAGE_PROVISIONS: [],
+        SERVER_STORAGE: null,
         SIGNUP_ENABLED: true,
         SEARCH_CONFIG: { app: null },
         SERVER_HOSTNAME: null,
@@ -284,10 +280,9 @@ describe('Server - Settings', () => {
     expect(settingsAfterKeyReset.data).toEqual({
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
-        GOOGLE_OAUTH_CONFIG: {
-          enabled: false,
-          clientId: '',
-        },
+        GOOGLE_OAUTH_CONFIG: null,
+        STORAGE_PROVISIONS: [],
+        SERVER_STORAGE: null,
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
@@ -321,11 +316,10 @@ describe('Server - Settings', () => {
     )
     expect(newSettingsResponse.data).toEqual({
       settings: {
+        STORAGE_PROVISIONS: [],
+        SERVER_STORAGE: null,
         EMAIL_PROVIDER_CONFIG: null,
-        GOOGLE_OAUTH_CONFIG: {
-          enabled: false,
-          clientId: '',
-        },
+        GOOGLE_OAUTH_CONFIG: null,
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
@@ -367,7 +361,7 @@ describe('Server - Settings', () => {
     expect(getResponse.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual({
       from: 'test@example.com',
       provider: 'resend',
-      config: {},
+      config: { apiKey: null },
     })
   })
 
@@ -413,6 +407,7 @@ describe('Server - Settings', () => {
         host: 'smtp.example.com',
         port: 587,
         username: 'user',
+        password: null,
       },
     })
   })
@@ -443,7 +438,9 @@ describe('Server - Settings', () => {
     expect(getAfterSet.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual({
       provider: 'resend',
       from: 'test@example.com',
-      config: {},
+      config: {
+        apiKey: null,
+      },
     })
 
     await apiClient(accessToken).DELETE(

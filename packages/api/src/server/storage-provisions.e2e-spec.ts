@@ -39,7 +39,7 @@ describe('Server - Storage Provisions', () => {
           label: 'dummylabel',
           provisionTypes: [StorageProvisionTypeEnum.REDUNDANCY],
           region: 'auto',
-          prefix: '',
+          prefix: null,
         },
       },
     )
@@ -73,7 +73,7 @@ describe('Server - Storage Provisions', () => {
           label: 'dummylabel',
           provisionTypes: [StorageProvisionTypeEnum.REDUNDANCY],
           region: 'auto',
-          prefix: '',
+          prefix: null,
         },
       },
     )
@@ -156,7 +156,7 @@ describe('Server - Storage Provisions', () => {
           label: 'dummylabel',
           provisionTypes: [StorageProvisionTypeEnum.REDUNDANCY],
           region: 'auto',
-          prefix: '',
+          prefix: null,
         },
       },
     )

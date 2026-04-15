@@ -1,7 +1,4 @@
-import type {
-  FolderCreateInputDTO,
-  StorageProvisionDTO,
-} from '@lombokapp/types'
+import type { FolderCreateInputDTO, StorageProvision } from '@lombokapp/types'
 import {
   DialogContent,
   DialogHeader,
@@ -13,7 +10,7 @@ import { CreateFolderForm } from '../../components/create-folder-form/create-fol
 
 export interface CreateFolderModalData {
   isOpen: boolean
-  storageProvisions: StorageProvisionDTO[]
+  storageProvisions: StorageProvision[]
 }
 
 const CreateFolderModal = ({

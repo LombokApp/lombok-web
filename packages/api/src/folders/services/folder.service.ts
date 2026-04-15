@@ -151,7 +151,7 @@ const customLocationPayloadSchema = z.object({
   }),
   bucket: z.string(),
   region: z.string(),
-  prefix: z.string().optional(),
+  prefix: z.string().nonempty().nullable(),
 })
 
 const existingUserLocationSchema = z.object({

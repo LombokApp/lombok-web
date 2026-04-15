@@ -14,7 +14,10 @@ describe('No Secret Leakage', () => {
   let apiClient: TestApiClient
 
   beforeAll(async () => {
-    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
+    testModule = await buildTestModule({
+      testModuleKey: TEST_MODULE_KEY,
+      debug: true,
+    })
     apiClient = testModule.apiClient
   })
 
@@ -46,8 +49,8 @@ describe('No Secret Leakage', () => {
       expect(res.data?.serverStorageLocation).toBeDefined()
       expect(
         (res.data?.serverStorageLocation as Record<string, unknown>)
-          ?.secretAccessKey,
-      ).toBeUndefined()
+          .secretAccessKey,
+      ).toBeNull()
     })
 
     it('should not return secretAccessKey from POST /server/server-storage', async () => {
@@ -79,8 +82,8 @@ describe('No Secret Leakage', () => {
       expect(res.data?.serverStorageLocation).toBeDefined()
       expect(
         (res.data?.serverStorageLocation as Record<string, unknown>)
-          ?.secretAccessKey,
-      ).toBeUndefined()
+          .secretAccessKey,
+      ).toBeNull()
     })
   })
 
@@ -108,7 +111,7 @@ describe('No Secret Leakage', () => {
       for (const accessKey of res.data!.result) {
         expect(
           (accessKey as Record<string, unknown>).secretAccessKey,
-        ).toBeUndefined()
+        ).toBeNull()
         expect(accessKey.accessKeyId).toBeDefined()
         expect(accessKey.accessKeyHashId).toBeDefined()
       }
@@ -137,7 +140,7 @@ describe('No Secret Leakage', () => {
             endpoint: s3Config.endpoint,
             bucket: provisionBucketName,
             region: s3Config.region,
-            prefix: '',
+            prefix: null,
             label: 'testlabel',
             description: 'Test',
             provisionTypes: ['CONTENT'],
@@ -155,16 +158,14 @@ describe('No Secret Leakage', () => {
         },
       })
 
-      const res = await apiClient(accessToken).GET(
-        '/api/v1/server/access-keys',
-      )
+      const res = await apiClient(accessToken).GET('/api/v1/server/access-keys')
       expect(res.response.status).toEqual(200)
       expect(res.data!.result.length).toBeGreaterThanOrEqual(1)
 
       for (const accessKey of res.data!.result) {
         expect(
           (accessKey as Record<string, unknown>).secretAccessKey,
-        ).toBeUndefined()
+        ).toBeNull()
         expect(accessKey.accessKeyId).toBeDefined()
         expect(accessKey.accessKeyHashId).toBeDefined()
       }
@@ -172,7 +173,7 @@ describe('No Secret Leakage', () => {
   })
 
   describe('Storage Provisions', () => {
-    const createProvision = async (accessToken: string) => {
+    const createStorageProvision = async (accessToken: string) => {
       const s3Config = testModule!.testS3ClientConfig()
       const bucketName = await testModule!.initMinioTestBucket()
 
@@ -183,7 +184,7 @@ describe('No Secret Leakage', () => {
           endpoint: s3Config.endpoint,
           bucket: bucketName,
           region: s3Config.region,
-          prefix: '',
+          prefix: null,
           label: 'testlabel',
           description: 'Test provision',
           provisionTypes: [StorageProvisionTypeEnum.CONTENT],
@@ -200,13 +201,13 @@ describe('No Secret Leakage', () => {
         admin: true,
       })
 
-      const res = await createProvision(accessToken)
+      const res = await createStorageProvision(accessToken)
       expect(res.response.status).toEqual(201)
 
       for (const provision of res.data!.result) {
         expect(
           (provision as Record<string, unknown>).secretAccessKey,
-        ).toBeUndefined()
+        ).toBeNull()
       }
     })
 
@@ -219,7 +220,7 @@ describe('No Secret Leakage', () => {
         admin: true,
       })
 
-      await createProvision(accessToken)
+      await createStorageProvision(accessToken)
 
       const res = await apiClient(accessToken).GET(
         '/api/v1/server/storage-provisions',
@@ -229,7 +230,7 @@ describe('No Secret Leakage', () => {
       for (const provision of res.data!.result) {
         expect(
           (provision as Record<string, unknown>).secretAccessKey,
-        ).toBeUndefined()
+        ).toBeNull()
       }
     })
 
@@ -242,7 +243,7 @@ describe('No Secret Leakage', () => {
         admin: true,
       })
 
-      const createRes = await createProvision(accessToken)
+      const createRes = await createStorageProvision(accessToken)
       const provisionId = createRes.data!.result[0]!.id
 
       const res = await apiClient(accessToken).GET(
@@ -252,7 +253,7 @@ describe('No Secret Leakage', () => {
       expect(res.response.status).toEqual(200)
       expect(
         (res.data!.storageProvision as Record<string, unknown>).secretAccessKey,
-      ).toBeUndefined()
+      ).toBeNull()
     })
 
     it('should not return secretAccessKey from DELETE /storage-provisions/:id', async () => {
@@ -264,7 +265,7 @@ describe('No Secret Leakage', () => {
         admin: true,
       })
 
-      const createRes = await createProvision(accessToken)
+      const createRes = await createStorageProvision(accessToken)
       const provisionId = createRes.data!.result[0]!.id
 
       const res = await apiClient(accessToken).DELETE(
@@ -276,7 +277,7 @@ describe('No Secret Leakage', () => {
       for (const provision of res.data!.result) {
         expect(
           (provision as Record<string, unknown>).secretAccessKey,
-        ).toBeUndefined()
+        ).toBeNull()
       }
     })
   })
@@ -300,7 +301,7 @@ describe('No Secret Leakage', () => {
         | Record<string, unknown>
         | undefined
       expect(serverStorage).toBeDefined()
-      expect(serverStorage?.secretAccessKey).toBeUndefined()
+      expect(serverStorage?.secretAccessKey).toBeNull()
       expect(serverStorage?.accessKeyId).toBeDefined()
     })
 
@@ -323,7 +324,7 @@ describe('No Secret Leakage', () => {
           endpoint: s3Config.endpoint,
           bucket: bucketName,
           region: s3Config.region,
-          prefix: '',
+          prefix: null,
           label: 'testlabel',
           description: 'Test',
           provisionTypes: [StorageProvisionTypeEnum.CONTENT],
@@ -340,7 +341,7 @@ describe('No Secret Leakage', () => {
       expect(provisions!.length).toBeGreaterThanOrEqual(1)
 
       for (const provision of provisions!) {
-        expect(provision.secretAccessKey).toBeUndefined()
+        expect(provision.secretAccessKey).toBeNull()
       }
     })
 
@@ -373,7 +374,7 @@ describe('No Secret Leakage', () => {
       expect(googleConfig).toBeDefined()
       expect(googleConfig?.clientId).toEqual('test-client-id')
       expect(googleConfig?.enabled).toEqual(true)
-      expect(googleConfig?.clientSecret).toBeUndefined()
+      expect(googleConfig?.clientSecret).toBeNull()
     })
 
     it('should not return apiKey in EMAIL_PROVIDER_CONFIG (Resend) from GET /settings', async () => {
@@ -406,7 +407,7 @@ describe('No Secret Leakage', () => {
       expect(emailConfig?.provider).toEqual('resend')
 
       const config = emailConfig?.config as Record<string, unknown>
-      expect(config.apiKey).toBeUndefined()
+      expect(config.apiKey).toBeNull()
     })
 
     it('should not return password in EMAIL_PROVIDER_CONFIG (SMTP) from GET /settings', async () => {
@@ -446,7 +447,7 @@ describe('No Secret Leakage', () => {
       const config = emailConfig?.config as Record<string, unknown>
       expect(config.host).toEqual('smtp.example.com')
       expect(config.username).toEqual('user')
-      expect(config.password).toBeUndefined()
+      expect(config.password).toBeNull()
     })
   })
 })

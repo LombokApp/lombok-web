@@ -218,7 +218,7 @@ export async function buildTestModule({
         endpoint: MINIO_ENDPOINT,
         region: MINIO_REGION,
         bucket: bucketName,
-        prefix: '',
+        prefix: null,
       },
     )
   }
@@ -492,10 +492,10 @@ export async function createTestUser(
 
 export function testS3Location({
   bucketName,
-  prefix = '',
+  prefix = null,
 }: {
   bucketName: string
-  prefix?: string
+  prefix?: string | null
 }) {
   return {
     accessKeyId: MINIO_ACCESS_KEY_ID,

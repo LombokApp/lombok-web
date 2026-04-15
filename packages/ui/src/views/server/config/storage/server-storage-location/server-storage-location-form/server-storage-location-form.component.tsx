@@ -32,7 +32,7 @@ const serverLocationFormSchema = z.object({
   ),
   bucket: z.string().min(1),
   region: z.string().min(1),
-  prefix: z.string().optional(),
+  prefix: z.string().nullable(),
 })
 
 export type ServerStorageLocationFormValues = z.infer<
@@ -178,7 +178,7 @@ export function ServerStorageLocationForm({
                   <FormItem>
                     <FormLabel>Prefix</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

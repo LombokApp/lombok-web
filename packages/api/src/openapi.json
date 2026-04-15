@@ -24985,11 +24985,129 @@
           "settings": {
             "type": "object",
             "properties": {
+              "STORAGE_PROVISIONS": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                    },
+                    "accessKeyHashId": {
+                      "type": "string"
+                    },
+                    "endpoint": {
+                      "type": "string"
+                    },
+                    "bucket": {
+                      "type": "string"
+                    },
+                    "region": {
+                      "type": "string"
+                    },
+                    "accessKeyId": {
+                      "type": "string"
+                    },
+                    "secretAccessKey": {
+                      "type": "null"
+                    },
+                    "prefix": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "minLength": 1
+                    },
+                    "provisionTypes": {
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "CONTENT",
+                          "METADATA",
+                          "REDUNDANCY"
+                        ]
+                      }
+                    },
+                    "label": {
+                      "type": "string",
+                      "maxLength": 32
+                    },
+                    "description": {
+                      "type": "string",
+                      "maxLength": 128
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "accessKeyHashId",
+                    "endpoint",
+                    "bucket",
+                    "region",
+                    "accessKeyId",
+                    "secretAccessKey",
+                    "prefix",
+                    "provisionTypes",
+                    "label",
+                    "description"
+                  ]
+                }
+              },
+              "SERVER_STORAGE": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "accessKeyHashId": {
+                    "type": "string"
+                  },
+                  "accessKeyId": {
+                    "type": "string"
+                  },
+                  "endpoint": {
+                    "type": "string"
+                  },
+                  "bucket": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "prefix": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "accessKeyHashId",
+                  "accessKeyId",
+                  "endpoint",
+                  "bucket",
+                  "region",
+                  "prefix"
+                ]
+              },
               "SIGNUP_ENABLED": {
-                "type": "boolean"
+                "type": [
+                  "boolean",
+                  "null"
+                ]
               },
               "SIGNUP_PERMISSIONS": {
-                "type": "array",
+                "type": [
+                  "array",
+                  "null"
+                ],
                 "items": {
                   "type": "string"
                 }
@@ -25001,28 +25119,119 @@
                 ]
               },
               "GOOGLE_OAUTH_CONFIG": {
-                "type": "object",
+                "type": [
+                  "object",
+                  "null"
+                ],
                 "properties": {
                   "enabled": {
                     "type": "boolean"
                   },
                   "clientId": {
                     "type": "string"
+                  },
+                  "clientSecret": {
+                    "type": "null"
                   }
                 },
                 "required": [
                   "enabled",
-                  "clientId"
+                  "clientId",
+                  "clientSecret"
                 ]
               },
-              "STORAGE_PROVISIONS": {
-                "type": "array",
-                "items": {}
+              "EMAIL_PROVIDER_CONFIG": {
+                "anyOf": [
+                  {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "const": "resend"
+                          },
+                          "config": {
+                            "type": "object",
+                            "properties": {
+                              "apiKey": {
+                                "type": "null"
+                              }
+                            },
+                            "required": [
+                              "apiKey"
+                            ]
+                          },
+                          "from": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "config",
+                          "from"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "provider": {
+                            "type": "string",
+                            "const": "smtp"
+                          },
+                          "config": {
+                            "type": "object",
+                            "properties": {
+                              "host": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "port": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 65535
+                              },
+                              "username": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "password": {
+                                "type": "null"
+                              }
+                            },
+                            "required": [
+                              "host",
+                              "port",
+                              "username",
+                              "password"
+                            ]
+                          },
+                          "from": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "config",
+                          "from"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": [
+                      "null"
+                    ]
+                  }
+                ]
               },
-              "SERVER_STORAGE": {},
-              "EMAIL_PROVIDER_CONFIG": {},
               "SEARCH_CONFIG": {
-                "type": "object",
+                "type": [
+                  "object",
+                  "null"
+                ],
                 "properties": {
                   "app": {
                     "type": [
@@ -25053,8 +25262,14 @@
               }
             },
             "required": [
+              "STORAGE_PROVISIONS",
+              "SERVER_STORAGE",
+              "SIGNUP_ENABLED",
               "SIGNUP_PERMISSIONS",
-              "SERVER_HOSTNAME"
+              "SERVER_HOSTNAME",
+              "GOOGLE_OAUTH_CONFIG",
+              "EMAIL_PROVIDER_CONFIG",
+              "SEARCH_CONFIG"
             ]
           }
         },
@@ -25215,8 +25430,15 @@
                 "accessKeyId": {
                   "type": "string"
                 },
+                "secretAccessKey": {
+                  "type": "null"
+                },
                 "prefix": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1
                 },
                 "provisionTypes": {
                   "minItems": 1,
@@ -25246,6 +25468,8 @@
                 "bucket",
                 "region",
                 "accessKeyId",
+                "secretAccessKey",
+                "prefix",
                 "provisionTypes",
                 "label",
                 "description"
@@ -25283,8 +25507,15 @@
               "accessKeyId": {
                 "type": "string"
               },
+              "secretAccessKey": {
+                "type": "null"
+              },
               "prefix": {
-                "type": "string"
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
               },
               "provisionTypes": {
                 "minItems": 1,
@@ -25314,6 +25545,8 @@
               "bucket",
               "region",
               "accessKeyId",
+              "secretAccessKey",
+              "prefix",
               "provisionTypes",
               "label",
               "description"
@@ -25351,7 +25584,11 @@
             "type": "string"
           },
           "prefix": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
           },
           "provisionTypes": {
             "type": "array",
@@ -25374,6 +25611,7 @@
           "region",
           "accessKeyId",
           "secretAccessKey",
+          "prefix",
           "provisionTypes"
         ]
       },
@@ -25398,7 +25636,11 @@
             "type": "string"
           },
           "prefix": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
           },
           "provisionTypes": {
             "type": "array",
@@ -26448,7 +26690,11 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
                   },
                   "accessKeyId": {
                     "type": "string"
@@ -26464,6 +26710,7 @@
                   "endpoint",
                   "region",
                   "bucket",
+                  "prefix",
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
@@ -26501,7 +26748,11 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
                   },
                   "accessKeyId": {
                     "type": "string"
@@ -26517,6 +26768,7 @@
                   "endpoint",
                   "region",
                   "bucket",
+                  "prefix",
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
@@ -26677,7 +26929,11 @@
                           "type": "string"
                         },
                         "prefix": {
-                          "type": "string"
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
                         },
                         "accessKeyId": {
                           "type": "string"
@@ -26693,6 +26949,7 @@
                         "endpoint",
                         "region",
                         "bucket",
+                        "prefix",
                         "accessKeyId",
                         "accessKeyHashId"
                       ]
@@ -26730,7 +26987,11 @@
                           "type": "string"
                         },
                         "prefix": {
-                          "type": "string"
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
                         },
                         "accessKeyId": {
                           "type": "string"
@@ -26746,6 +27007,7 @@
                         "endpoint",
                         "region",
                         "bucket",
+                        "prefix",
                         "accessKeyId",
                         "accessKeyHashId"
                       ]
@@ -26831,7 +27093,10 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -26839,7 +27104,8 @@
                   "secretAccessKey",
                   "endpoint",
                   "bucket",
-                  "region"
+                  "region",
+                  "prefix"
                 ]
               },
               {
@@ -26867,12 +27133,16 @@
                     "type": "string"
                   },
                   "userLocationPrefixOverride": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
                   "userLocationId",
-                  "userLocationBucketOverride"
+                  "userLocationBucketOverride",
+                  "userLocationPrefixOverride"
                 ]
               }
             ]
@@ -26898,7 +27168,10 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -26906,7 +27179,8 @@
                   "secretAccessKey",
                   "endpoint",
                   "bucket",
-                  "region"
+                  "region",
+                  "prefix"
                 ]
               },
               {
@@ -26934,12 +27208,16 @@
                     "type": "string"
                   },
                   "userLocationPrefixOverride": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
                   "userLocationId",
-                  "userLocationBucketOverride"
+                  "userLocationBucketOverride",
+                  "userLocationPrefixOverride"
                 ]
               }
             ]
@@ -27003,7 +27281,11 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
                   },
                   "accessKeyId": {
                     "type": "string"
@@ -27019,6 +27301,7 @@
                   "endpoint",
                   "region",
                   "bucket",
+                  "prefix",
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
@@ -27056,7 +27339,11 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
                   },
                   "accessKeyId": {
                     "type": "string"
@@ -27072,6 +27359,7 @@
                   "endpoint",
                   "region",
                   "bucket",
+                  "prefix",
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
@@ -27564,7 +27852,11 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
                   },
                   "accessKeyId": {
                     "type": "string"
@@ -27580,6 +27872,7 @@
                   "endpoint",
                   "region",
                   "bucket",
+                  "prefix",
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
@@ -27617,7 +27910,11 @@
                     "type": "string"
                   },
                   "prefix": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1
                   },
                   "accessKeyId": {
                     "type": "string"
@@ -27633,6 +27930,7 @@
                   "endpoint",
                   "region",
                   "bucket",
+                  "prefix",
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
@@ -27931,6 +28229,9 @@
             "items": {
               "type": "object",
               "properties": {
+                "secretAccessKey": {
+                  "type": "null"
+                },
                 "accessKeyId": {
                   "type": "string"
                 },
@@ -27951,6 +28252,7 @@
                 }
               },
               "required": [
+                "secretAccessKey",
                 "accessKeyId",
                 "accessKeyHashId",
                 "endpoint",
@@ -27972,6 +28274,9 @@
           "accessKey": {
             "type": "object",
             "properties": {
+              "secretAccessKey": {
+                "type": "null"
+              },
               "accessKeyId": {
                 "type": "string"
               },
@@ -27992,6 +28297,7 @@
               }
             },
             "required": [
+              "secretAccessKey",
               "accessKeyId",
               "accessKeyHashId",
               "endpoint",
