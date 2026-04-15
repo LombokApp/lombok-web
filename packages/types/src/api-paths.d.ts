@@ -5524,28 +5524,10 @@ export interface components {
                 GOOGLE_OAUTH_CONFIG?: {
                     enabled: boolean;
                     clientId: string;
-                    clientSecret: string;
                 };
                 STORAGE_PROVISIONS?: unknown[];
                 SERVER_STORAGE?: unknown;
-                EMAIL_PROVIDER_CONFIG?: ({
-                    /** @constant */
-                    provider: "resend";
-                    config: {
-                        apiKey: string;
-                    };
-                    from: string;
-                } | {
-                    /** @constant */
-                    provider: "smtp";
-                    config: {
-                        host: string;
-                        port: number;
-                        username: string;
-                        password: string;
-                    };
-                    from: string;
-                }) | null;
+                EMAIL_PROVIDER_CONFIG?: unknown;
                 SEARCH_CONFIG?: {
                     app: {
                         identifier: string;

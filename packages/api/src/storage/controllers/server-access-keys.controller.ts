@@ -53,7 +53,10 @@ export class ServerAccessKeysController {
         ...queryParams,
         sort: normalizeSortParam(queryParams.sort),
       })
-    return result
+    return {
+      ...result,
+      result: result.result.map(transformAccessKeyToPublicDTO),
+    }
   }
 
   /**

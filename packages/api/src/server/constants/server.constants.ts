@@ -1,8 +1,11 @@
+import type { ServerStorageLocation, StorageProvisionDTO } from '@lombokapp/types'
 import { z } from 'zod'
 
 import { searchConfigSchema } from '../dto/search-config.dto'
 import { serverStorageInputSchema } from '../dto/server-storage-input.dto'
+import type { ServerStorageInputDTO } from '../dto/server-storage-input.dto'
 import { storageProvisionInputSchema } from '../dto/storage-provision-input.dto'
+import type { StorageProvisionInputDTO } from '../dto/storage-provision-input.dto'
 import { emailProviderConfigNullableSchema } from '../schemas/email-provider-config.schema'
 
 // Google OAuth configuration schema
@@ -17,6 +20,7 @@ export interface ServerConfig<T extends z.ZodType = z.ZodType> {
   key: string
   default?: z.infer<T> | null
   schema: T
+  transformForResponse?: (value: unknown) => unknown
 }
 
 export enum ServerConfigKey {
@@ -37,6 +41,12 @@ export const STORAGE_PROVISIONS_CONFIG: ServerConfig<
   private: true,
   default: undefined,
   schema: storageProvisionInputSchema,
+  transformForResponse: (value) => {
+    if (!Array.isArray(value)) return value
+    return value.map(
+      ({ secretAccessKey, ...rest }: StorageProvisionDTO & StorageProvisionInputDTO) => rest,
+    )
+  },
 }
 
 export const SERVER_STORAGE_CONFIG: ServerConfig<
@@ -46,6 +56,11 @@ export const SERVER_STORAGE_CONFIG: ServerConfig<
   private: true,
   default: undefined,
   schema: serverStorageInputSchema,
+  transformForResponse: (value) => {
+    if (!value) return value
+    const { secretAccessKey, ...rest } = value as ServerStorageLocation & ServerStorageInputDTO
+    return rest
+  },
 }
 
 export const SIGNUP_ENABLED_CONFIG: ServerConfig<z.ZodBoolean> = {
@@ -87,6 +102,11 @@ export const GOOGLE_OAUTH_CONFIG: ServerConfig<typeof googleOAuthConfigSchema> =
       clientSecret: '',
     },
     schema: googleOAuthConfigSchema,
+    transformForResponse: (value) => {
+      if (!value) return value
+      const { clientSecret, ...rest } = value as z.infer<typeof googleOAuthConfigSchema>
+      return rest
+    },
   }
 
 export const EMAIL_PROVIDER_CONFIG: ServerConfig<
@@ -96,6 +116,14 @@ export const EMAIL_PROVIDER_CONFIG: ServerConfig<
   private: true,
   default: null,
   schema: emailProviderConfigNullableSchema,
+  transformForResponse: (value) => {
+    if (!value) return value
+    const typed = value as z.infer<typeof emailProviderConfigNullableSchema>
+    if (!typed) return typed
+    return { ...typed, config: Object.fromEntries(
+      Object.entries(typed.config).filter(([key]) => !['apiKey', 'password'].includes(key)),
+    ) }
+  },
 }
 
 export const CONFIGURATION_KEYS = [

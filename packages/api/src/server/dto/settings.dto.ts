@@ -9,10 +9,12 @@ export const settingsSchema = z.object({
   SIGNUP_ENABLED: z.boolean().optional(),
   SIGNUP_PERMISSIONS: z.array(z.string()),
   SERVER_HOSTNAME: z.string().nullable(),
-  GOOGLE_OAUTH_CONFIG: googleOAuthConfigSchema.optional(),
+  GOOGLE_OAUTH_CONFIG: googleOAuthConfigSchema
+    .omit({ clientSecret: true })
+    .optional(),
   STORAGE_PROVISIONS: z.array(z.unknown()).optional(),
   SERVER_STORAGE: z.unknown().optional(),
-  EMAIL_PROVIDER_CONFIG: emailProviderConfigNullableSchema.optional(),
+  EMAIL_PROVIDER_CONFIG: z.unknown().optional(),
   SEARCH_CONFIG: searchConfigSchema.optional(),
 })
 

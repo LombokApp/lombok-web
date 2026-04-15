@@ -58,7 +58,6 @@ describe('Server - Settings', () => {
         GOOGLE_OAUTH_CONFIG: {
           enabled: false,
           clientId: '',
-          clientSecret: '',
         },
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
@@ -96,7 +95,6 @@ describe('Server - Settings', () => {
         GOOGLE_OAUTH_CONFIG: {
           enabled: false,
           clientId: '',
-          clientSecret: '',
         },
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
@@ -134,7 +132,6 @@ describe('Server - Settings', () => {
         GOOGLE_OAUTH_CONFIG: {
           enabled: false,
           clientId: '',
-          clientSecret: '',
         },
         SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
         SERVER_HOSTNAME: null,
@@ -268,7 +265,6 @@ describe('Server - Settings', () => {
         GOOGLE_OAUTH_CONFIG: {
           enabled: false,
           clientId: '',
-          clientSecret: '',
         },
         SIGNUP_ENABLED: true,
         SEARCH_CONFIG: { app: null },
@@ -291,7 +287,6 @@ describe('Server - Settings', () => {
         GOOGLE_OAUTH_CONFIG: {
           enabled: false,
           clientId: '',
-          clientSecret: '',
         },
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
@@ -330,7 +325,6 @@ describe('Server - Settings', () => {
         GOOGLE_OAUTH_CONFIG: {
           enabled: false,
           clientId: '',
-          clientSecret: '',
         },
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
@@ -370,9 +364,11 @@ describe('Server - Settings', () => {
       '/api/v1/server/settings',
     )
     expect(getResponse.response.status).toEqual(200)
-    expect(getResponse.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual(
-      resendConfig,
-    )
+    expect(getResponse.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual({
+      from: 'test@example.com',
+      provider: 'resend',
+      config: {},
+    })
   })
 
   it(`should set and get EMAIL_PROVIDER_CONFIG (SMTP)`, async () => {
@@ -410,7 +406,15 @@ describe('Server - Settings', () => {
       '/api/v1/server/settings',
     )
     expect(getResponse.response.status).toEqual(200)
-    expect(getResponse.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual(smtpConfig)
+    expect(getResponse.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual({
+      provider: 'smtp',
+      from: 'test@example.com',
+      config: {
+        host: 'smtp.example.com',
+        port: 587,
+        username: 'user',
+      },
+    })
   })
 
   it(`should reset EMAIL_PROVIDER_CONFIG`, async () => {
@@ -436,9 +440,11 @@ describe('Server - Settings', () => {
     const getAfterSet = await apiClient(accessToken).GET(
       '/api/v1/server/settings',
     )
-    expect(getAfterSet.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual(
-      resendConfig,
-    )
+    expect(getAfterSet.data?.settings.EMAIL_PROVIDER_CONFIG).toEqual({
+      provider: 'resend',
+      from: 'test@example.com',
+      config: {},
+    })
 
     await apiClient(accessToken).DELETE(
       '/api/v1/server/settings/{settingKey}',

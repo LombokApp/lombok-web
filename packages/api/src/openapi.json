@@ -25008,15 +25008,11 @@
                   },
                   "clientId": {
                     "type": "string"
-                  },
-                  "clientSecret": {
-                    "type": "string"
                   }
                 },
                 "required": [
                   "enabled",
-                  "clientId",
-                  "clientSecret"
+                  "clientId"
                 ]
               },
               "STORAGE_PROVISIONS": {
@@ -25024,95 +25020,7 @@
                 "items": {}
               },
               "SERVER_STORAGE": {},
-              "EMAIL_PROVIDER_CONFIG": {
-                "anyOf": [
-                  {
-                    "oneOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "provider": {
-                            "type": "string",
-                            "const": "resend"
-                          },
-                          "config": {
-                            "type": "object",
-                            "properties": {
-                              "apiKey": {
-                                "type": "string",
-                                "minLength": 1
-                              }
-                            },
-                            "required": [
-                              "apiKey"
-                            ]
-                          },
-                          "from": {
-                            "type": "string",
-                            "minLength": 1
-                          }
-                        },
-                        "required": [
-                          "provider",
-                          "config",
-                          "from"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "provider": {
-                            "type": "string",
-                            "const": "smtp"
-                          },
-                          "config": {
-                            "type": "object",
-                            "properties": {
-                              "host": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "port": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "maximum": 65535
-                              },
-                              "username": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "password": {
-                                "type": "string",
-                                "minLength": 1
-                              }
-                            },
-                            "required": [
-                              "host",
-                              "port",
-                              "username",
-                              "password"
-                            ]
-                          },
-                          "from": {
-                            "type": "string",
-                            "minLength": 1
-                          }
-                        },
-                        "required": [
-                          "provider",
-                          "config",
-                          "from"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "type": [
-                      "null"
-                    ]
-                  }
-                ]
-              },
+              "EMAIL_PROVIDER_CONFIG": {},
               "SEARCH_CONFIG": {
                 "type": "object",
                 "properties": {

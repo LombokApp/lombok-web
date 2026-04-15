@@ -15,6 +15,7 @@ import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
+import { SERVER_STORAGE_CONFIG } from '../constants/server.constants'
 import { ServerStorageLocationGetResponse } from '../dto/responses/server-storage-location-get-response.dto'
 import { ServerStorageInputDTO } from '../dto/server-storage-input.dto'
 import { ServerConfigurationService } from '../services/server-configuration.service'
@@ -44,7 +45,7 @@ export class ServerStorageController {
     const result =
       await this.serverConfigurationService.getServerStorageAsAdmin(req.user)
     return {
-      serverStorageLocation: result,
+      serverStorageLocation: SERVER_STORAGE_CONFIG.transformForResponse!(result) as ServerStorageLocationGetResponse['serverStorageLocation'],
     }
   }
 
@@ -67,7 +68,7 @@ export class ServerStorageController {
       )
 
     return {
-      serverStorageLocation: setResult,
+      serverStorageLocation: SERVER_STORAGE_CONFIG.transformForResponse!(setResult) as ServerStorageLocationGetResponse['serverStorageLocation'],
     }
   }
 

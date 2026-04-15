@@ -91,12 +91,15 @@ export class ServerConfigurationService {
       },
     )
     return CONFIGURATION_KEYS.reduce(
-      (acc, configObject) => ({
-        ...acc,
-        [configObject.key]:
+      (acc, configObject) => {
+        const rawValue =
           results.find((result) => result.key === configObject.key)?.value ??
-          configObject.default,
-      }),
+          configObject.default
+        const value = configObject.transformForResponse
+          ? configObject.transformForResponse(rawValue)
+          : rawValue
+        return { ...acc, [configObject.key]: value }
+      },
       {},
     ) as SettingsDTO
   }
