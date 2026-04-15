@@ -80,6 +80,7 @@ export function ContainerConsole({
         body: {
           hostId,
           containerId,
+          label: 'admin-console',
         },
       },
     )

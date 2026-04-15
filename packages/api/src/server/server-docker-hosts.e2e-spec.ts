@@ -22,9 +22,7 @@ describe('Server Docker Hosts', () => {
   })
 
   it('should require authentication for docker hosts state', async () => {
-    const response = await apiClient().GET(
-      '/api/v1/server/docker-hosts/state',
-    )
+    const response = await apiClient().GET('/api/v1/server/docker-hosts/state')
     expect(response.response.status).toEqual(401)
   })
 

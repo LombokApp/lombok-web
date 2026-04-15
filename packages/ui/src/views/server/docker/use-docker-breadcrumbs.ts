@@ -18,8 +18,7 @@ interface Breadcrumb {
  */
 export function useDockerBreadcrumbs(serverPage: string[]): Breadcrumb[] {
   const hostId = serverPage[1]
-  const containerId =
-    serverPage[2] === 'containers' ? serverPage[3] : undefined
+  const containerId = serverPage[2] === 'containers' ? serverPage[3] : undefined
 
   const hostsQuery = $api.useQuery('get', '/api/v1/docker/hosts', undefined, {
     enabled: !!hostId,
@@ -38,9 +37,11 @@ export function useDockerBreadcrumbs(serverPage: string[]): Breadcrumb[] {
       { label: 'Docker', href: '/server/docker' },
     ]
 
-    if (!hostId) return crumbs
+    if (!hostId) {
+      return crumbs
+    }
 
-    const host = hostsQuery.data?.result?.find((h) => h.id === hostId)
+    const host = hostsQuery.data?.result.find((h) => h.id === hostId)
     const hostLabel = host?.label ?? hostId.slice(0, 8)
 
     crumbs.push({
@@ -48,9 +49,11 @@ export function useDockerBreadcrumbs(serverPage: string[]): Breadcrumb[] {
       href: containerId ? `/server/docker/${hostId}` : undefined,
     })
 
-    if (!containerId) return crumbs
+    if (!containerId) {
+      return crumbs
+    }
 
-    const standalone = standaloneQuery.data?.result?.find(
+    const standalone = standaloneQuery.data?.result.find(
       (sc) => sc.containerId === containerId,
     )
     const containerLabel = standalone?.label ?? containerId.slice(0, 12)

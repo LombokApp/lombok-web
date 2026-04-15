@@ -31,7 +31,9 @@ export const objectIdentifierToObjectKey = (
     : objectIdentifier.slice(CONTENT_IDENTIFIER_PREFIX.length + 1)
   return {
     isMetadataIdentifier,
-    metadataHash: objectIdentifierParts.at(-1),
+    metadataHash: objectIdentifierParts.length
+      ? objectIdentifierParts[objectIdentifierParts.length - 1]
+      : undefined,
     objectKey,
   }
 }

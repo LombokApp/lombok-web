@@ -43,8 +43,7 @@ export function useListContainers(options?: { hostId?: string }) {
           createdAt: c.createdAt,
           containerType: c.containerType,
           containerLabel: match?.label,
-          profileId:
-            c.containerType === 'worker' ? c.profileId : undefined,
+          profileId: c.containerType === 'worker' ? c.profileId : undefined,
           hostId: hs.id,
           hostLabel: hostIdToLabel.get(hs.id) ?? hs.id,
         }

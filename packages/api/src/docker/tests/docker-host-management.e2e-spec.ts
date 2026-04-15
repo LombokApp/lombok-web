@@ -9,10 +9,7 @@ import {
   spyOn,
 } from 'bun:test'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
-import {
-  buildTestModule,
-  createTestUser,
-} from 'src/test/test.util'
+import { buildTestModule, createTestUser } from 'src/test/test.util'
 
 import { DockerClientService } from '../services/client/docker-client.service'
 import { DockerBridgeService } from '../services/docker-bridge.service'
@@ -767,17 +764,14 @@ describe('Docker Host Management', () => {
   it('20. pulls image with credentials when registry matches', async () => {
     const host = await createHost()
 
-    await apiClient(adminToken).POST(
-      '/api/v1/docker/registry-credentials',
-      {
-        body: {
-          registry: 'ghcr.io',
-          serverAddress: 'https://ghcr.io',
-          username: 'ghcr-user',
-          password: 'ghcr-pass',
-        },
+    await apiClient(adminToken).POST('/api/v1/docker/registry-credentials', {
+      body: {
+        registry: 'ghcr.io',
+        serverAddress: 'https://ghcr.io',
+        username: 'ghcr-user',
+        password: 'ghcr-pass',
       },
-    )
+    })
 
     createContainerSpy.mockImplementationOnce(async () => ({
       id: 'container-private',

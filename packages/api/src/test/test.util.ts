@@ -15,13 +15,13 @@ import { KVService } from 'src/cache/kv.service'
 import { CoreModule } from 'src/core/core.module'
 import { waitForCondition } from 'src/core/utils/wait.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
-import { DockerClientService } from 'src/docker/services/client/docker-client.service'
-import { DockerWorkerHookService } from 'src/docker/services/docker-worker-hook.service'
 import { dockerHostsTable } from 'src/docker/entities/docker-host.entity'
 import {
-  type DockerResourceConfig,
   dockerProfileResourceAssignmentsTable,
+  type DockerResourceConfig,
 } from 'src/docker/entities/docker-profile-resource-assignment.entity'
+import { DockerClientService } from 'src/docker/services/client/docker-client.service'
+import { DockerWorkerHookService } from 'src/docker/services/docker-worker-hook.service'
 import { buildMockDockerClientService } from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'

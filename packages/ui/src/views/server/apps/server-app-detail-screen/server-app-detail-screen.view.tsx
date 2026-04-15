@@ -24,10 +24,10 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { DockerIcon } from '@/src/components/icons/docker-icon'
 import { JavaScriptIcon } from '@/src/components/icons/javascript-icon'
 import { TypeScriptIcon } from '@/src/components/icons/typescript-icon'
-import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { $api } from '@/src/services/api'
 import { formatTriggerLabel } from '@/src/utils/trigger-utils'
@@ -334,7 +334,7 @@ export function ServerAppDetailScreen({
                         : null,
                     entrypoint:
                       task.handler.type === 'runtime'
-                        ? app.runtimeWorkers.definitions?.[
+                        ? app.runtimeWorkers.definitions[
                             task.handler.identifier
                           ]?.entrypoint
                         : undefined,

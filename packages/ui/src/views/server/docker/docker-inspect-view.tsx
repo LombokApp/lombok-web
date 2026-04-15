@@ -67,7 +67,10 @@ const inspectNetworkSettingsSchema = z.object({
   IPAddress: z.string().optional(),
   Gateway: z.string().optional(),
   MacAddress: z.string().optional(),
-  Networks: z.record(z.string(), inspectNetworkEntrySchema).nullable().optional(),
+  Networks: z
+    .record(z.string(), inspectNetworkEntrySchema)
+    .nullable()
+    .optional(),
 })
 
 const inspectMountSchema = z.object({
@@ -107,21 +110,48 @@ function formatInspectDate(dateStr?: string): string | undefined {
 
 // ─── Shared primitives ──────────────────────────────────────────────────────
 
-function SectionGroup({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function SectionGroup({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-muted-foreground">{icon}{title}</div>
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+        {icon}
+        {title}
+      </div>
       {children}
     </div>
   )
 }
 
-function Field({ label, value, mono, highlight }: { label: string; value?: string | number | null; mono?: boolean; highlight?: boolean }) {
+function Field({
+  label,
+  value,
+  mono,
+  highlight,
+}: {
+  label: string
+  value?: string | number | null
+  mono?: boolean
+  highlight?: boolean
+}) {
   const isEmpty = value === undefined || value === null || value === ''
-  const display = isEmpty ? <span className="italic opacity-40">—</span> : String(value)
+  const display = isEmpty ? (
+    <span className="italic opacity-40">—</span>
+  ) : (
+    String(value)
+  )
   return (
     <div>
-      <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
       <div className={cn('mt-0.5 text-sm', highlight && 'text-destructive')}>
         {mono && !isEmpty ? <CodeValue>{display}</CodeValue> : display}
       </div>
@@ -129,19 +159,35 @@ function Field({ label, value, mono, highlight }: { label: string; value?: strin
   )
 }
 
-function CollapsibleList({ label, items, renderItem }: { label: string; items: string[]; renderItem: (item: string) => React.ReactNode }) {
+function CollapsibleList({
+  label,
+  items,
+  renderItem,
+}: {
+  label: string
+  items: string[]
+  renderItem: (item: string) => React.ReactNode
+}) {
   const [listOpen, setListOpen] = React.useState(false)
   return (
     <Collapsible open={listOpen} onOpenChange={setListOpen} className="mt-3">
       <CollapsibleTrigger className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
-        <ChevronRight className={cn('size-3 transition-transform', listOpen && 'rotate-90')} />
+        <ChevronRight
+          className={cn('size-3 transition-transform', listOpen && 'rotate-90')}
+        />
         {label}
         <span className="font-normal opacity-60">({items.length})</span>
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="mt-1 rounded border border-border bg-background">
           {items.map((item, i) => (
-            <div key={i} className={cn('px-3 py-1.5 font-mono text-xs', i < items.length - 1 && 'border-b border-border')}>
+            <div
+              key={i}
+              className={cn(
+                'px-3 py-1.5 font-mono text-xs',
+                i < items.length - 1 && 'border-b border-border',
+              )}
+            >
               {renderItem(item)}
             </div>
           ))}
@@ -160,11 +206,23 @@ function StateSection({ state }: { state: InspectState }) {
         <Field label="Status" value={state.Status} />
         <Field label="PID" value={state.Pid} mono />
         <Field label="Started" value={formatInspectDate(state.StartedAt)} />
-        <Field label="Exit Code" value={state.ExitCode} highlight={state.ExitCode !== 0} />
+        <Field
+          label="Exit Code"
+          value={state.ExitCode}
+          highlight={state.ExitCode !== 0}
+        />
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        {state.OOMKilled && <Badge variant={BadgeVariant.destructive} className="text-xs">OOM Killed</Badge>}
-        {state.Restarting && <Badge variant={BadgeVariant.outline} className="text-xs">Restarting</Badge>}
+        {state.OOMKilled && (
+          <Badge variant={BadgeVariant.destructive} className="text-xs">
+            OOM Killed
+          </Badge>
+        )}
+        {state.Restarting && (
+          <Badge variant={BadgeVariant.outline} className="text-xs">
+            Restarting
+          </Badge>
+        )}
       </div>
     </SectionGroup>
   )
@@ -185,7 +243,9 @@ function ConfigSection({ config }: { config: InspectConfig }) {
       </div>
       {(entrypoint.length > 0 || cmd.length > 0) && (
         <div className="mt-3">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Entrypoint / Command</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Entrypoint / Command
+          </div>
           <CodeValue className="mt-1 block w-full px-3 py-2">
             {[...entrypoint, ...cmd].join(' ')}
           </CodeValue>
@@ -197,12 +257,18 @@ function ConfigSection({ config }: { config: InspectConfig }) {
           items={envVars}
           renderItem={(v) => {
             const eqIdx = v.indexOf('=')
-            if (eqIdx === -1) { return v }
+            if (eqIdx === -1) {
+              return v
+            }
             return (
               <>
-                <span className="text-muted-foreground">{v.slice(0, eqIdx)}</span>
+                <span className="text-muted-foreground">
+                  {v.slice(0, eqIdx)}
+                </span>
                 <span className="text-muted-foreground/40">=</span>
-                <span className="break-all text-foreground">{v.slice(eqIdx + 1)}</span>
+                <span className="break-all text-foreground">
+                  {v.slice(eqIdx + 1)}
+                </span>
               </>
             )
           }}
@@ -212,7 +278,13 @@ function ConfigSection({ config }: { config: InspectConfig }) {
   )
 }
 
-function NetworkSection({ settings, networkMode }: { settings: z.infer<typeof inspectNetworkSettingsSchema>; networkMode?: string }) {
+function NetworkSection({
+  settings,
+  networkMode,
+}: {
+  settings: z.infer<typeof inspectNetworkSettingsSchema>
+  networkMode?: string
+}) {
   const networks = settings.Networks
 
   return (
@@ -225,12 +297,19 @@ function NetworkSection({ settings, networkMode }: { settings: z.infer<typeof in
       </div>
       {networks && Object.keys(networks).length > 0 && (
         <div className="mt-3">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Networks</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Networks
+          </div>
           <div className="mt-1 flex flex-wrap gap-2">
             {Object.entries(networks).map(([name, net]) => (
-              <div key={name} className="rounded border border-border bg-background px-3 py-2 text-xs">
+              <div
+                key={name}
+                className="rounded border border-border bg-background px-3 py-2 text-xs"
+              >
                 <span className="font-semibold">{name}</span>
-                {net.IPAddress && <CodeValue className="ml-2">{net.IPAddress}</CodeValue>}
+                {net.IPAddress && (
+                  <CodeValue className="ml-2">{net.IPAddress}</CodeValue>
+                )}
               </div>
             ))}
           </div>
@@ -245,10 +324,19 @@ function MountsSection({ mounts }: { mounts: InspectMount[] }) {
     <SectionGroup icon={<HardDrive className="size-3.5" />} title="Mounts">
       <div className="flex flex-col gap-2">
         {mounts.map((m, i) => (
-          <div key={i} className="flex flex-col gap-0.5 rounded border border-border bg-background px-3 py-2 text-xs">
+          <div
+            key={i}
+            className="flex flex-col gap-0.5 rounded border border-border bg-background px-3 py-2 text-xs"
+          >
             <div className="flex items-center gap-2">
-              <Badge variant={BadgeVariant.outline} className="text-[0.6rem]">{m.Type}</Badge>
-              {!m.RW && <Badge variant={BadgeVariant.outline} className="text-[0.6rem]">read-only</Badge>}
+              <Badge variant={BadgeVariant.outline} className="text-[0.6rem]">
+                {m.Type}
+              </Badge>
+              {!m.RW && (
+                <Badge variant={BadgeVariant.outline} className="text-[0.6rem]">
+                  read-only
+                </Badge>
+              )}
             </div>
             <div className="mt-1 flex items-center gap-1.5">
               <CodeValue>{m.Source}</CodeValue>
@@ -262,19 +350,35 @@ function MountsSection({ mounts }: { mounts: InspectMount[] }) {
   )
 }
 
-function SecuritySection({ hostConfig }: { hostConfig?: z.infer<typeof inspectHostConfigSchema> }) {
+function SecuritySection({
+  hostConfig,
+}: {
+  hostConfig?: z.infer<typeof inspectHostConfigSchema>
+}) {
   const capAdd = hostConfig?.CapAdd
   const securityOpt = hostConfig?.SecurityOpt
   const privileged = hostConfig?.Privileged
 
-  if (!capAdd?.length && !securityOpt?.length && !privileged) { return null }
+  if (!capAdd?.length && !securityOpt?.length && !privileged) {
+    return null
+  }
 
   return (
     <SectionGroup icon={<Shield className="size-3.5" />} title="Security">
       <div className="flex flex-wrap gap-2">
-        {privileged && <Badge variant={BadgeVariant.destructive} className="text-xs">Privileged</Badge>}
+        {privileged && (
+          <Badge variant={BadgeVariant.destructive} className="text-xs">
+            Privileged
+          </Badge>
+        )}
         {capAdd?.map((cap) => (
-          <Badge key={cap} variant={BadgeVariant.outline} className="font-mono text-xs">{cap}</Badge>
+          <Badge
+            key={cap}
+            variant={BadgeVariant.outline}
+            className="font-mono text-xs"
+          >
+            {cap}
+          </Badge>
         ))}
       </div>
       {securityOpt && securityOpt.length > 0 && (
@@ -290,22 +394,38 @@ function SecuritySection({ hostConfig }: { hostConfig?: z.infer<typeof inspectHo
 
 // ─── Main component ─────────────────────────────────────────────────────────
 
-export function DockerInspectSection({ data, isLoading, isError }: { data: unknown; isLoading: boolean; isError: boolean }) {
+export function DockerInspectSection({
+  data,
+  isLoading,
+  isError,
+}: {
+  data: unknown
+  isLoading: boolean
+  isError: boolean
+}) {
   const [mode, setMode] = React.useState<'pretty' | 'json'>('pretty')
   const [open, setOpen] = React.useState(true)
 
   const parsed = React.useMemo<InspectData | undefined>(() => {
-    if (!data || typeof data !== 'object') { return undefined }
+    if (!data || typeof data !== 'object') {
+      return undefined
+    }
     const result = inspectDataSchema.safeParse(data)
-    if (!result.success) { return undefined }
+    if (!result.success) {
+      return undefined
+    }
     return result.data
   }, [data])
 
   if (isError) {
     return (
       <Card>
-        <CardHeader><CardTitle className="text-lg">Container Details</CardTitle></CardHeader>
-        <div className="px-6 pb-6 text-sm text-destructive">Failed to load container inspect data.</div>
+        <CardHeader>
+          <CardTitle className="text-lg">Container Details</CardTitle>
+        </CardHeader>
+        <div className="px-6 pb-6 text-sm text-destructive">
+          Failed to load container inspect data.
+        </div>
       </Card>
     )
   }
@@ -313,8 +433,12 @@ export function DockerInspectSection({ data, isLoading, isError }: { data: unkno
   if (isLoading || !data) {
     return (
       <Card>
-        <CardHeader><CardTitle className="text-lg">Container Details</CardTitle></CardHeader>
-        <div className="px-6 pb-6 text-sm text-muted-foreground">{isLoading ? 'Loading...' : 'No inspect data available.'}</div>
+        <CardHeader>
+          <CardTitle className="text-lg">Container Details</CardTitle>
+        </CardHeader>
+        <div className="px-6 pb-6 text-sm text-muted-foreground">
+          {isLoading ? 'Loading...' : 'No inspect data available.'}
+        </div>
       </Card>
     )
   }
@@ -325,7 +449,12 @@ export function DockerInspectSection({ data, isLoading, isError }: { data: unkno
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer select-none">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <ChevronRight className={cn('size-4 text-muted-foreground transition-transform', open && 'rotate-90')} />
+              <ChevronRight
+                className={cn(
+                  'size-4 text-muted-foreground transition-transform',
+                  open && 'rotate-90',
+                )}
+              />
               <Code2 className="size-3.5 text-muted-foreground" />
               Container Details
             </CardTitle>
@@ -339,7 +468,9 @@ export function DockerInspectSection({ data, isLoading, isError }: { data: unkno
                   type="button"
                   className={cn(
                     'cursor-pointer rounded-md rounded-r-none border border-r-0 border-border px-3 py-1 font-semibold',
-                    mode === 'pretty' ? 'bg-muted-foreground text-background border-(--muted-foreground)' : 'text-muted-foreground hover:text-foreground',
+                    mode === 'pretty'
+                      ? 'bg-muted-foreground text-background border-(--muted-foreground)'
+                      : 'text-muted-foreground hover:text-foreground',
                   )}
                   onClick={() => setMode('pretty')}
                 >
@@ -349,7 +480,9 @@ export function DockerInspectSection({ data, isLoading, isError }: { data: unkno
                   type="button"
                   className={cn(
                     'cursor-pointer rounded-md rounded-l-none border border-l-0 border-border px-3 py-1 font-semibold',
-                    mode === 'json' ? 'bg-muted-foreground text-background border-(--foreground/80)' : 'text-muted-foreground hover:text-foreground',
+                    mode === 'json'
+                      ? 'bg-muted-foreground text-background border-(--foreground/80)'
+                      : 'text-muted-foreground hover:text-foreground',
                   )}
                   onClick={() => setMode('json')}
                 >
@@ -369,13 +502,20 @@ export function DockerInspectSection({ data, isLoading, isError }: { data: unkno
                 {parsed.State && <StateSection state={parsed.State} />}
                 {parsed.Config && <ConfigSection config={parsed.Config} />}
                 {parsed.NetworkSettings && (
-                  <NetworkSection settings={parsed.NetworkSettings} networkMode={parsed.HostConfig?.NetworkMode} />
+                  <NetworkSection
+                    settings={parsed.NetworkSettings}
+                    networkMode={parsed.HostConfig?.NetworkMode}
+                  />
                 )}
-                {parsed.Mounts && parsed.Mounts.length > 0 && <MountsSection mounts={parsed.Mounts} />}
+                {parsed.Mounts && parsed.Mounts.length > 0 && (
+                  <MountsSection mounts={parsed.Mounts} />
+                )}
                 <SecuritySection hostConfig={parsed.HostConfig} />
               </>
             ) : (
-              <div className="text-sm text-muted-foreground">Inspect data could not be parsed into expected shape.</div>
+              <div className="text-sm text-muted-foreground">
+                Inspect data could not be parsed into expected shape.
+              </div>
             )}
           </div>
         </CollapsibleContent>

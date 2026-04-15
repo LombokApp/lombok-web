@@ -91,7 +91,10 @@ export const buildMockDockerClientService = (): MockDockerClientService => {
     getDockerHostState: async (hostId: string) => ({
       id: hostId,
       description: 'Mock Docker Host',
-      connection: { success: true, message: 'Mock Docker Host Test Successful' },
+      connection: {
+        success: true,
+        message: 'Mock Docker Host Test Successful',
+      },
       resources: {
         cpuCores: 4,
         memoryBytes: 0,

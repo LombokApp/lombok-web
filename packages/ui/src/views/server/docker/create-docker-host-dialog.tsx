@@ -77,7 +77,9 @@ export function CreateDockerHostDialog({
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        if (!v) {resetForm()}
+        if (!v) {
+          resetForm()
+        }
         onOpenChange(v)
       }}
     >
@@ -90,7 +92,10 @@ export function CreateDockerHostDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
+        <form
+          onSubmit={(e) => void handleSubmit(e)}
+          className="flex flex-col gap-4"
+        >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="label">Label</Label>
             <Input
@@ -122,9 +127,7 @@ export function CreateDockerHostDialog({
             <Label htmlFor="isDefault">Set as default host</Label>
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button
@@ -134,10 +137,7 @@ export function CreateDockerHostDialog({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={submitting || !label || !host}
-            >
+            <Button type="submit" disabled={submitting || !label || !host}>
               {submitting ? 'Creating...' : 'Create Host'}
             </Button>
           </div>
