@@ -62,7 +62,7 @@ export class McpToolsService {
         description: 'List objects in a folder',
         inputSchema: {
           folder_id: z.uuid(),
-          prefix: z.string().optional(),
+          prefix: z.string().nonempty().nullable(),
         },
       },
       async ({ folder_id, prefix: _prefix }) => {

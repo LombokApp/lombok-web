@@ -1,4 +1,8 @@
-import type { ServerSettingsGetResponse } from '@lombokapp/types'
+import type {
+  emailProviderObfuscatedSchema,
+  emailProviderSchema,
+  ServerSettingsGetResponse,
+} from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   Card,
@@ -17,12 +21,11 @@ import {
   SelectValue,
 } from '@lombokapp/ui-toolkit/components/select/select'
 import React from 'react'
+import type z from 'zod'
 
 type EmailProviderKind = 'disabled' | 'resend' | 'smtp'
 
-export type EmailProviderConfig =
-  | ServerSettingsGetResponse['settings']['EMAIL_PROVIDER_CONFIG']
-  | null
+export type EmailProviderConfig = z.infer<typeof emailProviderSchema> | null
 
 interface ServerEmailConfigTabProps {
   settings?: ServerSettingsGetResponse['settings']
@@ -37,7 +40,9 @@ function parsePort(portStr: string): number | null {
   return n
 }
 
-function configToKind(config: EmailProviderConfig): EmailProviderKind {
+function configToKind(
+  config: EmailProviderConfig | z.infer<typeof emailProviderObfuscatedSchema>,
+): EmailProviderKind {
   if (!config) {
     return 'disabled'
   }
@@ -61,7 +66,9 @@ export function ServerEmailConfigTab({
   settings,
   onSaveEmailProviderConfig,
 }: ServerEmailConfigTabProps) {
-  const currentConfig: EmailProviderConfig | null =
+  const currentConfig:
+    | EmailProviderConfig
+    | z.infer<typeof emailProviderObfuscatedSchema> =
     settings?.EMAIL_PROVIDER_CONFIG ?? null
 
   const [providerKind, setProviderKind] = React.useState<EmailProviderKind>(
@@ -112,12 +119,12 @@ export function ServerEmailConfigTab({
   }, [settings])
 
   const smtpPort = parsePort(smtpPortStr)
-  const isResendValid = resendApiKey.trim().length > 0
+  const isResendValid = (resendApiKey ?? '').trim().length > 0
   const isSmtpValid =
     smtpHost.trim().length > 0 &&
     smtpPort !== null &&
     smtpUsername.trim().length > 0 &&
-    smtpPassword.length > 0
+    (smtpPassword ?? '').length > 0
 
   const buildNewConfig = (): EmailProviderConfig => {
     if (providerKind === 'disabled') {
@@ -128,7 +135,7 @@ export function ServerEmailConfigTab({
       return {
         from: fromTrimmed,
         provider: 'resend',
-        config: { apiKey: resendApiKey.trim() },
+        config: { apiKey: (resendApiKey ?? '').trim() },
       }
     }
     // providerKind === 'smtp'
@@ -140,7 +147,7 @@ export function ServerEmailConfigTab({
           host: smtpHost.trim(),
           port: smtpPort,
           username: smtpUsername.trim(),
-          password: smtpPassword,
+          password: smtpPassword ?? '',
         },
       }
     }
@@ -202,7 +209,18 @@ export function ServerEmailConfigTab({
             </label>
             <Select
               value={providerKind}
-              onValueChange={(v) => setProviderKind(v as EmailProviderKind)}
+              onValueChange={(v) => {
+                const _providerKind = v as EmailProviderKind
+                if (_providerKind === 'disabled') {
+                  setFrom('')
+                  setResendApiKey('')
+                  setSmtpHost('')
+                  setSmtpPortStr('587')
+                  setSmtpUsername('')
+                  setSmtpPassword('')
+                }
+                setProviderKind(_providerKind)
+              }}
             >
               <SelectTrigger id="email-provider-select" className="mt-1">
                 <SelectValue placeholder="Select provider" />
@@ -224,7 +242,7 @@ export function ServerEmailConfigTab({
                 id="resend-api-key"
                 type="password"
                 placeholder="Resend API key"
-                value={resendApiKey}
+                value={resendApiKey ?? '********'}
                 onChange={(e) => setResendApiKey(e.target.value)}
                 className="mt-1"
               />
@@ -280,7 +298,7 @@ export function ServerEmailConfigTab({
                   id="smtp-password"
                   type="password"
                   placeholder="SMTP password"
-                  value={smtpPassword}
+                  value={smtpPassword ?? '********'}
                   onChange={(e) => setSmtpPassword(e.target.value)}
                   className="mt-1"
                 />

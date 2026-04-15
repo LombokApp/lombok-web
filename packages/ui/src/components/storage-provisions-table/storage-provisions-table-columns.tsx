@@ -1,4 +1,4 @@
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type { StorageProvision } from '@lombokapp/types'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,15 +19,15 @@ import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 
 export const storageProvisionsTableColumns = (
-  onUpdate: (storageProvisions: StorageProvisionDTO) => void,
+  onUpdate: (storageProvisions: StorageProvision) => void,
   openRotateModal: (accessKey: {
     accessKeyHashId: string
     accessKeyId: string
     endpoint: string
     region: string
   }) => void,
-  onDelete?: (storageProvisions: StorageProvisionDTO) => void,
-): HideableColumnDef<StorageProvisionDTO>[] => [
+  onDelete?: (storageProvisions: StorageProvision) => void,
+): HideableColumnDef<StorageProvision>[] => [
   {
     id: 'link',
     cell: ({ row }) => {

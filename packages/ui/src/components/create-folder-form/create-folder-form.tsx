@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type { StorageProvision } from '@lombokapp/types'
 import { s3LocationSchema } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
@@ -45,7 +45,7 @@ export const CreateFolderForm = ({
 }: {
   onSubmit: (values: FolderFormValues) => Promise<void>
   onCancel: () => void
-  storageProvisions: StorageProvisionDTO[]
+  storageProvisions: StorageProvision[]
 }) => {
   const [formConfig, setFormConfig] = useState({
     useCustomContentLocation: false,
@@ -61,7 +61,7 @@ export const CreateFolderForm = ({
   })
 
   const handleContentLocationStorageProvisionSelection = useCallback(
-    (storageProvision: StorageProvisionDTO) => {
+    (storageProvision: StorageProvision) => {
       setFormConfig((_c) => ({
         ..._c,
         useCustomContentLocation: false,
@@ -75,7 +75,7 @@ export const CreateFolderForm = ({
   )
 
   const handleMetadataLocationStorageProvisionSelection = useCallback(
-    (storageProvision: StorageProvisionDTO) => {
+    (storageProvision: StorageProvision) => {
       setFormConfig((_c) => ({
         ..._c,
         useCustomMetadataLocation: false,

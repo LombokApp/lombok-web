@@ -25,7 +25,7 @@ const jobPayloadSchema = z.object({
   output_location: z
     .object({
       folder_id: z.string(),
-      prefix: z.string().optional(),
+      prefix: z.string().nonempty().optional(),
       objectKey: z.string().optional(),
     })
     .optional(),

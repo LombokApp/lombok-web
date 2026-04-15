@@ -10,6 +10,7 @@ describe('StorageLocationInputDto object validation', () => {
       secretAccessKey: 'some_secret',
       bucket: 'some_bucket',
       region: 'some_region',
+      prefix: null,
     })
     expect(result.success).toBe(true)
   })

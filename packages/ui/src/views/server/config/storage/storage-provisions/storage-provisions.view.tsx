@@ -1,4 +1,7 @@
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type {
+  StorageProvision,
+  StorageProvisionInputDTO,
+} from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import { Folder, Plus } from 'lucide-react'
 import React from 'react'
@@ -7,7 +10,6 @@ import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { StorageProvisionsTable } from '@/src/components/storage-provisions-table/storage-provisions-table'
 import { $api } from '@/src/services/api'
 
-import type { MutationType } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionModal } from './storage-provision-modal'
 
 export function UserStorageProvisions({
@@ -22,12 +24,21 @@ export function UserStorageProvisions({
   }) => void
   refreshKey: string
 }) {
-  const [modalData, setModalData] = React.useState<{
-    storageProvision: StorageProvisionDTO | undefined
-    mutationType: MutationType
-  }>({
-    storageProvision: undefined,
+  const [modalData, setModalData] = React.useState<
+    | {
+        storageProvision: Partial<StorageProvisionInputDTO>
+        mutationType: 'CREATE'
+        open: boolean
+      }
+    | {
+        storageProvision: StorageProvision
+        mutationType: 'UPDATE'
+        open: boolean
+      }
+  >({
+    storageProvision: {},
     mutationType: 'CREATE',
+    open: false,
   })
 
   const { data: storageProvisions, refetch: refetchStorageProvisions } =
@@ -62,17 +73,18 @@ export function UserStorageProvisions({
   }, [refetchStorageProvisions, refreshKey])
 
   const handleUpdate = React.useCallback(
-    (storageProvision: StorageProvisionDTO) => {
+    (storageProvision: StorageProvision) => {
       setModalData({
         mutationType: 'UPDATE',
         storageProvision,
+        open: true,
       })
     },
     [],
   )
 
   const handleDelete = React.useCallback(
-    (storageProvision: StorageProvisionDTO) => {
+    (storageProvision: StorageProvision) => {
       void deleteStorageProvisionMutation.mutateAsync({
         params: {
           path: {
@@ -87,19 +99,19 @@ export function UserStorageProvisions({
   return (
     <div className="w-full">
       <StorageProvisionModal
-        onSubmit={async (mutationType, values) => {
-          if (mutationType === 'CREATE') {
+        onSubmit={async (payload) => {
+          if (payload.mutationType === 'CREATE') {
             await addStorageProvisionMutation.mutateAsync({
-              body: values,
+              body: payload.values,
             })
-          } else if (modalData.storageProvision) {
+          } else if (modalData.mutationType === 'UPDATE') {
             await updateStorageProvisionMutation.mutateAsync({
               params: {
                 path: {
                   storageProvisionId: modalData.storageProvision.id,
                 },
               },
-              body: values,
+              body: payload.values,
             })
           }
         }}
@@ -124,18 +136,18 @@ export function UserStorageProvisions({
                   onClick={() => {
                     setModalData({
                       storageProvision: {
-                        accessKeyHashId: '',
                         bucket: '',
-                        description: '',
                         accessKeyId: '',
+                        description: '',
+                        secretAccessKey: '',
                         endpoint: '',
-                        id: '',
                         label: '',
                         provisionTypes: [],
                         region: '',
-                        prefix: '',
+                        prefix: null,
                       },
                       mutationType: 'CREATE',
+                      open: true,
                     })
                   }}
                 >
@@ -152,18 +164,18 @@ export function UserStorageProvisions({
                   // open create provision modal
                   setModalData({
                     storageProvision: {
-                      accessKeyHashId: '',
                       bucket: '',
                       description: '',
+                      secretAccessKey: '',
                       accessKeyId: '',
                       endpoint: '',
-                      id: '',
                       label: '',
                       provisionTypes: [],
                       region: '',
-                      prefix: '',
+                      prefix: null,
                     },
                     mutationType: 'CREATE',
+                    open: true,
                   })
                 }}
               />

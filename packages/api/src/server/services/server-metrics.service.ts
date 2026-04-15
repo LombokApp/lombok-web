@@ -1,4 +1,4 @@
-import { StorageProvisionDTO } from '@lombokapp/types'
+import { StorageProvisionWithSecret } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { and, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
@@ -15,7 +15,7 @@ import { usersTable } from 'src/users/entities/user.entity'
 import { ServerConfigurationService } from './server-configuration.service'
 
 function generateStorageProvisionsSummary(
-  allUserStorageProvisions: StorageProvisionDTO[],
+  allUserStorageProvisions: StorageProvisionWithSecret[],
 ): string {
   const displayMax = 2
   return allUserStorageProvisions

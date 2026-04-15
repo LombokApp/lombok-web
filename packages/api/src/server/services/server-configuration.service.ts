@@ -1,9 +1,11 @@
 import {
   ServerStorageLocation,
-  StorageProvisionDTO,
+  ServerStorageWithSecret,
+  StorageProvision,
   StorageProvisionType,
   StorageProvisionTypeEnum,
   StorageProvisionTypeZodEnum,
+  StorageProvisionWithSecret,
 } from '@lombokapp/types'
 import {
   Injectable,
@@ -29,7 +31,7 @@ import {
   googleOAuthConfigSchema,
   SEARCH_CONFIG,
   SERVER_STORAGE_CONFIG,
-  type ServerConfig,
+  type ServerSettingsEntry,
   SIGNUP_ENABLED_CONFIG,
   STORAGE_PROVISIONS_CONFIG,
 } from '../constants/server.constants'
@@ -90,15 +92,29 @@ export class ServerConfigurationService {
         ),
       },
     )
-    return CONFIGURATION_KEYS.reduce(
-      (acc, configObject) => ({
-        ...acc,
-        [configObject.key]:
-          results.find((result) => result.key === configObject.key)?.value ??
-          configObject.default,
-      }),
-      {},
-    ) as SettingsDTO
+
+    return CONFIGURATION_KEYS.reduce((acc, configObject) => {
+      const rawValue =
+        results.find((result) => result.key === configObject.key)?.value ??
+        configObject.default
+      if (results.find((result) => result.key === configObject.key)) {
+        const parsedValue = configObject.dbSchema.safeParse(rawValue)
+        if (!parsedValue.success) {
+          console.error(
+            `Invalid value for config ${configObject.key}: ${JSON.stringify(parsedValue.error)}`,
+          )
+          console.log('rawValue', rawValue)
+          return acc
+        }
+        acc[configObject.key] = configObject.transformForResponse(
+          parsedValue.data,
+        )
+      } else {
+        acc[configObject.key] = configObject.default
+      }
+
+      return acc
+    }, {}) as SettingsDTO
   }
 
   getServerConfigurationAsUser(actor: User, configurationKey: string) {
@@ -149,13 +165,13 @@ export class ServerConfigurationService {
     }
   }
 
-  private async validateSettingValue(
+  private async validateSettingInputValue(
     settingKey: string,
     settingValue: unknown,
   ): Promise<void> {
     // Validate the value against the associated schema
     const config = CONFIGURATION_KEYS_MAP[settingKey]
-    if (!config?.schema.safeParse(settingValue).success) {
+    if (!config?.inputSchema.safeParse(settingValue).success) {
       throw new ServerConfigurationInvalidException()
     }
 
@@ -182,7 +198,7 @@ export class ServerConfigurationService {
       throw new ServerConfigurationNotFoundException()
     }
 
-    await this.validateSettingValue(settingKey, settingValue)
+    await this.validateSettingInputValue(settingKey, settingValue)
 
     const existingRecord =
       await this.ormService.db.query.serverSettingsTable.findFirst({
@@ -229,9 +245,9 @@ export class ServerConfigurationService {
   /**
    * Get the saved server configuration setting or the default value.
    */
-  async getServerConfig<T extends z.ZodType>(
-    config: ServerConfig<T>,
-  ): Promise<z.infer<T> | undefined> {
+  async getServerConfig<T extends ServerSettingsEntry<z.ZodType>>(
+    config: T,
+  ): Promise<z.infer<T['dbSchema']> | undefined> {
     const result = await this.ormService.db.query.serverSettingsTable.findFirst(
       {
         where: eq(serverSettingsTable.key, config.key),
@@ -240,13 +256,13 @@ export class ServerConfigurationService {
 
     if (result) {
       // Validate the stored value against the schema
-      if (config.schema.safeParse(result.value).success) {
-        return result.value as z.infer<T>
+      if (config.dbSchema.safeParse(result.value).success) {
+        return result.value as z.infer<T['dbSchema']>
       }
     }
 
     // No stored value or stored value was invalid, return default
-    return config.default as z.infer<T> | undefined
+    return config.default as z.infer<T['dbSchema']> | undefined
   }
 
   async createStorageProvisionAsAdmin(
@@ -281,13 +297,15 @@ export class ServerConfigurationService {
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key),
       })
-    )?.value as (StorageProvisionDTO & StorageProvisionInputDTO)[] | undefined
+    )?.value as ServerStorageWithSecret[] | undefined
 
     if (existingRecord) {
       await this.ormService.db
         .update(serverSettingsTable)
         .set({
-          value: existingRecord.concat([locationWithId]),
+          value: existingRecord.concat([
+            { ...locationWithId, prefix: locationWithId.prefix ?? null },
+          ]),
           updatedAt: now,
         })
         .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key))
@@ -337,7 +355,7 @@ export class ServerConfigurationService {
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key),
       })
-    )?.value as (StorageProvisionDTO & StorageProvisionInputDTO)[] | undefined
+    )?.value as StorageProvisionWithSecret[] | undefined
 
     if (!existingSettingRecord) {
       throw new NotFoundException()
@@ -351,11 +369,11 @@ export class ServerConfigurationService {
     } else {
       // Merge partial updates and recompute hash id using existing credentials
       const updatedValue = existingSettingRecord.map(
-        (sp: StorageProvisionDTO & StorageProvisionInputDTO) => {
+        (sp: StorageProvisionWithSecret) => {
           if (sp.id !== storageProvisionId) {
             return sp
           }
-          const merged: StorageProvisionDTO & StorageProvisionInputDTO = {
+          const merged: StorageProvisionWithSecret = {
             ...sp,
             ...storageProvision,
             accessKeyId: sp.accessKeyId,
@@ -389,7 +407,7 @@ export class ServerConfigurationService {
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key),
       })
-    )?.value as (StorageProvisionDTO & StorageProvisionInputDTO)[] | undefined
+    )?.value as (StorageProvision & StorageProvisionInputDTO)[] | undefined
 
     if (!existingRecord) {
       throw new ServerConfigurationNotFoundException()
@@ -419,17 +437,15 @@ export class ServerConfigurationService {
         where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key),
       })) ?? { value: [] }
 
-    return (
-      record.value as (StorageProvisionDTO & {
-        secretAccessKey: string
-      })[]
-    ).find((v) => v.id === storageProvisionId)
+    return (record.value as StorageProvisionWithSecret[]).find(
+      (v) => v.id === storageProvisionId,
+    )
   }
 
   async listStorageProvisionsAsUser(
     actor: User,
     { provisionType }: { provisionType?: StorageProvisionType } = {},
-  ): Promise<(StorageProvisionDTO & StorageProvisionInputDTO)[]> {
+  ): Promise<StorageProvisionWithSecret[]> {
     if (
       provisionType &&
       StorageProvisionTypeZodEnum.parse(provisionType) !== provisionType
@@ -441,14 +457,14 @@ export class ServerConfigurationService {
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key),
       })
-    )?.value as (StorageProvisionDTO & StorageProvisionInputDTO)[] | undefined
+    )?.value as StorageProvisionWithSecret[] | undefined
 
     if (!record) {
       return []
     }
 
     return provisionType
-      ? record.filter((r: StorageProvisionDTO & StorageProvisionInputDTO) =>
+      ? record.filter((r: StorageProvisionWithSecret) =>
           r.provisionTypes.includes(provisionType),
         )
       : record
@@ -456,7 +472,7 @@ export class ServerConfigurationService {
 
   getServerStorageAsAdmin(
     actor: User,
-  ): Promise<ServerStorageLocation | undefined> {
+  ): Promise<ServerStorageWithSecret | undefined> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -471,9 +487,7 @@ export class ServerConfigurationService {
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, SERVER_STORAGE_CONFIG.key),
       })
-    )?.value as
-      | (ServerStorageLocation & { secretAccessKey: string })
-      | undefined
+    )?.value as ServerStorageWithSecret | undefined
 
     return savedLocation
   }

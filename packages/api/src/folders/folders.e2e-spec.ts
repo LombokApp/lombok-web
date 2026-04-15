@@ -663,11 +663,11 @@ describe('Folders', () => {
           name: 'My Folder',
           contentLocation: testS3Location({
             bucketName: sepContentBucket,
-            prefix: '',
+            prefix: null,
           }),
           metadataLocation: testS3Location({
             bucketName: sepMetadataBucket,
-            prefix: '',
+            prefix: null,
           }),
         },
       },
@@ -724,11 +724,11 @@ describe('Folders', () => {
           name: 'My Folder',
           contentLocation: testS3Location({
             bucketName: writeOpContentBucket,
-            prefix: '',
+            prefix: null,
           }),
           metadataLocation: testS3Location({
             bucketName: writeOpMetadataBucket,
-            prefix: '',
+            prefix: null,
           }),
         },
       },

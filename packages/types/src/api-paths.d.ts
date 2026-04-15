@@ -5518,21 +5518,41 @@ export interface components {
         };
         SettingsGetResponse: {
             settings: {
-                SIGNUP_ENABLED?: boolean;
-                SIGNUP_PERMISSIONS: string[];
+                STORAGE_PROVISIONS: {
+                    /** Format: uuid */
+                    id: string;
+                    accessKeyHashId: string;
+                    endpoint: string;
+                    bucket: string;
+                    region: string;
+                    accessKeyId: string;
+                    secretAccessKey: null;
+                    prefix: string | null;
+                    provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+                    label: string;
+                    description: string;
+                }[] | null;
+                SERVER_STORAGE: {
+                    accessKeyHashId: string;
+                    accessKeyId: string;
+                    endpoint: string;
+                    bucket: string;
+                    region: string;
+                    prefix: string | null;
+                } | null;
+                SIGNUP_ENABLED: boolean | null;
+                SIGNUP_PERMISSIONS: string[] | null;
                 SERVER_HOSTNAME: string | null;
-                GOOGLE_OAUTH_CONFIG?: {
+                GOOGLE_OAUTH_CONFIG: {
                     enabled: boolean;
                     clientId: string;
-                    clientSecret: string;
-                };
-                STORAGE_PROVISIONS?: unknown[];
-                SERVER_STORAGE?: unknown;
-                EMAIL_PROVIDER_CONFIG?: ({
+                    clientSecret: null;
+                } | null;
+                EMAIL_PROVIDER_CONFIG: ({
                     /** @constant */
                     provider: "resend";
                     config: {
-                        apiKey: string;
+                        apiKey: null;
                     };
                     from: string;
                 } | {
@@ -5542,16 +5562,16 @@ export interface components {
                         host: string;
                         port: number;
                         username: string;
-                        password: string;
+                        password: null;
                     };
                     from: string;
                 }) | null;
-                SEARCH_CONFIG?: {
+                SEARCH_CONFIG: {
                     app: {
                         identifier: string;
                         workerIdentifier: string;
                     } | null;
-                };
+                } | null;
             };
         };
         SetSettingInputDTO: {
@@ -5596,7 +5616,8 @@ export interface components {
                 bucket: string;
                 region: string;
                 accessKeyId: string;
-                prefix?: string;
+                secretAccessKey: null;
+                prefix: string | null;
                 provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
                 label: string;
                 description: string;
@@ -5611,7 +5632,8 @@ export interface components {
                 bucket: string;
                 region: string;
                 accessKeyId: string;
-                prefix?: string;
+                secretAccessKey: null;
+                prefix: string | null;
                 provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
                 label: string;
                 description: string;
@@ -5625,7 +5647,7 @@ export interface components {
             region: string;
             accessKeyId: string;
             secretAccessKey: string;
-            prefix?: string;
+            prefix: string | null;
             provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
         };
         StorageProvisionUpdateDTO: {
@@ -5634,7 +5656,7 @@ export interface components {
             endpoint?: string;
             bucket?: string;
             region?: string;
-            prefix?: string;
+            prefix?: string | null;
             provisionTypes?: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
         };
         ServerStorageLocationGetResponse: {
@@ -5911,7 +5933,7 @@ export interface components {
                     endpoint: string;
                     region: string;
                     bucket: string;
-                    prefix?: string;
+                    prefix: string | null;
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
@@ -5926,7 +5948,7 @@ export interface components {
                     endpoint: string;
                     region: string;
                     bucket: string;
-                    prefix?: string;
+                    prefix: string | null;
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
@@ -5968,7 +5990,7 @@ export interface components {
                         endpoint: string;
                         region: string;
                         bucket: string;
-                        prefix?: string;
+                        prefix: string | null;
                         accessKeyId: string;
                         accessKeyHashId: string;
                     };
@@ -5983,7 +6005,7 @@ export interface components {
                         endpoint: string;
                         region: string;
                         bucket: string;
-                        prefix?: string;
+                        prefix: string | null;
                         accessKeyId: string;
                         accessKeyHashId: string;
                     };
@@ -6006,7 +6028,7 @@ export interface components {
                 endpoint: string;
                 bucket: string;
                 region: string;
-                prefix?: string;
+                prefix: string | null;
             } | {
                 /** Format: uuid */
                 storageProvisionId: string;
@@ -6014,7 +6036,7 @@ export interface components {
                 /** Format: uuid */
                 userLocationId: string;
                 userLocationBucketOverride: string;
-                userLocationPrefixOverride?: string;
+                userLocationPrefixOverride: string | null;
             };
             contentLocation: {
                 accessKeyId: string;
@@ -6022,7 +6044,7 @@ export interface components {
                 endpoint: string;
                 bucket: string;
                 region: string;
-                prefix?: string;
+                prefix: string | null;
             } | {
                 /** Format: uuid */
                 storageProvisionId: string;
@@ -6030,7 +6052,7 @@ export interface components {
                 /** Format: uuid */
                 userLocationId: string;
                 userLocationBucketOverride: string;
-                userLocationPrefixOverride?: string;
+                userLocationPrefixOverride: string | null;
             };
         };
         FolderCreateResponse: {
@@ -6051,7 +6073,7 @@ export interface components {
                     endpoint: string;
                     region: string;
                     bucket: string;
-                    prefix?: string;
+                    prefix: string | null;
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
@@ -6066,7 +6088,7 @@ export interface components {
                     endpoint: string;
                     region: string;
                     bucket: string;
-                    prefix?: string;
+                    prefix: string | null;
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
@@ -6187,7 +6209,7 @@ export interface components {
                     endpoint: string;
                     region: string;
                     bucket: string;
-                    prefix?: string;
+                    prefix: string | null;
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
@@ -6202,7 +6224,7 @@ export interface components {
                     endpoint: string;
                     region: string;
                     bucket: string;
-                    prefix?: string;
+                    prefix: string | null;
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
@@ -6256,6 +6278,7 @@ export interface components {
                 totalCount: number;
             };
             result: {
+                secretAccessKey: null;
                 accessKeyId: string;
                 accessKeyHashId: string;
                 endpoint: string;
@@ -6266,6 +6289,7 @@ export interface components {
         };
         AccessKeyGetResponse: {
             accessKey: {
+                secretAccessKey: null;
                 accessKeyId: string;
                 accessKeyHashId: string;
                 endpoint: string;

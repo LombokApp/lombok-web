@@ -1,9 +1,9 @@
 import { S3ServiceException } from '@aws-sdk/client-s3'
 import {
-  accessKeyPublicSchema,
   accessKeySchema,
+  accessKeyWithSecretSchema,
   ServerStorageLocation,
-  StorageProvisionDTO,
+  ServerStorageWithSecret,
 } from '@lombokapp/types'
 import {
   BadRequestException,
@@ -19,7 +19,6 @@ import {
   SERVER_STORAGE_CONFIG,
   STORAGE_PROVISIONS_CONFIG,
 } from 'src/server/constants/server.constants'
-import { StorageProvisionInputDTO } from 'src/server/dto/storage-provision-input.dto'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { User } from 'src/users/entities/user.entity'
@@ -294,7 +293,7 @@ export class StorageLocationService {
   async getAccessKeyAsUser(
     actor: User,
     accessKeyHashId: string,
-  ): Promise<z.infer<typeof accessKeyPublicSchema>> {
+  ): Promise<z.infer<typeof accessKeySchema>> {
     const where = and(
       eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
       eq(storageLocationsTable.userId, actor.id),
@@ -312,6 +311,7 @@ export class StorageLocationService {
     return {
       accessKeyHashId: accessKeyLocation.accessKeyHashId,
       accessKeyId: accessKeyLocation.accessKeyId,
+      secretAccessKey: null,
       endpoint: accessKeyLocation.endpoint,
       endpointDomain: accessKeyLocation.endpointDomain,
       region: accessKeyLocation.region,
@@ -333,7 +333,7 @@ export class StorageLocationService {
   async getServerAccessKeyAsAdmin(
     actor: User,
     accessKeyHashId: string,
-  ): Promise<z.infer<typeof accessKeySchema>> {
+  ): Promise<z.infer<typeof accessKeyWithSecretSchema>> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -550,10 +550,8 @@ export class StorageLocationService {
       })
       const provisionsRaw = existingProvisions?.value
       if (Array.isArray(provisionsRaw) && provisionsRaw.length > 0) {
-        type StorageProvisionValue = StorageProvisionDTO &
-          StorageProvisionInputDTO
-        const updatedProvisions: StorageProvisionValue[] = (
-          provisionsRaw as StorageProvisionValue[]
+        const updatedProvisions: ServerStorageWithSecret[] = (
+          provisionsRaw as ServerStorageWithSecret[]
         ).map((prov) =>
           prov.accessKeyHashId === input.accessKeyHashId
             ? {

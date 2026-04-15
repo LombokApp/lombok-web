@@ -1,4 +1,4 @@
-import { accessKeyPublicSchema } from '@lombokapp/types'
+import { accessKeySchema } from '@lombokapp/types'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
@@ -6,7 +6,7 @@ export const accessKeyListResponseSchema = z.object({
   meta: z.object({
     totalCount: z.number(),
   }),
-  result: z.array(accessKeyPublicSchema),
+  result: z.array(accessKeySchema),
 })
 
 export class AccessKeyListResponse extends createZodDto(

@@ -34,10 +34,11 @@ export const s3LocationSchema = z.object({
   endpoint: s3LocationEndpointSchema,
   bucket: z.string().min(1),
   region: z.string().min(1),
-  prefix: z.string().nonempty().optional(),
+  prefix: z.string().nonempty().nullable(),
 })
 
-export const accessKeyPublicSchema = z.object({
+export const accessKeySchema = z.object({
+  secretAccessKey: z.null(),
   accessKeyId: z.string(),
   accessKeyHashId: z.string(),
   endpoint: z.string(),
@@ -46,23 +47,30 @@ export const accessKeyPublicSchema = z.object({
   folderCount: z.number(),
 })
 
-export const accessKeySchema = z
-  .object({
-    secretAccessKey: z.string(),
-  })
-  .extend(accessKeyPublicSchema.shape)
+export const accessKeyWithSecretSchema = accessKeySchema.extend({
+  secretAccessKey: z.string(),
+})
 
-export const storageProvisionSchema = z.object({
+export const storageProvisionWithSecretSchema = z.object({
   id: z.guid(),
   accessKeyHashId: z.string(),
   endpoint: z.string(),
   bucket: z.string(),
   region: z.string(),
   accessKeyId: z.string(),
-  prefix: z.string().optional(),
+  secretAccessKey: z.string(),
+  prefix: z.string().nonempty().nullable(),
   provisionTypes: z.array(StorageProvisionTypeZodEnum).min(1),
   label: z.string().max(32),
   description: z.string().max(128),
+})
+
+export type StorageProvisionWithSecret = z.infer<
+  typeof storageProvisionWithSecretSchema
+>
+
+export const storageProvisionSchema = storageProvisionWithSecretSchema.extend({
+  secretAccessKey: z.null(),
 })
 
 export const serverStorageSchema = z.object({
@@ -74,5 +82,13 @@ export const serverStorageSchema = z.object({
   prefix: z.string().nonempty().nullable(),
 })
 
-export type StorageProvisionDTO = z.infer<typeof storageProvisionSchema>
+export const serverStorageSchemaWithSecret = serverStorageSchema.extend({
+  secretAccessKey: z.string(),
+})
+
+export type ServerStorageWithSecret = z.infer<
+  typeof serverStorageSchemaWithSecret
+>
+
+export type StorageProvision = z.infer<typeof storageProvisionSchema>
 export type ServerStorageLocation = z.infer<typeof serverStorageSchema>

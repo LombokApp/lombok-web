@@ -1,12 +1,16 @@
-import type { accessKeyPublicSchema, accessKeySchema } from '@lombokapp/types'
+import type {
+  accessKeySchema,
+  accessKeyWithSecretSchema,
+} from '@lombokapp/types'
 import type { z } from 'zod'
 
-export function transformAccessKeyToPublicDTO(
-  accessKey: z.infer<typeof accessKeySchema>,
-): z.infer<typeof accessKeyPublicSchema> {
+export function transformAccessKeyToDTO(
+  accessKey: z.infer<typeof accessKeyWithSecretSchema>,
+): z.infer<typeof accessKeySchema> {
   return {
     accessKeyHashId: accessKey.accessKeyHashId,
     accessKeyId: accessKey.accessKeyId,
+    secretAccessKey: null,
     region: accessKey.region,
     endpoint: accessKey.endpoint,
     endpointDomain: accessKey.endpointDomain,

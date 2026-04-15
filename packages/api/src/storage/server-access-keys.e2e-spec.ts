@@ -49,7 +49,7 @@ describe('Server Access Keys', () => {
           endpoint: s3Config.endpoint,
           bucket: provisionBucketName,
           region: s3Config.region,
-          prefix: '',
+          prefix: null,
           label: 'dummylabel',
           description: 'Test',
           provisionTypes: ['CONTENT'],

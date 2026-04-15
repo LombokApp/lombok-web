@@ -9,7 +9,7 @@ export const storageLocationDTOSchema = z.object({
   endpoint: z.string(),
   region: z.string(),
   bucket: z.string(),
-  prefix: z.string().optional(),
+  prefix: z.string().nonempty().nullable(),
   accessKeyId: z.string(),
   accessKeyHashId: z.string(),
 })

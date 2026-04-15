@@ -1,9 +1,15 @@
+import {
+  emailProviderObfuscatedSchema,
+  emailProviderSchema,
+  serverStorageSchema,
+  serverStorageSchemaWithSecret,
+  storageProvisionSchema,
+  storageProvisionWithSecretSchema,
+} from '@lombokapp/types'
 import { z } from 'zod'
 
 import { searchConfigSchema } from '../dto/search-config.dto'
 import { serverStorageInputSchema } from '../dto/server-storage-input.dto'
-import { storageProvisionInputSchema } from '../dto/storage-provision-input.dto'
-import { emailProviderConfigNullableSchema } from '../schemas/email-provider-config.schema'
 
 // Google OAuth configuration schema
 export const googleOAuthConfigSchema = z.object({
@@ -12,12 +18,33 @@ export const googleOAuthConfigSchema = z.object({
   clientSecret: z.string(),
 })
 
-export interface ServerConfig<T extends z.ZodType = z.ZodType> {
+export const googleOAuthConfigObfuscatedSchema = googleOAuthConfigSchema.extend(
+  {
+    clientSecret: z.null(),
+  },
+)
+
+export interface ServerSettingsEntry<
+  T extends z.ZodType,
+  I extends z.ZodType = T,
+  R extends z.ZodType = T,
+> {
   private: boolean
   key: string
   default?: z.infer<T> | null
-  schema: T
+  dbSchema: T
+  inputSchema: I
+  responseSchema: R
+  transformForResponse: (value: z.infer<T> | null) => z.infer<R> | null
 }
+
+export const defineServerSettingsEntry = <
+  T extends z.ZodType,
+  I extends z.ZodType = T,
+  R extends z.ZodType = T,
+>(
+  entry: ServerSettingsEntry<T, I, R>,
+): ServerSettingsEntry<T, I, R> => entry
 
 export enum ServerConfigKey {
   STORAGE_PROVISIONS = 'STORAGE_PROVISIONS',
@@ -30,75 +57,151 @@ export enum ServerConfigKey {
   EMAIL_PROVIDER_CONFIG = 'EMAIL_PROVIDER_CONFIG',
 }
 
-export const STORAGE_PROVISIONS_CONFIG: ServerConfig<
-  typeof storageProvisionInputSchema
-> = {
+export const STORAGE_PROVISIONS_CONFIG = defineServerSettingsEntry({
   key: ServerConfigKey.STORAGE_PROVISIONS,
   private: true,
-  default: undefined,
-  schema: storageProvisionInputSchema,
-}
+  default: [],
+  dbSchema: storageProvisionWithSecretSchema.array(),
+  inputSchema: z.never(),
+  responseSchema: storageProvisionSchema.array(),
+  transformForResponse: (value) => {
+    if (!Array.isArray(value)) {
+      return value
+    }
+    return value.map((storageProvision) => ({
+      id: storageProvision.id,
+      label: storageProvision.label,
+      accessKeyId: storageProvision.accessKeyId,
+      secretAccessKey: null,
+      bucket: storageProvision.bucket,
+      accessKeyHashId: storageProvision.accessKeyHashId,
+      description: storageProvision.description,
+      endpoint: storageProvision.endpoint,
+      provisionTypes: storageProvision.provisionTypes,
+      region: storageProvision.region,
+      prefix: storageProvision.prefix,
+    }))
+  },
+})
 
-export const SERVER_STORAGE_CONFIG: ServerConfig<
-  typeof serverStorageInputSchema
-> = {
+export const SERVER_STORAGE_CONFIG = defineServerSettingsEntry({
   key: ServerConfigKey.SERVER_STORAGE,
   private: true,
-  default: undefined,
-  schema: serverStorageInputSchema,
-}
+  default: null,
+  dbSchema: serverStorageSchemaWithSecret,
+  inputSchema: serverStorageInputSchema,
+  responseSchema: serverStorageSchema,
+  transformForResponse: (value) => {
+    if (!value) {
+      return value
+    }
+    return { ...value, secretAccessKey: null }
+  },
+})
 
-export const SIGNUP_ENABLED_CONFIG: ServerConfig<z.ZodBoolean> = {
+export const SIGNUP_ENABLED_CONFIG = defineServerSettingsEntry({
   key: ServerConfigKey.SIGNUP_ENABLED,
   private: false,
   default: true,
-  schema: z.boolean(),
-}
+  dbSchema: z.boolean(),
+  inputSchema: z.boolean(),
+  responseSchema: z.boolean(),
+  transformForResponse: (value) => {
+    if (!value) {
+      return value
+    }
+    return value
+  },
+})
 
-export const SERVER_HOSTNAME_CONFIG: ServerConfig<z.ZodString> = {
+export const SERVER_HOSTNAME_CONFIG = defineServerSettingsEntry({
   key: ServerConfigKey.SERVER_HOSTNAME,
   private: false,
   default: null,
-  schema: z.string(),
-}
+  dbSchema: z.string(),
+  inputSchema: z.string(),
+  responseSchema: z.string(),
+  transformForResponse: (value) => {
+    if (!value) {
+      return value
+    }
+    return value
+  },
+})
 
-export const SEARCH_CONFIG: ServerConfig<typeof searchConfigSchema> = {
+export const SEARCH_CONFIG = defineServerSettingsEntry({
   key: ServerConfigKey.SEARCH_CONFIG,
   private: true,
   default: { app: null },
-  schema: searchConfigSchema,
-}
+  dbSchema: searchConfigSchema,
+  inputSchema: searchConfigSchema,
+  responseSchema: searchConfigSchema,
+  transformForResponse: (value) => {
+    if (!value) {
+      return value
+    }
+    return value
+  },
+})
 
-export const SIGNUP_PERMISSIONS_CONFIG: ServerConfig<z.ZodArray<z.ZodString>> =
-  {
-    key: ServerConfigKey.SIGNUP_PERMISSIONS,
-    private: true,
-    default: [],
-    schema: z.array(z.string()),
-  }
+export const SIGNUP_PERMISSIONS_CONFIG = defineServerSettingsEntry({
+  key: ServerConfigKey.SIGNUP_PERMISSIONS,
+  private: true,
+  default: [],
+  dbSchema: z.array(z.string()),
+  inputSchema: z.array(z.string()),
+  responseSchema: z.array(z.string()),
+  transformForResponse: (value) => {
+    if (!Array.isArray(value)) {
+      return value
+    }
+    return value.map((v) => v)
+  },
+})
 
-export const GOOGLE_OAUTH_CONFIG: ServerConfig<typeof googleOAuthConfigSchema> =
-  {
-    key: ServerConfigKey.GOOGLE_OAUTH_CONFIG,
-    private: true,
-    default: {
-      enabled: false,
-      clientId: '',
-      clientSecret: '',
-    },
-    schema: googleOAuthConfigSchema,
-  }
+export const GOOGLE_OAUTH_CONFIG = defineServerSettingsEntry({
+  key: ServerConfigKey.GOOGLE_OAUTH_CONFIG,
+  private: true,
+  default: null,
+  dbSchema: googleOAuthConfigSchema,
+  inputSchema: googleOAuthConfigSchema,
+  responseSchema: googleOAuthConfigObfuscatedSchema,
+  transformForResponse: (value) => {
+    if (!value) {
+      return value
+    }
 
-export const EMAIL_PROVIDER_CONFIG: ServerConfig<
-  typeof emailProviderConfigNullableSchema
-> = {
+    return {
+      ...value,
+      clientSecret: null,
+    }
+  },
+})
+
+export const EMAIL_PROVIDER_CONFIG = defineServerSettingsEntry({
   key: ServerConfigKey.EMAIL_PROVIDER_CONFIG,
   private: true,
   default: null,
-  schema: emailProviderConfigNullableSchema,
-}
+  dbSchema: emailProviderSchema.nullable(),
+  inputSchema: emailProviderSchema.nullable(),
+  responseSchema: emailProviderObfuscatedSchema,
+  transformForResponse: (value) => {
+    if (!value) {
+      return value
+    }
+    return {
+      ...value,
+      config: Object.fromEntries(
+        Object.entries(value.config).map(([key, _value]) => [
+          key,
+          !['apiKey', 'password'].includes(key) ? _value : null,
+        ]),
+      ),
+    } as z.infer<typeof emailProviderObfuscatedSchema>
+  },
+})
 
-export const CONFIGURATION_KEYS = [
+export const CONFIGURATION_KEYS: ServerSettingsEntry<z.ZodType>[] = [
   STORAGE_PROVISIONS_CONFIG,
   SERVER_STORAGE_CONFIG,
   SIGNUP_ENABLED_CONFIG,
@@ -110,7 +213,7 @@ export const CONFIGURATION_KEYS = [
 ]
 
 export const CONFIGURATION_KEYS_MAP = CONFIGURATION_KEYS.reduce<
-  Record<string, ServerConfig>
+  Record<string, ServerSettingsEntry<z.ZodType>>
 >((acc, next) => ({ ...acc, [next.key]: next }), {})
 
 export const PUBLIC_SERVER_CONFIGURATION_KEYS = Object.keys(

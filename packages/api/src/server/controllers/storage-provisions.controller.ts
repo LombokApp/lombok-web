@@ -158,10 +158,12 @@ export class StorageProvisionsController {
       req.user,
       storageProvisionId,
     )
-    return {
-      result: await this.serverConfigurationService.listStorageProvisionsAsUser(
+    const listResult =
+      await this.serverConfigurationService.listStorageProvisionsAsUser(
         req.user,
-      ),
+      )
+    return {
+      result: listResult.map((r) => transformStorageProvisionToDTO(r)),
     }
   }
 }

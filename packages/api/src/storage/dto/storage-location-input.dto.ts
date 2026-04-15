@@ -14,7 +14,7 @@ export const storageLocationInputDTOSchema = z.union([
         (prefix) => prefix.at(0) !== '/' && prefix.at(-1) !== '/',
         'Prefix cannot start or end with "/".',
       )
-      .optional(),
+      .nullable(),
   }),
   z.object({
     storageProvisionId: z.guid(),
@@ -22,7 +22,7 @@ export const storageLocationInputDTOSchema = z.union([
   z.object({
     userLocationId: z.guid(),
     userLocationBucketOverride: z.string(),
-    userLocationPrefixOverride: z.string().optional(),
+    userLocationPrefixOverride: z.string().nullable(),
   }),
 ])
 

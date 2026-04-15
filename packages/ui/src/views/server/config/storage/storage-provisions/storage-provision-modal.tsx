@@ -1,4 +1,8 @@
-import type { StorageProvisionDTO } from '@lombokapp/types'
+import type {
+  StorageProvision,
+  StorageProvisionInputDTO,
+  StorageProvisionUpdateDTO,
+} from '@lombokapp/types'
 import {
   DialogContent,
   DialogDescription,
@@ -8,16 +12,19 @@ import {
 import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 
-import type {
-  MutationType,
-  StorageProvisionFormValues,
-} from './storage-provision-form/storage-provision-form'
 import { StorageProvisionForm } from './storage-provision-form/storage-provision-form'
 
-interface ModalData {
-  storageProvision: StorageProvisionDTO | undefined
-  mutationType: MutationType
-}
+type ModalData =
+  | {
+      storageProvision: Partial<StorageProvisionInputDTO>
+      mutationType: 'CREATE'
+      open: boolean
+    }
+  | {
+      storageProvision: StorageProvision
+      mutationType: 'UPDATE'
+      open: boolean
+    }
 
 export const StorageProvisionModal = ({
   modalData,
@@ -27,18 +34,29 @@ export const StorageProvisionModal = ({
   modalData: ModalData
   setModalData: (modalData: ModalData) => void
   onSubmit: (
-    mutationType: MutationType,
-    values: StorageProvisionFormValues,
+    payload:
+      | {
+          mutationType: 'UPDATE'
+          values: StorageProvisionUpdateDTO
+        }
+      | {
+          mutationType: 'CREATE'
+          values: StorageProvisionInputDTO
+        },
   ) => Promise<void>
 }) => {
   const { toast } = useToast()
 
   return (
     <Dialog
-      open={!!modalData.storageProvision}
+      open={modalData.open}
       onOpenChange={(open) => {
         if (!open) {
-          setModalData({ ...modalData, storageProvision: undefined })
+          setModalData({
+            storageProvision: {},
+            mutationType: 'CREATE',
+            open: true,
+          })
         }
       }}
     >
@@ -62,26 +80,58 @@ export const StorageProvisionModal = ({
           </DialogDescription>
         </DialogHeader>
         <div className="w-full">
-          <StorageProvisionForm
-            mutationType={modalData.mutationType}
-            value={modalData.storageProvision}
-            onCancel={() =>
-              setModalData({
-                ...modalData,
-                storageProvision: undefined,
-              })
-            }
-            onSubmit={(storageProvision) => {
-              void onSubmit(modalData.mutationType, storageProvision)
-              setModalData({
-                ...modalData,
-                storageProvision: undefined,
-              })
-              toast({
-                title: 'User storage provision created.',
-              })
-            }}
-          />
+          {modalData.mutationType === 'CREATE' ? (
+            <StorageProvisionForm
+              input={{ mutationType: 'CREATE', values: undefined }}
+              onCancel={() =>
+                setModalData({
+                  mutationType: 'CREATE',
+                  storageProvision: {},
+                  open: false,
+                })
+              }
+              onSubmit={(payload: {
+                mutationType: 'CREATE'
+                values: StorageProvisionInputDTO
+              }) => {
+                void onSubmit(payload).then(() => {
+                  toast({ title: 'User storage provision created.' })
+                  setModalData({
+                    mutationType: 'CREATE',
+                    storageProvision: {},
+                    open: false,
+                  })
+                })
+              }}
+            />
+          ) : modalData.storageProvision.id ? (
+            <StorageProvisionForm
+              input={{
+                mutationType: 'UPDATE',
+                values: modalData.storageProvision,
+              }}
+              onCancel={() =>
+                setModalData({
+                  mutationType: 'CREATE',
+                  storageProvision: {},
+                  open: false,
+                })
+              }
+              onSubmit={(payload: {
+                mutationType: 'UPDATE'
+                values: StorageProvisionUpdateDTO
+              }) => {
+                void onSubmit(payload).then(() => {
+                  toast({ title: 'User storage provision updated.' })
+                  setModalData({
+                    mutationType: 'CREATE',
+                    storageProvision: {},
+                    open: false,
+                  })
+                })
+              }}
+            />
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
