@@ -388,6 +388,7 @@ export class DockerClientService {
     command: string[],
     options?: {
       env?: Record<string, string>
+      user?: string
     },
   ): Promise<{
     exitCode: number
@@ -403,6 +404,7 @@ export class DockerClientService {
       env: options?.env
         ? Object.entries(options.env).map(([k, v]) => `${k}=${v}`)
         : null,
+      ...(options?.user && { user: options.user }),
     })
 
     return result

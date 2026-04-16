@@ -391,12 +391,17 @@ async function handleRoute(
       return jsonResponse({ success: true })
     }
     if (method === 'POST' && action === 'exec') {
-      const body = (await req.json()) as { command?: string[]; env?: string[] }
+      const body = (await req.json()) as {
+        command?: string[]
+        env?: string[]
+        user?: string
+      }
       if (!body.command || !Array.isArray(body.command)) {
         return jsonResponse({ error: 'command is required' }, 400)
       }
       const result = await adapter.execSync(containerId, body.command, {
         env: body.env,
+        user: body.user,
       })
       return jsonResponse(result)
     }

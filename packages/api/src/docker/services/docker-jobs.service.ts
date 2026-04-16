@@ -409,6 +409,12 @@ export class DockerJobsService {
 
       const platformUrl = buildPlatformOrigin(this._coreConfig)
 
+      // Extract container-side mount points from volumes (format: host:container[:opts])
+      // so provision can chown them to the container's default user.
+      const containerMountPoints = (resolvedVolumes ?? [])
+        .map((v) => v.split(':')[1])
+        .filter((p): p is string => !!p)
+
       const provisionExec = await this.dockerClientService.execInContainer(
         hostId,
         containerId,
@@ -417,9 +423,13 @@ export class DockerJobsService {
           'provision',
           '--secret',
           provision.provisionSecret,
+          ...(containerMountPoints.length > 0
+            ? ['--chown-paths', containerMountPoints.join(',')]
+            : []),
           `LOMBOK_CONTAINER_TOKEN=${containerToken}`,
           `LOMBOK_PLATFORM_URL=${platformUrl}`,
         ],
+        { user: 'root' },
       )
 
       if (provisionExec.exitCode !== 0) {
