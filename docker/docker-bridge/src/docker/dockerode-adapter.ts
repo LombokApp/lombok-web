@@ -61,6 +61,7 @@ export class DockerodeAdapter implements DockerAdapter {
       AttachStderr: true,
       Env: opts.env,
       WorkingDir: opts.workingDir,
+      User: opts.user,
     })
     return exec.id
   }
@@ -221,11 +222,12 @@ export class DockerodeAdapter implements DockerAdapter {
   async execSync(
     containerId: string,
     command: string[],
-    options?: { env?: string[] },
+    options?: { env?: string[]; user?: string },
   ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
     const execId = await this.createExec(containerId, command, {
       tty: false,
       env: options?.env,
+      user: options?.user,
     })
     const stream = await this.startExec(execId, { tty: false, stdin: false })
 

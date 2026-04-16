@@ -4,6 +4,7 @@ export interface ExecOptions {
   tty: boolean
   env?: string[]
   workingDir?: string
+  user?: string
 }
 
 export interface StartExecOptions {
@@ -124,7 +125,7 @@ export interface DockerAdapter {
   execSync: (
     containerId: string,
     command: string[],
-    options?: { env?: string[] },
+    options?: { env?: string[]; user?: string },
   ) => Promise<{ stdout: string; stderr: string; exitCode: number }>
 
   // Container lifecycle
