@@ -36,6 +36,7 @@ import {
   TEST_DOCKER_HOST_ID,
 } from 'src/test/test.util'
 
+import { dockerProfileResourceAssignmentsTable } from '../entities/docker-profile-resource-assignment.entity'
 import { DockerClientService } from '../services/client/docker-client.service'
 import { buildMockDockerClientService } from './docker.e2e-mocks'
 
@@ -466,6 +467,47 @@ describe('Docker Jobs', () => {
       jobInterface: { kind: 'exec_per_job' },
       jobData: {},
     })
+  })
+
+  it('should resolve {{ }} template expressions in volume configuration', async () => {
+    // Override the profile assignment to use template volumes
+    await testModule!.services.ormService.db
+      .update(dockerProfileResourceAssignmentsTable)
+      .set({
+        config: {
+          volumes: [
+            '/data/{{appIdentifier}}:/mnt/appdata',
+            '/static:/mnt/static',
+          ],
+        },
+      })
+      .where(
+        eq(dockerProfileResourceAssignmentsTable.appIdentifier, TEST_APP_SLUG),
+      )
+
+    execSpy.mockImplementation((_hostId, _containerId, command, _options?) => {
+      return Promise.resolve({
+        exitCode: 0,
+        stdout:
+          command[1] === 'job-state'
+            ? `{"job_id": "${command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+            : '',
+        stderr: '',
+      })
+    })
+
+    await testModule?.services.appService.executeAppDockerJob({
+      appIdentifier: TEST_APP_SLUG,
+      profileIdentifier: 'dummy_profile',
+      jobIdentifier: 'test_job',
+      jobData: {},
+    })
+
+    const findOrCreateContainerCall = findOrCreateContainerSpy.mock.calls[0]!
+    expect(findOrCreateContainerCall[1].volumes).toEqual([
+      `/data/${TEST_APP_SLUG}:/mnt/appdata`,
+      '/static:/mnt/static',
+    ])
   })
 
   it('should call exec with waitForCompletion=true when no asyncTaskId is provided', async () => {

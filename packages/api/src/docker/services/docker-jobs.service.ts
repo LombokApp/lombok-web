@@ -323,6 +323,11 @@ export class DockerJobsService {
       profileKey: string
       userId?: string
     },
+    templateContext?: {
+      userId?: string
+      isolationKey?: string
+      appIdentifier?: string
+    },
   ): Promise<{ containerId: string; hostId: string }> {
     if ('containerId' in attributes) {
       const { hostId, containerId: refContainerId } = attributes
@@ -358,10 +363,21 @@ export class DockerJobsService {
       attributes.profileKey,
     )
 
+    // Resolve {{ }} template expressions in volumes with runtime context
+    let resolvedVolumes = config.volumes
+    if (config.volumes?.length && templateContext) {
+      const resolved = await dataFromTemplate(
+        { volumes: config.volumes },
+        { objects: templateContext },
+      )
+      resolvedVolumes = resolved.volumes as string[]
+    }
+
     const container = await this.dockerClientService.findOrCreateContainer(
       hostId,
       {
         ...config,
+        volumes: resolvedVolumes,
         image,
         labels: { ...config.labels, ...labels },
         start: true,
@@ -564,6 +580,7 @@ export class DockerJobsService {
             profileKey,
             userId: effectiveUserId,
           },
+          { userId: effectiveUserId, isolationKey, appIdentifier },
         )
       } else {
         // No containerTarget — shared container per profile (backward-compatible default)
@@ -583,6 +600,7 @@ export class DockerJobsService {
             env: { LOMBOK_PROVISION_SECRET: provisionSecret },
           },
           { provisionSecret, appIdentifier, profileKey, userId },
+          { userId, appIdentifier },
         )
       }
 
