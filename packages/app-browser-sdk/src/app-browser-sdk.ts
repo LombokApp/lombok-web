@@ -58,7 +58,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   public readonly lombokApiBasePath: string = (() => {
     const potocol = window.location.protocol
     const port = window.location.port
-    const hostname = window.location.hostname.split('.').slice(2).join('.')
+    const hostname = window.location.hostname.split('.').slice(1).join('.')
     return `${potocol}//${hostname}${port ? `:${port}` : ''}`
   })()
 
