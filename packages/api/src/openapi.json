@@ -7694,21 +7694,14 @@
         ]
       }
     },
-    "/api/v1/docker/refresh-container-token": {
+    "/api/v1/docker/refresh-platform-token": {
       "post": {
-        "description": "Returns a new container token with fresh expiry. The current token must be valid (not expired).",
-        "operationId": "DockerWorkerHooks_refreshContainerToken",
+        "description": "Returns a new platform token with fresh expiry. Accepts app_runtime_worker or app_user tokens.",
+        "operationId": "DockerWorkerHooks_refreshPlatformToken",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerRefreshContainerTokenResponseDTO"
-                }
-              }
-            }
+            "description": ""
           },
           "5XX": {
             "description": "Server Error",
@@ -7736,65 +7729,7 @@
             "bearer": []
           }
         ],
-        "summary": "Refresh a container token",
-        "tags": [
-          "DockerWorkerHooks"
-        ]
-      }
-    },
-    "/api/v1/docker/relay-request": {
-      "post": {
-        "description": "Routes a request from an app container to an app runtime worker. This has the platform lookup a pending request on a running container, and forward it to the runtime worker to so the container doesn't need to hold (and refresh) authentication credentials.",
-        "operationId": "DockerWorkerHooks_routeAppContainerRequest",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DockerRouteAppContainerRequestDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DockerRouteAppContainerResponseDTO"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Route a request from an app container to an app runtime worker",
+        "summary": "Refresh a platform token for a Docker container",
         "tags": [
           "DockerWorkerHooks"
         ]
@@ -31203,37 +31138,6 @@
           }
         ]
       },
-      "DockerJobUpdateRequestDTO__schema0": {
-        "anyOf": [
-          {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          {
-            "type": "number"
-          },
-          {
-            "type": "boolean"
-          },
-          {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DockerJobUpdateRequestDTO__schema0"
-            }
-          },
-          {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/DockerJobUpdateRequestDTO__schema0"
-            }
-          }
-        ]
-      },
       "DockerJobUpdateRequestDTO": {
         "type": "object",
         "properties": {
@@ -31288,63 +31192,10 @@
               "audience"
             ]
           },
-          "data": {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/DockerJobUpdateRequestDTO__schema0"
-            }
-          },
           "timestamp": {
             "type": "string"
           }
         }
-      },
-      "DockerRefreshContainerTokenResponseDTO": {
-        "type": "object",
-        "properties": {
-          "token": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "token"
-        ]
-      },
-      "DockerRouteAppContainerRequestDTO": {
-        "type": "object",
-        "properties": {
-          "requestId": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+$"
-          },
-          "callerSubPath": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+$"
-          }
-        },
-        "required": [
-          "requestId"
-        ]
-      },
-      "DockerRouteAppContainerResponseDTO": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "number"
-          },
-          "headers": {
-            "$ref": "#/components/schemas/StringMapDTO"
-          },
-          "body": {}
-        },
-        "required": [
-          "status",
-          "headers",
-          "body"
-        ]
       },
       "DockerHostListResponse": {
         "type": "object",

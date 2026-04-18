@@ -32,8 +32,9 @@ const (
 	tokenRefreshInitialDelay = 30 * time.Second
 	tokenRefreshThreshold    = 12 * time.Hour
 
-	containerTokenEnvKey = "LOMBOK_CONTAINER_TOKEN"
-	platformURLEnvKey    = "LOMBOK_PLATFORM_URL"
+	platformTokenEnvKey        = "LOMBOK_PLATFORM_TOKEN"
+	platformRefreshTokenEnvKey = "LOMBOK_PLATFORM_REFRESH_TOKEN"
+	platformURLEnvKey          = "LOMBOK_PLATFORM_URL"
 )
 
 type warmupSpec struct {
@@ -239,6 +240,16 @@ func startTokenRefreshLoop(ctx context.Context) {
 	}
 }
 
+// resolveEnvValue looks up a key in provision.env lines and returns the value and line index.
+func resolveEnvValue(lines []string, key string) (value string, lineIdx int) {
+	for i, line := range lines {
+		if strings.HasPrefix(line, key+"=") {
+			return strings.TrimPrefix(line, key+"="), i
+		}
+	}
+	return "", -1
+}
+
 func refreshTokenIfNeeded() {
 	envPath := config.ProvisionEnvPath()
 
@@ -253,18 +264,10 @@ func refreshTokenIfNeeded() {
 	}
 
 	lines := strings.Split(string(data), "\n")
-	tokenValue := ""
-	tokenLineIdx := -1
-	for i, line := range lines {
-		if strings.HasPrefix(line, containerTokenEnvKey+"=") {
-			tokenValue = strings.TrimPrefix(line, containerTokenEnvKey+"=")
-			tokenLineIdx = i
-			break
-		}
-	}
 
+	tokenValue, tokenLineIdx := resolveEnvValue(lines, platformTokenEnvKey)
 	if tokenValue == "" {
-		logs.WriteAgentLog(logs.LogLevelDebug, "Token refresh: no container token found, skipping", nil)
+		logs.WriteAgentLog(logs.LogLevelDebug, "Token refresh: no platform token found, skipping", nil)
 		return
 	}
 
@@ -288,14 +291,26 @@ func refreshTokenIfNeeded() {
 		return
 	}
 
-	newToken, err := callTokenRefreshEndpoint(platformURL, tokenValue)
+	refreshResult, err := callPlatformTokenRefreshEndpoint(platformURL, tokenValue)
 	if err != nil {
 		logs.WriteAgentLog(logs.LogLevelError, "Token refresh: failed to refresh", map[string]any{"error": err.Error()})
 		return
 	}
 
-	// Replace the token line and write back atomically.
-	lines[tokenLineIdx] = containerTokenEnvKey + "=" + newToken
+	// Update the token line.
+	lines[tokenLineIdx] = platformTokenEnvKey + "=" + refreshResult.AccessToken
+
+	// Update refresh token if present in the response.
+	if refreshResult.RefreshToken != "" {
+		_, refreshLineIdx := resolveEnvValue(lines, platformRefreshTokenEnvKey)
+		if refreshLineIdx >= 0 {
+			lines[refreshLineIdx] = platformRefreshTokenEnvKey + "=" + refreshResult.RefreshToken
+		} else {
+			// Append the refresh token line.
+			lines = append(lines, platformRefreshTokenEnvKey+"="+refreshResult.RefreshToken)
+		}
+	}
+
 	newContent := strings.Join(lines, "\n")
 
 	tmpPath := envPath + ".tmp"
@@ -308,7 +323,7 @@ func refreshTokenIfNeeded() {
 		return
 	}
 
-	logs.WriteAgentLog(logs.LogLevelInfo, "Token refresh: successfully refreshed container token", map[string]any{
+	logs.WriteAgentLog(logs.LogLevelInfo, "Token refresh: successfully refreshed platform token", map[string]any{
 		"old_remaining_hours": fmt.Sprintf("%.1f", remaining.Hours()),
 	})
 }
@@ -352,12 +367,17 @@ func resolvePlatformURL(envLines []string) string {
 	return ""
 }
 
-func callTokenRefreshEndpoint(platformURL, token string) (string, error) {
-	url := strings.TrimRight(platformURL, "/") + "/api/v1/docker/refresh-container-token"
+type refreshTokenResult struct {
+	AccessToken  string
+	RefreshToken string
+}
+
+func callPlatformTokenRefreshEndpoint(platformURL, token string) (refreshTokenResult, error) {
+	url := strings.TrimRight(platformURL, "/") + "/api/v1/docker/refresh-platform-token"
 
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return refreshTokenResult{}, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
@@ -365,28 +385,33 @@ func callTokenRefreshEndpoint(platformURL, token string) (string, error) {
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("request failed: %w", err)
+		return refreshTokenResult{}, fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("refresh returned status %d: %s", resp.StatusCode, string(body))
+		return refreshTokenResult{}, fmt.Errorf("refresh returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
-		Token string `json:"token"`
+		AccessToken  string `json:"accessToken"`
+		RefreshToken string `json:"refreshToken"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", fmt.Errorf("failed to decode response: %w", err)
+		return refreshTokenResult{}, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	if result.Token == "" {
-		return "", fmt.Errorf("refresh returned empty token")
+	if result.AccessToken == "" {
+		return refreshTokenResult{}, fmt.Errorf("refresh returned empty access token")
 	}
 
-	return result.Token, nil
+	return refreshTokenResult{
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+	}, nil
 }
+
 
 func launchWarmupSupervisor(warmup warmupSpec) error {
 	configPayload := workerSupervisorConfig{

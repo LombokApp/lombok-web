@@ -110,6 +110,14 @@ func provision(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to chown provision env file: %w", err)
 	}
 
+	// Chown log files created by provision (running as root) so the
+	// non-root entrypoint user can write to them later.
+	for _, logPath := range []string{config.AgentLogPath(), config.UnifiedLogPath()} {
+		if _, err := os.Stat(logPath); err == nil {
+			_ = os.Chown(logPath, uid, gid)
+		}
+	}
+
 	if provisionChownPaths != "" {
 		for _, p := range strings.Split(provisionChownPaths, ",") {
 			p = strings.TrimSpace(p)

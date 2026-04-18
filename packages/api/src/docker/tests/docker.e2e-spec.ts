@@ -402,8 +402,10 @@ describe('Docker Jobs', () => {
         expect.any(String),
         '--chown-paths',
         '/mnt/user/appdata/somepath',
-        expect.stringContaining('LOMBOK_CONTAINER_TOKEN='),
+        expect.stringContaining('LOMBOK_PLATFORM_TOKEN='),
+        expect.stringContaining('LOMBOK_PLATFORM_TOKEN_TYPE='),
         expect.stringContaining('LOMBOK_PLATFORM_URL='),
+        expect.stringContaining('LOMBOK_APP_IDENTIFIER='),
       ],
       { user: 'root' },
     ])
@@ -2088,6 +2090,145 @@ describe('Docker Jobs', () => {
     )
     expect([401, 403]).toContain(responseStatus(completeAttempt))
   })
+  describe('platform token refresh', () => {
+    it('should refresh an app token and return a new access token', async () => {
+      const appToken =
+        testModule!.services.dockerWorkerHookService.createDockerAppToken(
+          TEST_APP_SLUG,
+        )
+
+      const result =
+        await testModule!.services.dockerWorkerHookService.refreshPlatformToken(
+          appToken,
+        )
+
+      expect(result.accessToken).toBeDefined()
+      expect(result.accessToken).not.toBe(appToken)
+      expect(result.refreshToken).toBeUndefined()
+    })
+
+    it('should refresh an app-user token and return new access + refresh tokens', async () => {
+      // Enable the app for users so app-user tokens can be created
+      await testModule!.services.ormService.db
+        .update(appsTable)
+        .set({ userScopeEnabledDefault: true })
+        .where(eq(appsTable.identifier, TEST_APP_SLUG))
+
+      const {
+        session: { accessToken: userAccessToken },
+      } = await createTestUser(testModule!, {
+        username: 'refreshtestuser',
+        password: '123',
+      })
+
+      const user = await testModule!
+        .apiClient(userAccessToken)
+        .GET('/api/v1/viewer')
+
+      const userId = user.data?.user.id
+      if (!userId) {
+        throw new Error('Failed to get user id')
+      }
+      const credentials =
+        await testModule!.services.dockerWorkerHookService.createDockerPlatformCredentials(
+          { appIdentifier: TEST_APP_SLUG, userId },
+        )
+
+      expect(credentials.tokenType).toBe('app_user')
+      expect(credentials.refreshToken).toBeDefined()
+
+      const result =
+        await testModule!.services.dockerWorkerHookService.refreshPlatformToken(
+          credentials.token,
+        )
+
+      expect(result.accessToken).toBeDefined()
+      expect(result.accessToken).not.toBe(credentials.token)
+      expect(result.refreshToken).toBeDefined()
+    })
+
+    it('should reject refresh with an invalid token', async () => {
+      expect(
+        testModule!.services.dockerWorkerHookService.refreshPlatformToken(
+          'not-a-valid-token',
+        ),
+      ).rejects.toThrow()
+    })
+  })
+
+  describe('platform credentials creation', () => {
+    it('should create app token for shared containers (no userId)', async () => {
+      const credentials =
+        await testModule!.services.dockerWorkerHookService.createDockerPlatformCredentials(
+          { appIdentifier: TEST_APP_SLUG },
+        )
+
+      expect(credentials.tokenType).toBe('app')
+      expect(credentials.token).toBeDefined()
+      expect(credentials.refreshToken).toBeUndefined()
+    })
+
+    it('should create app-user token for user-isolated containers (with userId)', async () => {
+      await testModule!.services.ormService.db
+        .update(appsTable)
+        .set({ userScopeEnabledDefault: true })
+        .where(eq(appsTable.identifier, TEST_APP_SLUG))
+
+      const {
+        session: { accessToken: userAccessToken },
+      } = await createTestUser(testModule!, {
+        username: 'credstestuser',
+        password: '123',
+      })
+
+      const user = await testModule!
+        .apiClient(userAccessToken)
+        .GET('/api/v1/viewer')
+
+      const userId = user.data?.user.id
+      if (!userId) {
+        throw new Error('Failed to get user id')
+      }
+
+      const credentials =
+        await testModule!.services.dockerWorkerHookService.createDockerPlatformCredentials(
+          { appIdentifier: TEST_APP_SLUG, userId },
+        )
+
+      expect(credentials.tokenType).toBe('app_user')
+      expect(credentials.token).toBeDefined()
+      expect(credentials.refreshToken).toBeDefined()
+    })
+
+    it('should include LOMBOK_APP_IDENTIFIER in provision args', async () => {
+      execSpy.mockImplementation(
+        (_hostId, _containerId, command, _options?) => {
+          return Promise.resolve({
+            exitCode: 0,
+            stdout:
+              command[1] === 'job-state'
+                ? `{"job_id": "${command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+                : '',
+            stderr: '',
+          })
+        },
+      )
+
+      await testModule?.services.appService.executeAppDockerJob({
+        appIdentifier: TEST_APP_SLUG,
+        profileIdentifier: 'dummy_profile',
+        jobIdentifier: 'test_job',
+        jobData: {},
+      })
+
+      const provisionArgs = execSpy.mock.calls[0]![2]
+      const appIdArg = provisionArgs.find((a: string) =>
+        a.startsWith('LOMBOK_APP_IDENTIFIER='),
+      )
+      expect(appIdArg).toBe(`LOMBOK_APP_IDENTIFIER=${TEST_APP_SLUG}`)
+    })
+  })
+
   afterAll(async () => {
     await testModule?.shutdown()
   })

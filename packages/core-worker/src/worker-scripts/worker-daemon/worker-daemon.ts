@@ -339,7 +339,9 @@ void (async () => {
               })
             } else {
               const authHeader = request.headers.get('Authorization')
-
+              console.log(
+                `request.headers: ${JSON.stringify(request.headers.toJSON(), null, 2)}`,
+              )
               if (
                 authHeader?.startsWith('Bearer ') &&
                 pipeRequest.appIdentifier
@@ -348,7 +350,6 @@ void (async () => {
 
                 const authResult = await serverClient.authenticateUser({
                   token,
-                  appIdentifier: pipeRequest.appIdentifier,
                 })
 
                 if ('error' in authResult) {
@@ -356,7 +357,6 @@ void (async () => {
                   logTiming('authentication_failed', authStartTime, {
                     requestId: pipeRequest.id,
                     error: errorMessage,
-                    appIdentifier: pipeRequest.appIdentifier,
                   })
 
                   throw new AsyncWorkError({

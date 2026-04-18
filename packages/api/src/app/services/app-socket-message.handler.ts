@@ -210,7 +210,7 @@ export async function handleAppSocketMessage(
         const userId = subjectParts[1]!
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const tokenAppIdentifier = subjectParts[2]!
-        if (tokenAppIdentifier !== parsedRequest.data.appIdentifier) {
+        if (tokenAppIdentifier !== requestingAppIdentifier) {
           return {
             error: { code: 401, message: 'Token app identifier mismatch' },
           }
@@ -218,7 +218,7 @@ export async function handleAppSocketMessage(
         jwtService.verifyAppUserJWT({
           token: parsedRequest.data.token,
           userId,
-          appIdentifier: parsedRequest.data.appIdentifier,
+          appIdentifier: requestingAppIdentifier,
         })
         return { result: { userId, success: true } }
       } catch (error) {

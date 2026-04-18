@@ -569,26 +569,26 @@ function startMockPlatformServer(): void {
       const url = new URL(req.url)
       const path = url.pathname
 
-      // Token refresh endpoint — accepts any Bearer token (container tokens, not job tokens)
+      // Token refresh endpoint — accepts any Bearer token (platform tokens)
       if (
-        path === '/api/v1/docker/refresh-container-token' &&
+        path === '/api/v1/docker/refresh-platform-token' &&
         req.method === 'POST'
       ) {
-        const containerAuth = req.headers.get('Authorization')
-        if (!containerAuth?.startsWith('Bearer ')) {
+        const platformAuth = req.headers.get('Authorization')
+        if (!platformAuth?.startsWith('Bearer ')) {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,
             headers: { 'Content-Type': 'application/json' },
           })
         }
-        const containerToken = containerAuth.slice('Bearer '.length)
+        const platformToken = platformAuth.slice('Bearer '.length)
         mockPlatformState.refreshRequests.push({
-          token: containerToken,
+          token: platformToken,
           timestamp: Date.now(),
         })
         // Return a new token with 24-hour expiry
         const newToken = createFakeJWT(24 * 60 * 60)
-        return new Response(JSON.stringify({ token: newToken }), {
+        return new Response(JSON.stringify({ accessToken: newToken }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         })
@@ -5850,7 +5850,7 @@ describe('Platform Agent', () => {
     }
 
     function buildContextEnvContent(token: string): string {
-      return `LOMBOK_CONTAINER_TOKEN=${token}\nLOMBOK_PLATFORM_URL=${getMockPlatformUrl()}\n`
+      return `LOMBOK_PLATFORM_TOKEN=${token}\nLOMBOK_PLATFORM_URL=${getMockPlatformUrl()}\n`
     }
 
     test(
@@ -5876,13 +5876,13 @@ describe('Platform Agent', () => {
 
         // provision.env should now contain the new token (not the old one)
         const updatedEnv = await readContextEnv()
-        expect(updatedEnv).toContain('LOMBOK_CONTAINER_TOKEN=')
+        expect(updatedEnv).toContain('LOMBOK_PLATFORM_TOKEN=')
         expect(updatedEnv).not.toContain(nearExpiringToken)
 
         const newToken = updatedEnv
           .split('\n')
-          .find((l) => l.startsWith('LOMBOK_CONTAINER_TOKEN='))
-          ?.substring('LOMBOK_CONTAINER_TOKEN='.length)
+          .find((l) => l.startsWith('LOMBOK_PLATFORM_TOKEN='))
+          ?.substring('LOMBOK_PLATFORM_TOKEN='.length)
         expect(newToken).toBeDefined()
         expect(newToken!.length).toBeGreaterThan(0)
         expect(newToken).not.toBe(nearExpiringToken)
@@ -5939,7 +5939,7 @@ describe('Platform Agent', () => {
       'token-refresh: preserves other provision.env variables during refresh',
       async () => {
         const nearExpiringToken = createFakeJWT(6 * 60 * 60)
-        const content = `LOMBOK_CONTAINER_TOKEN=${nearExpiringToken}\nLOMBOK_PLATFORM_URL=${getMockPlatformUrl()}\nCUSTOM_VAR=some_value\n`
+        const content = `LOMBOK_PLATFORM_TOKEN=${nearExpiringToken}\nLOMBOK_PLATFORM_URL=${getMockPlatformUrl()}\nCUSTOM_VAR=some_value\n`
 
         await writeContextEnv(content)
         resetMockPlatformState()
