@@ -14,7 +14,6 @@ import {
   DockerRegistryCredentialsController,
   DockerStandaloneContainersController,
 } from './controllers/docker-host-management.controller'
-import { DockerWorkerApiProxyController } from './controllers/docker-worker-api-proxy.controller'
 import { DockerWorkerHooksController } from './controllers/docker-worker-hooks.controller'
 import { TunnelAuthController } from './controllers/tunnel-auth.controller'
 import { DockerJobGuard } from './guards/docker-job.guard'
@@ -35,7 +34,6 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
   controllers: [
     AdminBridgeSessionController,
     BridgeSessionController,
-    DockerWorkerApiProxyController,
     DockerWorkerHooksController,
     TunnelAuthController,
     DockerHostsController,

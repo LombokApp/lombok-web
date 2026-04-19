@@ -20,3 +20,12 @@ export function isOk<
 export function deterministicJobId(taskId: string, attemptCount: number) {
   return Bun.randomUUIDv5(`${attemptCount}`, taskId)
 }
+
+export function getAppRequestWorkerHostname(params: {
+  platformHost: string
+  appIdentifier: string
+  workerIdentifier: string
+}): string {
+  const { platformHost, appIdentifier, workerIdentifier } = params
+  return `api-server--${workerIdentifier}--${appIdentifier}.${platformHost}`
+}

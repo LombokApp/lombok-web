@@ -1627,11 +1627,9 @@ export async function runWorker(
           ? parsedBody
           : JSON.stringify(parsedBody ?? '')
 
+      const parsedUrl = new URL(request.url)
       serializedRequestOrTask = {
-        url: request.url.replace(
-          new RegExp(`/worker-api/${workerIdentifier}`),
-          '',
-        ), // Trim the "/worker-api/${workerIdentifier}" prefix
+        url: `${parsedUrl.pathname}${parsedUrl.search}`,
         method: request.method,
         headers: Object.fromEntries(request.headers.entries()),
         body: bodyString,

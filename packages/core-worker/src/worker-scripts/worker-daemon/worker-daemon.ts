@@ -80,11 +80,14 @@ void (async () => {
       }
     }
 
-    return new Request(serializeableRequest.url, {
-      method: serializeableRequest.method,
-      headers,
-      body,
-    })
+    return new Request(
+      `http://${headers.get('host')}${serializeableRequest.url}`,
+      {
+        method: serializeableRequest.method,
+        headers,
+        body,
+      },
+    )
   }
 
   // Override console methods to redirect all script logging to stdout
