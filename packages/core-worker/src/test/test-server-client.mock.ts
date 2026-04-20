@@ -4,6 +4,10 @@ export function buildTestServerClient(
   overrides: Partial<IAppPlatformService> = {},
 ): IAppPlatformService {
   const base: IAppPlatformService = {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    getAppTask: async () => {
+      throw new Error('Not implemented in test mock')
+    },
     createBridgeTunnel: () => {
       throw new Error('Not implemented in test mock')
     },

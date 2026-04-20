@@ -467,10 +467,8 @@ export class DockerJobsService {
         profileSpec,
         appIdentifier,
         userId,
+        jobId,
       } = params
-
-      // generate a job id to represent this execution
-      const jobId = crypto.randomUUID()
 
       // Generate a hash for the profile to track config drift
       const profileHash = this.hashProfileSpec(profileSpec)

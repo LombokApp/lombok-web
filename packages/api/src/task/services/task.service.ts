@@ -182,6 +182,33 @@ export class TaskService {
     } as Task & { folder?: { name: string; ownerId: string } }
   }
 
+  async getTaskAsApp(
+    appIdentifier: string,
+    taskId: string,
+    options?: { targetUserId?: string },
+  ): Promise<Task | null> {
+    if (options?.targetUserId) {
+      await this.appService.validateAppUserAccess({
+        appIdentifier,
+        userId: options.targetUserId,
+      })
+    }
+
+    const conditions: SQL[] = [
+      eq(tasksTable.id, taskId),
+      eq(tasksTable.ownerIdentifier, appIdentifier),
+    ]
+    if (options?.targetUserId) {
+      conditions.push(eq(tasksTable.targetUserId, options.targetUserId))
+    }
+    const result = await this.ormService.db
+      .select()
+      .from(tasksTable)
+      .where(and(...conditions))
+      .limit(1)
+    return result.at(0) ?? null
+  }
+
   async listTasks({
     offset,
     limit,
@@ -1180,6 +1207,7 @@ export class TaskService {
 
       if (conditionResult) {
         await this.executeOnCompleteHandler({
+          // TODO: update this to onUpdate handler
           parentTask: updatedTask,
           parentTaskSuccess: true,
           correlationKey: updatedTask.correlationKey ?? undefined,

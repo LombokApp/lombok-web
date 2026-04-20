@@ -16,3 +16,7 @@ export function isOk<
     typeof apiResponse.error === 'undefined'
   )
 }
+
+export function deterministicJobId(taskId: string, attemptCount: number) {
+  return Bun.randomUUIDv5(`${attemptCount}`, taskId)
+}
