@@ -36,6 +36,8 @@ services:
       - DEV_S3_LABEL=${DEV_S3_LABEL:-MinioDEV}
       - PRINT_CORE_WORKER_OUTPUT=${PRINT_CORE_WORKER_OUTPUT:-true}
       - PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT=${PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT:-true}
+      - LOMBOK_WORKER_LOG=${LOMBOK_WORKER_LOG:-daemon=info,ipc=warn,timing=off,http=info,task=info,user=debug}
+      - LOMBOK_WORKER_LOG_PRETTY=${LOMBOK_WORKER_LOG_PRETTY:-1}
     volumes:
       - ./:/usr/src/app:cached
       - /usr/src/app/node_modules

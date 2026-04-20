@@ -137,6 +137,19 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                 workerId: auth.instanceId,
                 ip: socket.handshake.address,
               }
+
+              // Derive a short, stable source tag for log prefixes.
+              // Runtime workers connect with instanceId
+              //   `worker-daemon--{workerIdentifier}--{executionId}`.
+              // For app-token connections the instanceId is opaque — fall
+              // back to "app".
+              const instanceParts = auth.instanceId.split('--')
+              const logSourceTag =
+                instanceParts[0] === 'worker-daemon' && instanceParts[1]
+                  ? `${appIdentifier}/${instanceParts[1]}`
+                  : isAppRuntimeWorkerToken
+                    ? `${appIdentifier}/runtime`
+                    : `${appIdentifier}/app`
               const instanceKey = `${appIdentifier}:${auth.instanceId}`
               // persist worker state in memory
               void this.kvService.ops.set(
@@ -238,50 +251,61 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                     ack?: (response: unknown) => void,
                   ) => {
                     const requestId = crypto.randomUUID()
-                    const response = await runWithThreadContext(
-                      requestId,
-                      async () => {
-                        this.logger.log(
-                          `APP API Req:      appIdentifier=${appIdentifier} requestId=${requestId} message=${(message as { name: string }).name}`,
-                        )
-                        return (
-                          this.appService
-                            .handleAppRequest(
-                              auth.instanceId,
-                              appIdentifier,
-                              message,
-                            )
-                            // eslint-disable-next-line promise/no-nesting
-                            .catch((error: unknown) => {
-                              this.logger.error(
-                                'Unexpected error during message handling:',
-                                {
-                                  message,
-                                  error,
-                                },
+                    const messageName =
+                      (message as { name?: string } | null | undefined)?.name ??
+                      'UNKNOWN'
+                    const startedAt = Date.now()
+                    let response: unknown
+                    let threwUnexpected = false
+                    let unexpectedError: unknown
+                    try {
+                      response = await runWithThreadContext(
+                        requestId,
+                        async () => {
+                          return (
+                            this.appService
+                              .handleAppRequest(
+                                auth.instanceId,
+                                appIdentifier,
+                                message,
                               )
-                              return {
-                                error: {
-                                  code: '500',
-                                  message: 'Unexpected error.',
-                                },
-                              }
-                            })
-                        )
-                      },
-                    )
-                    if ('error' in response) {
-                      this.logger.warn(
-                        `APP API Error:    appIdentifier=${appIdentifier} requestId=${requestId}`,
-                        {
-                          message,
-                          error: response.error,
+                              // eslint-disable-next-line promise/no-nesting
+                              .catch((error: unknown) => {
+                                threwUnexpected = true
+                                unexpectedError = error
+                                return {
+                                  error: {
+                                    code: '500',
+                                    message: 'Unexpected error.',
+                                  },
+                                }
+                              })
+                          )
                         },
                       )
-                    } else {
-                      this.logger.log(
-                        `APP API Res:      appIdentifier=${appIdentifier} requestId=${requestId}`,
-                      )
+                    } finally {
+                      const ms = Date.now() - startedAt
+                      const shortReq = requestId.slice(0, 8)
+                      const base = `[app:${logSourceTag}][api] ${messageName} ${ms}ms (${shortReq})`
+                      const errInfo =
+                        response &&
+                        typeof response === 'object' &&
+                        'error' in response
+                          ? (response as { error?: { message?: string } }).error
+                          : undefined
+                      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                      if (threwUnexpected) {
+                        this.logger.error(
+                          `${base} threw unexpected error`,
+                          unexpectedError,
+                        )
+                      } else if (errInfo) {
+                        this.logger.warn(
+                          `${base} error: ${errInfo.message ?? 'unknown'}`,
+                        )
+                      } else {
+                        this.logger.log(base)
+                      }
                     }
 
                     ack?.(response)

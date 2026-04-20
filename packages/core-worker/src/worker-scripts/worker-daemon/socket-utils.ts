@@ -5,27 +5,16 @@ import type {
 } from '@lombokapp/worker-utils'
 import { createConnection, type Socket } from 'net'
 
-const LOMBOK_SOCKET_DEBUG = true as boolean
+import { workerLogger } from './logger'
 
 /**
- * Debug logging helper
+ * IPC-channel debug. Opt in via LOMBOK_WORKER_LOG=ipc=trace (or debug).
  */
-const debugLog = (prefix: string, ...args: unknown[]): void => {
-  if (LOMBOK_SOCKET_DEBUG) {
-    // eslint-disable-next-line no-console
-    console.log(prefix, ...args)
-  }
+const ipcTrace = (msg: string, data?: Record<string, unknown>): void => {
+  workerLogger.trace('ipc', msg, data)
 }
-
-/**
- * Direct stdout write that bypasses any console.log overrides
- */
-const directLog = (msg: string): void => {
-  try {
-    process.stdout.write(`[DIRECT] ${msg}\n`)
-  } catch {
-    // ignore errors
-  }
+const ipcDebug = (msg: string, data?: Record<string, unknown>): void => {
+  workerLogger.debug('ipc', msg, data)
 }
 
 /**
@@ -53,11 +42,11 @@ export class SocketReader {
       return
     }
 
-    debugLog('[SocketReader]', `Connecting to ${this.socketPath}`)
+    ipcDebug('SocketReader connecting', { socketPath: this.socketPath })
 
     return new Promise((resolve, reject) => {
       const socket = createConnection(this.socketPath, () => {
-        debugLog('[SocketReader]', `Connected to ${this.socketPath}`)
+        ipcDebug('SocketReader connected', { socketPath: this.socketPath })
         this.socket = socket
         resolve()
       })
@@ -67,7 +56,7 @@ export class SocketReader {
       })
 
       socket.on('error', (error: Error) => {
-        debugLog('[SocketReader]', 'Socket error:', error.message)
+        workerLogger.warn('ipc', 'SocketReader error', { error: error.message })
         if (!this.socket) {
           reject(error)
         } else {
@@ -77,7 +66,7 @@ export class SocketReader {
       })
 
       socket.on('close', () => {
-        debugLog('[SocketReader]', 'Socket closed')
+        ipcDebug('SocketReader closed')
         this.closed = true
         this.rejectPendingReads(new Error('Socket closed'))
       })
@@ -103,11 +92,12 @@ export class SocketReader {
       if (line.trim()) {
         try {
           const message = JSON.parse(line) as WorkerMessage
-          debugLog('[SocketReader]', `Received message type=${message.type}`)
+          ipcTrace('SocketReader message', { type: message.type })
           this.deliverMessage(message)
         } catch (e) {
-          // eslint-disable-next-line no-console
-          console.error('[SocketReader] Failed to parse message:', e)
+          workerLogger.error('ipc', 'SocketReader parse failed', {
+            error: e instanceof Error ? e.message : String(e),
+          })
         }
       }
 
@@ -156,10 +146,14 @@ export class SocketReader {
   }
 
   /**
-   * Read a request message
+   * Read a request message. Returns null when the host signals a graceful
+   * shutdown; throws for any other non-request message or socket error.
    */
-  async readRequest(): Promise<WorkerRequest> {
+  async readRequest(): Promise<WorkerRequest | null> {
     const message = await this.readMessage()
+    if (message.type === 'shutdown') {
+      return null
+    }
     if (message.type !== 'request' || !message.payload) {
       throw new Error(`Expected request message, got: ${message.type}`)
     }
@@ -202,7 +196,7 @@ export class SocketWriter {
    */
   setSocket(socket: Socket): void {
     this.socket = socket
-    debugLog('[SocketWriter]', 'Socket attached')
+    ipcDebug('SocketWriter attached')
   }
 
   /**
@@ -214,15 +208,15 @@ export class SocketWriter {
     }
 
     const msgType = message.type
-    directLog(`writeMessage called for type=${msgType}`)
+    ipcTrace('writeMessage queued', { type: msgType })
 
     const data = JSON.stringify(message) + '\n'
 
     // Serialize writes to prevent interleaving
     const next = this.writeQueue.then(async () => {
-      directLog(`writeMessage: starting write for type=${msgType}`)
+      ipcTrace('writeMessage start', { type: msgType })
       await this.writeToSocket(data)
-      directLog(`writeMessage: completed write for type=${msgType}`)
+      ipcTrace('writeMessage done', { type: msgType })
     })
 
     this.writeQueue = next.catch(() => undefined)
@@ -374,12 +368,11 @@ export class SocketWriter {
         await this.writeStreamingResponse(resp, response.id)
       }
     } else {
-      directLog(`writeResponse: sending regular response for id=${response.id}`)
+      ipcTrace('writeResponse', { id: response.id })
       await this.writeMessage({
         type: 'response',
         payload: response,
       })
-      directLog(`writeResponse: completed for id=${response.id}`)
     }
   }
 

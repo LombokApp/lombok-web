@@ -1181,6 +1181,11 @@ const workerProcesses = new Map<
   }
 >()
 
+// Worker IDs currently in the middle of an expected shutdown. Used by the
+// process-exit handler (which runs after the worker has been removed from
+// `workerProcesses`) to decide whether to log a non-zero exit as an error.
+const shuttingDownWorkers = new Set<string>()
+
 // Map to track creation promises to prevent duplicate daemon creation
 const workerCreationPromises = new Map<
   string,
@@ -1199,6 +1204,10 @@ const cleanupWorkerProcess = async (workerId: string) => {
   if (!worker) {
     return
   }
+
+  // Mark as shutting down so the exit handler can distinguish an expected
+  // shutdown (code 0 or 143 after our SIGTERM) from a true crash.
+  shuttingDownWorkers.add(workerId)
 
   // Remove from map immediately to prevent reuse during shutdown
   workerProcesses.delete(workerId)
@@ -1363,6 +1372,12 @@ async function createWorkerProcess(
       ...environmentVariables.map((v) => `-E${v}`),
       `-EWORKER_APP_BASE_DIR=/app`,
       '-EWORKER_SCRATCH_DIR=/worker-tmp/scratch',
+      ...(process.env.LOMBOK_WORKER_LOG
+        ? [`-ELOMBOK_WORKER_LOG=${process.env.LOMBOK_WORKER_LOG}`]
+        : []),
+      ...(process.env.LOMBOK_WORKER_LOG_PRETTY
+        ? [`-ELOMBOK_WORKER_LOG_PRETTY=${process.env.LOMBOK_WORKER_LOG_PRETTY}`]
+        : []),
       '-Mo',
       '--iface_no_lo',
       ...(options.printNsjailVerboseOutput ? ['-v'] : ['--quiet']),
@@ -1409,7 +1424,11 @@ async function createWorkerProcess(
 
   // Handle process exit
   void proc.exited.then((exitCode) => {
-    if (exitCode !== 0) {
+    const expected = shuttingDownWorkers.delete(workerId)
+    // Expected exits (via our shutdown signal) can come back as 0 (clean) or
+    // 143 (SIGTERM backstop after a slow daemon exit). Only surface genuinely
+    // unexpected exits.
+    if (exitCode !== 0 && !(expected && exitCode === 143)) {
       // eslint-disable-next-line no-console
       console.error(`Worker daemon ${workerId} exited with code ${exitCode}`)
     }
@@ -1675,7 +1694,6 @@ export async function runWorker(
     }
 
     // Send request to worker
-    const requestStartTime = performance.now()
     await requestWriter.writeRequest(pipeRequest)
 
     // Optionally subscribe to live stdout streaming
@@ -1692,16 +1710,8 @@ export async function runWorker(
     // Wait for response using the worker's message router
     const pipeResponse = await workerMessageRouter.waitForResponse(requestId)
 
-    const requestEndTime = performance.now()
-    const requestTime = requestEndTime - requestStartTime
-
     // Handle response
     if (!pipeResponse.success) {
-      // eslint-disable-next-line no-console
-      console.log(
-        `[TIMING] Worker execution failed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
-      )
-
       const error = pipeResponse.error
       if (!error) {
         throw new AsyncWorkError({
@@ -1718,10 +1728,6 @@ export async function runWorker(
 
     if (!(requestOrTask instanceof Request)) {
       // Task execution completed
-      // eslint-disable-next-line no-console
-      console.log(
-        `[TIMING] Task execution completed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
-      )
       if (onStdoutChunk) {
         workerMessageRouter.unregisterStdoutHandler(requestId)
       }
@@ -1737,11 +1743,6 @@ export async function runWorker(
         stack: new Error().stack,
       })
     }
-
-    // eslint-disable-next-line no-console
-    console.log(
-      `[TIMING] Request execution completed via pipe - Request: ${requestTime.toFixed(2)}ms, Overall: ${(requestEndTime - overallStartTime).toFixed(2)}ms`,
-    )
 
     // Handle different response types
     // Debug-only: received response summary
