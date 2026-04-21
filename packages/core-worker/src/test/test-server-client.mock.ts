@@ -15,9 +15,9 @@ export function buildTestServerClient(
       throw new Error('Not implemented in test mock')
     },
     // eslint-disable-next-line @typescript-eslint/require-await
-    getAppCustomSettings: async () => ({ result: { values: {}, sources: {} } }),
+    getAppCustomSettings: async () => ({ result: { values: {} } }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    setAppCustomSettings: async () => ({ result: { success: true } }),
+    patchAppCustomSettings: async () => ({ result: { success: true } }),
     getServerBaseUrl: () => 'http://localhost:3000',
     // eslint-disable-next-line @typescript-eslint/require-await
     emitEvent: async () => ({ result: { success: true } }),

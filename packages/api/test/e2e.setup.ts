@@ -63,6 +63,16 @@ const testAppDefinitions: AppConfig[] = [
           max_retries: { type: 'integer', default: 3 },
           theme: { type: 'string', default: 'light', enum: ['light', 'dark'] },
         },
+        patternProperties: {
+          '^provider_': {
+            type: 'object',
+            properties: {
+              type: { type: 'string', enum: ['openai', 'anthropic'] },
+              token: { type: 'string' },
+            },
+            required: ['type'],
+          },
+        },
       },
     },
     subscribedCoreEvents: ['core:object_added'],

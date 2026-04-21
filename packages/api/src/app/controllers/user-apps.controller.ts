@@ -5,8 +5,8 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
-  Put,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -21,7 +21,7 @@ import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
-import { AppCustomSettingsPutInputDTO } from '../dto/app-custom-settings-put-input.dto'
+import { AppCustomSettingsPatchInputDTO } from '../dto/app-custom-settings-patch-input.dto'
 import { AppUserSettingsCreateInputDTO } from '../dto/app-user-settings-create-input.dto'
 import { AppContributionsResponse } from '../dto/responses/app-contributions-response.dto'
 import { AppCustomSettingsGetResponseDTO } from '../dto/responses/app-custom-settings-get-response.dto'
@@ -194,19 +194,21 @@ export class UserAppsController {
   }
 
   /**
-   * Update custom settings for the current user (merge semantics)
+   * Patch custom settings for the current user. Keys not present are
+   * preserved; explicit `null` values delete the key. Writes are atomic per
+   * key, so concurrent patches on disjoint keys do not race.
    */
-  @Put('/apps/:appIdentifier/custom-settings')
-  async putUserCustomSettings(
+  @Patch('/apps/:appIdentifier/custom-settings')
+  async patchUserCustomSettings(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
-    @Body() body: AppCustomSettingsPutInputDTO,
+    @Body() body: AppCustomSettingsPatchInputDTO,
   ): Promise<AppCustomSettingsGetResponseDTO> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
     const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
-    const result = await this.appCustomSettingsService.putUserCustomSettings(
+    const result = await this.appCustomSettingsService.patchUserCustomSettings(
       req.user.id,
       app,
       body.values,

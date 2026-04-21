@@ -1,10 +1,11 @@
 import { relations } from 'drizzle-orm'
 import {
+  index,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
-  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -15,20 +16,21 @@ export const appCustomFolderSettingsTable = pgTable(
   'app_custom_folder_settings',
   {
     folderId: uuid('folder_id')
-      .references(() => foldersTable.id)
+      .references(() => foldersTable.id, { onDelete: 'cascade' })
       .notNull(),
     appIdentifier: text('app_identifier')
-      .references(() => appsTable.identifier)
+      .references(() => appsTable.identifier, { onDelete: 'cascade' })
       .notNull(),
-    values: jsonb('values')
-      .$type<Record<string, unknown>>()
-      .notNull()
-      .default({}),
+    key: text('key').notNull(),
+    value: jsonb('value').$type<unknown>().notNull(),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
-    uniqueIndex('app_custom_folder_settings_folder_app_unique').on(
+    primaryKey({
+      columns: [table.folderId, table.appIdentifier, table.key],
+    }),
+    index('app_custom_folder_settings_folder_app_idx').on(
       table.folderId,
       table.appIdentifier,
     ),
@@ -49,7 +51,7 @@ export const appCustomFolderSettingsRelations = relations(
   }),
 )
 
-export type AppCustomFolderSettings =
+export type AppCustomFolderSetting =
   typeof appCustomFolderSettingsTable.$inferSelect
-export type NewAppCustomFolderSettings =
+export type NewAppCustomFolderSetting =
   typeof appCustomFolderSettingsTable.$inferInsert

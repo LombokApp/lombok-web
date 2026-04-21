@@ -307,6 +307,33 @@ export function jsonSchemaToPartialZod(
 }
 
 /**
+ * Resolve a Zod validator for a single top-level settings key.
+ *
+ * Looks up the sub-schema in this order:
+ *   1. Exact match in `schema.properties`
+ *   2. First matching regex in `schema.patternProperties`
+ * Returns `null` when the key is not covered by either — callers translate
+ * that into a 400 "unknown setting key".
+ */
+export function jsonSchemaPropertyToZod(
+  schema: JsonSchema07Object,
+  key: string,
+): z.ZodType | null {
+  const directProp = schema.properties[key]
+  if (directProp !== undefined) {
+    return propertyToZod(directProp)
+  }
+  if (schema.patternProperties) {
+    for (const [pattern, prop] of Object.entries(schema.patternProperties)) {
+      if (new RegExp(pattern).test(key)) {
+        return propertyToZod(prop)
+      }
+    }
+  }
+  return null
+}
+
+/**
  * Extract default values from a JSON Schema object definition.
  */
 export function extractSchemaDefaults(

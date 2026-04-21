@@ -1,20 +1,18 @@
 import type { AppSettingsConfig, JsonSchema07Object } from '@lombokapp/types'
+import { SETTINGS_KEY_REGEX } from '@lombokapp/types'
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 
 import { type App, appsTable } from '../entities/app.entity'
 import { appCustomFolderSettingsTable } from '../entities/app-custom-folder-settings.entity'
 import { appCustomUserSettingsTable } from '../entities/app-custom-user-settings.entity'
-import {
-  maskSecretValues,
-  mergeWithSecretPreservation,
-} from '../utils/custom-settings-secrets.utils'
-import { jsonSchemaToPartialZod } from '../utils/json-schema-to-zod.util'
+import { maskSecretValues } from '../utils/custom-settings-secrets.utils'
+import { jsonSchemaPropertyToZod } from '../utils/json-schema-to-zod.util'
 import {
   resolveCustomSettings,
   type ResolvedCustomSettings,
@@ -37,26 +35,74 @@ export class AppCustomSettingsService {
     return app.config.settings
   }
 
-  private validateValuesSize(values: Record<string, unknown>): void {
-    if (JSON.stringify(values).length > MAX_VALUES_SIZE) {
-      throw new BadRequestException(
-        'Settings values exceed maximum size of 64KB',
-      )
-    }
-  }
-
-  private validateValues(
+  private validatePatchValues(
     schema: JsonSchema07Object,
     values: Record<string, unknown>,
   ): void {
-    const partialSchema = jsonSchemaToPartialZod(schema)
-    const result = partialSchema.safeParse(values)
-    if (!result.success) {
-      throw new BadRequestException({
-        message: 'Invalid settings values',
-        errors: result.error.issues,
-      })
+    for (const [key, value] of Object.entries(values)) {
+      if (!SETTINGS_KEY_REGEX.test(key)) {
+        throw new BadRequestException(
+          `Invalid setting key "${key}": must be lowercase a-z, 0-9, or _ and must not start or end with _`,
+        )
+      }
+      if (value === null) {
+        // Deletion — allowed for any key defined in the schema.
+        if (jsonSchemaPropertyToZod(schema, key) === null) {
+          throw new BadRequestException(`Unknown setting key: ${key}`)
+        }
+        continue
+      }
+      const zodSchema = jsonSchemaPropertyToZod(schema, key)
+      if (zodSchema === null) {
+        throw new BadRequestException(`Unknown setting key: ${key}`)
+      }
+      const result = zodSchema.safeParse(value)
+      if (!result.success) {
+        throw new BadRequestException({
+          message: `Invalid value for setting "${key}"`,
+          errors: result.error.issues,
+        })
+      }
     }
+  }
+
+  private async readScopeValues(
+    scope: 'user' | 'folder',
+    scopeId: string,
+    appIdentifier: string,
+  ): Promise<Record<string, unknown>> {
+    const rows =
+      scope === 'user'
+        ? await this.ormService.db
+            .select({
+              key: appCustomUserSettingsTable.key,
+              value: appCustomUserSettingsTable.value,
+            })
+            .from(appCustomUserSettingsTable)
+            .where(
+              and(
+                eq(appCustomUserSettingsTable.userId, scopeId),
+                eq(appCustomUserSettingsTable.appIdentifier, appIdentifier),
+              ),
+            )
+        : await this.ormService.db
+            .select({
+              key: appCustomFolderSettingsTable.key,
+              value: appCustomFolderSettingsTable.value,
+            })
+            .from(appCustomFolderSettingsTable)
+            .where(
+              and(
+                eq(appCustomFolderSettingsTable.folderId, scopeId),
+                eq(appCustomFolderSettingsTable.appIdentifier, appIdentifier),
+              ),
+            )
+
+    const values: Record<string, unknown> = {}
+    for (const row of rows) {
+      values[row.key] = row.value
+    }
+    return values
   }
 
   // --- User-level custom settings ---
@@ -77,15 +123,12 @@ export class AppCustomSettingsService {
       }
     }
 
-    const stored =
-      await this.ormService.db.query.appCustomUserSettingsTable.findFirst({
-        where: and(
-          eq(appCustomUserSettingsTable.userId, userId),
-          eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
-        ),
-      })
-
-    const resolved = resolveCustomSettings(schema, stored?.values, undefined)
+    const userValues = await this.readScopeValues(
+      'user',
+      userId,
+      app.identifier,
+    )
+    const resolved = resolveCustomSettings(schema, userValues, undefined)
 
     return {
       values: maskSecretValues(
@@ -109,22 +152,19 @@ export class AppCustomSettingsService {
       return { values: {} }
     }
 
-    const stored =
-      await this.ormService.db.query.appCustomUserSettingsTable.findFirst({
-        where: and(
-          eq(appCustomUserSettingsTable.userId, userId),
-          eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
-        ),
-      })
-
-    const resolved = resolveCustomSettings(schema, stored?.values, undefined)
+    const userValues = await this.readScopeValues(
+      'user',
+      userId,
+      app.identifier,
+    )
+    const resolved = resolveCustomSettings(schema, userValues, undefined)
     return { values: resolved.values }
   }
 
-  async putUserCustomSettings(
+  async patchUserCustomSettings(
     userId: string,
     app: App,
-    incomingValues: Record<string, unknown>,
+    patch: Record<string, unknown>,
   ): Promise<CustomSettingsGetResponse> {
     const settingsConfig = this.getSettingsConfig(app)
     const schema = settingsConfig?.user
@@ -135,45 +175,60 @@ export class AppCustomSettingsService {
       )
     }
 
-    this.validateValues(schema, incomingValues)
+    this.validatePatchValues(schema, patch)
 
-    const existing =
-      await this.ormService.db.query.appCustomUserSettingsTable.findFirst({
-        where: and(
-          eq(appCustomUserSettingsTable.userId, userId),
-          eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
-        ),
-      })
+    await this.ormService.db.transaction(async (tx) => {
+      const now = new Date()
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === null) {
+          await tx
+            .delete(appCustomUserSettingsTable)
+            .where(
+              and(
+                eq(appCustomUserSettingsTable.userId, userId),
+                eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
+                eq(appCustomUserSettingsTable.key, key),
+              ),
+            )
+        } else {
+          await tx
+            .insert(appCustomUserSettingsTable)
+            .values({
+              userId,
+              appIdentifier: app.identifier,
+              key,
+              value,
+              createdAt: now,
+              updatedAt: now,
+            })
+            .onConflictDoUpdate({
+              target: [
+                appCustomUserSettingsTable.userId,
+                appCustomUserSettingsTable.appIdentifier,
+                appCustomUserSettingsTable.key,
+              ],
+              set: { value, updatedAt: now },
+            })
+        }
+      }
 
-    const merged = mergeWithSecretPreservation(
-      incomingValues,
-      existing?.values ?? {},
-      settingsConfig.secretKeyPattern,
-    )
-
-    this.validateValuesSize(merged)
-
-    const now = new Date()
-
-    if (existing) {
-      await this.ormService.db
-        .update(appCustomUserSettingsTable)
-        .set({ values: merged, updatedAt: now })
+      const [sizeRow] = await tx
+        .select({
+          total: sql<number>`coalesce(sum(octet_length(${appCustomUserSettingsTable.value}::text)), 0)::int`,
+        })
+        .from(appCustomUserSettingsTable)
         .where(
           and(
             eq(appCustomUserSettingsTable.userId, userId),
             eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
           ),
         )
-    } else {
-      await this.ormService.db.insert(appCustomUserSettingsTable).values({
-        userId,
-        appIdentifier: app.identifier,
-        values: merged,
-        createdAt: now,
-        updatedAt: now,
-      })
-    }
+      if (sizeRow && sizeRow.total > MAX_VALUES_SIZE) {
+        throw new BadRequestException(
+          'Settings values exceed maximum size of 64KB',
+        )
+      }
+    })
 
     return this.getUserCustomSettings(userId, app)
   }
@@ -208,33 +263,22 @@ export class AppCustomSettingsService {
       }
     }
 
-    const [userStored, folderStored] = await Promise.all([
-      this.ormService.db.query.appCustomUserSettingsTable.findFirst({
-        where: and(
-          eq(appCustomUserSettingsTable.userId, userId),
-          eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
-        ),
-      }),
-      this.ormService.db.query.appCustomFolderSettingsTable.findFirst({
-        where: and(
-          eq(appCustomFolderSettingsTable.folderId, folderId),
-          eq(appCustomFolderSettingsTable.appIdentifier, app.identifier),
-        ),
-      }),
+    const [userValues, folderValues] = await Promise.all([
+      this.readScopeValues('user', userId, app.identifier),
+      this.readScopeValues('folder', folderId, app.identifier),
     ])
 
-    // For folder-level resolution, we use the folder schema for property keys
-    // but cascade folder -> user -> defaults.
-    // The user values here are filtered to only include keys defined in the folder schema.
+    // For folder-level resolution, filter user values to only keys defined in
+    // the folder schema (users may store unrelated keys).
     const userValuesForFolderSchema = this.filterValuesToSchema(
-      userStored?.values,
+      userValues,
       schema,
     )
 
     const resolved: ResolvedCustomSettings = resolveCustomSettings(
       schema,
       userValuesForFolderSchema,
-      folderStored?.values,
+      folderValues,
     )
 
     return {
@@ -248,10 +292,10 @@ export class AppCustomSettingsService {
     }
   }
 
-  async putFolderCustomSettings(
+  async patchFolderCustomSettings(
     folderId: string,
     app: App,
-    incomingValues: Record<string, unknown>,
+    patch: Record<string, unknown>,
   ): Promise<void> {
     const settingsConfig = this.getSettingsConfig(app)
     const schema = settingsConfig?.folder
@@ -262,45 +306,60 @@ export class AppCustomSettingsService {
       )
     }
 
-    this.validateValues(schema, incomingValues)
+    this.validatePatchValues(schema, patch)
 
-    const existing =
-      await this.ormService.db.query.appCustomFolderSettingsTable.findFirst({
-        where: and(
-          eq(appCustomFolderSettingsTable.folderId, folderId),
-          eq(appCustomFolderSettingsTable.appIdentifier, app.identifier),
-        ),
-      })
+    await this.ormService.db.transaction(async (tx) => {
+      const now = new Date()
+      for (const [key, value] of Object.entries(patch)) {
+        if (value === null) {
+          await tx
+            .delete(appCustomFolderSettingsTable)
+            .where(
+              and(
+                eq(appCustomFolderSettingsTable.folderId, folderId),
+                eq(appCustomFolderSettingsTable.appIdentifier, app.identifier),
+                eq(appCustomFolderSettingsTable.key, key),
+              ),
+            )
+        } else {
+          await tx
+            .insert(appCustomFolderSettingsTable)
+            .values({
+              folderId,
+              appIdentifier: app.identifier,
+              key,
+              value,
+              createdAt: now,
+              updatedAt: now,
+            })
+            .onConflictDoUpdate({
+              target: [
+                appCustomFolderSettingsTable.folderId,
+                appCustomFolderSettingsTable.appIdentifier,
+                appCustomFolderSettingsTable.key,
+              ],
+              set: { value, updatedAt: now },
+            })
+        }
+      }
 
-    const merged = mergeWithSecretPreservation(
-      incomingValues,
-      existing?.values ?? {},
-      settingsConfig.secretKeyPattern,
-    )
-
-    this.validateValuesSize(merged)
-
-    const now = new Date()
-
-    if (existing) {
-      await this.ormService.db
-        .update(appCustomFolderSettingsTable)
-        .set({ values: merged, updatedAt: now })
+      const [sizeRow] = await tx
+        .select({
+          total: sql<number>`coalesce(sum(octet_length(${appCustomFolderSettingsTable.value}::text)), 0)::int`,
+        })
+        .from(appCustomFolderSettingsTable)
         .where(
           and(
             eq(appCustomFolderSettingsTable.folderId, folderId),
             eq(appCustomFolderSettingsTable.appIdentifier, app.identifier),
           ),
         )
-    } else {
-      await this.ormService.db.insert(appCustomFolderSettingsTable).values({
-        folderId,
-        appIdentifier: app.identifier,
-        values: merged,
-        createdAt: now,
-        updatedAt: now,
-      })
-    }
+      if (sizeRow && sizeRow.total > MAX_VALUES_SIZE) {
+        throw new BadRequestException(
+          'Settings values exceed maximum size of 64KB',
+        )
+      }
+    })
   }
 
   async deleteFolderCustomSettings(folderId: string, app: App): Promise<void> {
