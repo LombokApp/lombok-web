@@ -1,5 +1,5 @@
 import type { TaskHandler } from '@lombokapp/app-worker-sdk'
-import { TaskUpdateMessageLevel } from '@lombokapp/types'
+import { TaskProgressMessageLevel } from '@lombokapp/types'
 
 export const handleTask: TaskHandler = async function handleTask(
   task,
@@ -13,17 +13,17 @@ export const handleTask: TaskHandler = async function handleTask(
   ]
 
   for (let i = 0; i < steps.length; i++) {
-    await serverClient.reportTaskUpdate({
+    await serverClient.reportTaskProgress({
       taskId: task.id,
-      update: {
-        progress: {
+      progressReport: {
+        details: {
           percent: Math.round(((i + 1) / steps.length) * 100),
           current: i + 1,
           total: steps.length,
           label: steps[i],
         },
         message: {
-          level: TaskUpdateMessageLevel.info,
+          level: TaskProgressMessageLevel.info,
           text: `Step ${i + 1}/${steps.length}: ${steps[i]}`,
           audience: 'user',
         },

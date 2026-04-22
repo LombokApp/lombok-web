@@ -1,12 +1,12 @@
 import type {
   JsonSerializableObject,
-  ReceivedTaskUpdate,
+  ReceivedTaskProgressReport,
   StorageAccessPolicy,
   SystemLogEntry,
   TaskData,
   TaskInvocation,
   TaskLogEntry,
-  TaskProgress,
+  TaskProgressDetails,
 } from '@lombokapp/types'
 import { sql } from 'drizzle-orm'
 import {
@@ -95,12 +95,12 @@ export const tasksTable = pgTable(
     latestHeartbeatAt: timestamp('latest_heartbeat_at'),
     handlerType: text('handler_type').notNull(),
     handlerIdentifier: text('handler_identifier'),
-    updates: jsonb('updates')
-      .$type<ReceivedTaskUpdate[]>()
+    progressReports: jsonb('progress_reports')
+      .$type<ReceivedTaskProgressReport[]>()
       .default([])
       .notNull(),
     correlationKey: text('correlation_key'),
-    progress: jsonbBase64('progress').$type<TaskProgress>(),
+    progress: jsonbBase64('progress').$type<TaskProgressDetails>(),
   },
   (table) => [
     index('tasks_trigger_kind_idx').on(sql`(${table.invocation} ->> 'kind')`),

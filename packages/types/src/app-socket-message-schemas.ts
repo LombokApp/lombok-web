@@ -11,7 +11,8 @@ import {
   storageAccessPolicySchema,
   taskDTOSchema,
   taskOnCompleteConfigSchema,
-  taskUpdateSchema,
+  taskOnProgressConfigSchema,
+  taskProgressReportSchema,
 } from './task.types'
 
 export const logEntrySchema = z.object({
@@ -152,12 +153,13 @@ export const triggerAppTaskSchema = z.object({
     .optional(),
   targetUserId: z.guid().optional(),
   onComplete: taskOnCompleteConfigSchema.array().optional(),
+  onProgress: taskOnProgressConfigSchema.array().optional(),
   storageAccessPolicy: storageAccessPolicySchema.optional(),
 })
 
-export const reportTaskUpdateSchema = z.object({
+export const reportTaskProgressSchema = z.object({
   taskId: z.guid(),
-  update: taskUpdateSchema,
+  progressReport: taskProgressReportSchema,
 })
 
 export const getAppCustomSettingsSchema = z.object({
@@ -210,7 +212,7 @@ export const AppSocketMessageSchemaMap = {
   EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobSchema,
   GET_APP_TASK: getAppTaskSchema,
   TRIGGER_APP_TASK: triggerAppTaskSchema,
-  REPORT_TASK_UPDATE: reportTaskUpdateSchema,
+  REPORT_TASK_PROGRESS: reportTaskProgressSchema,
   GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
   PATCH_APP_CUSTOM_SETTINGS: patchAppCustomSettingsSchema,
   CREATE_BRIDGE_TUNNEL: createBridgeTunnelSchema,
@@ -319,7 +321,9 @@ export const AppSocketMessageResponseSchemaMap = {
   EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobAsyncResponseSchema,
   GET_APP_TASK: createResponseSchema(taskDTOSchema),
   TRIGGER_APP_TASK: createResponseSchema(z.object({ taskId: z.string() })),
-  REPORT_TASK_UPDATE: createResponseSchema(z.object({ success: z.boolean() })),
+  REPORT_TASK_PROGRESS: createResponseSchema(
+    z.object({ success: z.boolean() }),
+  ),
   GET_APP_CUSTOM_SETTINGS: createResponseSchema(
     z.object({ values: z.record(z.string(), z.unknown()) }),
   ),

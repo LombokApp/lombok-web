@@ -37,7 +37,7 @@ export function buildTestServerClient(
     getAppUserAccessToken: async () => ({
       result: { accessToken: '', refreshToken: '' },
     }),
-    reportTaskUpdate: () => {
+    reportTaskProgress: () => {
       throw new Error('Not implemented in test mock')
     },
     // eslint-disable-next-line @typescript-eslint/require-await

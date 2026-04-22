@@ -21,7 +21,7 @@ import {
 } from '../dto/docker-job-complete-request.dto'
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
-import { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
+import { DockerJobProgressRequestDTO } from '../dto/docker-job-progress-request.dto'
 import { DockerJobGuard } from '../guards/docker-job.guard'
 import { DockerWorkerHookService } from '../services/docker-worker-hook.service'
 
@@ -133,25 +133,25 @@ export class DockerWorkerHooksController {
   }
 
   /**
-   * Send a mid-execution update from a running worker job.
-   * Called by the worker agent during job execution to report progress.
+   * Send a mid-execution progress report from a running worker job.
+   * Called by the worker agent during job execution.
    */
-  @Post('/jobs/:jobId/update')
+  @Post('/jobs/:jobId/progress')
   @UseGuards(DockerJobGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Send a mid-execution update from a running worker job',
+    summary: 'Send a mid-execution progress report from a running worker job',
   })
-  async submitUpdate(
+  async submitProgressReport(
     @Req() req: Request,
     @Param('jobId') _jobId: string,
-    @Body() body: DockerJobUpdateRequestDTO,
+    @Body() body: DockerJobProgressRequestDTO,
   ): Promise<void> {
     const claims = req.dockerWorkerClaims
     if (!claims) {
       throw new BadRequestException('Worker job claims not found')
     }
-    await this.dockerWorkerHooksService.processUpdate(claims, body)
+    await this.dockerWorkerHooksService.processProgress(claims, body)
   }
 
   /**

@@ -48,22 +48,24 @@ export const appConfigSanitize = appConfigSchema.superRefine((value, ctx) => {
     let message = ''
     switch (finding.reason) {
       case 'nul_in_string':
-        message = 'NUL character not allowed in string'
+        message =
+          'NUL character not allowed in string (PostgreSQL JSONB storage)'
         break
       case 'control_char_in_string':
-        message = `Control character ${finding.detail ?? ''} not allowed in string`
+        message = `Control character ${finding.detail ?? ''} not allowed in string (PostgreSQL JSONB storage)`
         break
       case 'binary_not_allowed':
-        message = 'Binary data not allowed'
+        message = 'Binary data not allowed (PostgreSQL JSONB storage)'
         break
       case 'non_finite_number':
-        message = 'Non-finite number (Infinity or NaN) not allowed'
+        message =
+          'Non-finite number (Infinity or NaN) not allowed (PostgreSQL JSONB storage)'
         break
       case 'circular_reference':
-        message = 'Circular reference not allowed'
+        message = 'Circular reference not allowed (PostgreSQL JSONB storage)'
         break
       case 'unsupported_type':
-        message = `Unsupported type "${finding.detail ?? 'unknown'}" not allowed`
+        message = `Unsupported type "${finding.detail ?? 'unknown'}" not allowed (PostgreSQL JSONB storage)`
         break
     }
     ctx.addIssue({

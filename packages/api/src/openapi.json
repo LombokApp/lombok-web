@@ -7635,9 +7635,9 @@
         ]
       }
     },
-    "/api/v1/docker/jobs/{jobId}/update": {
+    "/api/v1/docker/jobs/{jobId}/progress": {
       "post": {
-        "operationId": "DockerWorkerHooks_submitUpdate",
+        "operationId": "DockerWorkerHooks_submitProgressReport",
         "parameters": [
           {
             "name": "jobId",
@@ -7653,7 +7653,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DockerJobUpdateRequestDTO"
+                "$ref": "#/components/schemas/DockerJobProgressRequestDTO"
               }
             }
           }
@@ -7688,7 +7688,7 @@
             "bearer": []
           }
         ],
-        "summary": "Send a mid-execution update from a running worker job",
+        "summary": "Send a mid-execution progress report from a running worker job",
         "tags": [
           "DockerWorkerHooks"
         ]
@@ -10401,18 +10401,21 @@
                                 "$ref": "#/components/schemas/AppInstallResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -10481,18 +10484,21 @@
                                 "$ref": "#/components/schemas/AppInstallResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -10566,18 +10572,21 @@
                                 "$ref": "#/components/schemas/AppInstallResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -13191,18 +13200,21 @@
                                   "$ref": "#/components/schemas/AppListResponse__schema1"
                                 }
                               },
-                              "onUpdate": {
+                              "onProgress": {
                                 "type": "array",
                                 "items": {
                                   "type": "object",
                                   "properties": {
-                                    "condition": {
-                                      "type": "string"
-                                    },
                                     "taskIdentifier": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "pattern": "^[a-z_]+$"
                                     },
-                                    "taskDataTemplate": {
+                                    "condition": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "dataTemplate": {
                                       "type": "object",
                                       "propertyNames": {
                                         "type": "string"
@@ -13271,18 +13283,21 @@
                                   "$ref": "#/components/schemas/AppListResponse__schema1"
                                 }
                               },
-                              "onUpdate": {
+                              "onProgress": {
                                 "type": "array",
                                 "items": {
                                   "type": "object",
                                   "properties": {
-                                    "condition": {
-                                      "type": "string"
-                                    },
                                     "taskIdentifier": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "pattern": "^[a-z_]+$"
                                     },
-                                    "taskDataTemplate": {
+                                    "condition": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "dataTemplate": {
                                       "type": "object",
                                       "propertyNames": {
                                         "type": "string"
@@ -13356,18 +13371,21 @@
                                   "$ref": "#/components/schemas/AppListResponse__schema1"
                                 }
                               },
-                              "onUpdate": {
+                              "onProgress": {
                                 "type": "array",
                                 "items": {
                                   "type": "object",
                                   "properties": {
-                                    "condition": {
-                                      "type": "string"
-                                    },
                                     "taskIdentifier": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "pattern": "^[a-z_]+$"
                                     },
-                                    "taskDataTemplate": {
+                                    "condition": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "dataTemplate": {
                                       "type": "object",
                                       "propertyNames": {
                                         "type": "string"
@@ -15981,18 +15999,21 @@
                                 "$ref": "#/components/schemas/AppGetResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -16061,18 +16082,21 @@
                                 "$ref": "#/components/schemas/AppGetResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -16146,18 +16170,21 @@
                                 "$ref": "#/components/schemas/AppGetResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -18800,18 +18827,21 @@
                                   "$ref": "#/components/schemas/UserAppListResponse__schema1"
                                 }
                               },
-                              "onUpdate": {
+                              "onProgress": {
                                 "type": "array",
                                 "items": {
                                   "type": "object",
                                   "properties": {
-                                    "condition": {
-                                      "type": "string"
-                                    },
                                     "taskIdentifier": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "pattern": "^[a-z_]+$"
                                     },
-                                    "taskDataTemplate": {
+                                    "condition": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "dataTemplate": {
                                       "type": "object",
                                       "propertyNames": {
                                         "type": "string"
@@ -18880,18 +18910,21 @@
                                   "$ref": "#/components/schemas/UserAppListResponse__schema1"
                                 }
                               },
-                              "onUpdate": {
+                              "onProgress": {
                                 "type": "array",
                                 "items": {
                                   "type": "object",
                                   "properties": {
-                                    "condition": {
-                                      "type": "string"
-                                    },
                                     "taskIdentifier": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "pattern": "^[a-z_]+$"
                                     },
-                                    "taskDataTemplate": {
+                                    "condition": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "dataTemplate": {
                                       "type": "object",
                                       "propertyNames": {
                                         "type": "string"
@@ -18965,18 +18998,21 @@
                                   "$ref": "#/components/schemas/UserAppListResponse__schema1"
                                 }
                               },
-                              "onUpdate": {
+                              "onProgress": {
                                 "type": "array",
                                 "items": {
                                   "type": "object",
                                   "properties": {
-                                    "condition": {
-                                      "type": "string"
-                                    },
                                     "taskIdentifier": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "pattern": "^[a-z_]+$"
                                     },
-                                    "taskDataTemplate": {
+                                    "condition": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "dataTemplate": {
                                       "type": "object",
                                       "propertyNames": {
                                         "type": "string"
@@ -21461,18 +21497,21 @@
                                 "$ref": "#/components/schemas/UserAppGetResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -21541,18 +21580,21 @@
                                 "$ref": "#/components/schemas/UserAppGetResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -21626,18 +21668,21 @@
                                 "$ref": "#/components/schemas/UserAppGetResponse__schema1"
                               }
                             },
-                            "onUpdate": {
+                            "onProgress": {
                               "type": "array",
                               "items": {
                                 "type": "object",
                                 "properties": {
-                                  "condition": {
-                                    "type": "string"
-                                  },
                                   "taskIdentifier": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "pattern": "^[a-z_]+$"
                                   },
-                                  "taskDataTemplate": {
+                                  "condition": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "dataTemplate": {
                                     "type": "object",
                                     "propertyNames": {
                                       "type": "string"
@@ -28455,18 +28500,21 @@
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
                       },
-                      "onUpdate": {
+                      "onProgress": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "condition": {
-                              "type": "string"
-                            },
                             "taskIdentifier": {
-                              "type": "string"
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
                             },
-                            "taskDataTemplate": {
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "dataTemplate": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -28578,18 +28626,21 @@
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
                       },
-                      "onUpdate": {
+                      "onProgress": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "condition": {
-                              "type": "string"
-                            },
                             "taskIdentifier": {
-                              "type": "string"
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
                             },
-                            "taskDataTemplate": {
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "dataTemplate": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -28661,18 +28712,21 @@
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
                       },
-                      "onUpdate": {
+                      "onProgress": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "condition": {
-                              "type": "string"
-                            },
                             "taskIdentifier": {
-                              "type": "string"
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
                             },
-                            "taskDataTemplate": {
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "dataTemplate": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -28725,18 +28779,21 @@
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
                       },
-                      "onUpdate": {
+                      "onProgress": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "condition": {
-                              "type": "string"
-                            },
                             "taskIdentifier": {
-                              "type": "string"
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
                             },
-                            "taskDataTemplate": {
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "dataTemplate": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -28783,18 +28840,21 @@
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
                       },
-                      "onUpdate": {
+                      "onProgress": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "condition": {
-                              "type": "string"
-                            },
                             "taskIdentifier": {
-                              "type": "string"
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
                             },
-                            "taskDataTemplate": {
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "dataTemplate": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -28820,7 +28880,7 @@
                     "properties": {
                       "kind": {
                         "type": "string",
-                        "const": "task_child"
+                        "const": "task_complete_child"
                       },
                       "invokeContext": {
                         "type": "object",
@@ -28831,19 +28891,29 @@
                               "id": {
                                 "type": "string",
                                 "format": "uuid",
-                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                               },
                               "identifier": {
                                 "type": "string"
                               },
                               "success": {
                                 "type": "boolean"
+                              },
+                              "result": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                                }
                               }
                             },
                             "required": [
                               "id",
                               "identifier",
-                              "success"
+                              "success",
+                              "result"
                             ]
                           },
                           "onCompleteHandlerIndex": {
@@ -28863,18 +28933,250 @@
                           "$ref": "#/components/schemas/TaskGetResponse__schema1"
                         }
                       },
-                      "onUpdate": {
+                      "onProgress": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
-                            "condition": {
-                              "type": "string"
-                            },
                             "taskIdentifier": {
-                              "type": "string"
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
                             },
-                            "taskDataTemplate": {
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "dataTemplate": {
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {
+                                "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                              }
+                            }
+                          },
+                          "required": [
+                            "taskIdentifier"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "invokeContext"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "task_progress_child"
+                      },
+                      "invokeContext": {
+                        "type": "object",
+                        "properties": {
+                          "parentTask": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "identifier": {
+                                "type": "string"
+                              },
+                              "progressReport": {
+                                "type": "object",
+                                "properties": {
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "details": {
+                                    "type": "object",
+                                    "properties": {
+                                      "percent": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 100
+                                      },
+                                      "current": {
+                                        "type": "number"
+                                      },
+                                      "total": {
+                                        "type": "number"
+                                      },
+                                      "label": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "message": {
+                                    "type": "object",
+                                    "properties": {
+                                      "level": {
+                                        "type": "string",
+                                        "enum": [
+                                          "debug",
+                                          "info",
+                                          "warn",
+                                          "error"
+                                        ]
+                                      },
+                                      "text": {
+                                        "type": "string"
+                                      },
+                                      "audience": {
+                                        "type": "string",
+                                        "enum": [
+                                          "user",
+                                          "system"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "level",
+                                      "text",
+                                      "audience"
+                                    ]
+                                  },
+                                  "timestamp": {
+                                    "type": "string"
+                                  },
+                                  "executorMetadata": {
+                                    "oneOf": [
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "system"
+                                          },
+                                          "metadata": {
+                                            "type": "object",
+                                            "propertyNames": {
+                                              "type": "string"
+                                            },
+                                            "additionalProperties": {
+                                              "$ref": "#/components/schemas/TaskGetResponse__schema0"
+                                            }
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "metadata"
+                                        ]
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "docker"
+                                          },
+                                          "metadata": {
+                                            "type": "object",
+                                            "properties": {
+                                              "profileKey": {
+                                                "type": "string"
+                                              },
+                                              "profileHash": {
+                                                "type": "string"
+                                              },
+                                              "jobIdentifier": {
+                                                "type": "string"
+                                              },
+                                              "containerId": {
+                                                "type": "string"
+                                              },
+                                              "hostId": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "profileKey",
+                                              "profileHash",
+                                              "jobIdentifier",
+                                              "containerId",
+                                              "hostId"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "metadata"
+                                        ]
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "runtime"
+                                          },
+                                          "metadata": {
+                                            "type": "object",
+                                            "properties": {
+                                              "workerIdentifier": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "workerIdentifier"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "metadata"
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "identifier",
+                              "progressReport"
+                            ]
+                          },
+                          "onProgressHandlerIndex": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "parentTask",
+                          "onProgressHandlerIndex"
+                        ]
+                      },
+                      "onComplete": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/TaskGetResponse__schema1"
+                        }
+                      },
+                      "onProgress": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "taskIdentifier": {
+                              "type": "string",
+                              "minLength": 1,
+                              "pattern": "^[a-z_]+$"
+                            },
+                            "condition": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "dataTemplate": {
                               "type": "object",
                               "propertyNames": {
                                 "type": "string"
@@ -29210,18 +29512,21 @@
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
                         },
-                        "onUpdate": {
+                        "onProgress": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "condition": {
-                                "type": "string"
-                              },
                               "taskIdentifier": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
                               },
-                              "taskDataTemplate": {
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "dataTemplate": {
                                 "type": "object",
                                 "propertyNames": {
                                   "type": "string"
@@ -29333,18 +29638,21 @@
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
                         },
-                        "onUpdate": {
+                        "onProgress": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "condition": {
-                                "type": "string"
-                              },
                               "taskIdentifier": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
                               },
-                              "taskDataTemplate": {
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "dataTemplate": {
                                 "type": "object",
                                 "propertyNames": {
                                   "type": "string"
@@ -29416,18 +29724,21 @@
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
                         },
-                        "onUpdate": {
+                        "onProgress": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "condition": {
-                                "type": "string"
-                              },
                               "taskIdentifier": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
                               },
-                              "taskDataTemplate": {
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "dataTemplate": {
                                 "type": "object",
                                 "propertyNames": {
                                   "type": "string"
@@ -29480,18 +29791,21 @@
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
                         },
-                        "onUpdate": {
+                        "onProgress": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "condition": {
-                                "type": "string"
-                              },
                               "taskIdentifier": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
                               },
-                              "taskDataTemplate": {
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "dataTemplate": {
                                 "type": "object",
                                 "propertyNames": {
                                   "type": "string"
@@ -29538,18 +29852,21 @@
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
                         },
-                        "onUpdate": {
+                        "onProgress": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "condition": {
-                                "type": "string"
-                              },
                               "taskIdentifier": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
                               },
-                              "taskDataTemplate": {
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "dataTemplate": {
                                 "type": "object",
                                 "propertyNames": {
                                   "type": "string"
@@ -29575,7 +29892,7 @@
                       "properties": {
                         "kind": {
                           "type": "string",
-                          "const": "task_child"
+                          "const": "task_complete_child"
                         },
                         "invokeContext": {
                           "type": "object",
@@ -29586,19 +29903,29 @@
                                 "id": {
                                   "type": "string",
                                   "format": "uuid",
-                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                                 },
                                 "identifier": {
                                   "type": "string"
                                 },
                                 "success": {
                                   "type": "boolean"
+                                },
+                                "result": {
+                                  "type": "object",
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {
+                                    "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                  }
                                 }
                               },
                               "required": [
                                 "id",
                                 "identifier",
-                                "success"
+                                "success",
+                                "result"
                               ]
                             },
                             "onCompleteHandlerIndex": {
@@ -29618,18 +29945,250 @@
                             "$ref": "#/components/schemas/TaskListResponse__schema1"
                           }
                         },
-                        "onUpdate": {
+                        "onProgress": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "condition": {
-                                "type": "string"
-                              },
                               "taskIdentifier": {
-                                "type": "string"
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
                               },
-                              "taskDataTemplate": {
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "dataTemplate": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                }
+                              }
+                            },
+                            "required": [
+                              "taskIdentifier"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "invokeContext"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "task_progress_child"
+                        },
+                        "invokeContext": {
+                          "type": "object",
+                          "properties": {
+                            "parentTask": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "identifier": {
+                                  "type": "string"
+                                },
+                                "progressReport": {
+                                  "type": "object",
+                                  "properties": {
+                                    "code": {
+                                      "type": "string"
+                                    },
+                                    "details": {
+                                      "type": "object",
+                                      "properties": {
+                                        "percent": {
+                                          "type": "number",
+                                          "minimum": 0,
+                                          "maximum": 100
+                                        },
+                                        "current": {
+                                          "type": "number"
+                                        },
+                                        "total": {
+                                          "type": "number"
+                                        },
+                                        "label": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    },
+                                    "message": {
+                                      "type": "object",
+                                      "properties": {
+                                        "level": {
+                                          "type": "string",
+                                          "enum": [
+                                            "debug",
+                                            "info",
+                                            "warn",
+                                            "error"
+                                          ]
+                                        },
+                                        "text": {
+                                          "type": "string"
+                                        },
+                                        "audience": {
+                                          "type": "string",
+                                          "enum": [
+                                            "user",
+                                            "system"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "level",
+                                        "text",
+                                        "audience"
+                                      ]
+                                    },
+                                    "timestamp": {
+                                      "type": "string"
+                                    },
+                                    "executorMetadata": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "system"
+                                            },
+                                            "metadata": {
+                                              "type": "object",
+                                              "propertyNames": {
+                                                "type": "string"
+                                              },
+                                              "additionalProperties": {
+                                                "$ref": "#/components/schemas/TaskListResponse__schema0"
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "metadata"
+                                          ]
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "docker"
+                                            },
+                                            "metadata": {
+                                              "type": "object",
+                                              "properties": {
+                                                "profileKey": {
+                                                  "type": "string"
+                                                },
+                                                "profileHash": {
+                                                  "type": "string"
+                                                },
+                                                "jobIdentifier": {
+                                                  "type": "string"
+                                                },
+                                                "containerId": {
+                                                  "type": "string"
+                                                },
+                                                "hostId": {
+                                                  "type": "string"
+                                                }
+                                              },
+                                              "required": [
+                                                "profileKey",
+                                                "profileHash",
+                                                "jobIdentifier",
+                                                "containerId",
+                                                "hostId"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "metadata"
+                                          ]
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "const": "runtime"
+                                            },
+                                            "metadata": {
+                                              "type": "object",
+                                              "properties": {
+                                                "workerIdentifier": {
+                                                  "type": "string"
+                                                }
+                                              },
+                                              "required": [
+                                                "workerIdentifier"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "metadata"
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "identifier",
+                                "progressReport"
+                              ]
+                            },
+                            "onProgressHandlerIndex": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "parentTask",
+                            "onProgressHandlerIndex"
+                          ]
+                        },
+                        "onComplete": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TaskListResponse__schema1"
+                          }
+                        },
+                        "onProgress": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taskIdentifier": {
+                                "type": "string",
+                                "minLength": 1,
+                                "pattern": "^[a-z_]+$"
+                              },
+                              "condition": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "dataTemplate": {
                                 "type": "object",
                                 "propertyNames": {
                                   "type": "string"
@@ -31185,13 +31744,44 @@
           }
         ]
       },
-      "DockerJobUpdateRequestDTO": {
+      "DockerJobProgressRequestDTO__schema0": {
+        "anyOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DockerJobProgressRequestDTO__schema0"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DockerJobProgressRequestDTO__schema0"
+            }
+          }
+        ]
+      },
+      "DockerJobProgressRequestDTO": {
         "type": "object",
         "properties": {
           "code": {
             "type": "string"
           },
-          "progress": {
+          "details": {
             "type": "object",
             "properties": {
               "percent": {
@@ -31241,6 +31831,96 @@
           },
           "timestamp": {
             "type": "string"
+          },
+          "executorMetadata": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "system"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/DockerJobProgressRequestDTO__schema0"
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "metadata"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "docker"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "properties": {
+                      "profileKey": {
+                        "type": "string"
+                      },
+                      "profileHash": {
+                        "type": "string"
+                      },
+                      "jobIdentifier": {
+                        "type": "string"
+                      },
+                      "containerId": {
+                        "type": "string"
+                      },
+                      "hostId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "profileKey",
+                      "profileHash",
+                      "jobIdentifier",
+                      "containerId",
+                      "hostId"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "metadata"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "runtime"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "properties": {
+                      "workerIdentifier": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "workerIdentifier"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "metadata"
+                ]
+              }
+            ]
           }
         }
       },

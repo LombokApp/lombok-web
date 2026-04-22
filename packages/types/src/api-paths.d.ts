@@ -1576,7 +1576,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/docker/jobs/{jobId}/update": {
+    "/api/v1/docker/jobs/{jobId}/progress": {
         parameters: {
             query?: never;
             header?: never;
@@ -1585,8 +1585,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Send a mid-execution update from a running worker job */
-        post: operations["DockerWorkerHooks_submitUpdate"];
+        /** Send a mid-execution progress report from a running worker job */
+        post: operations["DockerWorkerHooks_submitProgressReport"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2062,10 +2062,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppInstallResponse__schema0"];
                             };
                         }[];
@@ -2081,10 +2081,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppInstallResponse__schema0"];
                             };
                         }[];
@@ -2103,10 +2103,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppInstallResponse__schema0"];
                             };
                         }[];
@@ -2722,10 +2722,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppListResponse__schema0"];
                             };
                         }[];
@@ -2741,10 +2741,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppListResponse__schema0"];
                             };
                         }[];
@@ -2763,10 +2763,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppListResponse__schema0"];
                             };
                         }[];
@@ -3382,10 +3382,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppGetResponse__schema0"];
                             };
                         }[];
@@ -3401,10 +3401,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppGetResponse__schema0"];
                             };
                         }[];
@@ -3423,10 +3423,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["AppGetResponse__schema0"];
                             };
                         }[];
@@ -4050,10 +4050,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["UserAppListResponse__schema0"];
                             };
                         }[];
@@ -4069,10 +4069,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["UserAppListResponse__schema0"];
                             };
                         }[];
@@ -4091,10 +4091,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["UserAppListResponse__schema0"];
                             };
                         }[];
@@ -4681,10 +4681,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
                             };
                         }[];
@@ -4700,10 +4700,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
                             };
                         }[];
@@ -4722,10 +4722,10 @@ export interface components {
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
-                        onUpdate?: {
-                            condition?: string;
+                        onProgress?: {
                             taskIdentifier: string;
-                            taskDataTemplate?: {
+                            condition?: string;
+                            dataTemplate?: {
                                 [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
                             };
                         }[];
@@ -6329,10 +6329,10 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     }[];
@@ -6360,10 +6360,10 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     }[];
@@ -6380,10 +6380,10 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     }[];
@@ -6397,10 +6397,10 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     }[];
@@ -6412,30 +6412,92 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     }[];
                 } | {
                     /** @constant */
-                    kind: "task_child";
+                    kind: "task_complete_child";
                     invokeContext: {
                         parentTask: {
                             /** Format: uuid */
                             id: string;
                             identifier: string;
                             success: boolean;
+                            result: {
+                                [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                            };
                         };
                         onCompleteHandlerIndex: number;
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    }[];
+                } | {
+                    /** @constant */
+                    kind: "task_progress_child";
+                    invokeContext: {
+                        parentTask: {
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                            progressReport: {
+                                code?: string;
+                                details?: {
+                                    percent?: number;
+                                    current?: number;
+                                    total?: number;
+                                    label?: string;
+                                };
+                                message?: {
+                                    /** @enum {string} */
+                                    level: "debug" | "info" | "warn" | "error";
+                                    text: string;
+                                    /** @enum {string} */
+                                    audience: "user" | "system";
+                                };
+                                timestamp?: string;
+                                executorMetadata?: {
+                                    /** @constant */
+                                    type: "system";
+                                    metadata: {
+                                        [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                                    };
+                                } | {
+                                    /** @constant */
+                                    type: "docker";
+                                    metadata: {
+                                        profileKey: string;
+                                        profileHash: string;
+                                        jobIdentifier: string;
+                                        containerId: string;
+                                        hostId: string;
+                                    };
+                                } | {
+                                    /** @constant */
+                                    type: "runtime";
+                                    metadata: {
+                                        workerIdentifier: string;
+                                    };
+                                };
+                            };
+                        };
+                        onProgressHandlerIndex: number;
+                    };
+                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
+                    onProgress?: {
+                        taskIdentifier: string;
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
                     }[];
@@ -6524,10 +6586,10 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     }[];
@@ -6555,10 +6617,10 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     }[];
@@ -6575,10 +6637,10 @@ export interface components {
                         };
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     }[];
@@ -6592,10 +6654,10 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     }[];
@@ -6607,30 +6669,92 @@ export interface components {
                         requestId: string;
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     }[];
                 } | {
                     /** @constant */
-                    kind: "task_child";
+                    kind: "task_complete_child";
                     invokeContext: {
                         parentTask: {
                             /** Format: uuid */
                             id: string;
                             identifier: string;
                             success: boolean;
+                            result: {
+                                [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                            };
                         };
                         onCompleteHandlerIndex: number;
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onUpdate?: {
-                        condition?: string;
+                    onProgress?: {
                         taskIdentifier: string;
-                        taskDataTemplate?: {
+                        condition?: string;
+                        dataTemplate?: {
+                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                        };
+                    }[];
+                } | {
+                    /** @constant */
+                    kind: "task_progress_child";
+                    invokeContext: {
+                        parentTask: {
+                            /** Format: uuid */
+                            id: string;
+                            identifier: string;
+                            progressReport: {
+                                code?: string;
+                                details?: {
+                                    percent?: number;
+                                    current?: number;
+                                    total?: number;
+                                    label?: string;
+                                };
+                                message?: {
+                                    /** @enum {string} */
+                                    level: "debug" | "info" | "warn" | "error";
+                                    text: string;
+                                    /** @enum {string} */
+                                    audience: "user" | "system";
+                                };
+                                timestamp?: string;
+                                executorMetadata?: {
+                                    /** @constant */
+                                    type: "system";
+                                    metadata: {
+                                        [key: string]: components["schemas"]["TaskListResponse__schema0"];
+                                    };
+                                } | {
+                                    /** @constant */
+                                    type: "docker";
+                                    metadata: {
+                                        profileKey: string;
+                                        profileHash: string;
+                                        jobIdentifier: string;
+                                        containerId: string;
+                                        hostId: string;
+                                    };
+                                } | {
+                                    /** @constant */
+                                    type: "runtime";
+                                    metadata: {
+                                        workerIdentifier: string;
+                                    };
+                                };
+                            };
+                        };
+                        onProgressHandlerIndex: number;
+                    };
+                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
+                    onProgress?: {
+                        taskIdentifier: string;
+                        condition?: string;
+                        dataTemplate?: {
                             [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
                     }[];
@@ -7007,9 +7131,12 @@ export interface components {
                 objectKey: string;
             }[];
         };
-        DockerJobUpdateRequestDTO: {
+        DockerJobProgressRequestDTO__schema0: (string | null) | number | boolean | components["schemas"]["DockerJobProgressRequestDTO__schema0"][] | {
+            [key: string]: components["schemas"]["DockerJobProgressRequestDTO__schema0"];
+        };
+        DockerJobProgressRequestDTO: {
             code?: string;
-            progress?: {
+            details?: {
                 percent?: number;
                 current?: number;
                 total?: number;
@@ -7023,6 +7150,29 @@ export interface components {
                 audience: "user" | "system";
             };
             timestamp?: string;
+            executorMetadata?: {
+                /** @constant */
+                type: "system";
+                metadata: {
+                    [key: string]: components["schemas"]["DockerJobProgressRequestDTO__schema0"];
+                };
+            } | {
+                /** @constant */
+                type: "docker";
+                metadata: {
+                    profileKey: string;
+                    profileHash: string;
+                    jobIdentifier: string;
+                    containerId: string;
+                    hostId: string;
+                };
+            } | {
+                /** @constant */
+                type: "runtime";
+                metadata: {
+                    workerIdentifier: string;
+                };
+            };
         };
         DockerHostListResponse: {
             result: {
@@ -12724,7 +12874,7 @@ export interface operations {
             };
         };
     };
-    DockerWorkerHooks_submitUpdate: {
+    DockerWorkerHooks_submitProgressReport: {
         parameters: {
             query?: never;
             header?: never;
@@ -12735,7 +12885,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DockerJobUpdateRequestDTO"];
+                "application/json": components["schemas"]["DockerJobProgressRequestDTO"];
             };
         };
         responses: {

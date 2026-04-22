@@ -40,7 +40,7 @@ import { z } from 'zod'
 import { dockerJobResultSchema } from '../dto/docker-job-complete-request.dto'
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
-import type { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
+import type { DockerJobProgressRequestDTO } from '../dto/docker-job-progress-request.dto'
 import { DockerClientService } from './client/docker-client.service'
 
 const ALGORITHM = 'HS256'
@@ -600,22 +600,32 @@ export class DockerWorkerHookService {
         heartbeatContext: {
           message: 'Task worker first heartbeat',
         },
+        // The worker-agent's first hook call is the first moment the
+        // platform sees the full executor metadata (containerId, hostId
+        // are only populated once the container has started). Upgrade
+        // the inner task's `started` log entry so in-flight readers can
+        // answer "which container is running this" before completion.
+        executorMetadata: {
+          type: 'docker',
+          metadata: claims.executorMetadata,
+        },
         options: { tx },
       })
     })
   }
 
   /**
-   * Process a mid-execution update from a running Docker worker.
+   * Process a mid-execution progress report from a running Docker worker.
    *
-   * Orchestrates: store update -> emit socket -> dispatch onUpdate handlers
+   * Orchestrates: store progressReport -> emit async update on socket
+   * -> dispatch onProgress handlers.
    *
    * @param claims - The claims from the worker job token
-   * @param request - The update request body
+   * @param request - The progress report request body
    */
-  async processUpdate(
+  async processProgress(
     claims: DockerWorkerJobClaims,
-    request: DockerJobUpdateRequestDTO,
+    request: DockerJobProgressRequestDTO,
   ): Promise<void> {
     const { taskId: dockerRunTaskId } = claims
 
@@ -642,10 +652,16 @@ export class DockerWorkerHookService {
         )
       }
 
-      // 3. Delegate to TaskService (store + socket emit + handler dispatch)
-      const result = await this.taskService.registerTaskUpdate(
+      // 3. Delegate to TaskService (store + socket emit + handler dispatch).
+      const result = await this.taskService.registerTaskProgress(
         innerTaskId,
-        request,
+        {
+          ...request,
+          executorMetadata: {
+            type: 'docker',
+            metadata: claims.executorMetadata,
+          },
+        },
         tx,
       )
 

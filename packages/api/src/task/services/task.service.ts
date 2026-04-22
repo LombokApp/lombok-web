@@ -3,13 +3,17 @@ import {
   ExecutorMetadata,
   ExecutorStartMetadata,
   JsonSerializableObject,
-  ReceivedTaskUpdate,
+  ReceivedTaskProgressReport,
   StorageAccessPolicy,
   SystemLogEntry,
   TaskCompletion,
+  TaskErrorSystemLogPayload,
   TaskLogEntry,
   TaskOnCompleteConfig,
-  TaskUpdate,
+  TaskOnProgressConfig,
+  TaskProgressReport,
+  TaskStartedSystemLogPayload,
+  TaskSuccessSystemLogPayload,
   TaskUpdateType,
 } from '@lombokapp/types'
 import { addMs } from '@lombokapp/utils'
@@ -54,10 +58,10 @@ import {
   evalOnCompleteHandlerCondition,
   OnCompleteConditionTaskContext,
 } from '../util/eval-oncomplete-condition.util'
-import { evalUpdateHandlerCondition } from '../util/eval-update-condition.util'
+import { evalProgressHandlerCondition } from '../util/eval-progress-condition.util'
 import { serializeLogEntry } from '../util/log-encoder.util'
 import { withTaskIdempotencyKey } from '../util/task-idempotency-key.util'
-import { AsyncTaskUpdateBroadcasterService } from './async-task-update-broadcaster.service'
+import { TaskUpdateBroadcasterService } from './task-update-broadcaster.service'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -91,7 +95,7 @@ export class TaskService {
     _appService,
     @Inject(forwardRef(() => FolderService))
     _folderService,
-    private readonly asyncTaskUpdateBroadcasterService: AsyncTaskUpdateBroadcasterService,
+    private readonly asyncTaskUpdateBroadcasterService: TaskUpdateBroadcasterService,
   ) {
     this.appService = _appService as AppService
     this.folderService = _folderService as FolderService
@@ -301,7 +305,7 @@ export class TaskService {
           updatedAt: tasksTable.updatedAt,
           handlerType: tasksTable.handlerType,
           handlerIdentifier: tasksTable.handlerIdentifier,
-          updates: tasksTable.updates,
+          progressReports: tasksTable.progressReports,
           correlationKey: tasksTable.correlationKey,
           progress: tasksTable.progress,
         },
@@ -506,6 +510,7 @@ export class TaskService {
     targetLocation,
     storageAccessPolicy,
     onComplete,
+    onProgress,
   }: {
     appIdentifier: string
     taskIdentifier: string
@@ -516,6 +521,7 @@ export class TaskService {
     targetLocation?: { folderId: string; objectKey?: string }
     storageAccessPolicy?: StorageAccessPolicy
     onComplete?: TaskOnCompleteConfig[]
+    onProgress?: TaskOnProgressConfig[]
   }) {
     const app = await this.appService.getApp(appIdentifier, { enabled: true })
     if (!app) {
@@ -564,6 +570,7 @@ export class TaskService {
           requestId: getThreadId(),
         },
         onComplete: onComplete ?? undefined,
+        onProgress: onProgress ?? undefined,
       },
       data: taskData,
       handlerType: taskDefinition.handler.type,
@@ -614,6 +621,7 @@ export class TaskService {
     targetUserId,
     targetLocation,
     onComplete = [],
+    onProgress = [],
     storageAccessPolicy,
     handlerIndex,
     options = {},
@@ -627,6 +635,7 @@ export class TaskService {
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
     onComplete?: TaskOnCompleteConfig[]
+    onProgress?: TaskOnProgressConfig[]
     storageAccessPolicy?: StorageAccessPolicy
     handlerIndex: number
     options: { tx?: OrmService['db'] }
@@ -651,20 +660,13 @@ export class TaskService {
     const parentTaskSuccessLog = parentTask.systemLog
       .reverse()
       .find((log) => log.logType === 'success')?.payload as
-      | { result: JsonSerializableObject; executorMetadata: ExecutorMetadata }
+      | TaskSuccessSystemLogPayload
       | undefined
 
     const parentTaskErrorLog = parentTask.systemLog
       .reverse()
       .find((log) => log.logType === 'error')?.payload as
-      | {
-          error: {
-            code: string
-            message: string
-            details: JsonSerializableObject
-          }
-          executorMetadata?: ExecutorMetadata
-        }
+      | TaskErrorSystemLogPayload
       | undefined
 
     const now = new Date()
@@ -674,16 +676,18 @@ export class TaskService {
       taskIdentifier,
       correlationKey,
       invocation: {
-        kind: 'task_child',
+        kind: 'task_complete_child',
         invokeContext: {
           parentTask: {
             id: parentTask.id,
             identifier: parentTask.taskIdentifier,
             success: parentTaskSuccess,
+            result: parentTaskSuccessLog?.result ?? {},
           },
           onCompleteHandlerIndex: handlerIndex,
         },
         onComplete: onComplete.length > 0 ? onComplete : undefined,
+        onProgress: onProgress.length > 0 ? onProgress : undefined,
       },
       data: taskDataTemplate
         ? await dataFromTemplate(taskDataTemplate, {
@@ -742,10 +746,159 @@ export class TaskService {
     this.logger.debug('onComplete handler task queued', {
       id: childTask.id,
       taskIdentifier: childTask.taskIdentifier,
-      ...(childTask.invocation.kind === 'task_child'
+      ...(childTask.invocation.kind === 'task_complete_child'
         ? { parent: childTask.invocation.invokeContext.parentTask.id }
         : {}),
-      onComplete: childTask.invocation.onComplete,
+      onComplete:
+        childTask.invocation.kind === 'task_complete_child'
+          ? childTask.invocation.onComplete
+          : undefined,
+    })
+
+    if (options.tx) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const task = (
+        await options.tx.insert(tasksTable).values(childTask).returning()
+      )[0]!
+      await this.eventService.emitRunnableTaskEnqueuedEvent(task, options.tx)
+      return task
+    } else {
+      return this.ormService.db.transaction(async (tx) => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const task = (
+          await tx.insert(tasksTable).values(childTask).returning()
+        )[0]!
+        await this.eventService.emitRunnableTaskEnqueuedEvent(task, tx)
+        return task
+      })
+    }
+  }
+
+  /**
+   * Used to trigger a task as an onProgress handler for another task.
+   *
+   * @param parentTask - The parent task that experienced the progress report.
+   * @param parentProgressReport - The worker-originated progress report.
+   * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
+   * @param taskData - The data to pass to the task (must be serializable).
+   * @param dontStartBefore - The time before which the task should not start.
+   * @param targetUserId - The user ID to relate the task to.
+   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
+   * @param storageAccessPolicy - The storage access policy to use for the task.
+   * @returns The created task record.
+   */
+  async executeOnProgressHandler({
+    parentTask,
+    parentProgressReport,
+    taskIdentifier,
+    correlationKey,
+    taskDataTemplate,
+    dontStartBefore,
+    targetUserId,
+    targetLocation,
+    storageAccessPolicy,
+    handlerIndex,
+    options = {},
+  }: {
+    parentTask: Task
+    parentProgressReport: TaskProgressReport
+    correlationKey?: string
+    taskIdentifier: string
+    taskDataTemplate?: JsonSerializableObject // parse this to interpolate variables, e.g. {{task.result.someKey}} or {{task.error.someKey}}
+    dontStartBefore?: { timestamp: Date } | { delayMs: number }
+    targetUserId?: string
+    targetLocation?: { folderId: string; objectKey?: string }
+    storageAccessPolicy?: StorageAccessPolicy
+    handlerIndex: number
+    options: { tx?: OrmService['db'] }
+  }) {
+    const app = await this.appService.getApp(parentTask.ownerIdentifier, {
+      enabled: true,
+    })
+    if (!app) {
+      throw new NotFoundException(
+        `App not found: ${parentTask.ownerIdentifier}`,
+      )
+    }
+    const taskDefinition = app.config.tasks?.find(
+      (t) => t.identifier === taskIdentifier,
+    )
+    if (!taskDefinition) {
+      throw new NotFoundException(
+        `Task definition not found: ${taskIdentifier}`,
+      )
+    }
+
+    const now = new Date()
+
+    const childTask = withTaskIdempotencyKey({
+      id: crypto.randomUUID(),
+      ownerIdentifier: parentTask.ownerIdentifier,
+      taskIdentifier,
+      correlationKey,
+      invocation: {
+        kind: 'task_progress_child',
+        invokeContext: {
+          parentTask: {
+            id: parentTask.id,
+            identifier: parentTask.taskIdentifier,
+            progressReport: parentProgressReport,
+          },
+          onProgressHandlerIndex: handlerIndex,
+        },
+      },
+      data: taskDataTemplate
+        ? await dataFromTemplate(taskDataTemplate, {
+            objects: {
+              task: {
+                id: parentTask.id,
+                targetLocation: parentTask.targetLocationFolderId
+                  ? {
+                      folderId: parentTask.targetLocationFolderId,
+                      objectKey:
+                        parentTask.targetLocationObjectKey ?? undefined,
+                    }
+                  : {},
+                data: parentTask.data,
+                startedAt: parentTask.startedAt,
+                completedAt: parentTask.completedAt,
+                createdAt: parentTask.createdAt,
+                updatedAt: parentTask.updatedAt,
+              },
+              progressReport: parentProgressReport,
+              executorMetadata: parentProgressReport.executorMetadata,
+            },
+            functions: {
+              createPresignedUrl:
+                this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
+                  parentTask.ownerIdentifier,
+                ),
+            },
+          })
+        : {},
+      handlerType: taskDefinition.handler.type,
+      handlerIdentifier: taskDefinition.handler.identifier,
+      createdAt: now,
+      updatedAt: now,
+      dontStartBefore:
+        dontStartBefore && 'timestamp' in dontStartBefore
+          ? dontStartBefore.timestamp
+          : dontStartBefore && 'delayMs' in dontStartBefore
+            ? addMs(now, dontStartBefore.delayMs)
+            : undefined,
+      storageAccessPolicy,
+      taskDescription: taskDefinition.description,
+      targetUserId,
+      targetLocationFolderId: targetLocation?.folderId,
+      targetLocationObjectKey: targetLocation?.objectKey,
+    })
+
+    this.logger.debug('onProgress handler task queued', {
+      id: childTask.id,
+      taskIdentifier: childTask.taskIdentifier,
+      ...(childTask.invocation.kind === 'task_progress_child'
+        ? { parent: childTask.invocation.invokeContext.parentTask.id }
+        : {}),
     })
 
     if (options.tx) {
@@ -806,13 +959,12 @@ export class TaskService {
 
     const now = new Date()
 
+    const startPayload: TaskStartedSystemLogPayload = { executorMetadata }
     const startSystemLog: SystemLogEntry = {
       at: now,
       logType: 'started',
       message: 'Task is started',
-      payload: {
-        executorMetadata,
-      },
+      payload: startPayload,
     }
 
     const updatedTask = (
@@ -834,7 +986,7 @@ export class TaskService {
     }
 
     // Broadcast update
-    this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+    this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
       updatedTask,
       TaskUpdateType.task_started,
       now,
@@ -846,6 +998,7 @@ export class TaskService {
   async registerHeartbeat({
     taskId,
     heartbeatContext,
+    executorMetadata,
     options = {},
   }: {
     taskId: string
@@ -853,9 +1006,17 @@ export class TaskService {
       message: string
       payload?: JsonSerializableObject
     }
+    /**
+     * Full executor metadata observed at runtime (e.g. docker containerId
+     * and hostId once the container has started). When provided on the
+     * first heartbeat, the `started` system log entry is upgraded so its
+     * payload carries the full ExecutorMetadata instead of the
+     * ExecutorStartMetadata written at task start.
+     */
+    executorMetadata?: ExecutorMetadata
     options?: { tx?: OrmService['db'] }
   }) {
-    const args = { taskId, heartbeatContext }
+    const args = { taskId, heartbeatContext, executorMetadata }
     if (options.tx) {
       return this._registerHeartbeatInTx(args, options.tx)
     }
@@ -868,12 +1029,14 @@ export class TaskService {
     {
       taskId,
       heartbeatContext,
+      executorMetadata,
     }: {
       taskId: string
       heartbeatContext?: {
         message: string
         payload?: JsonSerializableObject
       }
+      executorMetadata?: ExecutorMetadata
     },
     tx: OrmService['db'],
   ) {
@@ -897,6 +1060,27 @@ export class TaskService {
         }
       : undefined
 
+    // On the first heartbeat with full executor metadata, upgrade the
+    // `started` system log entry in place so the payload reflects the
+    // runtime-observed fields (containerId, hostId, …). We rebuild the
+    // whole systemLog array — heartbeats are serialized per task and
+    // this column is otherwise append-only while the task is running.
+    const shouldUpgradeStartLog =
+      executorMetadata !== undefined && task.latestHeartbeatAt === null
+    const upgradedSystemLog = shouldUpgradeStartLog
+      ? task.systemLog.map((entry) =>
+          entry.logType === 'started'
+            ? {
+                ...entry,
+                payload: {
+                  ...(entry.payload ?? {}),
+                  executorMetadata,
+                } satisfies TaskStartedSystemLogPayload,
+              }
+            : entry,
+        )
+      : undefined
+
     const updatedTask = (
       await tx
         .update(tasksTable)
@@ -908,6 +1092,13 @@ export class TaskService {
                 taskLog: sql<
                   TaskLogEntry[]
                 >`coalesce(${tasksTable.taskLog}, '[]'::jsonb) || ${JSON.stringify(serializeLogEntry(heartbeatLog))}::jsonb`,
+              }
+            : {}),
+          ...(upgradedSystemLog
+            ? {
+                systemLog: sql<
+                  SystemLogEntry[]
+                >`${JSON.stringify(upgradedSystemLog.map(serializeLogEntry))}::jsonb`,
               }
             : {}),
         })
@@ -972,25 +1163,26 @@ export class TaskService {
       throw new Error(`Task "${taskId}"  has already been completed.`)
     }
 
-    // build the task system log
+    // build the task system log — typed payload keeps the shape
+    // consumable by onComplete handlers without runtime casts.
+    const completionPayload:
+      | TaskSuccessSystemLogPayload
+      | TaskErrorSystemLogPayload = completion.success
+      ? {
+          ...(completion.result ? { result: completion.result } : {}),
+          executorMetadata: completion.executorMetadata,
+        }
+      : {
+          error: completion.error,
+          executorMetadata: completion.executorMetadata,
+        }
     const completionSystemLog: SystemLogEntry = {
       at: now,
       logType: completion.success ? 'success' : 'error',
       message: completion.success
         ? 'Task completed successfully'
         : 'Task failed',
-      payload: {
-        ...(completion.success && completion.result
-          ? {
-              result: completion.result,
-            }
-          : !completion.success
-            ? {
-                error: completion.error,
-              }
-            : {}),
-        executorMetadata: completion.executorMetadata ?? {},
-      },
+      payload: completionPayload,
     }
 
     const requeueRequested =
@@ -1077,8 +1269,11 @@ export class TaskService {
       throw new ConflictException('Failed to register task completion task.')
     }
 
-    // Enqueue the completion handler task if one was configured for this task
-    if (task.invocation.onComplete?.length) {
+    // Enqueue the completion handler task if one was configured for this task.
+    // `onComplete` is present on every invocation kind via the base trigger
+    // shape, but the discriminated union means we need the `in` check to
+    // narrow away `task_update_child` (which has no onComplete slot).
+    if ('onComplete' in task.invocation && task.invocation.onComplete?.length) {
       for (let i = 0; i < task.invocation.onComplete.length; i++) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const onCompleteHandler = task.invocation.onComplete[i]!
@@ -1130,7 +1325,7 @@ export class TaskService {
     }
 
     // Broadcast success/failure update
-    this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+    this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
       updatedTask,
       completion.success
         ? TaskUpdateType.task_completed
@@ -1140,7 +1335,7 @@ export class TaskService {
 
     if (shouldRequeue) {
       // Broadcast requeue update
-      this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+      this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
         updatedTask,
         TaskUpdateType.task_requeued,
         now,
@@ -1150,14 +1345,17 @@ export class TaskService {
     return updatedTask
   }
 
-  async registerTaskUpdate(
+  async registerTaskProgress(
     taskId: string,
-    update: TaskUpdate,
+    progressReport: TaskProgressReport,
     tx?: OrmService['db'],
-  ): Promise<{ task: Task; storedUpdate: ReceivedTaskUpdate } | null> {
+  ): Promise<{
+    task: Task
+    storedProgressReport: ReceivedTaskProgressReport
+  } | null> {
     const now = new Date()
-    const storedUpdate: ReceivedTaskUpdate = {
-      ...update,
+    const storedProgressReport: ReceivedTaskProgressReport = {
+      ...progressReport,
       receivedAt: now.toISOString(),
     }
 
@@ -1168,8 +1366,10 @@ export class TaskService {
         .set({
           updatedAt: now,
           latestHeartbeatAt: now,
-          updates: sql`coalesce(${tasksTable.updates}, '[]'::jsonb) || ${JSON.stringify(storedUpdate)}::jsonb`,
-          ...(update.progress ? { progress: update.progress } : {}),
+          progressReports: sql`coalesce(${tasksTable.progressReports}, '[]'::jsonb) || ${JSON.stringify(storedProgressReport)}::jsonb`,
+          ...(progressReport.details
+            ? { progress: progressReport.details }
+            : {}),
         })
         .where(
           and(
@@ -1185,34 +1385,36 @@ export class TaskService {
       return null
     } // task not in running state
 
-    // Broadcast update
-    this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+    // Broadcast async update
+    this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
       updatedTask,
       TaskUpdateType.task_progress,
       now,
     )
 
-    // Evaluate and dispatch onUpdate handlers
-    const onUpdateHandlers = updatedTask.invocation.onUpdate ?? []
-    for (let i = 0; i < onUpdateHandlers.length; i++) {
+    // Evaluate and dispatch onProgress handlers
+    const onProgressHandlers =
+      'onProgress' in updatedTask.invocation
+        ? (updatedTask.invocation.onProgress ?? [])
+        : []
+    for (let i = 0; i < onProgressHandlers.length; i++) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const handler = onUpdateHandlers[i]!
+      const handler = onProgressHandlers[i]!
       const conditionResult = handler.condition
-        ? evalUpdateHandlerCondition(
+        ? evalProgressHandlerCondition(
             handler.condition,
-            update,
+            progressReport,
             updatedTask.data,
           )
         : true // no condition means always fire
 
       if (conditionResult) {
-        await this.executeOnCompleteHandler({
-          // TODO: update this to onUpdate handler
+        await this.executeOnProgressHandler({
           parentTask: updatedTask,
-          parentTaskSuccess: true,
+          parentProgressReport: storedProgressReport,
           correlationKey: updatedTask.correlationKey ?? undefined,
           taskIdentifier: handler.taskIdentifier,
-          taskDataTemplate: handler.taskDataTemplate ?? {},
+          taskDataTemplate: handler.dataTemplate ?? {},
           targetUserId: updatedTask.targetUserId ?? undefined,
           targetLocation: updatedTask.targetLocationFolderId
             ? {
@@ -1227,6 +1429,6 @@ export class TaskService {
       }
     }
 
-    return { task: updatedTask, storedUpdate }
+    return { task: updatedTask, storedProgressReport }
   }
 }
