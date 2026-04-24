@@ -7291,7 +7291,48 @@ export interface components {
                 profileKey: string;
                 dockerHostId: string;
                 config: {
-                    volumes?: string[];
+                    mounts?: ({
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "volume";
+                        source: string | null;
+                        volumeOptions?: {
+                            noCopy?: boolean;
+                            labels?: components["schemas"]["StringMapDTO"];
+                            driverConfig: {
+                                name: string;
+                                options?: components["schemas"]["StringMapDTO"];
+                                createSubpath?: string;
+                            };
+                            subpath?: string;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "bind";
+                        source: string;
+                        bindOptions?: {
+                            /** @enum {string} */
+                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                            nonRecursive?: boolean;
+                            createMountpoint?: boolean;
+                            readOnlyNonRecursive?: boolean;
+                            readOnlyForceRecursive?: boolean;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "tmpfs";
+                        source: unknown;
+                        tmpfsOptions?: {
+                            sizeBytes: number;
+                            mode: number;
+                            options?: string[][];
+                        };
+                    })[];
                     env?: components["schemas"]["StringMapDTO"];
                     gpus?: {
                         driver: string;
@@ -7356,7 +7397,48 @@ export interface components {
                 hostLabel: string;
                 hostEndpoint: string;
                 resourceConfig: {
-                    volumes?: string[];
+                    mounts?: ({
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "volume";
+                        source: string | null;
+                        volumeOptions?: {
+                            noCopy?: boolean;
+                            labels?: components["schemas"]["StringMapDTO"];
+                            driverConfig: {
+                                name: string;
+                                options?: components["schemas"]["StringMapDTO"];
+                                createSubpath?: string;
+                            };
+                            subpath?: string;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "bind";
+                        source: string;
+                        bindOptions?: {
+                            /** @enum {string} */
+                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                            nonRecursive?: boolean;
+                            createMountpoint?: boolean;
+                            readOnlyNonRecursive?: boolean;
+                            readOnlyForceRecursive?: boolean;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "tmpfs";
+                        source: unknown;
+                        tmpfsOptions?: {
+                            sizeBytes: number;
+                            mode: number;
+                            options?: string[][];
+                        };
+                    })[];
                     env?: components["schemas"]["StringMapDTO"];
                     gpus?: {
                         driver: string;
@@ -7419,7 +7501,48 @@ export interface components {
                 profileKey: string;
                 dockerHostId: string;
                 config: {
-                    volumes?: string[];
+                    mounts?: ({
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "volume";
+                        source: string | null;
+                        volumeOptions?: {
+                            noCopy?: boolean;
+                            labels?: components["schemas"]["StringMapDTO"];
+                            driverConfig: {
+                                name: string;
+                                options?: components["schemas"]["StringMapDTO"];
+                                createSubpath?: string;
+                            };
+                            subpath?: string;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "bind";
+                        source: string;
+                        bindOptions?: {
+                            /** @enum {string} */
+                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                            nonRecursive?: boolean;
+                            createMountpoint?: boolean;
+                            readOnlyNonRecursive?: boolean;
+                            readOnlyForceRecursive?: boolean;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "tmpfs";
+                        source: unknown;
+                        tmpfsOptions?: {
+                            sizeBytes: number;
+                            mode: number;
+                            options?: string[][];
+                        };
+                    })[];
                     env?: components["schemas"]["StringMapDTO"];
                     gpus?: {
                         driver: string;
@@ -7485,7 +7608,48 @@ export interface components {
             dockerHostId: string;
             /** @default {} */
             config: {
-                volumes?: string[];
+                mounts?: ({
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "volume";
+                    source: string | null;
+                    volumeOptions?: {
+                        noCopy?: boolean;
+                        labels?: components["schemas"]["StringMapDTO"];
+                        driverConfig: {
+                            name: string;
+                            options?: components["schemas"]["StringMapDTO"];
+                            createSubpath?: string;
+                        };
+                        subpath?: string;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "bind";
+                    source: string;
+                    bindOptions?: {
+                        /** @enum {string} */
+                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                        nonRecursive?: boolean;
+                        createMountpoint?: boolean;
+                        readOnlyNonRecursive?: boolean;
+                        readOnlyForceRecursive?: boolean;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "tmpfs";
+                    source: unknown;
+                    tmpfsOptions?: {
+                        sizeBytes: number;
+                        mode: number;
+                        options?: string[][];
+                    };
+                })[];
                 env?: components["schemas"]["StringMapDTO"];
                 gpus?: {
                     driver: string;
@@ -7544,7 +7708,48 @@ export interface components {
             /** Format: uuid */
             dockerHostId?: string;
             config?: {
-                volumes?: string[];
+                mounts?: ({
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "volume";
+                    source: string | null;
+                    volumeOptions?: {
+                        noCopy?: boolean;
+                        labels?: components["schemas"]["StringMapDTO"];
+                        driverConfig: {
+                            name: string;
+                            options?: components["schemas"]["StringMapDTO"];
+                            createSubpath?: string;
+                        };
+                        subpath?: string;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "bind";
+                    source: string;
+                    bindOptions?: {
+                        /** @enum {string} */
+                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                        nonRecursive?: boolean;
+                        createMountpoint?: boolean;
+                        readOnlyNonRecursive?: boolean;
+                        readOnlyForceRecursive?: boolean;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "tmpfs";
+                    source: unknown;
+                    tmpfsOptions?: {
+                        sizeBytes: number;
+                        mode: number;
+                        options?: string[][];
+                    };
+                })[];
                 env?: components["schemas"]["StringMapDTO"];
                 gpus?: {
                     driver: string;
@@ -7614,7 +7819,48 @@ export interface components {
                 desiredStatus: "running" | "stopped";
                 containerId: string;
                 config: {
-                    volumes?: string[];
+                    mounts?: ({
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "volume";
+                        source: string | null;
+                        volumeOptions?: {
+                            noCopy?: boolean;
+                            labels?: components["schemas"]["StringMapDTO"];
+                            driverConfig: {
+                                name: string;
+                                options?: components["schemas"]["StringMapDTO"];
+                                createSubpath?: string;
+                            };
+                            subpath?: string;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "bind";
+                        source: string;
+                        bindOptions?: {
+                            /** @enum {string} */
+                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                            nonRecursive?: boolean;
+                            createMountpoint?: boolean;
+                            readOnlyNonRecursive?: boolean;
+                            readOnlyForceRecursive?: boolean;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "tmpfs";
+                        source: unknown;
+                        tmpfsOptions?: {
+                            sizeBytes: number;
+                            mode: number;
+                            options?: string[][];
+                        };
+                    })[];
                     env?: components["schemas"]["StringMapDTO"];
                     gpus?: {
                         driver: string;
@@ -7684,7 +7930,48 @@ export interface components {
                 desiredStatus: "running" | "stopped";
                 containerId: string;
                 config: {
-                    volumes?: string[];
+                    mounts?: ({
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "volume";
+                        source: string | null;
+                        volumeOptions?: {
+                            noCopy?: boolean;
+                            labels?: components["schemas"]["StringMapDTO"];
+                            driverConfig: {
+                                name: string;
+                                options?: components["schemas"]["StringMapDTO"];
+                                createSubpath?: string;
+                            };
+                            subpath?: string;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "bind";
+                        source: string;
+                        bindOptions?: {
+                            /** @enum {string} */
+                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                            nonRecursive?: boolean;
+                            createMountpoint?: boolean;
+                            readOnlyNonRecursive?: boolean;
+                            readOnlyForceRecursive?: boolean;
+                        };
+                    } | {
+                        target: string;
+                        readOnly?: boolean;
+                        /** @constant */
+                        type: "tmpfs";
+                        source: unknown;
+                        tmpfsOptions?: {
+                            sizeBytes: number;
+                            mode: number;
+                            options?: string[][];
+                        };
+                    })[];
                     env?: components["schemas"]["StringMapDTO"];
                     gpus?: {
                         driver: string;
@@ -7757,7 +8044,48 @@ export interface components {
             desiredStatus: "running" | "stopped";
             /** @default {} */
             config: {
-                volumes?: string[];
+                mounts?: ({
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "volume";
+                    source: string | null;
+                    volumeOptions?: {
+                        noCopy?: boolean;
+                        labels?: components["schemas"]["StringMapDTO"];
+                        driverConfig: {
+                            name: string;
+                            options?: components["schemas"]["StringMapDTO"];
+                            createSubpath?: string;
+                        };
+                        subpath?: string;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "bind";
+                    source: string;
+                    bindOptions?: {
+                        /** @enum {string} */
+                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                        nonRecursive?: boolean;
+                        createMountpoint?: boolean;
+                        readOnlyNonRecursive?: boolean;
+                        readOnlyForceRecursive?: boolean;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "tmpfs";
+                    source: unknown;
+                    tmpfsOptions?: {
+                        sizeBytes: number;
+                        mode: number;
+                        options?: string[][];
+                    };
+                })[];
                 env?: components["schemas"]["StringMapDTO"];
                 gpus?: {
                     driver: string;
@@ -7826,7 +8154,48 @@ export interface components {
             desiredStatus: "running" | "stopped";
             /** @default {} */
             config: {
-                volumes?: string[];
+                mounts?: ({
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "volume";
+                    source: string | null;
+                    volumeOptions?: {
+                        noCopy?: boolean;
+                        labels?: components["schemas"]["StringMapDTO"];
+                        driverConfig: {
+                            name: string;
+                            options?: components["schemas"]["StringMapDTO"];
+                            createSubpath?: string;
+                        };
+                        subpath?: string;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "bind";
+                    source: string;
+                    bindOptions?: {
+                        /** @enum {string} */
+                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                        nonRecursive?: boolean;
+                        createMountpoint?: boolean;
+                        readOnlyNonRecursive?: boolean;
+                        readOnlyForceRecursive?: boolean;
+                    };
+                } | {
+                    target: string;
+                    readOnly?: boolean;
+                    /** @constant */
+                    type: "tmpfs";
+                    source: unknown;
+                    tmpfsOptions?: {
+                        sizeBytes: number;
+                        mode: number;
+                        options?: string[][];
+                    };
+                })[];
                 env?: components["schemas"]["StringMapDTO"];
                 gpus?: {
                     driver: string;

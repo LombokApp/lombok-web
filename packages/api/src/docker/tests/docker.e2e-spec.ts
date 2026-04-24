@@ -355,7 +355,13 @@ describe('Docker Jobs', () => {
           profileKey: 'dummy_profile',
           config: {
             gpus: { driver: 'nvidia', deviceIds: ['0'] },
-            volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
+            mounts: [
+              {
+                type: 'bind',
+                source: '/app/model_cache',
+                target: '/mnt/user/appdata/somepath',
+              },
+            ],
           },
         },
       ],
@@ -447,7 +453,13 @@ describe('Docker Jobs', () => {
         'lombok.platform_url': 'http://localhost:3000',
       },
       start: true,
-      volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
+      mounts: [
+        {
+          type: 'bind',
+          source: '/app/model_cache',
+          target: '/mnt/user/appdata/somepath',
+        },
+      ],
     })
 
     await testModule?.services.appService.executeAppDockerJob({
@@ -474,15 +486,30 @@ describe('Docker Jobs', () => {
     })
   })
 
-  it('should resolve {{ }} template expressions in volume configuration', async () => {
-    // Override the profile assignment to use template volumes
+  it('should pass structured mounts through to findOrCreateContainer with template interpolation', async () => {
+    // Profile config sets a driver-backed volume mount with an anonymous
+    // source and a templated NFS device path — this is the NFS-from-unraid
+    // pattern: volume type, no Source, driverConfig.options.device templated.
     await testModule!.services.ormService.db
       .update(dockerProfileResourceAssignmentsTable)
       .set({
         config: {
-          volumes: [
-            '/data/{{appIdentifier}}:/mnt/appdata',
-            '/static:/mnt/static',
+          mounts: [
+            {
+              type: 'volume',
+              source: null,
+              target: '/workspace',
+              volumeOptions: {
+                driverConfig: {
+                  name: 'local',
+                  options: {
+                    type: 'nfs',
+                    o: 'addr=192.0.2.1,nfsvers=4,rw,hard,noatime',
+                    device: ':/mnt/user/codicle/{{appIdentifier}}',
+                  },
+                },
+              },
+            },
           ],
         },
       })
@@ -509,9 +536,42 @@ describe('Docker Jobs', () => {
     })
 
     const findOrCreateContainerCall = findOrCreateContainerSpy.mock.calls[0]!
-    expect(findOrCreateContainerCall[1].volumes).toEqual([
-      `/data/${TEST_APP_SLUG}:/mnt/appdata`,
-      '/static:/mnt/static',
+    expect(findOrCreateContainerCall[1].mounts).toEqual([
+      {
+        type: 'volume',
+        source: null,
+        target: '/workspace',
+        volumeOptions: {
+          driverConfig: {
+            name: 'local',
+            options: {
+              type: 'nfs',
+              o: 'addr=192.0.2.1,nfsvers=4,rw,hard,noatime',
+              device: `:/mnt/user/codicle/${TEST_APP_SLUG}`,
+            },
+          },
+        },
+      },
+    ])
+    // Source was omitted — must not leak as undefined either.
+    expect(findOrCreateContainerCall[1].mounts?.[0]?.source).toBeNull()
+
+    // Mount targets should also appear in the chown path list passed to
+    // provisioning so the NFS-backed /workspace gets the right owner.
+    expect(execSpy.mock.calls[0]).toEqual([
+      TEST_DOCKER_HOST_ID,
+      '1',
+      [
+        'lombok-worker-agent',
+        'provision',
+        '--secret',
+        expect.any(String),
+        expect.stringContaining('LOMBOK_PLATFORM_TOKEN='),
+        expect.stringContaining('LOMBOK_PLATFORM_TOKEN_TYPE='),
+        expect.stringContaining('LOMBOK_PLATFORM_URL='),
+        expect.stringContaining('LOMBOK_APP_IDENTIFIER='),
+      ],
+      { user: 'root' },
     ])
   })
 
@@ -590,7 +650,13 @@ describe('Docker Jobs', () => {
       env: {
         LOMBOK_PROVISION_SECRET: expect.any(String),
       },
-      volumes: ['/app/model_cache:/mnt/user/appdata/somepath'],
+      mounts: [
+        {
+          type: 'bind',
+          source: '/app/model_cache',
+          target: '/mnt/user/appdata/somepath',
+        },
+      ],
       gpus: {
         deviceIds: ['0'],
         driver: 'nvidia',

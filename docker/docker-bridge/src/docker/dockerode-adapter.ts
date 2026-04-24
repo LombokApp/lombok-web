@@ -259,9 +259,80 @@ export class DockerodeAdapter implements DockerAdapter {
   async createContainer(
     options: CreateContainerOptions,
   ): Promise<BridgeContainerInfo> {
+    const mounts: Dockerode.MountSettings[] =
+      options.mounts
+        ?.map((m) => {
+          const base = {
+            Type: m.type,
+            Target: m.target,
+            ...{ Source: m.source ?? '' },
+            ...(m.readOnly !== undefined ? { ReadOnly: m.readOnly } : {}),
+            ...(m.consistency !== undefined
+              ? { Consistency: m.consistency }
+              : {}),
+          }
+
+          switch (m.type) {
+            case 'volume': {
+              const vo = m.volumeOptions
+              if (!vo) {
+                return base
+              }
+              const dc = vo.driverConfig
+              const VolumeOptions = {
+                NoCopy: vo.noCopy,
+                Labels: vo.labels,
+                ...(vo.subpath !== undefined ? { Subpath: vo.subpath } : {}),
+                DriverConfig: {
+                  Name: dc.name,
+                  Options: dc.options ?? {},
+                },
+              }
+              return { ...base, source: m.source ?? undefined, VolumeOptions }
+            }
+            case 'bind': {
+              const bo = m.bindOptions
+              if (!bo) {
+                return base
+              }
+              const BindOptions = {
+                Propagation: bo.propagation,
+                ...(bo.nonRecursive !== undefined
+                  ? { NonRecursive: bo.nonRecursive }
+                  : {}),
+                ...(bo.createMountpoint !== undefined
+                  ? { CreateMountpoint: bo.createMountpoint }
+                  : {}),
+                ...(bo.readOnlyNonRecursive !== undefined
+                  ? { ReadOnlyNonRecursive: bo.readOnlyNonRecursive }
+                  : {}),
+                ...(bo.readOnlyForceRecursive !== undefined
+                  ? { ReadOnlyForceRecursive: bo.readOnlyForceRecursive }
+                  : {}),
+              }
+              return { ...base, source: m.source, BindOptions }
+            }
+            case 'tmpfs': {
+              const to = m.tmpfsOptions
+              if (!to) {
+                return base
+              }
+              const TmpfsOptions = {
+                SizeBytes: to.sizeBytes,
+                Mode: to.mode,
+                ...(to.options ? { Options: to.options } : {}),
+              }
+              return { ...base, TmpfsOptions }
+            }
+            default:
+              return undefined
+          }
+        })
+        .filter((m) => m !== undefined) ?? []
+
     const hostConfig: Dockerode.HostConfig = {
       ExtraHosts: options.extraHosts,
-      Binds: options.volumes,
+      ...(mounts.length ? { Mounts: mounts } : {}),
       NetworkMode: options.networkMode,
       CapAdd: options.capAdd,
       CapDrop: options.capDrop,
@@ -289,26 +360,47 @@ export class DockerodeAdapter implements DockerAdapter {
       PidsLimit: options.pidsLimit,
       Runtime: options.runtime,
       Sysctls: options.sysctls,
-    }
 
-    if (options.restartPolicy) {
-      hostConfig.RestartPolicy = {
-        Name: options.restartPolicy,
-        ...(options.restartPolicy === 'on-failure'
-          ? { MaximumRetryCount: 5 }
-          : {}),
-      }
-    }
+      ...(options.restartPolicy
+        ? {
+            RestartPolicy: {
+              Name: options.restartPolicy,
+              MaximumRetryCount:
+                options.restartPolicy === 'on-failure' ? 5 : undefined,
+            },
+          }
+        : {}),
 
-    if (options.ports) {
-      const exposedPorts: Record<string, object> = {}
-      const portBindings: Record<string, { HostPort: string }[]> = {}
-      for (const p of options.ports) {
-        const key = `${p.container}/${p.protocol}`
-        exposedPorts[key] = {}
-        portBindings[key] = [{ HostPort: String(p.host) }]
-      }
-      hostConfig.PortBindings = portBindings
+      ...(options.ulimits
+        ? {
+            Ulimits: Object.entries(options.ulimits).map(
+              ([name, { soft, hard }]) => ({
+                Name: name,
+                Soft: soft,
+                Hard: hard,
+              }),
+            ),
+          }
+        : {}),
+      ...(options.gpus
+        ? {
+            DeviceRequests: [
+              {
+                Driver: options.gpus.driver,
+                DeviceIDs: options.gpus.deviceIds,
+                Capabilities: [['gpu']],
+              },
+            ],
+          }
+        : {}),
+
+      ...(options.ports
+        ? {
+            PortBindings: Object.fromEntries(
+              options.ports.map((p) => [`${p.container}/${p.protocol}`, {}]),
+            ),
+          }
+        : {}),
     }
 
     if (options.ulimits) {

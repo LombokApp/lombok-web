@@ -323,7 +323,7 @@ describe('Docker Host Management', () => {
           dockerHostId: host.id,
           config: {
             gpus: { driver: 'nvidia', deviceIds: ['0'] },
-            volumes: ['/tmp/cache:/cache'],
+            mounts: [{ type: 'bind', source: '/tmp/cache', target: '/cache' }],
           },
         },
       },
@@ -334,7 +334,7 @@ describe('Docker Host Management', () => {
     expect(assignment.profileKey).toBe('dummy_profile')
     expect(assignment.dockerHostId).toBe(host.id)
     expect(assignment.configHashes.gpus).toBeDefined()
-    expect(assignment.configHashes.volumes).toBeDefined()
+    expect(assignment.configHashes.mounts).toBeDefined()
     expect(assignment.configHashes.gpus).toMatch(/^[0-9a-f]{12}$/)
   })
 
@@ -437,7 +437,9 @@ describe('Docker Host Management', () => {
         appIdentifier: TEST_APP_SLUG,
         profileKey: '_default',
         dockerHostId: host.id,
-        config: { volumes: ['/data:/data'] },
+        config: {
+          mounts: [{ type: 'bind', source: '/data', target: '/data' }],
+        },
       },
     })
 
@@ -454,8 +456,8 @@ describe('Docker Host Management', () => {
     )
     expect(resolved.response.status).toBe(200)
     expect(resolved.data?.result.hostId).toBe(host.id)
-    expect(resolved.data?.result.resourceConfig?.volumes).toEqual([
-      '/data:/data',
+    expect(resolved.data?.result.resourceConfig?.mounts).toEqual([
+      { type: 'bind', source: '/data', target: '/data' },
     ])
   })
 

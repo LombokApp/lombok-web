@@ -13,7 +13,8 @@
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
-    "dockerode": "catalog:"
+    "dockerode": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/dockerode": "catalog:",

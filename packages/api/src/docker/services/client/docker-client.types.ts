@@ -1,4 +1,7 @@
 import type { JsonSerializableObject } from '@lombokapp/types'
+import type { z } from 'zod'
+
+import type { mountSchema } from '../../dto/docker-resource-config-input.dto'
 
 export interface ContainerInfo {
   id: string
@@ -10,12 +13,17 @@ export interface ContainerInfo {
   createdAt: string
 }
 
+// Single source of truth — derived from the Zod schema in the DTO. Picks
+// up the mount-type discriminator, the oneOf constraint on each options
+// object, and the `driverConfig.name` requirement automatically.
+export type ClientMount = z.infer<typeof mountSchema>
+
 export interface FindOrCreateContainerOptions {
   image: string
   labels: Record<string, string>
   env?: Record<string, string>
   extraHosts?: string[]
-  volumes?: string[]
+  mounts?: ClientMount[]
   networkMode?: string
   gpus?: { driver: string; deviceIds: string[] }
   capAdd?: string[]

@@ -903,4 +903,198 @@ describe('dataFromTemplate', () => {
       })
     })
   })
+
+  describe('onlyKeys / omitKeys filtering', () => {
+    const ctx: JsonSerializableObject = {
+      event: {
+        data: {
+          folderId: 'folder-123',
+          someValue: 'testes',
+        },
+      },
+    }
+
+    it('resolves only keys listed in onlyKeys, passes through others', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          resolved: '{{ event.data.folderId }}',
+          skipped: '{{ event.data.folderId }}',
+        },
+        { objects: ctx },
+        { onlyKeys: [['resolved']] },
+      )
+
+      expect(parsed).toEqual({
+        resolved: 'folder-123',
+        skipped: '{{ event.data.folderId }}',
+      })
+    })
+
+    it('passes through keys listed in omitKeys, resolves others', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          resolved: '{{ event.data.folderId }}',
+          skipped: '{{ event.data.folderId }}',
+        },
+        { objects: ctx },
+        { omitKeys: [['skipped']] },
+      )
+
+      expect(parsed).toEqual({
+        resolved: 'folder-123',
+        skipped: '{{ event.data.folderId }}',
+      })
+    })
+
+    it('applies onlyKeys to nested paths', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          meta: {
+            title: '{{ event.data.folderId }}',
+            note: '{{ event.data.someValue }}',
+          },
+          other: '{{ event.data.folderId }}',
+        },
+        { objects: ctx },
+        { onlyKeys: [['meta', 'title']] },
+      )
+
+      expect(parsed).toEqual({
+        meta: {
+          title: 'folder-123',
+          note: '{{ event.data.someValue }}',
+        },
+        other: '{{ event.data.folderId }}',
+      })
+    })
+
+    it('applies omitKeys to nested paths', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          meta: {
+            title: '{{ event.data.folderId }}',
+            note: '{{ event.data.someValue }}',
+          },
+          other: '{{ event.data.folderId }}',
+        },
+        { objects: ctx },
+        { omitKeys: [['meta', 'title']] },
+      )
+
+      expect(parsed).toEqual({
+        meta: {
+          title: '{{ event.data.folderId }}',
+          note: 'testes',
+        },
+        other: 'folder-123',
+      })
+    })
+
+    it('treats keys with literal dots as single segments', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          'foo.bar': '{{ event.data.folderId }}',
+          foo: { bar: '{{ event.data.folderId }}' },
+        },
+        { objects: ctx },
+        { onlyKeys: [['foo.bar']] },
+      )
+
+      expect(parsed).toEqual({
+        'foo.bar': 'folder-123',
+        foo: { bar: '{{ event.data.folderId }}' },
+      })
+    })
+
+    it('inherits mode to all children of a matched path', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          meta: {
+            title: '{{ event.data.folderId }}',
+            nested: { deep: '{{ event.data.someValue }}' },
+          },
+        },
+        { objects: ctx },
+        { onlyKeys: [['meta']] },
+      )
+
+      expect(parsed).toEqual({
+        meta: {
+          title: 'folder-123',
+          nested: { deep: 'testes' },
+        },
+      })
+    })
+
+    it('lets a deeper omitKeys rule override a broader onlyKeys rule', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          meta: {
+            title: '{{ event.data.folderId }}',
+            secret: {
+              token: '{{ event.data.someValue }}',
+            },
+          },
+          other: '{{ event.data.folderId }}',
+        },
+        { objects: ctx },
+        {
+          onlyKeys: [['meta']],
+          omitKeys: [['meta', 'secret']],
+        },
+      )
+
+      expect(parsed).toEqual({
+        meta: {
+          title: 'folder-123',
+          secret: {
+            token: '{{ event.data.someValue }}',
+          },
+        },
+        other: '{{ event.data.folderId }}',
+      })
+    })
+
+    it('lets a deeper onlyKeys rule override a broader omitKeys rule', async () => {
+      const parsed = await dataFromTemplate(
+        {
+          meta: {
+            title: '{{ event.data.folderId }}',
+            public: {
+              slug: '{{ event.data.someValue }}',
+            },
+          },
+          other: '{{ event.data.folderId }}',
+        },
+        { objects: ctx },
+        {
+          omitKeys: [['meta']],
+          onlyKeys: [['meta', 'public']],
+        },
+      )
+
+      expect(parsed).toEqual({
+        meta: {
+          title: '{{ event.data.folderId }}',
+          public: {
+            slug: 'testes',
+          },
+        },
+        other: '{{ event.data.folderId }}',
+      })
+    })
+
+    it('throws when the same path is present in both onlyKeys and omitKeys', () => {
+      expect(() =>
+        dataFromTemplate(
+          { meta: { secret: '{{ event.data.folderId }}' } },
+          { objects: ctx },
+          {
+            onlyKeys: [['meta', 'secret']],
+            omitKeys: [['meta', 'secret']],
+          },
+        ),
+      ).toThrow(/appears in both onlyKeys and omitKeys/)
+    })
+  })
 })

@@ -30,6 +30,7 @@
       "version": "0.1.0",
       "dependencies": {
         "dockerode": "catalog:",
+        "zod": "catalog:",
       },
       "devDependencies": {
         "@eslint/js": "catalog:",

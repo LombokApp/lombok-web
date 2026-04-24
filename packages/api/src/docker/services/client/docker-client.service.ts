@@ -192,6 +192,9 @@ export class DockerClientService {
     const result = await this.bridgeRequest<BridgeContainerInfo>(
       'POST',
       `/docker/${hostId}/containers`,
+      // Options contain typed nested objects (mounts, ports, gpus, …) that
+      // don't satisfy `JsonSerializableValue`'s index-signature requirement,
+      // but are structurally JSON-serializable at runtime.
       createPayload,
     )
     return toBridgeContainerInfo(result)
