@@ -42,7 +42,6 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
     isUsersScreen,
     isEventsScreen,
     isTasksScreen,
-    isDockerScreen,
     isLogsScreen,
   ].find((t) => !!t)
   const ContainerElement = shouldNotUseScrollContainer
