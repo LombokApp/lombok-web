@@ -11,7 +11,6 @@ import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import { Link } from 'react-router'
 
-import { ModeToggle } from '../../mode-toggle/mode-toggle'
 import { SheetMenu } from './sheet-menu'
 import { UserNav } from './user-nav'
 
@@ -68,7 +67,6 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
         </div>
         {authContext.viewer && (
           <div className="flex shrink-0 items-center justify-end gap-2 px-2">
-            <ModeToggle />
             <UserNav
               onSignout={() => authContext.logout()}
               viewer={authContext.viewer}
