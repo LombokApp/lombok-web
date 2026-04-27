@@ -43,6 +43,7 @@ export const attemptStartHandleTaskByIdSchema = z.object({
 
 export const getAppUserAccessTokenSchema = z.object({
   userId: z.uuid(),
+  extra: jsonSerializableObjectSchema.optional(),
 })
 
 export const getContentSignedUrlsSchema = z.array(
@@ -315,6 +316,7 @@ export const AppSocketMessageResponseSchemaMap = {
     z.object({
       userId: z.string(),
       success: z.boolean(),
+      extra: jsonSerializableObjectSchema.optional(),
     }),
   ),
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,

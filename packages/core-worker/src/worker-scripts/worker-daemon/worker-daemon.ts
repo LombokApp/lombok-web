@@ -10,7 +10,7 @@ import {
   createLombokAppPgDatabase,
   LombokAppPgClient,
 } from '@lombokapp/app-worker-sdk'
-import { type paths, type TaskDTO } from '@lombokapp/types'
+import type { JsonSerializableObject, paths, TaskDTO } from '@lombokapp/types'
 import type {
   WorkerModuleStartContext,
   WorkerRequest,
@@ -339,6 +339,7 @@ void (async () => {
           // Authenticate the user if Authorization header is present
           let userId: string | undefined
           let accessToken: string | undefined
+          let actorExtra: JsonSerializableObject | undefined
           let actor: Parameters<RequestHandler>[1]['actor']
 
           const authStartTime = Date.now()
@@ -399,6 +400,7 @@ void (async () => {
 
                 userId = authResult.result.userId
                 accessToken = token
+                actorExtra = authResult.result.extra
                 logTiming('authentication_complete', authStartTime, {
                   requestId: pipeRequest.id,
                   userId,
@@ -472,6 +474,7 @@ void (async () => {
                   return fetch(new Request(fetchRequest, { headers }))
                 },
               }),
+              extra: actorExtra ?? {},
             }
           }
 
