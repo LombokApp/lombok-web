@@ -1,9 +1,32 @@
+import type { JsonSerializableObject } from '@lombokapp/types'
+
 import type { TaskDTO, TaskWithTargetLocationContextDTO } from '../dto/task.dto'
 import type {
   TaskSummaryDTO,
   TaskSummaryWithTargetLocationContextDTO,
 } from '../dto/task-summary.dto'
 import type { Task, TaskSummary } from '../entities/task.entity'
+
+const extractSuccessResult = (
+  systemLog: Task['systemLog'],
+): JsonSerializableObject | undefined => {
+  for (let i = systemLog.length - 1; i >= 0; i--) {
+    const entry = systemLog[i]
+    if (entry?.logType === 'success') {
+      const result = entry.payload?.result
+      if (
+        result !== undefined &&
+        result !== null &&
+        typeof result === 'object' &&
+        !Array.isArray(result)
+      ) {
+        return result as JsonSerializableObject
+      }
+      return undefined
+    }
+  }
+  return undefined
+}
 
 // Overload for when folder is present
 export function transformTaskToDTO(
@@ -45,6 +68,11 @@ export function transformTaskToDTO(
       : undefined,
     success: task.success ?? undefined,
     error: task.error ?? undefined,
+    progress: task.progress ?? undefined,
+    progressReports: task.progressReports.length
+      ? task.progressReports
+      : undefined,
+    result: task.success ? extractSuccessResult(task.systemLog) : undefined,
     createdAt: task.createdAt.toISOString(),
     updatedAt: task.updatedAt.toISOString(),
     taskIdentifier: task.taskIdentifier,

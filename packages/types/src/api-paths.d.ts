@@ -6539,6 +6539,57 @@ export interface components {
                         [key: string]: unknown;
                     };
                 }[];
+                progress?: {
+                    percent?: number;
+                    current?: number;
+                    total?: number;
+                    label?: string;
+                };
+                progressReports?: {
+                    code?: string;
+                    details?: {
+                        percent?: number;
+                        current?: number;
+                        total?: number;
+                        label?: string;
+                    };
+                    message?: {
+                        /** @enum {string} */
+                        level: "debug" | "info" | "warn" | "error";
+                        text: string;
+                        /** @enum {string} */
+                        audience: "user" | "system";
+                    };
+                    timestamp?: string;
+                    executorMetadata?: {
+                        /** @constant */
+                        type: "system";
+                        metadata: {
+                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        };
+                    } | {
+                        /** @constant */
+                        type: "docker";
+                        metadata: {
+                            profileKey: string;
+                            profileHash: string;
+                            jobIdentifier: string;
+                            containerId: string;
+                            hostId: string;
+                        };
+                    } | {
+                        /** @constant */
+                        type: "runtime";
+                        metadata: {
+                            workerIdentifier: string;
+                        };
+                    };
+                    /** Format: date-time */
+                    receivedAt: string;
+                }[];
+                result?: {
+                    [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                };
                 /** Format: date-time */
                 startedAt?: string;
                 /** Format: date-time */
