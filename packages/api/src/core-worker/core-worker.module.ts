@@ -2,6 +2,7 @@ import type { OnModuleInit } from '@nestjs/common'
 import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { coreConfig } from 'src/core/config'
 import { FoldersModule } from 'src/folders/folders.module'
 import { NotificationModule } from 'src/notification/notification.module'
@@ -29,6 +30,7 @@ export class CoreWorkerModule implements OnModuleInit {
   constructor(
     private readonly coreWorkerService: CoreWorkerService,
     private readonly ormService: OrmService,
+    private readonly jwtService: JWTService,
   ) {}
   async onModuleInit() {
     await this.ormService

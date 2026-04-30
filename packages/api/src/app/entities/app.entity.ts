@@ -25,7 +25,6 @@ export const appsTable = pgTable(
     identifier: text('identifier').primaryKey(),
     slug: text('slug').notNull(),
     label: text('label').notNull(),
-    publicKey: text('public_key').notNull(),
     requiresStorage: boolean('requires_storage').notNull(),
     subscribedCoreEvents: text('subscribed_core_events')
       .array()

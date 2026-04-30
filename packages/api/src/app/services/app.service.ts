@@ -247,15 +247,9 @@ export class AppService {
     return updated
   }
 
-  getAppWithPublicKeyAndSlug({
-    publicKey,
-    slug,
-  }: {
-    publicKey: string
-    slug: string
-  }): Promise<App | undefined> {
+  getAppBySlug(slug: string): Promise<App | undefined> {
     return this.ormService.db.query.appsTable.findFirst({
-      where: and(eq(appsTable.publicKey, publicKey), eq(appsTable.slug, slug)),
+      where: eq(appsTable.slug, slug),
     })
   }
 
@@ -285,7 +279,7 @@ export class AppService {
     })
   }
 
-  async createAppUserAccessTokenAsApp({
+  async mintAppUserToken({
     actor,
     userId,
     extra,
@@ -310,25 +304,62 @@ export class AppService {
       throw new NotFoundException(`App not found: ${actor.appIdentifier}`)
     }
 
-    return this.sessionService.createAppUserSession(
+    return this.sessionService.createAppUserSession({
       user,
-      actor.appIdentifier,
+      appIdentifier: actor.appIdentifier,
+      actor: 'app_user',
       extra,
-    )
+    })
   }
 
-  async createAppUserSession(
-    user: User,
-    appIdentifier: string,
-    extra?: Record<string, string | number | boolean | null>,
-  ) {
+  async mintAppUserWorkerToken({
+    actor,
+    userId,
+    extra,
+    platformAccess,
+  }: {
+    actor: { appIdentifier: string }
+    userId: string
+    extra?: JsonSerializableObject
+    platformAccess?: boolean
+  }) {
+    await this.validateAppUserAccess({
+      appIdentifier: actor.appIdentifier,
+      userId,
+    })
+
+    const app = await this.getApp(actor.appIdentifier, { enabled: true })
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userId),
+    })
+    if (!user) {
+      throw new NotFoundException(`User not found: ${userId}`)
+    }
+    if (!app?.enabled) {
+      throw new NotFoundException(`App not found: ${actor.appIdentifier}`)
+    }
+
+    return this.sessionService.createAppUserSession({
+      user,
+      appIdentifier: actor.appIdentifier,
+      actor: 'app_user_worker',
+      platformAccess: platformAccess ?? false,
+      extra,
+    })
+  }
+
+  async createAppUserSession(user: User, appIdentifier: string) {
     await this.validateAppUserAccess({ appIdentifier, userId: user.id })
     const app = await this.getApp(appIdentifier, { enabled: true })
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
 
-    return this.sessionService.createAppUserSession(user, appIdentifier, extra)
+    return this.sessionService.createAppUserSession({
+      user,
+      appIdentifier,
+      actor: 'app_user',
+    })
   }
 
   async handleAppRequest(
@@ -347,7 +378,6 @@ export class AppService {
         folderService: this.folderService,
         taskService: this.taskService,
         appService: this,
-        jwtService: this.jwtService,
         customSettingsService: this.customSettingsService,
       },
     )
@@ -671,7 +701,7 @@ export class AppService {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         workerApp.runtimeWorkers.definitions[requestData.workerIdentifier]!
           .environmentVariables,
-      workerToken: await this.jwtService.createAppWorkerToken(
+      workerToken: await this.jwtService.createAppToken(
         requestData.appIdentifier,
       ),
       hash: workerApp.runtimeWorkers.hash,
@@ -864,10 +894,7 @@ export class AppService {
     allowUpdate = false,
   ) {
     const now = new Date()
-    const installedApp = await this.getAppWithPublicKeyAndSlug({
-      publicKey: app.publicKey,
-      slug: app.slug,
-    })
+    const installedApp = await this.getAppBySlug(app.slug)
     if (installedApp && !allowUpdate) {
       throw new AppAlreadyInstalledException()
     }
@@ -1216,12 +1243,7 @@ export class AppService {
     validation: { value: boolean; error?: z.ZodError }
   }> {
     let currentTotalSize = 0
-    const publicKeyPath = path.join(appRoot, '.publicKey')
     const configPath = path.join(appRoot, 'config.json')
-    const publicKey =
-      fs.existsSync(publicKeyPath) && !fs.lstatSync(publicKeyPath).isDirectory()
-        ? fs.readFileSync(publicKeyPath, 'utf-8')
-        : ''
 
     const config = fs.existsSync(configPath)
       ? (JSON.parse(fs.readFileSync(configPath, 'utf-8')) as AppConfig)
@@ -1325,7 +1347,6 @@ export class AppService {
             label: config.label,
 
             manifest,
-            publicKey,
             runtimeWorkers: {
               manifest: runtimeWorkersBundleManifest,
               definitions: runtimeWorkersDefinitions,

@@ -55,6 +55,7 @@
     "express": "5.2.1",
     "i18next": "25.8.4",
     "jexpr": "catalog:",
+    "jose": "catalog:",
     "jsonwebtoken": "9.0.3",
     "mime": "catalog:",
     "nestjs-zod": "5.1.1",

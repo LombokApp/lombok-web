@@ -32,7 +32,6 @@ const createMockApp = ({
     slug,
     identifier: slug,
     label: 'Test App',
-    publicKey: 'test_public_key',
     requiresStorage: false,
     subscribedCoreEvents: [],
     database: false,

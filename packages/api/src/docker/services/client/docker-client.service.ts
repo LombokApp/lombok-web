@@ -115,6 +115,7 @@ export class DockerClientService {
         url.searchParams.set(k, v)
       }
     }
+    console.log('bridge url', url.toString())
     const response = await fetch(url.toString(), {
       method,
       headers: {

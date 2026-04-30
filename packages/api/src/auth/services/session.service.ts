@@ -53,23 +53,31 @@ export class SessionService {
     }
   }
 
-  async createAppUserSession(
-    user: User,
-    appIdentifier: string,
-    extra?: JsonSerializableObject,
-  ) {
+  async createAppUserSession(params: {
+    user: User
+    appIdentifier: string
+    actor: 'app_user' | 'app_user_worker'
+    extra?: JsonSerializableObject
+    platformAccess?: boolean
+  }) {
+    const { user, appIdentifier, actor, extra, platformAccess } = params
     const secret = hashedTokenHelper.createSecretKey()
 
     const now = new Date()
+    const typeDetails: JsonSerializableObject = {
+      app: appIdentifier,
+      actor,
+      ...(extra ? { extra } : {}),
+      ...(actor === 'app_user_worker'
+        ? { platformAccess: platformAccess ?? false }
+        : {}),
+    }
     const newSession: NewSession = {
       id: uuidV4(),
       userId: user.id,
       hash: hashedTokenHelper.createHash(secret),
-      type: 'app_user',
-      typeDetails: {
-        ...(extra ?? {}),
-        app: appIdentifier,
-      },
+      type: actor,
+      typeDetails,
       expiresAt: sessionExpiresAt(now),
       createdAt: now,
       updatedAt: now,
@@ -82,10 +90,19 @@ export class SessionService {
         .returning()
     )[0]!
 
-    const accessToken = await this.jwtService.createAppUserAccessToken(
-      session,
-      appIdentifier,
-    )
+    const accessToken =
+      actor === 'app_user'
+        ? await this.jwtService.createAppUserToken({
+            session,
+            appIdentifier,
+            extra,
+          })
+        : await this.jwtService.createAppUserWorkerToken({
+            session,
+            appIdentifier,
+            platformAccess: platformAccess ?? false,
+            extra,
+          })
     const refreshToken = hashedTokenHelper.encode(session.id, secret)
 
     return {

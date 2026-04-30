@@ -12,11 +12,7 @@ import type { Namespace, Socket } from 'socket.io'
 import { z } from 'zod'
 
 import { AppService } from '../../app/services/app.service'
-import {
-  AccessTokenJWT,
-  APP_USER_JWT_SUB_PREFIX,
-  JWTService,
-} from '../../auth/services/jwt.service'
+import { JWTService } from '../../auth/services/jwt.service'
 import { FolderService } from '../../folders/services/folder.service'
 import { OrmService } from '../../orm/orm.service'
 import { usersTable } from '../../users/entities/user.entity'
@@ -60,43 +56,22 @@ export class AppUserSocketService {
     return `app:${appIdentifier}__user:${userId}__folder:${folderId}`
   }
 
-  async handleConnection(socket: Socket): Promise<void> {
-    this.logger.debug(
-      `AppUserSocketService handleConnection: [${socket.nsp.name}]`,
-    )
-
+  async authenticateAndJoin(socket: Socket): Promise<void> {
     const auth = socket.handshake.auth
-    if (safeZodParse(auth, AppUserAuthPayload)) {
-      const token = auth.token
-      try {
-        const verifiedToken = AccessTokenJWT.parse(
-          this.jwtService.verifyUserJWT(token),
-        )
-        if (verifiedToken.sub.startsWith(APP_USER_JWT_SUB_PREFIX)) {
-          const userId = verifiedToken.sub.split(':')[1]
-          const appIdentifier = verifiedToken.sub.split(':')[2]
-          if (!userId || !appIdentifier) {
-            throw new UnauthorizedException()
-          }
-          ;(socket.data as Record<string, unknown>).userId = userId
-          ;(socket.data as Record<string, unknown>).appIdentifier =
-            appIdentifier
-          await socket.join(this.getUserRoomName(appIdentifier, userId))
-          this.logger.debug(
-            `Socket authenticated userId: ${userId}, joined ${this.getUserRoomName(appIdentifier, userId)} (socket: ${socket.id})`,
-          )
-        } else {
-          throw new UnauthorizedException()
-        }
-      } catch (error: unknown) {
-        this.logger.error('AppUser socket auth error:', error)
-        socket.conn.close()
-      }
-    } else {
-      this.logger.error('Bad auth payload:', auth)
-      socket.disconnect(true)
+    if (!safeZodParse(auth, AppUserAuthPayload)) {
+      throw new UnauthorizedException('Bad auth payload')
+    }
+    const claims = await this.jwtService.verifyAppToken(auth.token)
+    if (claims.actor !== 'app_user') {
       throw new UnauthorizedException()
     }
+    const { userId, appIdentifier } = claims
+    ;(socket.data as Record<string, unknown>).userId = userId
+    ;(socket.data as Record<string, unknown>).appIdentifier = appIdentifier
+    await socket.join(this.getUserRoomName(appIdentifier, userId))
+    this.logger.debug(
+      `Socket authenticated userId: ${userId}, joined ${this.getUserRoomName(appIdentifier, userId)} (socket: ${socket.id})`,
+    )
   }
 
   async subscribeFolderScope(

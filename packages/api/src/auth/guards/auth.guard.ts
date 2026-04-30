@@ -1,3 +1,7 @@
+import {
+  APP_USER_JWT_SUB_PREFIX,
+  APP_USER_WORKER_JWT_SUB_PREFIX,
+} from '@lombokapp/types'
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
@@ -5,7 +9,6 @@ import type { Request } from 'express'
 import { UserService } from 'src/users/services/users.service'
 
 import {
-  APP_USER_JWT_SUB_PREFIX,
   AuthTokenInvalidError,
   JWTService,
   USER_JWT_SUB_PREFIX,
@@ -37,32 +40,30 @@ export class AuthGuard implements CanActivate {
       }
       if (decodedJWT.payload.sub) {
         const subject = decodedJWT.payload.sub
-        const userId = subject.split(':')[1] ?? ''
-        const loadUser = async () => {
-          request.user = await this.userService.getUserById({
-            id: userId,
-          })
-        }
 
         if (
           subject.startsWith(USER_JWT_SUB_PREFIX) &&
           config.allowedActors.includes(AllowedActor.USER)
         ) {
-          // user
           this.jwtService.verifyUserJWT(token)
-          await loadUser()
+          const userId = subject.split(':')[1] ?? ''
+          request.user = await this.userService.getUserById({ id: userId })
           return true
         } else if (
-          subject.startsWith(APP_USER_JWT_SUB_PREFIX) &&
+          (subject.startsWith(APP_USER_JWT_SUB_PREFIX) ||
+            subject.startsWith(APP_USER_WORKER_JWT_SUB_PREFIX)) &&
           config.allowedActors.includes(AllowedActor.APP_USER)
         ) {
-          // app user
-          this.jwtService.verifyAppUserJWT({
-            token,
-            userId,
-            appIdentifier: subject.split(':')[2] ?? '',
+          const claims = await this.jwtService.verifyAppToken(token)
+          if (claims.actor === 'app') {
+            return false
+          }
+          if (claims.actor === 'app_user_worker' && !claims.platformAccess) {
+            throw new UnauthorizedException()
+          }
+          request.user = await this.userService.getUserById({
+            id: claims.userId,
           })
-          await loadUser()
           return true
         }
         // Failed to verify that the subject passed the guard config

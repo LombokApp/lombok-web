@@ -37,11 +37,6 @@ if [ ! -f "$APP_DIR/config.json" ]; then
 fi
 cp "$APP_DIR/config.json" "$APP_DIR/dist/"
 
-# Optionally copy .publicKey if it exists
-if [ -f "$APP_DIR/.publicKey" ]; then
-  cp "$APP_DIR/.publicKey" "$APP_DIR/dist/"
-fi
-
 # Build runtime
 echo "Building workers..."
 if [ ! -d "$APP_DIR/runtime" ]; then

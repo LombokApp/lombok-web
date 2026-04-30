@@ -101,8 +101,7 @@ export function ServerAppsConfigTab() {
           <CardTitle>Install App Bundle via Upload</CardTitle>
           <CardDescription>
             Upload a zip file containing an app bundle to install it. The zip
-            file should contain a valid app configuration with config.json and
-            .publicKey files.
+            file should contain a valid config.json file at the root.
           </CardDescription>
         </CardHeader>
         <CardContent>

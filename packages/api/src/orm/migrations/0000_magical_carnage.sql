@@ -42,7 +42,6 @@ CREATE TABLE "apps" (
 	"identifier" text PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
 	"label" text NOT NULL,
-	"public_key" text NOT NULL,
 	"requires_storage" boolean NOT NULL,
 	"subscribed_core_events" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"implemented_tasks" text[] DEFAULT ARRAY[]::text[] NOT NULL,

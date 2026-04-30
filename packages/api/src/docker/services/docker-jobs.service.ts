@@ -598,6 +598,7 @@ export class DockerJobsService {
           ...(credentials.refreshToken
             ? [`LOMBOK_PLATFORM_REFRESH_TOKEN=${credentials.refreshToken}`]
             : []),
+          `LOMBOK_APP_JWT_PUBLIC_KEY=${credentials.publicKeyPem}`,
           `LOMBOK_PLATFORM_URL=${platformUrl}`,
           `LOMBOK_APP_IDENTIFIER=${provision.appIdentifier}`,
         ],

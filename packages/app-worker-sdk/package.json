@@ -50,6 +50,7 @@
   "dependencies": {
     "pg": "catalog:",
     "drizzle-orm": "catalog:",
+    "jose": "5.9.6",
     "socket.io-client": "catalog:",
     "zod": "catalog:"
   },

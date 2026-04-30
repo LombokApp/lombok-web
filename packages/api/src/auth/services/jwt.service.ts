@@ -1,4 +1,15 @@
 import {
+  APP_JWT_ISSUER,
+  APP_JWT_SUB_PREFIX,
+  APP_TOKEN_EXTRA_MAX_BYTES,
+  APP_USER_JWT_SUB_PREFIX,
+  APP_USER_WORKER_JWT_SUB_PREFIX,
+  type AppJwtClaims,
+  appJwtClaimsSchema,
+  type JsonSerializableObject,
+} from '@lombokapp/types'
+import {
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -7,6 +18,7 @@ import {
 import nestjsConfig from '@nestjs/config'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
+import * as jose from 'jose'
 import type {
   JsonWebTokenError,
   JwtPayload,
@@ -22,8 +34,10 @@ import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
 import { coreConfig } from '../../core/config'
+import { KeyDerivationService } from './key-derivation.service'
 
-const ALGORITHM = 'HS256'
+const HS_ALGORITHM = 'HS256'
+const ED_ALGORITHM_JOSE = 'EdDSA'
 const EMAIL_VERIFY_KID = 'email-verify'
 const EMAIL_VERIFY_AUD = 'email-verify'
 const EMAIL_VERIFY_ISS = 'lombok-api'
@@ -31,9 +45,11 @@ const EMAIL_VERIFY_ALG_RS = 'RS256'
 const EMAIL_VERIFY_ALG_HS = 'HS256'
 
 export const USER_JWT_SUB_PREFIX = 'user:'
-export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
-export const APP_JWT_SUB_PREFIX = 'app:'
-export const APP_RUNTIME_WORKER_JWT_SUB_PREFIX = 'app_runtime_worker:'
+export {
+  APP_JWT_SUB_PREFIX,
+  APP_USER_JWT_SUB_PREFIX,
+  APP_USER_WORKER_JWT_SUB_PREFIX,
+} from '@lombokapp/types'
 
 export const accessTokenType = z.object({
   aud: z.string(),
@@ -111,6 +127,18 @@ export class AuthTokenExpiredError extends UnauthorizedException {
   }
 }
 
+function assertExtraSize(extra: JsonSerializableObject | undefined): void {
+  if (!extra) {
+    return
+  }
+  const size = Buffer.byteLength(JSON.stringify(extra), 'utf8')
+  if (size > APP_TOKEN_EXTRA_MAX_BYTES) {
+    throw new BadRequestException(
+      `App token "extra" payload exceeds ${APP_TOKEN_EXTRA_MAX_BYTES} bytes (got ${size})`,
+    )
+  }
+}
+
 @Injectable()
 export class JWTService {
   constructor(
@@ -119,24 +147,8 @@ export class JWTService {
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
+    private readonly keyDerivationService: KeyDerivationService,
   ) {}
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async createAppWorkerToken(appIdentifier: string) {
-    return jwt.sign(
-      {
-        aud: this._coreConfig.platformHost,
-        jti: `${uuidV4()}`,
-        scp: [],
-        sub: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
-      },
-      this._authConfig.authJwtSecret,
-      {
-        algorithm: ALGORITHM,
-        expiresIn: AuthDurationSeconds.AppWorker,
-      },
-    )
-  }
 
   async createSessionAccessToken(session: Session): Promise<string> {
     const payload: AccessTokenJWT = {
@@ -155,36 +167,7 @@ export class JWTService {
     }
 
     const token = jwt.sign(payload, this._authConfig.authJwtSecret, {
-      algorithm: ALGORITHM,
-      expiresIn: AuthDurationSeconds.SessionSliding, // session validity is managed by the db row, so the token should be valid at least as long as the session
-    })
-
-    AccessTokenJWT.parse(this.verifyUserJWT(token))
-
-    return token
-  }
-
-  async createAppUserAccessToken(
-    session: Session,
-    appIdentifier: string,
-  ): Promise<string> {
-    const payload: AccessTokenJWT = {
-      aud: this._coreConfig.platformHost,
-      jti: `${session.id}:${uuidV4()}`,
-      scp: [],
-      sub: `${APP_USER_JWT_SUB_PREFIX}${session.userId}:${appIdentifier}`,
-    }
-
-    const user = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.id, session.userId),
-    })
-
-    if (!user) {
-      throw new InternalServerErrorException()
-    }
-
-    const token = jwt.sign(payload, this._authConfig.authJwtSecret, {
-      algorithm: ALGORITHM,
+      algorithm: HS_ALGORITHM,
       expiresIn: AuthDurationSeconds.SessionSliding,
     })
 
@@ -196,7 +179,7 @@ export class JWTService {
   verifyUserJWT(token: string) {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
-        algorithms: [ALGORITHM],
+        algorithms: [HS_ALGORITHM],
         audience: this._coreConfig.platformHost,
       }) as JwtPayload
     } catch (error) {
@@ -210,78 +193,6 @@ export class JWTService {
     }
   }
 
-  verifyAppUserJWT({
-    appIdentifier,
-    userId,
-    token,
-  }: {
-    appIdentifier: string
-    userId: string
-    token: string
-  }) {
-    try {
-      return jwt.verify(token, this._authConfig.authJwtSecret, {
-        algorithms: [ALGORITHM],
-        subject: `${APP_USER_JWT_SUB_PREFIX}${userId}:${appIdentifier}`,
-      }) as JwtPayload
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthTokenExpiredError(token, error)
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthTokenInvalidError(token, error)
-      }
-      throw error
-    }
-  }
-
-  verifyAppJWT({
-    appIdentifier,
-    publicKey,
-    token,
-  }: {
-    appIdentifier: string
-    publicKey: string
-    token: string
-  }) {
-    try {
-      return jwt.verify(token, publicKey, {
-        algorithms: ['RS512'],
-        subject: `${APP_JWT_SUB_PREFIX}${appIdentifier}`,
-      }) as JwtPayload
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthTokenExpiredError(token, error)
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthTokenInvalidError(token, error)
-      }
-      throw error
-    }
-  }
-  verifyAppRuntimeWorkerToken({
-    appIdentifier,
-    token,
-  }: {
-    appIdentifier: string
-    token: string
-  }) {
-    try {
-      return jwt.verify(token, this._authConfig.authJwtSecret, {
-        algorithms: [ALGORITHM],
-        audience: this._coreConfig.platformHost,
-        subject: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
-      }) as JwtPayload
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthTokenExpiredError(token, error)
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthTokenInvalidError(token, error)
-      }
-      throw error
-    }
-  }
   decodeJWT(token: string): jwt.Jwt {
     try {
       const decodedJWT = jwt.decode(token, {
@@ -300,6 +211,131 @@ export class JWTService {
       }
       throw error
     }
+  }
+
+  // ---- App-namespace tokens (Ed25519 via jose) ----
+
+  private signAppJwt(
+    claims: Record<string, unknown>,
+    options: {
+      subject: string
+      audience: string
+      jwtid: string
+      expiresInSec: number
+    },
+  ): Promise<string> {
+    return new jose.SignJWT(claims)
+      .setProtectedHeader({ alg: ED_ALGORITHM_JOSE })
+      .setIssuer(APP_JWT_ISSUER)
+      .setAudience(options.audience)
+      .setSubject(options.subject)
+      .setJti(options.jwtid)
+      .setIssuedAt()
+      .setExpirationTime(`${options.expiresInSec}s`)
+      .sign(this.keyDerivationService.getJoseSignKey())
+  }
+
+  createAppToken(appIdentifier: string): Promise<string> {
+    return this.signAppJwt(
+      {
+        actor: 'app',
+        appIdentifier,
+      },
+      {
+        subject: `${APP_JWT_SUB_PREFIX}${appIdentifier}`,
+        audience: appIdentifier,
+        jwtid: uuidV4(),
+        expiresInSec: AuthDurationSeconds.AppActorAccessToken,
+      },
+    )
+  }
+
+  createAppUserToken(params: {
+    session: Session
+    appIdentifier: string
+    extra?: JsonSerializableObject
+  }): Promise<string> {
+    assertExtraSize(params.extra)
+    return this.signAppJwt(
+      {
+        actor: 'app_user',
+        appIdentifier: params.appIdentifier,
+        userId: params.session.userId,
+        sessionId: params.session.id,
+        ...(params.extra ? { extra: params.extra } : {}),
+      },
+      {
+        subject: `${APP_USER_JWT_SUB_PREFIX}${params.session.userId}:${params.appIdentifier}`,
+        audience: params.appIdentifier,
+        jwtid: `${params.session.id}:${uuidV4()}`,
+        expiresInSec: AuthDurationSeconds.AppUserActorAccessToken,
+      },
+    )
+  }
+
+  createAppUserWorkerToken(params: {
+    session: Session
+    appIdentifier: string
+    platformAccess: boolean
+    extra?: JsonSerializableObject
+  }): Promise<string> {
+    assertExtraSize(params.extra)
+    return this.signAppJwt(
+      {
+        actor: 'app_user_worker',
+        appIdentifier: params.appIdentifier,
+        userId: params.session.userId,
+        sessionId: params.session.id,
+        platformAccess: params.platformAccess,
+        ...(params.extra ? { extra: params.extra } : {}),
+      },
+      {
+        subject: `${APP_USER_WORKER_JWT_SUB_PREFIX}${params.session.userId}:${params.appIdentifier}`,
+        audience: params.appIdentifier,
+        jwtid: `${params.session.id}:${uuidV4()}`,
+        expiresInSec: AuthDurationSeconds.AppUserWorkerActorAccessToken,
+      },
+    )
+  }
+
+  async verifyAppToken(token: string): Promise<AppJwtClaims> {
+    let payload: jose.JWTPayload
+    try {
+      const verified = await jose.jwtVerify(
+        token,
+        this.keyDerivationService.getJoseVerifyKey(),
+        {
+          algorithms: [ED_ALGORITHM_JOSE],
+          issuer: APP_JWT_ISSUER,
+        },
+      )
+      payload = verified.payload
+    } catch (error) {
+      if (error instanceof jose.errors.JWTExpired) {
+        throw new AuthTokenExpiredError(token, {
+          expiredAt: new Date(),
+        } as never)
+      }
+      throw new AuthTokenInvalidError(token)
+    }
+    const result = appJwtClaimsSchema.safeParse(payload)
+    if (!result.success) {
+      throw new AuthTokenInvalidError(token)
+    }
+    const claims = result.data
+    const expectedSubject =
+      claims.actor === 'app'
+        ? `${APP_JWT_SUB_PREFIX}${claims.appIdentifier}`
+        : claims.actor === 'app_user'
+          ? `${APP_USER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
+          : `${APP_USER_WORKER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
+    if (claims.sub !== expectedSubject) {
+      throw new AuthTokenInvalidError(token)
+    }
+    if (claims.aud !== claims.appIdentifier) {
+      throw new AuthTokenInvalidError(token)
+    }
+    return claims
   }
 
   /**

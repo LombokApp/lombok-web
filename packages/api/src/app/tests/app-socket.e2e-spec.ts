@@ -41,8 +41,8 @@ describe('App Socket Interface', () => {
     await testModule?.resetAppState()
   }
 
-  const createAppToken = async (appIdentifier: string): Promise<string> => {
-    return testModule!.services.jwtService.createAppWorkerToken(appIdentifier)
+  const createAppToken = (appIdentifier: string): Promise<string> => {
+    return testModule!.services.jwtService.createAppToken(appIdentifier)
   }
 
   const connectSocket = async (
@@ -166,6 +166,71 @@ describe('App Socket Interface', () => {
     ).resolves.toBeUndefined()
   })
 
+  it('should reject app socket connection with non-app actor token', async () => {
+    socket = await connectSocket('seed-instance')
+    const {
+      session: { accessToken: userToken },
+    } = await createTestUser(testModule!, {
+      username: 'sockactoruser',
+      password: '123',
+    })
+    const viewer =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'sockactoruser'),
+      })
+    const appIdentifier = SOCKET_TEST_APP_SLUG
+    await testModule!
+      .apiClient(userToken)
+      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
+        params: { path: { appIdentifier } },
+        body: {
+          folderScopePermissionsDefault: null,
+          enabled: true,
+          permissions: ['READ_USER'],
+          folderScopeEnabledDefault: true,
+        },
+      })
+    const minted = await buildAppClient(socket, serverBaseUrl).mintAppUserToken(
+      { userId: viewer?.id ?? '' },
+    )
+    if (!('result' in minted)) {
+      throw new Error('Expected mint result')
+    }
+    socket.disconnect()
+    socket = undefined
+
+    const socketUrl = `${serverBaseUrl}/apps`
+    const rejection = new Promise<void>((resolve, reject) => {
+      const wrongActorSocket = io(socketUrl, {
+        auth: {
+          instanceId: 'wrong-actor',
+          token: minted.result.accessToken,
+        },
+        reconnection: false,
+        transports: ['websocket'],
+      })
+      const timeout = setTimeout(() => {
+        wrongActorSocket.disconnect()
+        reject(new Error('Connection should have been rejected'))
+      }, 5000)
+      wrongActorSocket.on('connect', () => {
+        clearTimeout(timeout)
+        wrongActorSocket.disconnect()
+        reject(new Error('Connection accepted with non-app actor token'))
+      })
+      wrongActorSocket.on('connect_error', () => {
+        clearTimeout(timeout)
+        wrongActorSocket.disconnect()
+        resolve()
+      })
+      wrongActorSocket.on('disconnect', () => {
+        clearTimeout(timeout)
+        resolve()
+      })
+    })
+    expect(rejection).resolves.toBeUndefined()
+  })
+
   it('should handle EMIT_EVENT message', async () => {
     socket = await connectSocket('test-instance-1')
 
@@ -231,7 +296,7 @@ describe('App Socket Interface', () => {
     expect('error' in response).toBe(false)
   })
 
-  it('should handle GET_APP_USER_ACCESS_TOKEN message', async () => {
+  it('should handle MINT_APP_USER_TOKEN message', async () => {
     socket = await connectSocket('test-instance-1')
 
     const {
@@ -264,7 +329,7 @@ describe('App Socket Interface', () => {
     const response = await buildAppClient(
       socket,
       serverBaseUrl,
-    ).getAppUserAccessToken({
+    ).mintAppUserToken({
       userId: viewer?.id ?? '',
     })
 
@@ -279,7 +344,7 @@ describe('App Socket Interface', () => {
     }
   })
 
-  it('persists extra typeDetails on GET_APP_USER_ACCESS_TOKEN', async () => {
+  it('persists extra typeDetails on MINT_APP_USER_TOKEN', async () => {
     socket = await connectSocket('test-instance-1')
 
     const {
@@ -318,7 +383,7 @@ describe('App Socket Interface', () => {
     const response = await buildAppClient(
       socket,
       serverBaseUrl,
-    ).getAppUserAccessToken({
+    ).mintAppUserToken({
       userId: viewer?.id ?? '',
       extra,
     })
@@ -337,9 +402,167 @@ describe('App Socket Interface', () => {
     const session = sessions[0]!
     expect(session.type).toBe('app_user')
     expect(session.typeDetails).toEqual({
-      ...extra,
       app: appIdentifier,
+      actor: 'app_user',
+      extra,
     })
+  })
+
+  it('should mint an app_user_worker token with platformAccess and locked extra', async () => {
+    socket = await connectSocket('test-instance-1')
+
+    const {
+      session: { accessToken: userToken },
+    } = await createTestUser(testModule!, {
+      username: 'workertokenuser',
+      password: '123',
+    })
+
+    const viewer =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'workertokenuser'),
+      })
+    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const enableAppResponse = await testModule!
+      .apiClient(userToken)
+      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
+        params: { path: { appIdentifier } },
+        body: {
+          folderScopePermissionsDefault: null,
+          enabled: true,
+          permissions: ['READ_USER'],
+          folderScopeEnabledDefault: true,
+        },
+      })
+    expect(enableAppResponse.response.status).toBe(201)
+
+    const extra = { agentId: 'agent-1', tier: 'pro' }
+
+    const response = await buildAppClient(
+      socket,
+      serverBaseUrl,
+    ).mintAppUserWorkerToken({
+      userId: viewer?.id ?? '',
+      extra,
+      platformAccess: true,
+    })
+
+    if (!('result' in response)) {
+      throw new Error('Expected result in response')
+    }
+    expect(typeof response.result.accessToken).toBe('string')
+    expect(typeof response.result.refreshToken).toBe('string')
+
+    const claims = await testModule!.services.jwtService.verifyAppToken(
+      response.result.accessToken,
+    )
+    expect(claims.actor).toBe('app_user_worker')
+    if (claims.actor !== 'app_user_worker') {
+      throw new Error('unreachable')
+    }
+    expect(claims.userId).toBe(viewer?.id ?? '')
+    expect(claims.appIdentifier).toBe(appIdentifier)
+    expect(claims.platformAccess).toBe(true)
+    expect(claims.extra).toEqual(extra)
+
+    const sessions =
+      await testModule!.services.ormService.db.query.sessionsTable.findMany({
+        where: eq(sessionsTable.userId, viewer?.id ?? ''),
+        orderBy: (s, { desc }) => [desc(s.createdAt)],
+      })
+    const session = sessions[0]!
+    expect(session.type).toBe('app_user_worker')
+    expect(session.typeDetails).toEqual({
+      app: appIdentifier,
+      actor: 'app_user_worker',
+      extra,
+      platformAccess: true,
+    })
+  })
+
+  it('app_user_worker token with platformAccess=true is accepted on platform endpoint', async () => {
+    socket = await connectSocket('test-instance-1')
+    const {
+      session: { accessToken: userToken },
+    } = await createTestUser(testModule!, {
+      username: 'gateallowuser',
+      password: '123',
+    })
+    const viewer =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'gateallowuser'),
+      })
+    const appIdentifier = SOCKET_TEST_APP_SLUG
+    await testModule!
+      .apiClient(userToken)
+      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
+        params: { path: { appIdentifier } },
+        body: {
+          folderScopePermissionsDefault: null,
+          enabled: true,
+          permissions: ['READ_USER'],
+          folderScopeEnabledDefault: true,
+        },
+      })
+
+    const minted = await buildAppClient(
+      socket,
+      serverBaseUrl,
+    ).mintAppUserWorkerToken({
+      userId: viewer?.id ?? '',
+      platformAccess: true,
+    })
+    if (!('result' in minted)) {
+      throw new Error('Expected result in mint response')
+    }
+
+    const viewerResponse = await testModule!
+      .apiClient(minted.result.accessToken)
+      .GET('/api/v1/viewer')
+    expect(viewerResponse.response.status).toBe(200)
+    expect(viewerResponse.data?.user.id).toBe(viewer?.id ?? '')
+  })
+
+  it('app_user_worker token without platformAccess is rejected on platform endpoint', async () => {
+    socket = await connectSocket('test-instance-1')
+    const {
+      session: { accessToken: userToken },
+    } = await createTestUser(testModule!, {
+      username: 'gatedenyuser',
+      password: '123',
+    })
+    const viewer =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'gatedenyuser'),
+      })
+    const appIdentifier = SOCKET_TEST_APP_SLUG
+    await testModule!
+      .apiClient(userToken)
+      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
+        params: { path: { appIdentifier } },
+        body: {
+          folderScopePermissionsDefault: null,
+          enabled: true,
+          permissions: ['READ_USER'],
+          folderScopeEnabledDefault: true,
+        },
+      })
+
+    // Default platformAccess is false; omit it explicitly.
+    const minted = await buildAppClient(
+      socket,
+      serverBaseUrl,
+    ).mintAppUserWorkerToken({
+      userId: viewer?.id ?? '',
+    })
+    if (!('result' in minted)) {
+      throw new Error('Expected result in mint response')
+    }
+
+    const viewerResponse = await testModule!
+      .apiClient(minted.result.accessToken)
+      .GET('/api/v1/viewer')
+    expect(viewerResponse.response.status).toBe(401)
   })
 
   it('reserved app key in extra cannot override appIdentifier', async () => {
@@ -373,7 +596,7 @@ describe('App Socket Interface', () => {
     const response = await buildAppClient(
       socket,
       serverBaseUrl,
-    ).getAppUserAccessToken({
+    ).mintAppUserToken({
       userId: viewer?.id ?? '',
       extra: { app: 'spoofed-app', tag: 'ok' },
     })
@@ -389,7 +612,10 @@ describe('App Socket Interface', () => {
       })
     const session = sessions[0]!
     expect(session.typeDetails?.app).toBe(appIdentifier)
-    expect(session.typeDetails?.tag).toBe('ok')
+    const sessionExtra = session.typeDetails?.extra as
+      | Record<string, unknown>
+      | undefined
+    expect(sessionExtra?.tag).toBe('ok')
   })
 
   it('should handle TRIGGER_APP_TASK message', async () => {

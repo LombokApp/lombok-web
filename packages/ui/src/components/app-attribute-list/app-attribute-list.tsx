@@ -66,28 +66,6 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             <dt
               className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
-              Public Key
-            </dt>
-            <dd
-              className={cn(
-                'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-                VALUE_TEXT_COLOR,
-              )}
-            >
-              <pre className="overflow-x-auto rounded-md bg-foreground/5 p-4 py-2">
-                {app?.publicKey}
-              </pre>
-            </dd>
-          </div>
-          <div
-            className={cn(
-              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-              ROW_SPACING,
-            )}
-          >
-            <dt
-              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-            >
               Tasks
             </dt>
             <dd

@@ -1,6 +1,5 @@
 import type { AppConfig } from '@lombokapp/types'
 import { spawn } from 'bun'
-import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -9,38 +8,8 @@ export interface AppZipBuilderOptions {
   slug: string
   label: string
   config: AppConfig
-  publicKey?: string
   files?: { path: string; content: string | Buffer }[]
   migrations?: { filename: string; content: string }[]
-}
-
-/**
- * Generates a public key for testing
- */
-function generatePublicKey(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    crypto.generateKeyPair(
-      'rsa',
-      {
-        modulusLength: 2048,
-        publicKeyEncoding: {
-          type: 'spki',
-          format: 'pem',
-        },
-        privateKeyEncoding: {
-          type: 'pkcs8',
-          format: 'pem',
-        },
-      },
-      (err, _publicKey, _privateKey) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(_publicKey)
-        }
-      },
-    )
-  })
 }
 
 /**
@@ -62,10 +31,6 @@ export async function buildAppZip(
       path.join(appDir, 'config.json'),
       JSON.stringify(options.config, null, 2),
     )
-
-    // Write .publicKey
-    const publicKey = options.publicKey ?? (await generatePublicKey())
-    await fs.promises.writeFile(path.join(appDir, '.publicKey'), publicKey)
 
     // Write additional files if provided
     if (options.files) {

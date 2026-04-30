@@ -125,7 +125,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     appIdentifier: string,
   ): Promise<string> => {
     const appService = await testModule!.resolveDep(AppService)
-    const { accessToken } = await appService.createAppUserAccessTokenAsApp({
+    const { accessToken } = await appService.mintAppUserToken({
       actor: { appIdentifier },
       userId,
     })

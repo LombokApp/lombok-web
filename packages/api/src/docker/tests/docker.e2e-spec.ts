@@ -410,6 +410,7 @@ describe('Docker Jobs', () => {
         '/mnt/user/appdata/somepath',
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN='),
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN_TYPE='),
+        expect.stringContaining('LOMBOK_APP_JWT_PUBLIC_KEY='),
         expect.stringContaining('LOMBOK_PLATFORM_URL='),
         expect.stringContaining('LOMBOK_APP_IDENTIFIER='),
       ],
@@ -568,6 +569,7 @@ describe('Docker Jobs', () => {
         expect.any(String),
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN='),
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN_TYPE='),
+        expect.stringContaining('LOMBOK_APP_JWT_PUBLIC_KEY='),
         expect.stringContaining('LOMBOK_PLATFORM_URL='),
         expect.stringContaining('LOMBOK_APP_IDENTIFIER='),
       ],
@@ -2169,9 +2171,7 @@ describe('Docker Jobs', () => {
   describe('platform token refresh', () => {
     it('should refresh an app token and return a new access token', async () => {
       const appToken =
-        testModule!.services.dockerWorkerHookService.createDockerAppToken(
-          TEST_APP_SLUG,
-        )
+        await testModule!.services.jwtService.createAppToken(TEST_APP_SLUG)
 
       const result =
         await testModule!.services.dockerWorkerHookService.refreshPlatformToken(
@@ -2210,7 +2210,7 @@ describe('Docker Jobs', () => {
           { appIdentifier: TEST_APP_SLUG, userId },
         )
 
-      expect(credentials.tokenType).toBe('app_user')
+      expect(credentials.tokenType).toBe('app_user_worker')
       expect(credentials.refreshToken).toBeDefined()
 
       const result =
@@ -2271,7 +2271,7 @@ describe('Docker Jobs', () => {
           { appIdentifier: TEST_APP_SLUG, userId },
         )
 
-      expect(credentials.tokenType).toBe('app_user')
+      expect(credentials.tokenType).toBe('app_user_worker')
       expect(credentials.token).toBeDefined()
       expect(credentials.refreshToken).toBeDefined()
     })

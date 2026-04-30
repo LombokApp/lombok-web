@@ -23,11 +23,8 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
-import { AuthDurationSeconds } from 'src/auth/constants/duration.constants'
-import {
-  APP_RUNTIME_WORKER_JWT_SUB_PREFIX,
-  APP_USER_JWT_SUB_PREFIX,
-} from 'src/auth/services/jwt.service'
+import { JWTService } from 'src/auth/services/jwt.service'
+import { KeyDerivationService } from 'src/auth/services/key-derivation.service'
 import { coreConfig } from 'src/core/config'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
@@ -74,6 +71,8 @@ export class DockerWorkerHookService {
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
+    private readonly jwtService: JWTService,
+    private readonly keyDerivationService: KeyDerivationService,
     @Inject(forwardRef(() => DockerClientService))
     private readonly _dockerClientService,
     @Inject(forwardRef(() => CoreTaskService))
@@ -252,91 +251,63 @@ export class DockerWorkerHookService {
   }
 
   /**
-   * Create a long-lived app token for a Docker container (non-user-isolated).
-   * Same subject format as runtime workers (`app_runtime_worker:{appIdentifier}`)
-   * but with a 24-hour expiry suitable for persistent containers.
-   */
-  createDockerAppToken(appIdentifier: string): string {
-    return jwt.sign(
-      {
-        aud: this._coreConfig.platformHost,
-        jti: uuidV4(),
-        scp: [],
-        sub: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
-      },
-      this._authConfig.authJwtSecret,
-      {
-        algorithm: ALGORITHM,
-        expiresIn: AuthDurationSeconds.DockerContainerAppToken,
-      },
-    )
-  }
-
-  /**
    * Create platform credentials for a Docker container at provisioning time.
-   * User-isolated containers get an app-user token (session-backed).
-   * Shared containers get an app token (same format as runtime workers).
+   * User-isolated containers get an app-user-worker token (session-backed) by default.
+   * Shared containers get an app-actor token (no user context).
    */
   async createDockerPlatformCredentials(params: {
     appIdentifier: string
     userId?: string
+    platformAccess?: boolean
   }): Promise<{
     token: string
     refreshToken?: string
-    tokenType: 'app_user' | 'app'
+    tokenType: 'app' | 'app_user_worker'
+    publicKeyPem: string
   }> {
+    const publicKeyPem = this.keyDerivationService.getPublicKeyPem()
     if (params.userId) {
-      const result = await this.appService.createAppUserAccessTokenAsApp({
+      const result = await this.appService.mintAppUserWorkerToken({
         actor: { appIdentifier: params.appIdentifier },
         userId: params.userId,
+        platformAccess: params.platformAccess ?? false,
       })
       return {
         token: result.accessToken,
         refreshToken: result.refreshToken,
-        tokenType: 'app_user',
+        tokenType: 'app_user_worker',
+        publicKeyPem,
       }
     }
 
     return {
-      token: this.createDockerAppToken(params.appIdentifier),
+      token: await this.jwtService.createAppToken(params.appIdentifier),
       tokenType: 'app',
+      publicKeyPem,
     }
   }
 
   /**
    * Refresh a platform token for a Docker container.
-   * Handles both app-user tokens (session-based) and app tokens.
+   * Handles both app-user-worker tokens (session-based) and app tokens.
    */
   async refreshPlatformToken(
     token: string,
   ): Promise<{ accessToken: string; refreshToken?: string }> {
-    const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
-      algorithms: [ALGORITHM],
-      audience: this._coreConfig.platformHost,
-    }) as JwtPayload
+    const claims = await this.jwtService.verifyAppToken(token)
 
-    if (!decoded.sub) {
-      throw new UnauthorizedException('Token has no subject')
-    }
-
-    if (decoded.sub.startsWith(APP_RUNTIME_WORKER_JWT_SUB_PREFIX)) {
-      const appIdentifier = decoded.sub.slice(
-        APP_RUNTIME_WORKER_JWT_SUB_PREFIX.length,
-      )
-      return { accessToken: this.createDockerAppToken(appIdentifier) }
-    }
-
-    if (decoded.sub.startsWith(APP_USER_JWT_SUB_PREFIX)) {
-      // app_user:{userId}:{appIdentifier}
-      const parts = decoded.sub.slice(APP_USER_JWT_SUB_PREFIX.length).split(':')
-
-      const [userId, appIdentifier] = parts
-      if (parts.length < 2 || !userId || !appIdentifier) {
-        throw new UnauthorizedException('Invalid app-user token')
+    if (claims.actor === 'app') {
+      return {
+        accessToken: await this.jwtService.createAppToken(claims.appIdentifier),
       }
-      const result = await this.appService.createAppUserAccessTokenAsApp({
-        actor: { appIdentifier },
-        userId,
+    }
+
+    if (claims.actor === 'app_user_worker') {
+      const result = await this.appService.mintAppUserWorkerToken({
+        actor: { appIdentifier: claims.appIdentifier },
+        userId: claims.userId,
+        platformAccess: claims.platformAccess,
+        ...(claims.extra ? { extra: claims.extra } : {}),
       })
       return {
         accessToken: result.accessToken,
@@ -344,7 +315,7 @@ export class DockerWorkerHookService {
       }
     }
 
-    throw new UnauthorizedException('Unsupported token type for refresh')
+    throw new UnauthorizedException('Unsupported token actor for refresh')
   }
 
   /**

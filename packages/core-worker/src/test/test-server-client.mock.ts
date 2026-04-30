@@ -24,17 +24,17 @@ export function buildTestServerClient(
     // eslint-disable-next-line @typescript-eslint/require-await
     saveLogEntry: async () => ({ result: null }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    authenticateUser: async () => ({
-      result: { userId: 'user', success: true },
-    }),
-    // eslint-disable-next-line @typescript-eslint/require-await
     getMetadataSignedUrls: async () => ({ result: [] }),
     // eslint-disable-next-line @typescript-eslint/require-await
     getContentSignedUrls: async () => ({ result: [] }),
     // eslint-disable-next-line @typescript-eslint/require-await
     getAppStorageSignedUrls: async () => ({ result: [] }),
     // eslint-disable-next-line @typescript-eslint/require-await
-    getAppUserAccessToken: async () => ({
+    mintAppUserToken: async () => ({
+      result: { accessToken: '', refreshToken: '' },
+    }),
+    // eslint-disable-next-line @typescript-eslint/require-await
+    mintAppUserWorkerToken: async () => ({
       result: { accessToken: '', refreshToken: '' },
     }),
     reportTaskProgress: () => {

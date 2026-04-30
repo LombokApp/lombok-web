@@ -1671,9 +1671,9 @@ describe('apps.types', () => {
   describe('appSocketMessageSchema', () => {
     it('should validate a socket message with optional data', () => {
       const result = appSocketMessageSchema.safeParse({
-        name: 'AUTHENTICATE_USER',
+        name: 'MINT_APP_USER_TOKEN',
         data: {
-          token: 'token',
+          userId: '00000000-0000-0000-0000-000000000000',
         },
       })
       expectZodSuccess(result)
