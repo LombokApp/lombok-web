@@ -124,22 +124,9 @@ export async function handleAppSocketMessage(
       const session = await appService.mintAppUserToken({
         actor: { appIdentifier: requestingAppIdentifier },
         userId: parsedRequest.data.userId,
-        ...(parsedRequest.data.extra
-          ? { extra: parsedRequest.data.extra }
+        ...(typeof parsedRequest.data.platformAccess === 'boolean'
+          ? { platformAccess: parsedRequest.data.platformAccess }
           : {}),
-      })
-      return {
-        result: {
-          accessToken: session.accessToken,
-          refreshToken: session.refreshToken,
-        },
-      }
-    }
-    case 'MINT_APP_USER_WORKER_TOKEN': {
-      const session = await appService.mintAppUserWorkerToken({
-        actor: { appIdentifier: requestingAppIdentifier },
-        userId: parsedRequest.data.userId,
-        platformAccess: parsedRequest.data.platformAccess ?? false,
         ...(parsedRequest.data.extra
           ? { extra: parsedRequest.data.extra }
           : {}),

@@ -43,13 +43,8 @@ export const attemptStartHandleTaskByIdSchema = z.object({
 
 export const mintAppUserTokenSchema = z.object({
   userId: z.uuid(),
-  extra: jsonSerializableObjectSchema.optional(),
-})
-
-export const mintAppUserWorkerTokenSchema = z.object({
-  userId: z.uuid(),
-  extra: jsonSerializableObjectSchema.optional(),
   platformAccess: z.boolean().optional(),
+  extra: jsonSerializableObjectSchema.optional(),
 })
 
 export const getContentSignedUrlsSchema = z.array(
@@ -206,7 +201,6 @@ export const AppSocketMessageSchemaMap = {
   SAVE_LOG_ENTRY: logEntrySchema,
   GET_CONTENT_SIGNED_URLS: getContentSignedUrlsSchema,
   MINT_APP_USER_TOKEN: mintAppUserTokenSchema,
-  MINT_APP_USER_WORKER_TOKEN: mintAppUserWorkerTokenSchema,
   GET_METADATA_SIGNED_URLS: getMetadataSignedUrlsSchema,
   UPDATE_CONTENT_METADATA: updateMetadataSchema,
   GET_LATEST_DB_CREDENTIALS: z.undefined(),
@@ -306,12 +300,6 @@ export const AppSocketMessageResponseSchemaMap = {
   SAVE_LOG_ENTRY: createResponseSchema(z.null()),
   GET_CONTENT_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
   MINT_APP_USER_TOKEN: createResponseSchema(
-    z.object({
-      accessToken: z.string(),
-      refreshToken: z.string(),
-    }),
-  ),
-  MINT_APP_USER_WORKER_TOKEN: createResponseSchema(
     z.object({
       accessToken: z.string(),
       refreshToken: z.string(),

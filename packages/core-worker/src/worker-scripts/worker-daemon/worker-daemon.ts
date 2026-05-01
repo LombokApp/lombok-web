@@ -412,14 +412,11 @@ void (async () => {
                   })
                 }
 
-                if (
-                  claims.actor !== 'app_user' &&
-                  claims.actor !== 'app_user_worker'
-                ) {
+                if (claims.actorType !== 'app_user') {
                   throw new AsyncWorkError({
                     name: 'AuthenticationFailed',
                     origin: 'internal',
-                    message: `Token actor "${claims.actor}" is not allowed for worker requests`,
+                    message: `Token actor "${claims.actorType}" is not allowed for worker requests`,
                     code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
                     stack: new Error().stack,
                     details: {
@@ -445,6 +442,23 @@ void (async () => {
                 userId = claims.userId
                 accessToken = token
                 actorExtra = claims.extra
+                actor = {
+                  userId,
+                  actorType: 'app_user',
+                  platformAccess: claims.platformAccess,
+                  ...(claims.worker !== undefined
+                    ? { worker: claims.worker }
+                    : {}),
+                  userApiClient: createFetchClient<paths>({
+                    baseUrl: workerModuleStartContext.serverBaseUrl,
+                    fetch: async (fetchRequest) => {
+                      const headers = new Headers(fetchRequest.headers)
+                      headers.set('Authorization', `Bearer ${accessToken}`)
+                      return fetch(new Request(fetchRequest, { headers }))
+                    },
+                  }),
+                  extra: actorExtra ?? {},
+                }
                 logTiming('authentication_complete', authStartTime, {
                   requestId: pipeRequest.id,
                   userId,
@@ -454,7 +468,7 @@ void (async () => {
                   reqId: pipeRequest.id,
                   userId,
                   appIdentifier: pipeRequest.appIdentifier,
-                  actor: claims.actor,
+                  actor: claims.actorType,
                 })
               } else {
                 logTiming('authentication_skipped', authStartTime, {
@@ -505,22 +519,6 @@ void (async () => {
                 },
               }),
             })
-          }
-
-          if (!actor && userId) {
-            actor = {
-              actorType: 'user',
-              userId,
-              userApiClient: createFetchClient<paths>({
-                baseUrl: workerModuleStartContext.serverBaseUrl,
-                fetch: async (fetchRequest) => {
-                  const headers = new Headers(fetchRequest.headers)
-                  headers.set('Authorization', `Bearer ${accessToken}`)
-                  return fetch(new Request(fetchRequest, { headers }))
-                },
-              }),
-              extra: actorExtra ?? {},
-            }
           }
 
           logTiming('execution_start', executionStartTime, {

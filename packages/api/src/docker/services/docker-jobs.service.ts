@@ -788,20 +788,21 @@ export class DockerJobsService {
       const { hostId, containerId } = resolvedContainer
 
       // 2. Execute the job
-      const jobToken = this.dockerWorkerHookService.createDockerWorkerJobToken({
-        jobId,
-        ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
-        storageAccessPolicy: params.storageAccessPolicy ?? {
-          rules: [],
-        },
-        executorMetadata: {
-          profileKey,
-          profileHash,
-          jobIdentifier,
-          containerId,
-          hostId,
-        },
-      })
+      const jobToken =
+        await this.dockerWorkerHookService.createDockerWorkerJobToken({
+          jobId,
+          ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
+          storageAccessPolicy: params.storageAccessPolicy ?? {
+            rules: [],
+          },
+          executorMetadata: {
+            profileKey,
+            profileHash,
+            jobIdentifier,
+            containerId,
+            hostId,
+          },
+        })
 
       const jobExecuteOptions: JobExecuteOptions = {
         job_id: jobId,

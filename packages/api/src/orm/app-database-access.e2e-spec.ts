@@ -64,9 +64,6 @@ function createMockAppPlatformService(
     mintAppUserToken: () => {
       throw new Error('Not implemented in test mock')
     },
-    mintAppUserWorkerToken: () => {
-      throw new Error('Not implemented in test mock')
-    },
     updateContentMetadata: () => {
       throw new Error('Not implemented in test mock')
     },

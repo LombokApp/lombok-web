@@ -480,7 +480,7 @@ export class AuthService {
   async verifyEmail(token: string): Promise<void> {
     let payload: { sub: string; evk: string; eh: string }
     try {
-      payload = this.jwtService.verifyEmailVerificationToken(token)
+      payload = await this.jwtService.verifyEmailVerificationToken(token)
     } catch (err: unknown) {
       if (err instanceof AuthTokenExpiredError) {
         throw new BadRequestException('Verification link has expired')

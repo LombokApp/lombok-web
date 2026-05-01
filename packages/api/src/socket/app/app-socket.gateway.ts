@@ -73,9 +73,9 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
             next(this.closeSocketAndReturnUnauthorized(socket))
             return
           }
-          if (claims.actor !== 'app') {
+          if (claims.actorType !== 'app') {
             this.logger.warn(
-              `App socket requires actor=app, got actor=${claims.actor}`,
+              `App socket requires actor=app, got actor=${claims.actorType}`,
             )
             next(this.closeSocketAndReturnUnauthorized(socket))
             return

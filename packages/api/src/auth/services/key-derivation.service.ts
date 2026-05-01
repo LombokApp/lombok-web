@@ -17,8 +17,9 @@ const ED25519_PKCS8_PREFIX = Buffer.from(
 export class KeyDerivationService implements OnModuleInit {
   private privateKeyPem!: string
   private publicKeyPem!: string
-  private joseSignKey!: jose.KeyLike
-  private joseVerifyKey!: jose.KeyLike
+  private joseSignKey!: Awaited<ReturnType<typeof jose.importPKCS8>>
+  private joseVerifyKey!: Awaited<ReturnType<typeof jose.importSPKI>>
+  private hsSecretBytes!: Uint8Array
 
   constructor(
     @Inject(authConfig.KEY)
@@ -30,6 +31,9 @@ export class KeyDerivationService implements OnModuleInit {
   }
 
   private async deriveKeys() {
+    this.hsSecretBytes = new TextEncoder().encode(
+      this._authConfig.authJwtSecret,
+    )
     const secret = Buffer.from(this._authConfig.authJwtSecret, 'utf8')
     if (secret.byteLength < MIN_SECRET_BYTES) {
       throw new Error(
@@ -66,11 +70,15 @@ export class KeyDerivationService implements OnModuleInit {
     return this.publicKeyPem
   }
 
-  getJoseSignKey(): jose.KeyLike {
+  getJoseSignKey() {
     return this.joseSignKey
   }
 
-  getJoseVerifyKey(): jose.KeyLike {
+  getJoseVerifyKey() {
     return this.joseVerifyKey
+  }
+
+  getHsSecretBytes(): Uint8Array {
+    return this.hsSecretBytes
   }
 }

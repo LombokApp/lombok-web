@@ -2,7 +2,6 @@ import {
   APP_JWT_ISSUER,
   APP_JWT_SUB_PREFIX,
   APP_USER_JWT_SUB_PREFIX,
-  APP_USER_WORKER_JWT_SUB_PREFIX,
   type AppJwtClaims,
   appJwtClaimsSchema,
 } from '@lombokapp/types'
@@ -50,11 +49,9 @@ export async function verifyAppToken(
   }
   const claims = result.data
   const expectedSubject =
-    claims.actor === 'app'
+    claims.actorType === 'app'
       ? `${APP_JWT_SUB_PREFIX}${claims.appIdentifier}`
-      : claims.actor === 'app_user'
-        ? `${APP_USER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
-        : `${APP_USER_WORKER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
+      : `${APP_USER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
   if (claims.sub !== expectedSubject) {
     throw new AppTokenVerificationError('Token subject mismatch')
   }

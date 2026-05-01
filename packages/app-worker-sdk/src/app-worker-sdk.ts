@@ -64,10 +64,6 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['MINT_APP_USER_TOKEN'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'MINT_APP_USER_TOKEN'>>
-  mintAppUserWorkerToken: (
-    params: AppSocketMessageDataMap['MINT_APP_USER_WORKER_TOKEN'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'MINT_APP_USER_WORKER_TOKEN'>>
   updateContentMetadata: (
     params: AppSocketMessageDataMap['UPDATE_CONTENT_METADATA'],
     options?: PlatformApiExecuteOptions,
@@ -217,9 +213,6 @@ export const buildAppClient = (
     },
     mintAppUserToken(params, options) {
       return emitWithAck('MINT_APP_USER_TOKEN', params, options)
-    },
-    mintAppUserWorkerToken(params, options) {
-      return emitWithAck('MINT_APP_USER_WORKER_TOKEN', params, options)
     },
     updateContentMetadata(params, options) {
       return emitWithAck('UPDATE_CONTENT_METADATA', params, options)

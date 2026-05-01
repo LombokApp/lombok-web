@@ -99,7 +99,6 @@
         "i18next": "25.8.4",
         "jexpr": "catalog:",
         "jose": "catalog:",
-        "jsonwebtoken": "9.0.3",
         "mime": "catalog:",
         "nestjs-zod": "5.1.1",
         "nodemailer": "catalog:",
@@ -123,7 +122,6 @@
         "@types/bun": "catalog:",
         "@types/dockerode": "catalog:",
         "@types/express": "5.0.6",
-        "@types/jsonwebtoken": "9.0.10",
         "@types/nodemailer": "catalog:",
         "@types/pg": "catalog:",
         "@types/supertest": "6.0.3",
@@ -180,7 +178,7 @@
       "version": "0.0.1-6",
       "dependencies": {
         "drizzle-orm": "catalog:",
-        "jose": "5.9.6",
+        "jose": "6.2.3",
         "pg": "catalog:",
         "socket.io-client": "catalog:",
         "zod": "catalog:",
@@ -579,7 +577,7 @@
     "globals": "15.14.0",
     "jexpr": "1.0.0-pre.9",
     "jiti": "2.6.1",
-    "jose": "5.9.6",
+    "jose": "6.2.3",
     "lucide-react": "0.525.0",
     "mime": "4.0.7",
     "nodemailer": "6.9.16",
@@ -2541,7 +2539,7 @@
 
     "jiti": ["jiti@2.6.1", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ=="],
 
-    "jose": ["jose@5.9.6", "", {}, "sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ=="],
+    "jose": ["jose@6.2.3", "", {}, "sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw=="],
 
     "joycon": ["joycon@3.1.1", "", {}, "sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw=="],
 

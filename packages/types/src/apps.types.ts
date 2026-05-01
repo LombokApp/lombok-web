@@ -21,7 +21,6 @@ export const AppSocketMessage = z.enum([
   'GET_CONTENT_SIGNED_URLS',
   'GET_METADATA_SIGNED_URLS',
   'MINT_APP_USER_TOKEN',
-  'MINT_APP_USER_WORKER_TOKEN',
   'UPDATE_CONTENT_METADATA',
   'EMIT_EVENT',
   'EXECUTE_APP_DOCKER_JOB',
@@ -44,10 +43,12 @@ export const appMessageErrorSchema = z.object({
 
 export type WorkerApiActor =
   | {
-      actorType: 'user'
-      userId?: string
-      userApiClient: LombokApiClient
+      actorType: 'app_user'
+      userId: string
+      worker?: string
+      platformAccess: boolean
       extra?: JsonSerializableObject
+      userApiClient: LombokApiClient
     }
   | {
       actorType: 'system'

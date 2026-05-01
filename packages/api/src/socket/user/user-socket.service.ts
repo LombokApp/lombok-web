@@ -68,7 +68,7 @@ export class UserSocketService {
       }
       try {
         const verifiedToken = AccessTokenJWT.parse(
-          this.jwtService.verifyUserJWT(token),
+          await this.jwtService.verifyUserJWT(token),
         )
         if (verifiedToken.sub.startsWith(USER_JWT_SUB_PREFIX)) {
           const userId = verifiedToken.sub.split(':')[1]

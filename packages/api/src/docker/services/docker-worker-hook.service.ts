@@ -17,12 +17,10 @@ import {
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { and, eq, inArray } from 'drizzle-orm'
-import type { JwtPayload } from 'jsonwebtoken'
-import * as jwt from 'jsonwebtoken'
+import * as jose from 'jose'
 import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { AppService } from 'src/app/services/app.service'
-import { authConfig } from 'src/auth/config'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KeyDerivationService } from 'src/auth/services/key-derivation.service'
 import { coreConfig } from 'src/core/config'
@@ -40,7 +38,7 @@ import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-u
 import type { DockerJobProgressRequestDTO } from '../dto/docker-job-progress-request.dto'
 import { DockerClientService } from './client/docker-client.service'
 
-const ALGORITHM = 'HS256'
+const HS_ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
 
 // JWT expiry for worker job tokens (30 minutes)
@@ -66,8 +64,6 @@ export class DockerWorkerHookService {
   appService: AppService
   dockerClientService: DockerClientService
   constructor(
-    @Inject(authConfig.KEY)
-    private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
@@ -197,42 +193,45 @@ export class DockerWorkerHookService {
     taskId?: string
     storageAccessPolicy?: StorageAccessPolicy
     executorMetadata: DockerExecutorMetadata
-  }): string {
-    const payload = {
-      aud: this._coreConfig.platformHost,
-      jti: uuidV4(),
-      sub: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`,
+  }): Promise<string> {
+    return new jose.SignJWT({
       job_id: params.jobId,
       task_id: params.taskId,
       storage_access_policy: params.storageAccessPolicy,
       executor_metadata: params.executorMetadata,
-    }
-
-    return jwt.sign(payload, this._authConfig.authJwtSecret, {
-      algorithm: ALGORITHM,
-      expiresIn: WORKER_JOB_TOKEN_EXPIRY_SECONDS,
     })
+      .setProtectedHeader({ alg: HS_ALGORITHM })
+      .setAudience(this._coreConfig.platformHost)
+      .setSubject(`${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`)
+      .setJti(uuidV4())
+      .setIssuedAt()
+      .setExpirationTime(`${WORKER_JOB_TOKEN_EXPIRY_SECONDS}s`)
+      .sign(this.keyDerivationService.getHsSecretBytes())
   }
 
   /**
    * Verify a docker worker job token and return the claims
    */
-  verifyDockerWorkerJobToken(
+  async verifyDockerWorkerJobToken(
     token: string,
     expectedJobId: string,
-  ): DockerWorkerJobClaims {
+  ): Promise<DockerWorkerJobClaims> {
     try {
-      const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
-        algorithms: [ALGORITHM],
-        audience: this._coreConfig.platformHost,
-        subject: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${expectedJobId}`,
-      }) as JwtPayload & {
+      const { payload } = await jose.jwtVerify(
+        token,
+        this.keyDerivationService.getHsSecretBytes(),
+        {
+          algorithms: [HS_ALGORITHM],
+          audience: this._coreConfig.platformHost,
+          subject: `${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${expectedJobId}`,
+        },
+      )
+      const decoded = payload as jose.JWTPayload & {
         job_id: string
         task_id: string
         executor_metadata: DockerExecutorMetadata
         storage_access_policy: StorageAccessPolicy
       }
-
       return {
         jobId: decoded.job_id,
         taskId: decoded.task_id,
@@ -240,13 +239,10 @@ export class DockerWorkerHookService {
         storageAccessPolicy: decoded.storage_access_policy,
       }
     } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
+      if (error instanceof jose.errors.JWTExpired) {
         throw new UnauthorizedException('Worker job token has expired')
       }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new UnauthorizedException('Invalid worker job token')
-      }
-      throw error
+      throw new UnauthorizedException('Invalid worker job token')
     }
   }
 
@@ -258,30 +254,34 @@ export class DockerWorkerHookService {
   async createDockerPlatformCredentials(params: {
     appIdentifier: string
     userId?: string
+    worker?: string
     platformAccess?: boolean
   }): Promise<{
     token: string
     refreshToken?: string
-    tokenType: 'app' | 'app_user_worker'
+    tokenType: 'app' | 'app_user'
     publicKeyPem: string
   }> {
     const publicKeyPem = this.keyDerivationService.getPublicKeyPem()
     if (params.userId) {
-      const result = await this.appService.mintAppUserWorkerToken({
+      const result = await this.appService.mintAppUserToken({
         actor: { appIdentifier: params.appIdentifier },
         userId: params.userId,
-        platformAccess: params.platformAccess ?? false,
+        worker: params.worker ?? 'platform-container',
+        ...(typeof params.platformAccess === 'boolean'
+          ? { platformAccess: params.platformAccess }
+          : {}),
       })
       return {
         token: result.accessToken,
         refreshToken: result.refreshToken,
-        tokenType: 'app_user_worker',
+        tokenType: 'app_user',
         publicKeyPem,
       }
     }
 
     return {
-      token: await this.jwtService.createAppToken(params.appIdentifier),
+      token: await this.jwtService.mintAppToken(params.appIdentifier),
       tokenType: 'app',
       publicKeyPem,
     }
@@ -289,23 +289,26 @@ export class DockerWorkerHookService {
 
   /**
    * Refresh a platform token for a Docker container.
-   * Handles both app-user-worker tokens (session-based) and app tokens.
+   * Re-mints the same actor scope (app or app_user) preserving worker /
+   * platformAccess / extra context.
    */
   async refreshPlatformToken(
     token: string,
   ): Promise<{ accessToken: string; refreshToken?: string }> {
     const claims = await this.jwtService.verifyAppToken(token)
 
-    if (claims.actor === 'app') {
+    if (claims.actorType === 'app') {
       return {
-        accessToken: await this.jwtService.createAppToken(claims.appIdentifier),
+        accessToken: await this.jwtService.mintAppToken(claims.appIdentifier),
       }
     }
 
-    if (claims.actor === 'app_user_worker') {
-      const result = await this.appService.mintAppUserWorkerToken({
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (claims.actorType === 'app_user') {
+      const result = await this.appService.mintAppUserToken({
         actor: { appIdentifier: claims.appIdentifier },
         userId: claims.userId,
+        ...(claims.worker !== undefined ? { worker: claims.worker } : {}),
         platformAccess: claims.platformAccess,
         ...(claims.extra ? { extra: claims.extra } : {}),
       })

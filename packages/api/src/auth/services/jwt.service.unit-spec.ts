@@ -48,9 +48,9 @@ const fakeSession = (): Session => ({
 describe('JWTService app token round-trips', () => {
   it('mints and verifies an app actor token', async () => {
     const svc = await buildJwtService()
-    const token = await svc.createAppToken('app1')
+    const token = await svc.mintAppToken('app1')
     const claims = await svc.verifyAppToken(token)
-    expect(claims.actor).toBe('app')
+    expect(claims.actorType).toBe('app')
     expect(claims.appIdentifier).toBe('app1')
   })
 
@@ -64,8 +64,8 @@ describe('JWTService app token round-trips', () => {
       extra,
     })
     const claims = await svc.verifyAppToken(token)
-    expect(claims.actor).toBe('app_user')
-    if (claims.actor !== 'app_user') {
+    expect(claims.actorType).toBe('app_user')
+    if (claims.actorType !== 'app_user') {
       throw new Error('unreachable')
     }
     expect(claims.userId).toBe(session.userId)
@@ -73,22 +73,41 @@ describe('JWTService app token round-trips', () => {
     expect(claims.extra).toEqual(extra)
   })
 
-  it('mints and verifies an app_user_worker token with platformAccess', async () => {
+  it('mints and verifies an app_user worker-context token with platformAccess override', async () => {
     const svc = await buildJwtService()
     const session = fakeSession()
-    const token = await svc.createAppUserWorkerToken({
+    const token = await svc.createAppUserToken({
       session,
       appIdentifier: 'app1',
+      worker: 'agent-1',
       platformAccess: true,
       extra: { agent: 'a-1' },
     })
     const claims = await svc.verifyAppToken(token)
-    expect(claims.actor).toBe('app_user_worker')
-    if (claims.actor !== 'app_user_worker') {
+    expect(claims.actorType).toBe('app_user')
+    if (claims.actorType !== 'app_user') {
       throw new Error('unreachable')
     }
+    expect(claims.worker).toBe('agent-1')
     expect(claims.platformAccess).toBe(true)
     expect(claims.extra).toEqual({ agent: 'a-1' })
+  })
+
+  it('defaults platformAccess to false when worker is set, true otherwise', async () => {
+    const svc = await buildJwtService()
+    const session = fakeSession()
+    const ui = await svc.verifyAppToken(
+      await svc.createAppUserToken({ session, appIdentifier: 'app1' }),
+    )
+    expect(ui.actorType === 'app_user' && ui.platformAccess).toBe(true)
+    const worker = await svc.verifyAppToken(
+      await svc.createAppUserToken({
+        session,
+        appIdentifier: 'app1',
+        worker: 'agent-1',
+      }),
+    )
+    expect(worker.actorType === 'app_user' && worker.platformAccess).toBe(false)
   })
 
   it('rejects tokens minted with one secret when verified with another', async () => {
@@ -101,7 +120,7 @@ describe('JWTService app token round-trips', () => {
       emailVerificationSecret: undefined,
     })
     await otherKeys.onModuleInit()
-    const tokenFromA = await a.createAppToken('app1')
+    const tokenFromA = await a.mintAppToken('app1')
     const b = new JWTService(
       {
         authJwtSecret: 'b'.repeat(64),

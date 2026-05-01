@@ -53,9 +53,9 @@ export class BridgeSessionController {
       throw new UnauthorizedException('Missing authorization token')
     }
     const claims = await this.jwtService.verifyAppToken(token)
-    if (claims.actor !== 'app_user') {
+    if (claims.actorType !== 'app_user' || claims.worker !== undefined) {
       throw new UnauthorizedException(
-        'Bridge session requires an app_user token',
+        'Bridge session requires an app-user UI token',
       )
     }
     return { userId: claims.userId, appIdentifier: claims.appIdentifier }

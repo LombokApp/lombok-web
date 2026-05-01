@@ -10,8 +10,7 @@ export const enum AuthDurationSeconds {
   AppWorker = 30 * 60, // max time a worker can run for
   DockerContainerAppToken = 24 * 60 * 60, // long-lived app token for persistent docker containers
   AppActorAccessToken = 15 * 60, // app actor access tokens (runtime workers, shared docker containers)
-  AppUserActorAccessToken = 5 * 60, // app_user actor access tokens
-  AppUserWorkerActorAccessToken = 5 * 60, // app_user_worker actor access tokens
+  AppUserActorAccessToken = 5 * 60, // app_user actor access tokens (UI sessions and worker-context tokens)
 }
 
 /**

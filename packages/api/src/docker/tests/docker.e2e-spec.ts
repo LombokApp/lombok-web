@@ -796,7 +796,7 @@ describe('Docker Jobs', () => {
       execSpy.mock.calls[1]![2].at(-1) ?? '',
     )
     const claims =
-      testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
+      await testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
         parsedPayload.jobToken!,
         parsedPayload.jobId,
       )
@@ -1967,7 +1967,7 @@ describe('Docker Jobs', () => {
     const jobToken = parsedPayload.jobToken
     const jobId = parsedPayload.jobId
     const claims =
-      testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
+      await testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
         jobToken ?? '',
         jobId,
       )
@@ -2171,7 +2171,7 @@ describe('Docker Jobs', () => {
   describe('platform token refresh', () => {
     it('should refresh an app token and return a new access token', async () => {
       const appToken =
-        await testModule!.services.jwtService.createAppToken(TEST_APP_SLUG)
+        await testModule!.services.jwtService.mintAppToken(TEST_APP_SLUG)
 
       const result =
         await testModule!.services.dockerWorkerHookService.refreshPlatformToken(
@@ -2210,7 +2210,7 @@ describe('Docker Jobs', () => {
           { appIdentifier: TEST_APP_SLUG, userId },
         )
 
-      expect(credentials.tokenType).toBe('app_user_worker')
+      expect(credentials.tokenType).toBe('app_user')
       expect(credentials.refreshToken).toBeDefined()
 
       const result =
@@ -2271,7 +2271,7 @@ describe('Docker Jobs', () => {
           { appIdentifier: TEST_APP_SLUG, userId },
         )
 
-      expect(credentials.tokenType).toBe('app_user_worker')
+      expect(credentials.tokenType).toBe('app_user')
       expect(credentials.token).toBeDefined()
       expect(credentials.refreshToken).toBeDefined()
     })

@@ -33,10 +33,6 @@ export function buildTestServerClient(
     mintAppUserToken: async () => ({
       result: { accessToken: '', refreshToken: '' },
     }),
-    // eslint-disable-next-line @typescript-eslint/require-await
-    mintAppUserWorkerToken: async () => ({
-      result: { accessToken: '', refreshToken: '' },
-    }),
     reportTaskProgress: () => {
       throw new Error('Not implemented in test mock')
     },

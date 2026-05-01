@@ -3,7 +3,6 @@ import {
   APP_JWT_SUB_PREFIX,
   APP_TOKEN_EXTRA_MAX_BYTES,
   APP_USER_JWT_SUB_PREFIX,
-  APP_USER_WORKER_JWT_SUB_PREFIX,
   type AppJwtClaims,
   appJwtClaimsSchema,
   type JsonSerializableObject,
@@ -19,12 +18,6 @@ import nestjsConfig from '@nestjs/config'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import * as jose from 'jose'
-import type {
-  JsonWebTokenError,
-  JwtPayload,
-  TokenExpiredError,
-} from 'jsonwebtoken'
-import * as jwt from 'jsonwebtoken'
 import { authConfig } from 'src/auth/config'
 import { AuthDurationSeconds } from 'src/auth/constants/duration.constants'
 import type { Session } from 'src/auth/entities/session.entity'
@@ -38,18 +31,13 @@ import { KeyDerivationService } from './key-derivation.service'
 
 const HS_ALGORITHM = 'HS256'
 const ED_ALGORITHM_JOSE = 'EdDSA'
+const RS_ALGORITHM = 'RS256'
 const EMAIL_VERIFY_KID = 'email-verify'
 const EMAIL_VERIFY_AUD = 'email-verify'
 const EMAIL_VERIFY_ISS = 'lombok-api'
-const EMAIL_VERIFY_ALG_RS = 'RS256'
-const EMAIL_VERIFY_ALG_HS = 'HS256'
 
 export const USER_JWT_SUB_PREFIX = 'user:'
-export {
-  APP_JWT_SUB_PREFIX,
-  APP_USER_JWT_SUB_PREFIX,
-  APP_USER_WORKER_JWT_SUB_PREFIX,
-} from '@lombokapp/types'
+export { APP_JWT_SUB_PREFIX, APP_USER_JWT_SUB_PREFIX } from '@lombokapp/types'
 
 export const accessTokenType = z.object({
   aud: z.string(),
@@ -104,10 +92,10 @@ export class AuthTokenInvalidError extends UnauthorizedException {
 
   constructor(
     readonly token: string,
-    error?: JsonWebTokenError,
+    error?: unknown,
   ) {
     super()
-    this.inner = error?.inner
+    this.inner = error
   }
 }
 
@@ -119,7 +107,7 @@ export class AuthTokenExpiredError extends UnauthorizedException {
 
   constructor(
     readonly token: string,
-    error: TokenExpiredError,
+    error: { expiredAt: Date; inner?: unknown },
   ) {
     super()
     this.inner = error.inner
@@ -139,6 +127,16 @@ function assertExtraSize(extra: JsonSerializableObject | undefined): void {
   }
 }
 
+function mapJoseError(token: string, error: unknown): never {
+  if (error instanceof jose.errors.JWTExpired) {
+    throw new AuthTokenExpiredError(token, {
+      expiredAt: new Date(),
+      inner: error,
+    })
+  }
+  throw new AuthTokenInvalidError(token, error)
+}
+
 @Injectable()
 export class JWTService {
   constructor(
@@ -151,13 +149,6 @@ export class JWTService {
   ) {}
 
   async createSessionAccessToken(session: Session): Promise<string> {
-    const payload: AccessTokenJWT = {
-      aud: this._coreConfig.platformHost,
-      jti: `${session.id}:${uuidV4()}`,
-      scp: [],
-      sub: `${USER_JWT_SUB_PREFIX}${session.userId}`,
-    }
-
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.id, session.userId),
     })
@@ -166,50 +157,46 @@ export class JWTService {
       throw new InternalServerErrorException()
     }
 
-    const token = jwt.sign(payload, this._authConfig.authJwtSecret, {
-      algorithm: HS_ALGORITHM,
-      expiresIn: AuthDurationSeconds.SessionSliding,
-    })
+    const token = await new jose.SignJWT({ scp: [] })
+      .setProtectedHeader({ alg: HS_ALGORITHM })
+      .setAudience(this._coreConfig.platformHost)
+      .setSubject(`${USER_JWT_SUB_PREFIX}${session.userId}`)
+      .setJti(`${session.id}:${uuidV4()}`)
+      .setIssuedAt()
+      .setExpirationTime(`${AuthDurationSeconds.SessionSliding}s`)
+      .sign(this.keyDerivationService.getHsSecretBytes())
 
-    AccessTokenJWT.parse(this.verifyUserJWT(token))
+    AccessTokenJWT.parse(await this.verifyUserJWT(token))
 
     return token
   }
 
-  verifyUserJWT(token: string) {
+  async verifyUserJWT(token: string): Promise<jose.JWTPayload> {
     try {
-      return jwt.verify(token, this._authConfig.authJwtSecret, {
-        algorithms: [HS_ALGORITHM],
-        audience: this._coreConfig.platformHost,
-      }) as JwtPayload
+      const { payload } = await jose.jwtVerify(
+        token,
+        this.keyDerivationService.getHsSecretBytes(),
+        {
+          algorithms: [HS_ALGORITHM],
+          audience: this._coreConfig.platformHost,
+        },
+      )
+      return payload
     } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthTokenExpiredError(token, error)
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthTokenInvalidError(token, error)
-      }
-      throw error
+      mapJoseError(token, error)
     }
   }
 
-  decodeJWT(token: string): jwt.Jwt {
+  /**
+   * Decode a JWT's payload without verifying its signature.
+   * Used by the auth guard to route by subject prefix before delegating to
+   * the right verifier.
+   */
+  decodeJwtPayload(token: string): jose.JWTPayload {
     try {
-      const decodedJWT = jwt.decode(token, {
-        complete: true,
-      })
-      if (!decodedJWT?.payload) {
-        throw new AuthTokenInvalidError(token)
-      }
-      return decodedJWT
+      return jose.decodeJwt(token)
     } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthTokenExpiredError(token, error)
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthTokenInvalidError(token, error)
-      }
-      throw error
+      throw new AuthTokenInvalidError(token, error)
     }
   }
 
@@ -235,10 +222,10 @@ export class JWTService {
       .sign(this.keyDerivationService.getJoseSignKey())
   }
 
-  createAppToken(appIdentifier: string): Promise<string> {
+  mintAppToken(appIdentifier: string): Promise<string> {
     return this.signAppJwt(
       {
-        actor: 'app',
+        actorType: 'app',
         appIdentifier,
       },
       {
@@ -250,18 +237,38 @@ export class JWTService {
     )
   }
 
+  /**
+   * Resolve the `platformAccess` claim default. Tokens without a `worker`
+   * context default to allowing platform access; worker-context tokens
+   * default to denying it. Both can be overridden explicitly.
+   */
+  static resolvePlatformAccess(params: {
+    worker?: string
+    platformAccess?: boolean
+  }): boolean {
+    if (typeof params.platformAccess === 'boolean') {
+      return params.platformAccess
+    }
+    return params.worker === undefined
+  }
+
   createAppUserToken(params: {
     session: Session
     appIdentifier: string
+    worker?: string
+    platformAccess?: boolean
     extra?: JsonSerializableObject
   }): Promise<string> {
     assertExtraSize(params.extra)
+    const platformAccess = JWTService.resolvePlatformAccess(params)
     return this.signAppJwt(
       {
-        actor: 'app_user',
+        actorType: 'app_user',
         appIdentifier: params.appIdentifier,
         userId: params.session.userId,
         sessionId: params.session.id,
+        platformAccess,
+        ...(params.worker !== undefined ? { worker: params.worker } : {}),
         ...(params.extra ? { extra: params.extra } : {}),
       },
       {
@@ -269,31 +276,6 @@ export class JWTService {
         audience: params.appIdentifier,
         jwtid: `${params.session.id}:${uuidV4()}`,
         expiresInSec: AuthDurationSeconds.AppUserActorAccessToken,
-      },
-    )
-  }
-
-  createAppUserWorkerToken(params: {
-    session: Session
-    appIdentifier: string
-    platformAccess: boolean
-    extra?: JsonSerializableObject
-  }): Promise<string> {
-    assertExtraSize(params.extra)
-    return this.signAppJwt(
-      {
-        actor: 'app_user_worker',
-        appIdentifier: params.appIdentifier,
-        userId: params.session.userId,
-        sessionId: params.session.id,
-        platformAccess: params.platformAccess,
-        ...(params.extra ? { extra: params.extra } : {}),
-      },
-      {
-        subject: `${APP_USER_WORKER_JWT_SUB_PREFIX}${params.session.userId}:${params.appIdentifier}`,
-        audience: params.appIdentifier,
-        jwtid: `${params.session.id}:${uuidV4()}`,
-        expiresInSec: AuthDurationSeconds.AppUserWorkerActorAccessToken,
       },
     )
   }
@@ -311,12 +293,7 @@ export class JWTService {
       )
       payload = verified.payload
     } catch (error) {
-      if (error instanceof jose.errors.JWTExpired) {
-        throw new AuthTokenExpiredError(token, {
-          expiredAt: new Date(),
-        } as never)
-      }
-      throw new AuthTokenInvalidError(token)
+      mapJoseError(token, error)
     }
     const result = appJwtClaimsSchema.safeParse(payload)
     if (!result.success) {
@@ -324,11 +301,9 @@ export class JWTService {
     }
     const claims = result.data
     const expectedSubject =
-      claims.actor === 'app'
+      claims.actorType === 'app'
         ? `${APP_JWT_SUB_PREFIX}${claims.appIdentifier}`
-        : claims.actor === 'app_user'
-          ? `${APP_USER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
-          : `${APP_USER_WORKER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
+        : `${APP_USER_JWT_SUB_PREFIX}${claims.userId}:${claims.appIdentifier}`
     if (claims.sub !== expectedSubject) {
       throw new AuthTokenInvalidError(token)
     }
@@ -355,7 +330,59 @@ export class JWTService {
       .digest('base64url')
   }
 
-  createEmailVerificationToken({
+  private async getEmailVerificationSignKey(): Promise<{
+    key: Awaited<ReturnType<typeof jose.importPKCS8>> | Uint8Array
+    alg: 'RS256' | 'HS256'
+  }> {
+    const isRS = this._authConfig.emailVerificationAlgorithm === 'RS'
+    if (isRS) {
+      const pem = this._authConfig.emailVerificationPrivateKey
+      if (!pem) {
+        throw new InternalServerErrorException(
+          'Email verification not configured (missing private key)',
+        )
+      }
+      return {
+        key: await jose.importPKCS8(pem, RS_ALGORITHM),
+        alg: RS_ALGORITHM,
+      }
+    }
+    const secret = this._authConfig.emailVerificationSecret
+    if (!secret) {
+      throw new InternalServerErrorException(
+        'Email verification not configured (missing secret)',
+      )
+    }
+    return { key: new TextEncoder().encode(secret), alg: HS_ALGORITHM }
+  }
+
+  private async getEmailVerificationVerifyKey(): Promise<{
+    key: Awaited<ReturnType<typeof jose.importSPKI>> | Uint8Array
+    alg: 'RS256' | 'HS256'
+  }> {
+    const isRS = this._authConfig.emailVerificationAlgorithm === 'RS'
+    if (isRS) {
+      const pem = this._authConfig.emailVerificationPublicKey
+      if (!pem) {
+        throw new InternalServerErrorException(
+          'Email verification not configured (missing public key)',
+        )
+      }
+      return {
+        key: await jose.importSPKI(pem, RS_ALGORITHM),
+        alg: RS_ALGORITHM,
+      }
+    }
+    const secret = this._authConfig.emailVerificationSecret
+    if (!secret) {
+      throw new InternalServerErrorException(
+        'Email verification not configured (missing secret)',
+      )
+    }
+    return { key: new TextEncoder().encode(secret), alg: HS_ALGORITHM }
+  }
+
+  async createEmailVerificationToken({
     userId,
     email,
     emailVerifyKey,
@@ -363,78 +390,50 @@ export class JWTService {
     userId: string
     email: string
     emailVerifyKey: string
-  }): string {
-    const isRS = this._authConfig.emailVerificationAlgorithm === 'RS'
-    const signingKey = isRS
-      ? this._authConfig.emailVerificationPrivateKey
-      : this._authConfig.emailVerificationSecret
-    if (!signingKey) {
-      throw new InternalServerErrorException(
-        isRS
-          ? 'Email verification not configured (missing private key)'
-          : 'Email verification not configured (missing secret)',
-      )
-    }
+  }): Promise<string> {
+    const { key, alg } = await this.getEmailVerificationSignKey()
     const normalizedEmail = JWTService.normalizeEmail(email)
-    const now = Math.floor(Date.now() / 1000)
-    const payload = {
-      iss: EMAIL_VERIFY_ISS,
-      aud: EMAIL_VERIFY_AUD,
-      sub: userId,
-      jti: uuidV4(),
-      iat: now,
-      exp: now + AuthDurationSeconds.EmailVerification,
+    const builder = new jose.SignJWT({
       evk: emailVerifyKey,
       eh: JWTService.emailHash(normalizedEmail),
-    }
-    const algorithm = isRS ? EMAIL_VERIFY_ALG_RS : EMAIL_VERIFY_ALG_HS
-    return jwt.sign(payload, signingKey, {
-      algorithm,
-      ...(isRS ? { keyid: EMAIL_VERIFY_KID } : {}),
     })
+      .setProtectedHeader({
+        alg,
+        ...(alg === RS_ALGORITHM ? { kid: EMAIL_VERIFY_KID } : {}),
+      })
+      .setIssuer(EMAIL_VERIFY_ISS)
+      .setAudience(EMAIL_VERIFY_AUD)
+      .setSubject(userId)
+      .setJti(uuidV4())
+      .setIssuedAt()
+      .setExpirationTime(`${AuthDurationSeconds.EmailVerification}s`)
+    return builder.sign(key)
   }
 
-  verifyEmailVerificationToken(token: string): {
+  async verifyEmailVerificationToken(token: string): Promise<{
     sub: string
     evk: string
     eh: string
-  } {
-    const isRS = this._authConfig.emailVerificationAlgorithm === 'RS'
-    const verifyKey = isRS
-      ? this._authConfig.emailVerificationPublicKey
-      : this._authConfig.emailVerificationSecret
-    if (!verifyKey) {
-      throw new InternalServerErrorException(
-        isRS
-          ? 'Email verification not configured (missing public key)'
-          : 'Email verification not configured (missing secret)',
-      )
-    }
-    const algorithms: jwt.Algorithm[] = isRS
-      ? [EMAIL_VERIFY_ALG_RS]
-      : [EMAIL_VERIFY_ALG_HS]
+  }> {
+    const { key, alg } = await this.getEmailVerificationVerifyKey()
+    let payload: jose.JWTPayload & { evk?: unknown; eh?: unknown }
     try {
-      const decoded = jwt.verify(token, verifyKey, {
-        algorithms,
+      const result = await jose.jwtVerify(token, key, {
+        algorithms: [alg],
         audience: EMAIL_VERIFY_AUD,
         issuer: EMAIL_VERIFY_ISS,
-      }) as JwtPayload & { evk?: string; eh?: string }
-      if (
-        typeof decoded.sub !== 'string' ||
-        typeof decoded.evk !== 'string' ||
-        typeof decoded.eh !== 'string'
-      ) {
-        throw new AuthTokenInvalidError(token)
-      }
-      return { sub: decoded.sub, evk: decoded.evk, eh: decoded.eh }
+      })
+      payload = result.payload as typeof payload
     } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthTokenExpiredError(token, error)
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new AuthTokenInvalidError(token, error)
-      }
-      throw error
+      mapJoseError(token, error)
     }
+    if (
+      typeof payload.sub !== 'string' ||
+      typeof payload.evk !== 'string' ||
+      typeof payload.eh !== 'string'
+    ) {
+      throw new AuthTokenInvalidError(token)
+    }
+    return { sub: payload.sub, evk: payload.evk, eh: payload.eh }
   }
 }

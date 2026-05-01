@@ -42,7 +42,7 @@ describe('App Socket Interface', () => {
   }
 
   const createAppToken = (appIdentifier: string): Promise<string> => {
-    return testModule!.services.jwtService.createAppToken(appIdentifier)
+    return testModule!.services.jwtService.mintAppToken(appIdentifier)
   }
 
   const connectSocket = async (
@@ -408,79 +408,7 @@ describe('App Socket Interface', () => {
     })
   })
 
-  it('should mint an app_user_worker token with platformAccess and locked extra', async () => {
-    socket = await connectSocket('test-instance-1')
-
-    const {
-      session: { accessToken: userToken },
-    } = await createTestUser(testModule!, {
-      username: 'workertokenuser',
-      password: '123',
-    })
-
-    const viewer =
-      await testModule!.services.ormService.db.query.usersTable.findFirst({
-        where: eq(usersTable.username, 'workertokenuser'),
-      })
-    const appIdentifier = SOCKET_TEST_APP_SLUG
-    const enableAppResponse = await testModule!
-      .apiClient(userToken)
-      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
-        params: { path: { appIdentifier } },
-        body: {
-          folderScopePermissionsDefault: null,
-          enabled: true,
-          permissions: ['READ_USER'],
-          folderScopeEnabledDefault: true,
-        },
-      })
-    expect(enableAppResponse.response.status).toBe(201)
-
-    const extra = { agentId: 'agent-1', tier: 'pro' }
-
-    const response = await buildAppClient(
-      socket,
-      serverBaseUrl,
-    ).mintAppUserWorkerToken({
-      userId: viewer?.id ?? '',
-      extra,
-      platformAccess: true,
-    })
-
-    if (!('result' in response)) {
-      throw new Error('Expected result in response')
-    }
-    expect(typeof response.result.accessToken).toBe('string')
-    expect(typeof response.result.refreshToken).toBe('string')
-
-    const claims = await testModule!.services.jwtService.verifyAppToken(
-      response.result.accessToken,
-    )
-    expect(claims.actor).toBe('app_user_worker')
-    if (claims.actor !== 'app_user_worker') {
-      throw new Error('unreachable')
-    }
-    expect(claims.userId).toBe(viewer?.id ?? '')
-    expect(claims.appIdentifier).toBe(appIdentifier)
-    expect(claims.platformAccess).toBe(true)
-    expect(claims.extra).toEqual(extra)
-
-    const sessions =
-      await testModule!.services.ormService.db.query.sessionsTable.findMany({
-        where: eq(sessionsTable.userId, viewer?.id ?? ''),
-        orderBy: (s, { desc }) => [desc(s.createdAt)],
-      })
-    const session = sessions[0]!
-    expect(session.type).toBe('app_user_worker')
-    expect(session.typeDetails).toEqual({
-      app: appIdentifier,
-      actor: 'app_user_worker',
-      extra,
-      platformAccess: true,
-    })
-  })
-
-  it('app_user_worker token with platformAccess=true is accepted on platform endpoint', async () => {
+  it('app-minted app_user token defaults to platformAccess: true and is accepted on platform endpoints', async () => {
     socket = await connectSocket('test-instance-1')
     const {
       session: { accessToken: userToken },
@@ -505,16 +433,24 @@ describe('App Socket Interface', () => {
         },
       })
 
-    const minted = await buildAppClient(
-      socket,
-      serverBaseUrl,
-    ).mintAppUserWorkerToken({
-      userId: viewer?.id ?? '',
-      platformAccess: true,
-    })
+    const minted = await buildAppClient(socket, serverBaseUrl).mintAppUserToken(
+      {
+        userId: viewer?.id ?? '',
+      },
+    )
     if (!('result' in minted)) {
       throw new Error('Expected result in mint response')
     }
+
+    const claims = await testModule!.services.jwtService.verifyAppToken(
+      minted.result.accessToken,
+    )
+    expect(claims.actorType).toBe('app_user')
+    if (claims.actorType !== 'app_user') {
+      throw new Error('unreachable')
+    }
+    expect(claims.platformAccess).toBe(true)
+    expect(claims.worker).toBeUndefined()
 
     const viewerResponse = await testModule!
       .apiClient(minted.result.accessToken)
@@ -523,7 +459,7 @@ describe('App Socket Interface', () => {
     expect(viewerResponse.data?.user.id).toBe(viewer?.id ?? '')
   })
 
-  it('app_user_worker token without platformAccess is rejected on platform endpoint', async () => {
+  it('app_user token with platformAccess: false is rejected on platform endpoint', async () => {
     socket = await connectSocket('test-instance-1')
     const {
       session: { accessToken: userToken },
@@ -548,13 +484,12 @@ describe('App Socket Interface', () => {
         },
       })
 
-    // Default platformAccess is false; omit it explicitly.
-    const minted = await buildAppClient(
-      socket,
-      serverBaseUrl,
-    ).mintAppUserWorkerToken({
-      userId: viewer?.id ?? '',
-    })
+    const minted = await buildAppClient(socket, serverBaseUrl).mintAppUserToken(
+      {
+        userId: viewer?.id ?? '',
+        platformAccess: false,
+      },
+    )
     if (!('result' in minted)) {
       throw new Error('Expected result in mint response')
     }

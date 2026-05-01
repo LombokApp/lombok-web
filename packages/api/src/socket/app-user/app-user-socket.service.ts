@@ -62,7 +62,7 @@ export class AppUserSocketService {
       throw new UnauthorizedException('Bad auth payload')
     }
     const claims = await this.jwtService.verifyAppToken(auth.token)
-    if (claims.actor !== 'app_user') {
+    if (claims.actorType !== 'app_user' || claims.worker !== undefined) {
       throw new UnauthorizedException()
     }
     const { userId, appIdentifier } = claims

@@ -282,46 +282,15 @@ export class AppService {
   async mintAppUserToken({
     actor,
     userId,
-    extra,
-  }: {
-    actor: { appIdentifier: string }
-    userId: string
-    extra?: JsonSerializableObject
-  }) {
-    await this.validateAppUserAccess({
-      appIdentifier: actor.appIdentifier,
-      userId,
-    })
-
-    const app = await this.getApp(actor.appIdentifier, { enabled: true })
-    const user = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.id, userId),
-    })
-    if (!user) {
-      throw new NotFoundException(`User not found: ${userId}`)
-    }
-    if (!app?.enabled) {
-      throw new NotFoundException(`App not found: ${actor.appIdentifier}`)
-    }
-
-    return this.sessionService.createAppUserSession({
-      user,
-      appIdentifier: actor.appIdentifier,
-      actor: 'app_user',
-      extra,
-    })
-  }
-
-  async mintAppUserWorkerToken({
-    actor,
-    userId,
-    extra,
+    worker,
     platformAccess,
+    extra,
   }: {
     actor: { appIdentifier: string }
     userId: string
-    extra?: JsonSerializableObject
+    worker?: string
     platformAccess?: boolean
+    extra?: JsonSerializableObject
   }) {
     await this.validateAppUserAccess({
       appIdentifier: actor.appIdentifier,
@@ -342,8 +311,8 @@ export class AppService {
     return this.sessionService.createAppUserSession({
       user,
       appIdentifier: actor.appIdentifier,
-      actor: 'app_user_worker',
-      platformAccess: platformAccess ?? false,
+      worker,
+      platformAccess,
       extra,
     })
   }
@@ -358,7 +327,6 @@ export class AppService {
     return this.sessionService.createAppUserSession({
       user,
       appIdentifier,
-      actor: 'app_user',
     })
   }
 
@@ -701,7 +669,7 @@ export class AppService {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         workerApp.runtimeWorkers.definitions[requestData.workerIdentifier]!
           .environmentVariables,
-      workerToken: await this.jwtService.createAppToken(
+      workerToken: await this.jwtService.mintAppToken(
         requestData.appIdentifier,
       ),
       hash: workerApp.runtimeWorkers.hash,

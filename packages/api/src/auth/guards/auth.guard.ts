@@ -1,18 +1,11 @@
-import {
-  APP_USER_JWT_SUB_PREFIX,
-  APP_USER_WORKER_JWT_SUB_PREFIX,
-} from '@lombokapp/types'
+import { APP_USER_JWT_SUB_PREFIX } from '@lombokapp/types'
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
 import { UserService } from 'src/users/services/users.service'
 
-import {
-  AuthTokenInvalidError,
-  JWTService,
-  USER_JWT_SUB_PREFIX,
-} from '../services/jwt.service'
+import { JWTService, USER_JWT_SUB_PREFIX } from '../services/jwt.service'
 import { AllowedActor, AuthGuardConfig } from './auth.guard-config'
 
 const BEARER_PREFIX = 'Bearer '
@@ -34,31 +27,26 @@ export class AuthGuard implements CanActivate {
     if (authHeader?.startsWith(BEARER_PREFIX)) {
       const config = this.resolveConfig(context)
       const token = authHeader.slice(BEARER_PREFIX.length)
-      const decodedJWT = this.jwtService.decodeJWT(token)
-      if (!decodedJWT.payload || typeof decodedJWT.payload == 'string') {
-        throw new AuthTokenInvalidError(token)
-      }
-      if (decodedJWT.payload.sub) {
-        const subject = decodedJWT.payload.sub
-
+      const decodedPayload = this.jwtService.decodeJwtPayload(token)
+      const subject = decodedPayload.sub
+      if (subject) {
         if (
           subject.startsWith(USER_JWT_SUB_PREFIX) &&
           config.allowedActors.includes(AllowedActor.USER)
         ) {
-          this.jwtService.verifyUserJWT(token)
+          await this.jwtService.verifyUserJWT(token)
           const userId = subject.split(':')[1] ?? ''
           request.user = await this.userService.getUserById({ id: userId })
           return true
         } else if (
-          (subject.startsWith(APP_USER_JWT_SUB_PREFIX) ||
-            subject.startsWith(APP_USER_WORKER_JWT_SUB_PREFIX)) &&
+          subject.startsWith(APP_USER_JWT_SUB_PREFIX) &&
           config.allowedActors.includes(AllowedActor.APP_USER)
         ) {
           const claims = await this.jwtService.verifyAppToken(token)
-          if (claims.actor === 'app') {
+          if (claims.actorType !== 'app_user') {
             return false
           }
-          if (claims.actor === 'app_user_worker' && !claims.platformAccess) {
+          if (!claims.platformAccess) {
             throw new UnauthorizedException()
           }
           request.user = await this.userService.getUserById({

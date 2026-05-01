@@ -10279,9 +10279,6 @@
               "label": {
                 "type": "string"
               },
-              "publicKey": {
-                "type": "string"
-              },
               "config": {
                 "type": "object",
                 "properties": {
@@ -12727,7 +12724,6 @@
               "identifier",
               "slug",
               "label",
-              "publicKey",
               "config",
               "requiresStorage",
               "enabled",
@@ -13076,9 +13072,6 @@
                   "type": "string"
                 },
                 "label": {
-                  "type": "string"
-                },
-                "publicKey": {
                   "type": "string"
                 },
                 "config": {
@@ -15526,7 +15519,6 @@
                 "identifier",
                 "slug",
                 "label",
-                "publicKey",
                 "config",
                 "requiresStorage",
                 "enabled",
@@ -15875,9 +15867,6 @@
                 "type": "string"
               },
               "label": {
-                "type": "string"
-              },
-              "publicKey": {
                 "type": "string"
               },
               "config": {
@@ -18325,7 +18314,6 @@
               "identifier",
               "slug",
               "label",
-              "publicKey",
               "config",
               "requiresStorage",
               "enabled",

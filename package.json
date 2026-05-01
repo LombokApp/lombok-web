@@ -75,7 +75,7 @@
     "tsconfig-paths": "4.2.0",
     "tsup": "8.5.0",
     "jexpr": "1.0.0-pre.9",
-    "jose": "5.9.6"
+    "jose": "6.2.3"
   },
   "devDependencies": {
     "@eslint/js": "catalog:",
