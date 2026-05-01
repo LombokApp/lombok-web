@@ -29,7 +29,7 @@ type CancelJobConfig struct {
 
 // CancelJob cancels a running job, killing the worker process and recording failure
 // It handles both exec_per_job and persistent_http interfaces appropriately
-func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) error {
+func CancelJob(config CancelJobConfig, errorCode string, errorMessage string, errorDetails map[string]any) error {
 	// Determine which interface type we're dealing with
 	workerKind := config.JobState.WorkerKind
 	if workerKind == "" {
@@ -151,6 +151,7 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 			Error: &types.JobError{
 				Code:    errorCode,
 				Message: errorMessage,
+				Details: errorDetails,
 			},
 		}
 		if err := config.PlatformClient.SignalCompletion(ctx, config.Payload.JobID, completionReq); err != nil {
@@ -161,16 +162,20 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 	}
 
 	// Output result to stdout for the platform to capture
+	errMap := map[string]interface{}{
+		"code":    errorCode,
+		"message": errorMessage,
+	}
+	if len(errorDetails) > 0 {
+		errMap["details"] = errorDetails
+	}
 	result := map[string]interface{}{
 		"success":   false,
 		"exit_code": 1,
 		"job_id":    config.Payload.JobID,
 		"job_class": config.Payload.JobClass,
 		"timing":    timing,
-		"error": map[string]interface{}{
-			"code":    errorCode,
-			"message": errorMessage,
-		},
+		"error":     errMap,
 	}
 
 	resultJSON, _ := json.Marshal(result)
@@ -186,6 +191,7 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string) er
 		Error: &types.JobError{
 			Code:    errorCode,
 			Message: errorMessage,
+			Details: errorDetails,
 		},
 	}
 	if err := state.WriteJobResult(jobResult); err != nil {

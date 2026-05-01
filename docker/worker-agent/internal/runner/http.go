@@ -116,6 +116,11 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
 		totalJobDuration := time.Since(jobStartTime)
 
+		errorDetails := map[string]any{
+			"port":            workerPort,
+			"readiness_error": err.Error(),
+		}
+
 		// Signal completion to platform if available
 		if platformClient != nil {
 			ctx := context.Background()
@@ -124,6 +129,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				Error: &types.JobError{
 					Code:    "WORKER_NOT_READY",
 					Message: err.Error(),
+					Details: errorDetails,
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
@@ -137,6 +143,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"error": map[string]interface{}{
 				"code":    "WORKER_NOT_READY",
 				"message": err.Error(),
+				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{
 				"total_time_seconds":          totalJobDuration.Seconds(),
@@ -177,7 +184,10 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				JobStartTime:    jobStartTime,
 				WorkerStartTime: workerStartupStartTime,
 				WorkerPID:       workerState.PID,
-			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err))
+			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err), map[string]any{
+				"underlying_error": err.Error(),
+				"worker_pid":       workerState.PID,
+			})
 
 			os.Exit(1)
 			return cancelErr
@@ -209,12 +219,19 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
 		totalJobDuration := time.Since(jobStartTime)
 
+		errorDetails := map[string]any{
+			"port":             workerPort,
+			"submit_url":       submitURL,
+			"underlying_error": err.Error(),
+		}
+
 		result := map[string]interface{}{
 			"success": false,
 			"job_id":  payload.JobID,
 			"error": map[string]interface{}{
 				"code":    "JOB_SUBMIT_FAILED",
 				"message": err.Error(),
+				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{
 				"total_time_seconds":          totalJobDuration.Seconds(),
@@ -251,6 +268,20 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
 		totalJobDuration := time.Since(jobStartTime)
 
+		errorDetails := map[string]any{
+			"port":             workerPort,
+			"http_status_code": resp.StatusCode,
+		}
+		// Preserve any worker-supplied details from the rejection response.
+		if submitResp.Error != nil {
+			if submitResp.Error.Code != "" {
+				errorDetails["worker_error_code"] = submitResp.Error.Code
+			}
+			if len(submitResp.Error.Details) > 0 {
+				errorDetails["worker_error_details"] = submitResp.Error.Details
+			}
+		}
+
 		// Signal completion to platform if available
 		if platformClient != nil {
 			ctx := context.Background()
@@ -259,6 +290,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				Error: &types.JobError{
 					Code:    "JOB_NOT_ACCEPTED",
 					Message: errMsg,
+					Details: errorDetails,
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
@@ -272,6 +304,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"error": map[string]interface{}{
 				"code":    "JOB_NOT_ACCEPTED",
 				"message": errMsg,
+				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{
 				"total_time_seconds":          totalJobDuration.Seconds(),
@@ -340,6 +373,11 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 		workerStartupDurationActual := time.Since(workerStartupStartTime)
 		totalJobDuration := time.Since(jobStartTime)
 
+		errorDetails := map[string]any{
+			"port":            workerPort,
+			"timeout_seconds": jobPollTimeout.Seconds(),
+		}
+
 		// Signal completion to platform if available
 		if platformClient != nil {
 			ctx := context.Background()
@@ -348,6 +386,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				Error: &types.JobError{
 					Code:    "JOB_POLL_TIMEOUT",
 					Message: jobState.Error,
+					Details: errorDetails,
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
@@ -361,6 +400,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"error": map[string]interface{}{
 				"code":    "JOB_POLL_TIMEOUT",
 				"message": jobState.Error,
+				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{
 				"job_execution_time_seconds":  jobExecutionDuration.Seconds(),

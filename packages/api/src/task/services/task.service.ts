@@ -1294,6 +1294,8 @@ export class TaskService {
           : undefined
         if (onCompleteHandler.condition && !conditionInput.success) {
           this.logger.debug('Task onComplete condition evaluation failed:', {
+            ownerIdentifier: updatedTask.ownerIdentifier,
+            taskIdentifier: onCompleteHandler.taskIdentifier,
             condition: onCompleteHandler.condition,
             input: conditionInput,
           })

@@ -91,6 +91,7 @@ interface JobResult {
   error?: {
     code: string
     message: string
+    details?: Record<string, unknown>
   }
 }
 
@@ -118,7 +119,11 @@ interface UploadURLResponse {
 interface CompletionRequest {
   success: boolean
   result?: unknown
-  error?: { code: string; message: string }
+  error?: {
+    code: string
+    message: string
+    details?: Record<string, unknown>
+  }
   outputFiles?: Array<{ folderId: string; objectKey: string }>
 }
 
@@ -667,12 +672,12 @@ function startMockPlatformServer(): void {
         })
       }
 
-      // POST /api/v1/docker/jobs/{job_id}/update
-      const updateMatch = path.match(
-        /^\/api\/v1\/docker\/jobs\/([^/]+)\/update$/,
+      // POST /api/v1/docker/jobs/{job_id}/progress
+      const progressMatch = path.match(
+        /^\/api\/v1\/docker\/jobs\/([^/]+)\/progress$/,
       )
-      if (updateMatch && req.method === 'POST') {
-        const jobId = updateMatch[1]
+      if (progressMatch && req.method === 'POST') {
+        const jobId = progressMatch[1]
         const body = await req.json()
 
         mockPlatformState.updateRequests.push({
@@ -3146,6 +3151,126 @@ describe('Platform Agent', () => {
       expect(completionReq.body.success).toBe(false)
       expect(completionReq.body.error).toBeDefined()
       expect(completionReq.body.error?.code).toBe('WORKER_EXIT_ERROR')
+      // Synthesized error should include exit_code in details so the platform
+      // can show structured context to operators.
+      expect(completionReq.body.error?.details).toBeDefined()
+      expect(completionReq.body.error?.details?.exit_code).toBe(1)
+    })
+
+    test('exec_per_job forwards worker-supplied error envelope from JOB_RESULT_FILE', async () => {
+      const jobId = generateJobId('platform-exec-worker-error')
+      const errorEnvelope = {
+        success: false,
+        error: {
+          code: 'CUSTOM_WORKER_ERROR',
+          message: 'simulated structured failure',
+          details: { hint: 'check input', attempt: 3 },
+        },
+      }
+      // The worker writes a structured error envelope and exits non-zero.
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_exec_worker_error_test',
+        worker_command: [
+          'sh',
+          '-c',
+          `printf '%s' '${JSON.stringify(errorEnvelope)}' > "$JOB_RESULT_FILE" && exit 1`,
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { jobResult: result, exitCode } = await runJob(payload)
+
+      expect(exitCode).toBe(1)
+      expect(result.success).toBe(false)
+      // The agent should NOT synthesize WORKER_EXIT_ERROR — the worker's own
+      // structured error must be forwarded verbatim.
+      expect(result.error?.code).toBe('CUSTOM_WORKER_ERROR')
+      expect(result.error?.message).toBe('simulated structured failure')
+      expect(result.error?.details).toEqual({ hint: 'check input', attempt: 3 })
+
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.body.success).toBe(false)
+      expect(completionReq.body.error?.code).toBe('CUSTOM_WORKER_ERROR')
+      expect(completionReq.body.error?.message).toBe(
+        'simulated structured failure',
+      )
+      expect(completionReq.body.error?.details).toEqual({
+        hint: 'check input',
+        attempt: 3,
+      })
+    })
+
+    test('exec_per_job treats worker-supplied error envelope as failure even on exit 0', async () => {
+      const jobId = generateJobId('platform-exec-worker-error-exit0')
+      const errorEnvelope = {
+        success: false,
+        error: {
+          code: 'WORKER_REPORTED_FAILURE',
+          message: 'business rule violation',
+        },
+      }
+      // Some workers may emit a structured failure but exit cleanly. The
+      // agent must still treat the job as failed and forward the error.
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'platform_exec_worker_error_exit0_test',
+        worker_command: [
+          'sh',
+          '-c',
+          `printf '%s' '${JSON.stringify(errorEnvelope)}' > "$JOB_RESULT_FILE" && exit 0`,
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { jobResult: result, exitCode } = await runJob(payload)
+
+      expect(exitCode).toBe(1)
+      expect(result.success).toBe(false)
+      expect(result.error?.code).toBe('WORKER_REPORTED_FAILURE')
+      expect(result.error?.message).toBe('business rule violation')
+
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.body.success).toBe(false)
+      expect(completionReq.body.error?.code).toBe('WORKER_REPORTED_FAILURE')
+    })
+
+    test('exec_per_job ignores malformed error envelope (no code) and synthesizes WORKER_EXIT_ERROR', async () => {
+      const jobId = generateJobId('platform-exec-malformed-envelope')
+      // Has an `error` field but no `code` — must NOT be honored. Falls back
+      // to the agent's synthesized WORKER_EXIT_ERROR.
+      const malformed = { error: { message: 'oops' } }
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: 'malformed_envelope_test',
+        worker_command: [
+          'sh',
+          '-c',
+          `printf '%s' '${JSON.stringify(malformed)}' > "$JOB_RESULT_FILE" && exit 7`,
+        ],
+        interface: { kind: 'exec_per_job' },
+        job_input: {},
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { jobResult: result } = await runJob(payload)
+      expect(result.success).toBe(false)
+      expect(result.error?.code).toBe('WORKER_EXIT_ERROR')
+      expect(result.error?.details?.exit_code).toBe(7)
+
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      expect(mockPlatformState.completionRequests[0].body.error?.code).toBe(
+        'WORKER_EXIT_ERROR',
+      )
     })
 
     test('exec_per_job calls /start endpoint before job completes', async () => {
@@ -3335,6 +3460,43 @@ describe('Platform Agent', () => {
       expect(completionReq.jobId).toBe(jobId)
       expect(completionReq.body.success).toBe(true)
       expect(completionReq.body.result).toBeDefined()
+    })
+
+    test('persistent_http forwards worker error.details to platform', async () => {
+      const jobClass = 'fail_with_details_8240'
+      const port = 8240
+
+      const jobId = generateJobId('platform-http-error-details')
+      const payload: JobPayload = {
+        job_id: jobId,
+        job_class: jobClass,
+        worker_command: ['bun', 'run', 'src/mock-worker.ts'],
+        interface: { kind: 'persistent_http', port },
+        job_input: {
+          code: 'CUSTOM_HTTP_WORKER_ERROR',
+          message: 'persistent worker simulated failure',
+          details: { causedBy: 'unit_test', retryable: false },
+        },
+        job_token: MOCK_JOB_TOKEN,
+        platform_url: getMockPlatformUrl(),
+      }
+
+      const { jobResult: result } = await runJob(payload, [`APP_PORT=${port}`])
+
+      expect(result.success).toBe(false)
+
+      expect(mockPlatformState.completionRequests.length).toBe(1)
+      const completionReq = mockPlatformState.completionRequests[0]
+      expect(completionReq.jobId).toBe(jobId)
+      expect(completionReq.body.success).toBe(false)
+      expect(completionReq.body.error?.code).toBe('CUSTOM_HTTP_WORKER_ERROR')
+      expect(completionReq.body.error?.message).toBe(
+        'persistent worker simulated failure',
+      )
+      expect(completionReq.body.error?.details).toEqual({
+        causedBy: 'unit_test',
+        retryable: false,
+      })
     })
 
     test('file_output job uploads files via presigned URLs and signals completion', async () => {
@@ -3592,7 +3754,7 @@ describe('Platform Agent', () => {
         worker_command: [
           'sh',
           '-c',
-          `echo "starting work" && echo '__PLATFORM_UPDATE__|${updatePayload}' && echo "middle of work" && echo '__PLATFORM_UPDATE__|${updatePayload2}' && echo "done"`,
+          `echo "starting work" && echo '__PLATFORM_PROGRESS_UPDATE__|${updatePayload}' && echo "middle of work" && echo '__PLATFORM_PROGRESS_UPDATE__|${updatePayload2}' && echo "done"`,
         ],
         interface: { kind: 'exec_per_job' },
         job_input: { test: true },
@@ -3628,7 +3790,7 @@ describe('Platform Agent', () => {
 
       // Verify magic lines do NOT appear in the job log
       const jobLog = await readJobLog(jobId)
-      expect(jobLog).not.toContain('__PLATFORM_UPDATE__')
+      expect(jobLog).not.toContain('__PLATFORM_PROGRESS_UPDATE__')
       expect(jobLog).not.toContain(updatePayload)
 
       // Verify normal log lines ARE in the job log
@@ -3646,7 +3808,7 @@ describe('Platform Agent', () => {
         worker_command: [
           'sh',
           '-c',
-          `echo '__PLATFORM_UPDATE__|not valid json' && echo "normal output"`,
+          `echo '__PLATFORM_PROGRESS_UPDATE__|not valid json' && echo "normal output"`,
         ],
         interface: { kind: 'exec_per_job' },
         job_input: {},
@@ -3663,7 +3825,7 @@ describe('Platform Agent', () => {
 
       // Invalid magic line should NOT appear in the job log either
       const jobLog = await readJobLog(jobId)
-      expect(jobLog).not.toContain('__PLATFORM_UPDATE__')
+      expect(jobLog).not.toContain('__PLATFORM_PROGRESS_UPDATE__')
 
       // Normal output should be in the job log
       expect(jobLog).toContain('normal output')

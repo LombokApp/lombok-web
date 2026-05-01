@@ -903,6 +903,7 @@ describe('Core Worker', () => {
                 details: {
                   originalError: {
                     code: 'CUSTOM_APP_ERROR_CODE_INVALID',
+                    details: {},
                     message: 'This is a custom error message from the app',
                     name: 'Error',
                     requeueDelayMs: {

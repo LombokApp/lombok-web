@@ -100,12 +100,13 @@ type HTTPJobResponse struct {
 }
 
 // JobError represents an error from a job execution.
-// Supports both structured {"code":"...","message":"..."} and plain string
+// Supports both structured {"code":"...","message":"...","details":{...}} and plain string
 // formats during JSON unmarshaling, so that validation errors from workers
 // that return {"error":"some string"} don't cause parse failures.
 type JobError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code    string         `json:"code"`
+	Message string         `json:"message"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 // UnmarshalJSON handles both string and object error formats from workers.

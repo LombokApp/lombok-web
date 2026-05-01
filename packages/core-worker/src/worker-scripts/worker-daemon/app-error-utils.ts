@@ -58,6 +58,7 @@ export const getAsyncWorkErrorFromAppTaskError = (
     requeueDelayMs: error.requeueDelayMs,
     message: error.message,
     stack: error.stack,
+    details: error.details,
   }
 
   const [appTaskErrorValidationSuccess, errorMessage] =
@@ -77,6 +78,9 @@ export const getAsyncWorkErrorFromAppTaskError = (
         requeueDelayMs: error.requeueDelayMs,
         message: error.message.slice(0, MAX_STRING_LENGTH),
         stack: error.stack?.slice(0, MAX_STACK_LENGTH),
+        ...(Object.keys(error.details).length > 0
+          ? { details: error.details }
+          : {}),
       },
     })
   }
