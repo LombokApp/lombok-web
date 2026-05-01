@@ -11,7 +11,7 @@ export const handleRequest: RequestHandler = async function handleRequest(
   // Triggers N demo_async_task tasks with generated correlationKeys,
   // returns the correlationKeys so the caller can filter socket events.
   if (url.pathname.endsWith('/trigger-tasks') && request.method === 'POST') {
-    if (actor?.actorType !== 'user') {
+    if (actor?.actorType !== 'app_user') {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
       })

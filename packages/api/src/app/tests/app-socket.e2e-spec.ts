@@ -403,7 +403,7 @@ describe('App Socket Interface', () => {
     expect(session.type).toBe('app_user')
     expect(session.typeDetails).toEqual({
       app: appIdentifier,
-      actor: 'app_user',
+      platformAccess: true,
       extra,
     })
   })

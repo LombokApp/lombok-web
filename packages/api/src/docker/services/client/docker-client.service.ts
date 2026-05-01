@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common'
 import type { ConfigType } from '@nestjs/config'
 import type { ContainerInspectInfo } from 'dockerode'
-import * as jwt from 'jsonwebtoken'
+import * as jose from 'jose'
 import { coreConfig } from 'src/core/config'
 
 import { DockerBridgeService } from '../docker-bridge.service'
@@ -1073,7 +1073,7 @@ export class DockerClientService {
       `Bridge tunnel session created: ${session.id} for container ${containerId}${publicId ? ` publicId ${publicId}` : ''}`,
     )
 
-    const token = this.mintSessionToken(session.id, backendToken, {
+    const token = await this.mintSessionToken(session.id, backendToken, {
       publicId,
       mode,
     })
@@ -1147,23 +1147,21 @@ export class DockerClientService {
       publicId?: string
       mode?: 'ephemeral' | 'persistent'
     },
-  ): string {
-    return jwt.sign(
-      {
-        sub: `bridge_session:${sessionId}`,
-        sid: sessionId,
-        aud: 'docker-bridge',
-        ...(options?.publicId ? { public_id: options.publicId } : {}),
-        ...(options?.mode ? { mode: options.mode } : {}),
-      },
-      secret,
-      {
-        algorithm: 'HS256',
-        expiresIn: options?.publicId
-          ? PUBLIC_SESSION_TOKEN_TTL_SECONDS
-          : SESSION_TOKEN_TTL_SECONDS,
-      },
-    )
+  ): Promise<string> {
+    const ttlSeconds = options?.publicId
+      ? PUBLIC_SESSION_TOKEN_TTL_SECONDS
+      : SESSION_TOKEN_TTL_SECONDS
+    return new jose.SignJWT({
+      sid: sessionId,
+      ...(options?.publicId ? { public_id: options.publicId } : {}),
+      ...(options?.mode ? { mode: options.mode } : {}),
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setSubject(`bridge_session:${sessionId}`)
+      .setAudience('docker-bridge')
+      .setIssuedAt()
+      .setExpirationTime(`${ttlSeconds}s`)
+      .sign(new TextEncoder().encode(secret))
   }
 
   private buildBridgeUrls(): { wsUrl: string; httpUrl: string } {
