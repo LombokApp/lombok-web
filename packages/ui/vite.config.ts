@@ -1,5 +1,6 @@
 import http from 'node:http'
 
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import type { PluginOption } from 'vite'
@@ -80,6 +81,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      tailwindcss(),
       react(),
       ...(mode === 'development' ? [subdomainProxyPlugin(env)] : []),
     ] as PluginOption[],
