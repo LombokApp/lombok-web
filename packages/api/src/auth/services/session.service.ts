@@ -59,8 +59,10 @@ export class SessionService {
     worker?: string
     platformAccess?: boolean
     extra?: JsonSerializableObject
+    accessTokenExpiresInSec?: number
   }) {
-    const { user, appIdentifier, worker, extra } = params
+    const { user, appIdentifier, worker, extra, accessTokenExpiresInSec } =
+      params
     const platformAccess = JWTService.resolvePlatformAccess(params)
     const secret = hashedTokenHelper.createSecretKey()
 
@@ -95,6 +97,9 @@ export class SessionService {
       worker,
       platformAccess,
       extra,
+      ...(accessTokenExpiresInSec !== undefined
+        ? { accessTokenExpiresInSec }
+        : {}),
     })
     const refreshToken = hashedTokenHelper.encode(session.id, secret)
 

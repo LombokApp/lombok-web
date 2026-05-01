@@ -258,6 +258,7 @@ export class JWTService {
     worker?: string
     platformAccess?: boolean
     extra?: JsonSerializableObject
+    accessTokenExpiresInSec?: number
   }): Promise<string> {
     assertExtraSize(params.extra)
     const platformAccess = JWTService.resolvePlatformAccess(params)
@@ -275,7 +276,9 @@ export class JWTService {
         subject: `${APP_USER_JWT_SUB_PREFIX}${params.session.userId}:${params.appIdentifier}`,
         audience: params.appIdentifier,
         jwtid: `${params.session.id}:${uuidV4()}`,
-        expiresInSec: AuthDurationSeconds.AppUserActorAccessToken,
+        expiresInSec:
+          params.accessTokenExpiresInSec ??
+          AuthDurationSeconds.AppUserActorAccessToken,
       },
     )
   }

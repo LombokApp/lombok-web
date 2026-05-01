@@ -21,6 +21,7 @@ import * as jose from 'jose'
 import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { AppService } from 'src/app/services/app.service'
+import { AuthDurationSeconds } from 'src/auth/constants/duration.constants'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KeyDerivationService } from 'src/auth/services/key-derivation.service'
 import { coreConfig } from 'src/core/config'
@@ -271,6 +272,8 @@ export class DockerWorkerHookService {
         ...(typeof params.platformAccess === 'boolean'
           ? { platformAccess: params.platformAccess }
           : {}),
+        accessTokenExpiresInSec:
+          AuthDurationSeconds.DockerContainerAppUserToken,
       })
       return {
         token: result.accessToken,
@@ -311,6 +314,8 @@ export class DockerWorkerHookService {
         ...(claims.worker !== undefined ? { worker: claims.worker } : {}),
         platformAccess: claims.platformAccess,
         ...(claims.extra ? { extra: claims.extra } : {}),
+        accessTokenExpiresInSec:
+          AuthDurationSeconds.DockerContainerAppUserToken,
       })
       return {
         accessToken: result.accessToken,
