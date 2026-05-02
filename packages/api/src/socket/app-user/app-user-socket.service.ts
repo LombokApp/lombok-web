@@ -1,4 +1,4 @@
-import type { ReceivedTaskUpdate } from '@lombokapp/types'
+import type { JsonSerializableObject } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
 import {
   forwardRef,
@@ -48,6 +48,18 @@ export class AppUserSocketService {
     this.namespace = namespace
   }
 
+  getUserRoomName(appIdentifier: string, userId: string): string {
+    return `app:${appIdentifier}__user:${userId}`
+  }
+
+  getFolderRoomName(
+    appIdentifier: string,
+    userId: string,
+    folderId: string,
+  ): string {
+    return `app:${appIdentifier}__user:${userId}__folder:${folderId}`
+  }
+
   async handleConnection(socket: Socket): Promise<void> {
     this.logger.debug(
       `AppUserSocketService handleConnection: [${socket.nsp.name}]`,
@@ -62,10 +74,16 @@ export class AppUserSocketService {
         )
         if (verifiedToken.sub.startsWith(APP_USER_JWT_SUB_PREFIX)) {
           const userId = verifiedToken.sub.split(':')[1]
+          const appIdentifier = verifiedToken.sub.split(':')[2]
+          if (!userId || !appIdentifier) {
+            throw new UnauthorizedException()
+          }
           ;(socket.data as Record<string, unknown>).userId = userId
-          await socket.join(`user:${userId}`)
+          ;(socket.data as Record<string, unknown>).appIdentifier =
+            appIdentifier
+          await socket.join(this.getUserRoomName(appIdentifier, userId))
           this.logger.debug(
-            `Socket authenticated userId: ${userId}, joined user:${userId} (socket: ${socket.id})`,
+            `Socket authenticated userId: ${userId}, joined ${this.getUserRoomName(appIdentifier, userId)} (socket: ${socket.id})`,
           )
         } else {
           throw new UnauthorizedException()
@@ -83,12 +101,10 @@ export class AppUserSocketService {
 
   async subscribeFolderScope(
     socket: Socket,
-    data: { folderId: string; appIdentifier: string },
+    data: { folderId: string },
   ): Promise<void> {
-    const userId = (socket.data as Record<string, unknown>).userId as
-      | string
-      | undefined
-    if (!userId) {
+    const { userId, appIdentifier } = socket.data as Record<string, string>
+    if (!userId || !appIdentifier) {
       socket.emit('subscribe_error', {
         folderId: data.folderId,
         error: 'Not authenticated',
@@ -109,11 +125,13 @@ export class AppUserSocketService {
       }
       await this.folderService.getFolderAsUser(user, data.folderId)
       await this.appService.validateAppFolderAccess({
-        appIdentifier: data.appIdentifier,
+        appIdentifier,
         folderId: data.folderId,
       })
 
-      await socket.join(`folder:${data.folderId}`)
+      await socket.join(
+        this.getFolderRoomName(appIdentifier, userId, data.folderId),
+      )
       this.logger.debug(
         `Socket subscribed to folder:${data.folderId} (socket: ${socket.id})`,
       )
@@ -133,36 +151,56 @@ export class AppUserSocketService {
     socket: Socket,
     data: { folderId: string },
   ): Promise<void> {
-    await socket.leave(`folder:${data.folderId}`)
+    const { userId, appIdentifier } = socket.data as Record<string, string>
+    if (!userId || !appIdentifier) {
+      socket.emit('unsubscribe_error', {
+        folderId: data.folderId,
+        error: 'Not authenticated',
+      })
+      return
+    }
+
+    await socket.leave(
+      this.getFolderRoomName(appIdentifier, userId, data.folderId),
+    )
     this.logger.debug(
       `Socket unsubscribed from folder:${data.folderId} (socket: ${socket.id})`,
     )
   }
 
-  emitAsyncUpdate(
+  emitUpdate({
+    update,
+    scope,
+  }: {
+    update: {
+      code: string
+      data: JsonSerializableObject
+    }
     scope: {
-      correlationKey: string | null
-      source: string | null
-      taskIdentifier: string | null
-      targetUserId: string | null
+      targetUserId: string
+      targetAppIdentifier: string
       targetLocationFolderId: string | null
-      targetLocationObjectKey: string | null
-    },
-    update: ReceivedTaskUpdate,
-  ): void {
+    }
+  }): void {
     if (!this.namespace) {
-      this.logger.warn('Namespace not yet set when emitting async update.')
+      this.logger.warn('Namespace not yet set when emitting update.')
       return
     }
 
-    const payload = { correlationKey: scope.correlationKey, ...update }
-
     const rooms: string[] = []
     if (scope.targetUserId) {
-      rooms.push(`user:${scope.targetUserId}`)
+      rooms.push(
+        this.getUserRoomName(scope.targetAppIdentifier, scope.targetUserId),
+      )
     }
     if (scope.targetLocationFolderId) {
-      rooms.push(`folder:${scope.targetLocationFolderId}`)
+      rooms.push(
+        this.getFolderRoomName(
+          scope.targetAppIdentifier,
+          scope.targetUserId,
+          scope.targetLocationFolderId,
+        ),
+      )
     }
 
     if (rooms.length === 0) {
@@ -179,6 +217,6 @@ export class AppUserSocketService {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       emitter = emitter.to(rooms[i]!)
     }
-    emitter.emit('ASYNC_UPDATE', payload)
+    emitter.emit(update.code, update.data)
   }
 }

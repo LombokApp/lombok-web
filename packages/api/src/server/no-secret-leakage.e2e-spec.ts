@@ -16,7 +16,7 @@ describe('No Secret Leakage', () => {
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
-      debug: true,
+      // debug: true,
     })
     apiClient = testModule.apiClient
   })

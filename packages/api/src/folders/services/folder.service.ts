@@ -55,7 +55,7 @@ import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
-import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
+import { UserSocketService } from 'src/socket/user/user-socket.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
@@ -172,7 +172,7 @@ export class FolderService {
   taskService: TaskService
   s3Service: S3Service
   coreTaskService: CoreTaskService
-  folderSocketService: FolderSocketService
+  userSocketService: UserSocketService
   coreConfig: nestjsConfig.ConfigType<typeof coreConfig>
 
   constructor(
@@ -182,8 +182,8 @@ export class FolderService {
     _appService,
     @Inject(forwardRef(() => EventService))
     _eventService,
-    @Inject(forwardRef(() => FolderSocketService))
-    _folderSocketService,
+    @Inject(forwardRef(() => UserSocketService))
+    _userSocketService,
     @Inject(forwardRef(() => CoreTaskService))
     _coreTaskService,
     @Inject(forwardRef(() => TaskService))
@@ -195,7 +195,7 @@ export class FolderService {
   ) {
     this.s3Service = _s3Service as S3Service
     this.coreTaskService = _coreTaskService as CoreTaskService
-    this.folderSocketService = _folderSocketService as FolderSocketService
+    this.userSocketService = _userSocketService as UserSocketService
     this.eventService = _eventService as EventService
     this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
@@ -697,7 +697,7 @@ export class FolderService {
       .delete(folderObjectsTable)
       .where(eq(folderObjectsTable.id, folderObject.id))
 
-    this.folderSocketService.sendToFolderRoom(
+    this.userSocketService.sendToFolderRoom(
       folderId,
       FolderPushMessage.OBJECT_REMOVED,
       { folderObject },
@@ -1428,7 +1428,7 @@ export class FolderService {
     // Decide event type based on createdAt vs updatedAt: insert sets both to now, update changes only updatedAt
     const wasAdded = record.createdAt.getTime() === record.updatedAt.getTime()
 
-    this.folderSocketService.sendToFolderRoom(
+    this.userSocketService.sendToFolderRoom(
       folderId,
       wasAdded
         ? FolderPushMessage.OBJECT_ADDED
@@ -1533,7 +1533,7 @@ export class FolderService {
           .returning()
       )[0]
 
-      this.folderSocketService.sendToFolderRoom(
+      this.userSocketService.sendToFolderRoom(
         folderId,
         FolderPushMessage.OBJECT_UPDATED,
         updatedObject,

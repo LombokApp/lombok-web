@@ -46,9 +46,9 @@ export class AppUserSocketGateway
   @SubscribeMessage('subscribe')
   async handleSubscribe(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { folderId: string; appIdentifier: string },
+    @MessageBody() data: { folderId: string },
   ): Promise<void> {
-    if (data.folderId && data.appIdentifier) {
+    if (data.folderId) {
       await this.appUserSocketService.subscribeFolderScope(socket, data)
     }
   }

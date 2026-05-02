@@ -13,6 +13,7 @@ import { SocketModule } from 'src/socket/socket.module'
 
 import { ServerTasksController } from './controllers/server-tasks.controller'
 import { TasksController } from './controllers/tasks.controller'
+import { AsyncTaskUpdateBroadcasterService } from './services/async-task-update-broadcaster.service'
 import { CoreTaskService } from './services/core-task.service'
 import { TaskService } from './services/task.service'
 
@@ -24,7 +25,7 @@ import { TaskService } from './services/task.service'
     forwardRef(() => AppModule),
     forwardRef(() => EventModule),
   ],
-  providers: [CoreTaskService, TaskService],
+  providers: [CoreTaskService, TaskService, AsyncTaskUpdateBroadcasterService],
   controllers: [ServerTasksController, TasksController],
   exports: [CoreTaskService, TaskService],
 })

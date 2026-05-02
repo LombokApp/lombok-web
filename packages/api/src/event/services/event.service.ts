@@ -38,7 +38,7 @@ import { getCoreEventAggregationConfig } from 'src/notification/config/notificat
 import { buildAggregationKey } from 'src/notification/util/aggregation-key.util'
 import { OrmService } from 'src/orm/orm.service'
 import { getUtcTimestampBucket } from 'src/shared/utils/timestamp.util'
-import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
+import { UserSocketService } from 'src/socket/user/user-socket.service'
 import {
   CORE_EVENT_TRIGGERS_TO_TASKS_MAP,
   CORE_TASKS,
@@ -73,8 +73,8 @@ export class EventService {
   get folderService(): FolderService {
     return this._folderService as FolderService
   }
-  get folderSocketService(): FolderSocketService {
-    return this._folderSocketService as FolderSocketService
+  get userSocketService(): UserSocketService {
+    return this._userSocketService as UserSocketService
   }
 
   get appService(): AppService {
@@ -89,8 +89,8 @@ export class EventService {
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => CoreTaskService))
     private readonly _coreTaskService,
-    @Inject(forwardRef(() => FolderSocketService))
-    private readonly _folderSocketService,
+    @Inject(forwardRef(() => UserSocketService))
+    private readonly _userSocketService,
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
@@ -481,7 +481,7 @@ export class EventService {
       // notify folder rooms of new tasks
       tasks.forEach((_task) => {
         if (_task.targetLocationFolderId) {
-          this.folderSocketService.sendToFolderRoom(
+          this.userSocketService.sendToFolderRoom(
             _task.targetLocationFolderId,
             FolderPushMessage.TASK_ADDED,
             { task: _task },
@@ -491,7 +491,7 @@ export class EventService {
     }
     // Emit EVENT_CREATED to folder room if folderId is present
     if (targetLocation?.folderId) {
-      this.folderSocketService.sendToFolderRoom(
+      this.userSocketService.sendToFolderRoom(
         targetLocation.folderId,
         FolderPushMessage.EVENT_CREATED as FolderPushMessage,
         { event },

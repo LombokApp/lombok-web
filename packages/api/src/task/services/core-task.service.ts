@@ -9,7 +9,7 @@ import { and, count, eq, isNull, lt, or, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { runWithThreadContext } from 'src/shared/thread-context'
-import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
+import { UserSocketService } from 'src/socket/user/user-socket.service'
 import { CoreTaskName, MAX_TASK_ATTEMPTS } from 'src/task/task.constants'
 
 import type { CoreTask } from '../base.processor'
@@ -29,7 +29,7 @@ export class CoreTaskService {
   runningTasksCount = 0
   draining: Promise<{ completed: number; pending: number }> | undefined
 
-  folderSocketService: FolderSocketService
+  userSocketService: UserSocketService
   taskService: TaskService
   appService: AppService
   constructor(
@@ -38,10 +38,10 @@ export class CoreTaskService {
     _appService,
     @Inject(forwardRef(() => TaskService))
     _taskService,
-    @Inject(forwardRef(() => FolderSocketService))
-    _folderSocketService,
+    @Inject(forwardRef(() => UserSocketService))
+    _userSocketService,
   ) {
-    this.folderSocketService = _folderSocketService as FolderSocketService
+    this.userSocketService = _userSocketService as UserSocketService
     this.taskService = _taskService as TaskService
     this.appService = _appService as AppService
   }
@@ -185,7 +185,7 @@ export class CoreTaskService {
 
       if (startedTask.targetLocationFolderId) {
         // notify folder rooms of updated task
-        this.folderSocketService.sendToFolderRoom(
+        this.userSocketService.sendToFolderRoom(
           startedTask.targetLocationFolderId,
           FolderPushMessage.TASK_UPDATED,
           { task: startedTask },
@@ -243,7 +243,7 @@ export class CoreTaskService {
             // send a folder socket message to the frontend that the task status was updated
             if (startedTask.targetLocationFolderId) {
               // notify folder rooms of updated task
-              this.folderSocketService.sendToFolderRoom(
+              this.userSocketService.sendToFolderRoom(
                 startedTask.targetLocationFolderId,
                 FolderPushMessage.TASK_UPDATED,
                 {

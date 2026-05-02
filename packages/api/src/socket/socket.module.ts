@@ -25,8 +25,6 @@ import { AppExecSocketGateway } from './app-exec/app-exec-socket.gateway'
 import { AppExecSocketService } from './app-exec/app-exec-socket.service'
 import { AppUserSocketGateway } from './app-user/app-user-socket.gateway'
 import { AppUserSocketService } from './app-user/app-user-socket.service'
-import { FolderSocketGateway } from './folder/folder-socket.gateway'
-import { FolderSocketService } from './folder/folder-socket.service'
 import { UserSocketGateway } from './user/user-socket.gateway'
 import { UserSocketService } from './user/user-socket.service'
 
@@ -50,12 +48,10 @@ import { UserSocketService } from './user/user-socket.service'
     JWTService,
     AppSocketService,
     UserSocketGateway,
-    FolderSocketGateway,
     AppSocketGateway,
     AppUserSocketGateway,
     AppExecSocketGateway,
     UserSocketService,
-    FolderSocketService,
     AppUserSocketService,
     AppExecSocketService,
     DockerClientService,
@@ -66,8 +62,6 @@ import { UserSocketService } from './user/user-socket.service'
   ],
   exports: [
     UserSocketService,
-    FolderSocketService,
-    FolderSocketGateway,
     UserSocketGateway,
     AppSocketService,
     AppSocketGateway,

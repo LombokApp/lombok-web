@@ -292,7 +292,8 @@ describe('App Socket Interface', () => {
     }
     expect('result' in response).toBe(true)
     if ('result' in response) {
-      expect(response.result).toBeNull()
+      expect(response.result.taskId).toBeDefined()
+      expect(typeof response.result.taskId).toBe('string')
     }
 
     // Verify the task was created
