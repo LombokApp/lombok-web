@@ -21,8 +21,30 @@ export const taskProgressSchema = z.object({
 })
 export type TaskProgress = z.infer<typeof taskProgressSchema>
 
+export enum TaskUpdateMessageLevel {
+  debug = 'debug',
+  info = 'info',
+  warn = 'warn',
+  error = 'error',
+}
+
+export const taskUpdateMessageLevelSchema = z.enum(TaskUpdateMessageLevel)
+
+export enum TaskUpdateAudience {
+  system = 'system',
+  user = 'user',
+}
+
+export enum TaskUpdateType {
+  task_started = 'task_started',
+  task_progress = 'task_progress',
+  task_completed = 'task_completed',
+  task_requeued = 'task_requeued',
+  task_failed = 'task_failed',
+}
+
 export const taskUpdateMessageSchema = z.object({
-  level: z.enum(['debug', 'info', 'warn', 'error']),
+  level: taskUpdateMessageLevelSchema,
   text: z.string(),
   audience: z.enum(['user', 'system']),
 })
@@ -32,7 +54,6 @@ export const taskUpdateSchema = z.object({
   code: z.string().optional(),
   progress: taskProgressSchema.optional(),
   message: taskUpdateMessageSchema.optional(),
-  data: jsonSerializableObjectSchema.optional(),
   timestamp: z.string().optional(),
 })
 export type TaskUpdate = z.infer<typeof taskUpdateSchema>

@@ -1,3 +1,4 @@
+import { TaskUpdateMessageLevel } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { io, type Socket } from 'socket.io-client'
@@ -1305,7 +1306,7 @@ describe('Task lifecycle', () => {
 
   // --- Task update → socket emission tests ---
 
-  it('emits user-scoped ASYNC_UPDATE on app-user socket when a task update is registered', async () => {
+  it('emits user-scoped task_progress on app-user socket when a task update is registered', async () => {
     await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
 
     await createTestUser(testModule!, {
@@ -1343,13 +1344,13 @@ describe('Task lifecycle', () => {
     const appUserToken = await getAppUserToken(userId, appIdentifier)
     socket = await connectAppUserSocket(appUserToken)
 
-    // Listen for ASYNC_UPDATE then send the update
+    // Listen for platform:tasks:task_progress then send the update
     const received = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Expected ASYNC_UPDATE but got none')),
+        () => reject(new Error('Expected task_progress but got none')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once('platform:tasks:task_progress', (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
@@ -1362,24 +1363,26 @@ describe('Task lifecycle', () => {
           total: 2,
           label: 'Processing',
         },
-        message: { level: 'info', text: 'Halfway done', audience: 'user' },
+        message: {
+          level: TaskUpdateMessageLevel.info,
+          text: 'Halfway done',
+          audience: 'user',
+        },
       })
     })
 
     expect(received).toBeDefined()
-    expect((received as { correlationKey: string }).correlationKey).toBe(
-      'ck-docker-update-1',
-    )
     expect(
-      (received as { progress: { percent: number } }).progress.percent,
-    ).toBe(50)
+      (received as { data: { correlationKey: string } }).data.correlationKey,
+    ).toBe('ck-docker-update-1')
+    expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
     expect((received as { message: { text: string } }).message.text).toBe(
-      'Halfway done',
+      `Task progress: ${APP_ACTION_TASK_ID}`,
     )
     expect((received as { receivedAt: string }).receivedAt).toBeDefined()
   })
 
-  it('emits folder-scoped ASYNC_UPDATE on app-user socket when a task update targets a folder', async () => {
+  it('emits folder-scoped task_progress on app-user socket when a task update targets a folder', async () => {
     await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
 
     const {
@@ -1418,13 +1421,14 @@ describe('Task lifecycle', () => {
         updatedAt: now,
       })
 
-    // Create task targeting the folder
+    // Create task targeting the folder and user
     const task = await runWithThreadContext(crypto.randomUUID(), async () => {
       return testModule!.services.taskService.triggerAppActionTask({
         appIdentifier,
         taskIdentifier: APP_ACTION_TASK_ID,
         taskData: { test: 'folder-update' },
         correlationKey: 'ck-docker-folder-1',
+        targetUserId: userId,
         targetLocation: { folderId: folder.id },
       })
     })
@@ -1445,10 +1449,10 @@ describe('Task lifecycle', () => {
 
     const received = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Expected ASYNC_UPDATE but got none')),
+        () => reject(new Error('Expected task_progress but got none')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once('platform:tasks:task_progress', (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
@@ -1456,7 +1460,7 @@ describe('Task lifecycle', () => {
       void testModule!.services.taskService.registerTaskUpdate(task.id, {
         progress: { percent: 75, label: 'Almost done' },
         message: {
-          level: 'info',
+          level: TaskUpdateMessageLevel.info,
           text: 'Processing folder data',
           audience: 'user',
         },
@@ -1464,12 +1468,10 @@ describe('Task lifecycle', () => {
     })
 
     expect(received).toBeDefined()
-    expect((received as { correlationKey: string }).correlationKey).toBe(
-      'ck-docker-folder-1',
-    )
     expect(
-      (received as { progress: { percent: number } }).progress.percent,
-    ).toBe(75)
+      (received as { data: { correlationKey: string } }).data.correlationKey,
+    ).toBe('ck-docker-folder-1')
+    expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
   })
 
   it('stores task updates in the database and tracks latest progress', async () => {
@@ -1492,12 +1494,20 @@ describe('Task lifecycle', () => {
     // Send two updates
     await testModule!.services.taskService.registerTaskUpdate(task.id, {
       progress: { percent: 25, current: 1, total: 4 },
-      message: { level: 'info', text: 'Step 1', audience: 'user' },
+      message: {
+        level: TaskUpdateMessageLevel.info,
+        text: 'Step 1',
+        audience: 'user',
+      },
     })
 
     await testModule!.services.taskService.registerTaskUpdate(task.id, {
       progress: { percent: 75, current: 3, total: 4 },
-      message: { level: 'info', text: 'Step 3', audience: 'user' },
+      message: {
+        level: TaskUpdateMessageLevel.info,
+        text: 'Step 3',
+        audience: 'user',
+      },
     })
 
     // Verify updates stored in DB
@@ -1558,7 +1568,11 @@ describe('Task lifecycle', () => {
 
     // Send update — should NOT emit because task has no target scope
     const received = await new Promise<boolean>((resolve) => {
-      socket!.once('ASYNC_UPDATE', () => resolve(true))
+      socket!.onAny((event: string) => {
+        if (event.startsWith('platform:tasks:')) {
+          resolve(true)
+        }
+      })
       void testModule!.services.taskService.registerTaskUpdate(task.id, {
         progress: { percent: 50 },
       })
@@ -1632,7 +1646,7 @@ describe('Task lifecycle', () => {
 
   // --- Task lifecycle (started/completed) → socket emission tests ---
 
-  it('emits task_started ASYNC_UPDATE when a user-scoped task is started', async () => {
+  it('emits task_started event when a user-scoped task is started', async () => {
     await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
 
     await createTestUser(testModule!, {
@@ -1666,21 +1680,19 @@ describe('Task lifecycle', () => {
 
     const received = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () =>
-          reject(new Error('Expected task_started ASYNC_UPDATE but got none')),
+        () => reject(new Error('Expected task_started event but got none')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once('platform:tasks:task_started', (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
     })
 
     expect(received).toBeDefined()
-    expect((received as { correlationKey: string }).correlationKey).toBe(
-      'ck-started-1',
-    )
-    expect((received as { code: string }).code).toBe('task_started')
+    expect(
+      (received as { data: { correlationKey: string } }).data.correlationKey,
+    ).toBe('ck-started-1')
     expect((received as { message: { text: string } }).message.text).toBe(
       `Task started: ${APP_ACTION_TASK_ID}`,
     )
@@ -1691,7 +1703,7 @@ describe('Task lifecycle', () => {
     expect((received as { receivedAt: string }).receivedAt).toBeDefined()
   })
 
-  it('emits task_completed ASYNC_UPDATE when a user-scoped task completes successfully', async () => {
+  it('emits task_completed event when a user-scoped task completes successfully', async () => {
     await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
 
     await createTestUser(testModule!, {
@@ -1729,13 +1741,10 @@ describe('Task lifecycle', () => {
 
     const received = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () =>
-          reject(
-            new Error('Expected task_completed ASYNC_UPDATE but got none'),
-          ),
+        () => reject(new Error('Expected task_completed event but got none')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once('platform:tasks:task_completed', (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
@@ -1748,23 +1757,19 @@ describe('Task lifecycle', () => {
     })
 
     expect(received).toBeDefined()
-    expect((received as { correlationKey: string }).correlationKey).toBe(
-      'ck-completed-1',
-    )
-    expect((received as { code: string }).code).toBe('task_completed')
+    expect(
+      (received as { data: { correlationKey: string } }).data.correlationKey,
+    ).toBe('ck-completed-1')
     expect((received as { message: { level: string } }).message.level).toBe(
       'info',
     )
     expect((received as { message: { text: string } }).message.text).toBe(
       `Task completed: ${APP_ACTION_TASK_ID}`,
     )
-    expect(
-      (received as { progress: { percent: number } }).progress.percent,
-    ).toBe(100)
     expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
   })
 
-  it('emits task_failed ASYNC_UPDATE when a user-scoped task fails', async () => {
+  it('emits task_failed event when a user-scoped task fails', async () => {
     await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
 
     await createTestUser(testModule!, {
@@ -1801,11 +1806,10 @@ describe('Task lifecycle', () => {
 
     const received = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () =>
-          reject(new Error('Expected task_failed ASYNC_UPDATE but got none')),
+        () => reject(new Error('Expected task_failed event but got none')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once('platform:tasks:task_failed', (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
@@ -1821,17 +1825,15 @@ describe('Task lifecycle', () => {
     })
 
     expect(received).toBeDefined()
-    expect((received as { correlationKey: string }).correlationKey).toBe(
-      'ck-failed-1',
-    )
-    expect((received as { code: string }).code).toBe('task_failed')
+    expect(
+      (received as { data: { correlationKey: string } }).data.correlationKey,
+    ).toBe('ck-failed-1')
     expect((received as { message: { level: string } }).message.level).toBe(
       'error',
     )
     expect((received as { message: { text: string } }).message.text).toBe(
       `Task failed: ${APP_ACTION_TASK_ID}`,
     )
-    expect((received as { progress: undefined }).progress).toBeUndefined()
     expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
   })
 
@@ -1864,7 +1866,11 @@ describe('Task lifecycle', () => {
     socket = await connectAppUserSocket(appUserToken)
 
     const received = await new Promise<boolean>((resolve) => {
-      socket!.once('ASYNC_UPDATE', () => resolve(true))
+      socket!.onAny((event: string) => {
+        if (event.startsWith('platform:tasks:')) {
+          resolve(true)
+        }
+      })
       setTimeout(() => resolve(false), 1500)
     })
 
@@ -1905,7 +1911,11 @@ describe('Task lifecycle', () => {
     socket = await connectAppUserSocket(appUserToken)
 
     const received = await new Promise<boolean>((resolve) => {
-      socket!.once('ASYNC_UPDATE', () => resolve(true))
+      socket!.onAny((event: string) => {
+        if (event.startsWith('platform:tasks:')) {
+          resolve(true)
+        }
+      })
       void testModule!.services.taskService.registerTaskCompleted(task.id, {
         success: true,
         result: { done: true },

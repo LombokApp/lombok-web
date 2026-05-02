@@ -11,12 +11,15 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      react: path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
       '@lombokapp/app-browser-sdk': path.resolve(
         __dirname,
         '../../../app-browser-sdk/src',
       ),
       '@lombokapp/sdk': path.resolve(__dirname, '../../../sdk/src'),
       '@lombokapp/types': path.resolve(__dirname, '../../../types/src'),
+      '@lombokapp/utils': path.resolve(__dirname, '../../../utils/src'),
       '@lombokapp/auth-utils': path.resolve(
         __dirname,
         '../../../auth-utils/src',

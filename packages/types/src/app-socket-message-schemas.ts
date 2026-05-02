@@ -311,7 +311,7 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
   EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobAsyncResponseSchema,
-  TRIGGER_APP_TASK: createResponseSchema(z.null()),
+  TRIGGER_APP_TASK: createResponseSchema(z.object({ taskId: z.string() })),
   REPORT_TASK_UPDATE: createResponseSchema(z.object({ success: z.boolean() })),
   GET_APP_CUSTOM_SETTINGS: createResponseSchema(
     z.object({ values: z.record(z.string(), z.unknown()) }),

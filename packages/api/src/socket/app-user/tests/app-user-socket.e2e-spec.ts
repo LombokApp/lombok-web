@@ -17,10 +17,13 @@ import {
 } from 'src/test/test.util'
 import { DUMMY_APP_SLUG } from 'test/e2e.contants'
 
+import { AppUserSocketGateway } from '../app-user-socket.gateway'
 import { AppUserSocketService } from '../app-user-socket.service'
 
 const TEST_MODULE_KEY = 'app_user_socket'
 const startServerOnPort = 7004
+
+const TEST_EVENT_CODE = 'test:update'
 
 /** Decode a JWT's payload to extract the userId (sub = "app_user:<id>:<appIdentifier>") */
 function userIdFromToken(token: string): string {
@@ -156,7 +159,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
 
   // --- Connection tests ---
 
-  it('should connect and auto-join user room, receiving user-scoped ASYNC_UPDATE', async () => {
+  it('should connect and auto-join user room, receiving user-scoped updates', async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -177,39 +180,34 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     const appUserSocketService =
       await testModule!.resolveDep(AppUserSocketService)
 
-    const testUpdate = {
-      type: 'progress' as const,
-      data: { percent: 50, message: 'Halfway' },
-      timestamp: new Date().toISOString(),
-    }
-
     const received = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Expected ASYNC_UPDATE but got none')),
+        () => reject(new Error('Expected update but got none')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once(TEST_EVENT_CODE, (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-user-1',
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
+      appUserSocketService.emitUpdate({
+        update: {
+          code: TEST_EVENT_CODE,
+          data: { marker: 'user-1', percent: 50, correlationKey: 'ck-user-1' },
+        },
+        scope: {
           targetUserId: userId,
+          targetAppIdentifier: appIdentifier,
           targetLocationFolderId: null,
         },
-        testUpdate as never,
-      )
+      })
     })
 
     expect(received).toBeDefined()
+    expect((received as { marker: string }).marker).toBe('user-1')
+    expect((received as { percent: number }).percent).toBe(50)
     expect((received as { correlationKey: string }).correlationKey).toBe(
       'ck-user-1',
     )
-    expect((received as { type: string }).type).toBe('progress')
   })
 
   it('should reject connection with invalid token', async () => {
@@ -405,7 +403,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
 
   // --- Update routing tests ---
 
-  it('should receive folder-scoped ASYNC_UPDATE after subscribing to folder', async () => {
+  it('should receive folder-scoped update after subscribing to folder', async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -440,42 +438,40 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     const appUserSocketService =
       await testModule!.resolveDep(AppUserSocketService)
 
-    const testUpdate = {
-      type: 'progress' as const,
-      data: { percent: 75 },
-      timestamp: new Date().toISOString(),
-    }
-
     const received = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Expected ASYNC_UPDATE but got none')),
+        () => reject(new Error('Expected update but got none')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once(TEST_EVENT_CODE, (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-folder-1',
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
-          targetUserId: null,
+      appUserSocketService.emitUpdate({
+        update: {
+          code: TEST_EVENT_CODE,
+          data: {
+            marker: 'folder-1',
+            percent: 75,
+            correlationKey: 'ck-folder-1',
+          },
+        },
+        scope: {
+          targetUserId: userId,
+          targetAppIdentifier: appIdentifier,
           targetLocationFolderId: folder.id,
         },
-        testUpdate as never,
-      )
+      })
     })
 
     expect(received).toBeDefined()
+    expect((received as { marker: string }).marker).toBe('folder-1')
     expect((received as { correlationKey: string }).correlationKey).toBe(
       'ck-folder-1',
     )
-    expect((received as { type: string }).type).toBe('progress')
   })
 
-  it('should NOT receive folder-scoped ASYNC_UPDATE after unsubscribing from folder', async () => {
+  it('should NOT receive folder-scoped update after unsubscribing from folder', async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -514,26 +510,19 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
 
     const appUserSocketService =
       await testModule!.resolveDep(AppUserSocketService)
+    const gateway = await testModule!.resolveDep(AppUserSocketGateway)
 
-    const testUpdate = {
-      type: 'progress' as const,
-      data: { percent: 100 },
-      timestamp: new Date().toISOString(),
-    }
-
+    // Emit directly to the folder room (not the user room) to verify unsubscribe worked
+    const folderRoom = appUserSocketService.getFolderRoomName(
+      appIdentifier,
+      userId,
+      folder.id,
+    )
     const received = await new Promise<boolean>((resolve) => {
-      socket!.once('ASYNC_UPDATE', () => resolve(true))
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-unsub-1',
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
-          targetUserId: null,
-          targetLocationFolderId: folder.id,
-        },
-        testUpdate as never,
-      )
+      socket!.once(TEST_EVENT_CODE, () => resolve(true))
+      gateway.namespace!.to(folderRoom).emit(TEST_EVENT_CODE, {
+        marker: 'unsub-1',
+      })
       // If no event after 1.5s, we're good
       setTimeout(() => resolve(false), 1500)
     })
@@ -541,7 +530,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     expect(received).toBe(false)
   })
 
-  it('should NOT receive user-scoped ASYNC_UPDATE targeted at a different user', async () => {
+  it('should NOT receive user-scoped update targeted at a different user', async () => {
     const {
       session: { accessToken: token1 },
     } = await createTestUser(testModule!, {
@@ -570,25 +559,19 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     const appUserSocketService =
       await testModule!.resolveDep(AppUserSocketService)
 
-    const testUpdate = {
-      type: 'progress' as const,
-      data: { percent: 42 },
-      timestamp: new Date().toISOString(),
-    }
-
     const received = await new Promise<boolean>((resolve) => {
-      socket!.once('ASYNC_UPDATE', () => resolve(true))
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-other-user',
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
+      socket!.once(TEST_EVENT_CODE, () => resolve(true))
+      appUserSocketService.emitUpdate({
+        update: {
+          code: TEST_EVENT_CODE,
+          data: { marker: 'other-user' },
+        },
+        scope: {
           targetUserId: otherUserId,
+          targetAppIdentifier: appIdentifier,
           targetLocationFolderId: null,
         },
-        testUpdate as never,
-      )
+      })
       setTimeout(() => resolve(false), 1500)
     })
 
@@ -663,7 +646,7 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     const appUserToken = await getAppUserToken(userId, appIdentifier)
     socket = await connectAppUserSocket(appUserToken)
 
-    // Subscribe to folder — socket is now in both user:<id> and folder:<id> rooms
+    // Subscribe to folder — socket is now in both user and folder rooms
     await new Promise<void>((resolve) => {
       socket!.emit('subscribe', { folderId: folder.id, appIdentifier })
       setTimeout(resolve, 500)
@@ -672,34 +655,29 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     const appUserSocketService =
       await testModule!.resolveDep(AppUserSocketService)
 
-    const testUpdate = {
-      type: 'progress' as const,
-      data: { percent: 99 },
-      timestamp: new Date().toISOString(),
-    }
-
     // Emit targeting BOTH user and folder — socket.io should deduplicate
     const messages: unknown[] = []
     const received = await new Promise<unknown[]>((resolve) => {
-      socket!.on('ASYNC_UPDATE', (data) => {
+      socket!.on(TEST_EVENT_CODE, (data) => {
         messages.push(data)
       })
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-dedup',
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
+      appUserSocketService.emitUpdate({
+        update: {
+          code: TEST_EVENT_CODE,
+          data: { marker: 'dedup', correlationKey: 'ck-dedup' },
+        },
+        scope: {
           targetUserId: userId,
+          targetAppIdentifier: appIdentifier,
           targetLocationFolderId: folder.id,
         },
-        testUpdate as never,
-      )
+      })
       // Wait long enough to catch any duplicates
       setTimeout(() => resolve(messages), 2000)
     })
 
     expect(received).toHaveLength(1)
+    expect((received[0] as { marker: string }).marker).toBe('dedup')
     expect((received[0] as { correlationKey: string }).correlationKey).toBe(
       'ck-dedup',
     )
@@ -753,30 +731,31 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     // Send update to folder A
     const receivedA = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Expected ASYNC_UPDATE for folder A')),
+        () => reject(new Error('Expected update for folder A')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once(TEST_EVENT_CODE, (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-multi-a',
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
-          targetUserId: null,
+      appUserSocketService.emitUpdate({
+        update: {
+          code: TEST_EVENT_CODE,
+          data: {
+            marker: 'multi-a',
+            folder: 'A',
+            correlationKey: 'ck-multi-a',
+          },
+        },
+        scope: {
+          targetUserId: userId,
+          targetAppIdentifier: appIdentifier,
           targetLocationFolderId: folderA.id,
         },
-        {
-          type: 'progress',
-          data: { folder: 'A' },
-          timestamp: new Date().toISOString(),
-        } as never,
-      )
+      })
     })
 
+    expect((receivedA as { marker: string }).marker).toBe('multi-a')
     expect((receivedA as { correlationKey: string }).correlationKey).toBe(
       'ck-multi-a',
     )
@@ -784,30 +763,31 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
     // Send update to folder B
     const receivedB = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Expected ASYNC_UPDATE for folder B')),
+        () => reject(new Error('Expected update for folder B')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once(TEST_EVENT_CODE, (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-multi-b',
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
-          targetUserId: null,
+      appUserSocketService.emitUpdate({
+        update: {
+          code: TEST_EVENT_CODE,
+          data: {
+            marker: 'multi-b',
+            folder: 'B',
+            correlationKey: 'ck-multi-b',
+          },
+        },
+        scope: {
+          targetUserId: userId,
+          targetAppIdentifier: appIdentifier,
           targetLocationFolderId: folderB.id,
         },
-        {
-          type: 'progress',
-          data: { folder: 'B' },
-          timestamp: new Date().toISOString(),
-        } as never,
-      )
+      })
     })
 
+    expect((receivedB as { marker: string }).marker).toBe('multi-b')
     expect((receivedB as { correlationKey: string }).correlationKey).toBe(
       'ck-multi-b',
     )
@@ -862,34 +842,28 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
       const appUserSocketService =
         await testModule!.resolveDep(AppUserSocketService)
 
-      const testUpdate = {
-        type: 'progress' as const,
-        data: { percent: 60 },
-        timestamp: new Date().toISOString(),
-      }
-
       // Track what each socket receives
       let socket1Got = false
       let socket2Got = false
 
       await new Promise<void>((resolve) => {
-        socket!.once('ASYNC_UPDATE', () => {
+        socket!.once(TEST_EVENT_CODE, () => {
           socket1Got = true
         })
-        socket2.once('ASYNC_UPDATE', () => {
+        socket2.once(TEST_EVENT_CODE, () => {
           socket2Got = true
         })
-        appUserSocketService.emitAsyncUpdate(
-          {
-            correlationKey: 'ck-selective',
-            source: 'test',
-            taskIdentifier: 'testtask',
-            targetLocationObjectKey: null,
-            targetUserId: null,
+        appUserSocketService.emitUpdate({
+          update: {
+            code: TEST_EVENT_CODE,
+            data: { marker: 'selective' },
+          },
+          scope: {
+            targetUserId: userId1,
+            targetAppIdentifier: appIdentifier,
             targetLocationFolderId: folder.id,
           },
-          testUpdate as never,
-        )
+        })
         setTimeout(resolve, 2000)
       })
 
@@ -949,56 +923,48 @@ describe('AppUser Socket - Scope-Based Subscriptions', () => {
 
     const appUserSocketService =
       await testModule!.resolveDep(AppUserSocketService)
+    const gateway = await testModule!.resolveDep(AppUserSocketGateway)
 
-    // Folder A update should still arrive
+    // Folder A update should still arrive (emit directly to folder room)
+    const folderARoomName = appUserSocketService.getFolderRoomName(
+      appIdentifier,
+      userId,
+      folderA.id,
+    )
     const receivedA = await new Promise<unknown>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new Error('Expected ASYNC_UPDATE for folder A')),
+        () => reject(new Error('Expected update for folder A')),
         5000,
       )
-      socket!.once('ASYNC_UPDATE', (data) => {
+      socket!.once(TEST_EVENT_CODE, (data) => {
         clearTimeout(timeout)
         resolve(data)
       })
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-keep-a',
-          targetUserId: null,
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
-          targetLocationFolderId: folderA.id,
-        },
-        {
-          type: 'progress',
-          data: { kept: true },
-          timestamp: new Date().toISOString(),
-        } as never,
-      )
+      gateway.namespace!.to(folderARoomName).emit(TEST_EVENT_CODE, {
+        marker: 'keep-a',
+        kept: true,
+        correlationKey: 'ck-keep-a',
+      })
     })
 
+    expect((receivedA as { marker: string }).marker).toBe('keep-a')
     expect((receivedA as { correlationKey: string }).correlationKey).toBe(
       'ck-keep-a',
     )
 
-    // Folder B update should NOT arrive
+    // Folder B update should NOT arrive (emit directly to folder room)
+    const folderBRoomName = appUserSocketService.getFolderRoomName(
+      appIdentifier,
+      userId,
+      folderB.id,
+    )
     const receivedB = await new Promise<boolean>((resolve) => {
-      socket!.once('ASYNC_UPDATE', () => resolve(true))
-      appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: 'ck-drop-b',
-          targetUserId: null,
-          source: 'test',
-          taskIdentifier: 'testtask',
-          targetLocationObjectKey: null,
-          targetLocationFolderId: folderB.id,
-        },
-        {
-          type: 'progress',
-          data: { dropped: true },
-          timestamp: new Date().toISOString(),
-        } as never,
-      )
+      socket!.once(TEST_EVENT_CODE, () => resolve(true))
+      gateway.namespace!.to(folderBRoomName).emit(TEST_EVENT_CODE, {
+        marker: 'drop-b',
+        dropped: true,
+        correlationKey: 'ck-keep-a',
+      })
       setTimeout(() => resolve(false), 1500)
     })
 

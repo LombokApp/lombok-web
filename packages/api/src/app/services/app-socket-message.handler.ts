@@ -344,7 +344,7 @@ export async function handleAppSocketMessage(
       }
 
     case 'TRIGGER_APP_TASK': {
-      await taskService.triggerAppActionTask({
+      const task = await taskService.triggerAppActionTask({
         targetUserId: parsedRequest.data.targetUserId,
         targetLocation: parsedRequest.data.targetLocation,
         storageAccessPolicy: parsedRequest.data.storageAccessPolicy,
@@ -366,7 +366,7 @@ export async function handleAppSocketMessage(
           : undefined,
       })
 
-      return { result: null }
+      return { result: { taskId: task.id } }
     }
     case 'REPORT_TASK_UPDATE': {
       const result = await taskService.registerTaskUpdate(

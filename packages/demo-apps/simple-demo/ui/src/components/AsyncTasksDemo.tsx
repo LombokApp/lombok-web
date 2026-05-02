@@ -2,25 +2,21 @@ import { useAppBrowserSdk } from '@lombokapp/app-browser-sdk'
 import React from 'react'
 import { io, type Socket } from 'socket.io-client'
 
+const TASK_EVENT_PREFIX = 'platform:tasks:'
+
 interface TaskState {
   correlationKey: string
   label: string
-  percent: number
-  current: number
-  total: number
+  progressCount: number
   messages: string[]
   done: boolean
+  failed: boolean
 }
 
-interface AsyncUpdatePayload {
-  correlationKey: string | null
-  progress?: {
-    percent?: number
-    current?: number
-    total?: number
-    label?: string
-  }
+interface TaskEventPayload {
   message?: { level: string; text: string; audience: string }
+  data: { taskId: string; correlationKey: string | null }
+  timestamp: string
 }
 
 export function AsyncTasksDemo() {
@@ -57,41 +53,40 @@ export function AsyncTasksDemo() {
       socket.on('connect', () => setSocketConnected(true))
       socket.on('disconnect', () => setSocketConnected(false))
 
-      socket.on('ASYNC_UPDATE', (data: AsyncUpdatePayload) => {
-        if (!data.correlationKey) {
+      // Listen for all platform:tasks:* events, filter by correlationKey
+      socket.onAny((eventName: string, { data, message }: TaskEventPayload) => {
+        if (
+          typeof eventName !== 'string' ||
+          !eventName.startsWith(TASK_EVENT_PREFIX)
+        ) {
           return
         }
-        if (!trackedKeysRef.current.has(data.correlationKey)) {
+        const correlationKey = data.correlationKey
+        if (!correlationKey || !trackedKeysRef.current.has(correlationKey)) {
           return
         }
 
-        const key = data.correlationKey
+        const eventType = eventName.slice(TASK_EVENT_PREFIX.length)
+
         setTasks((prev) => {
           const next = new Map(prev)
-          const existing = next.get(key)
+          const existing = next.get(correlationKey)
           if (!existing) {
             return prev
           }
 
           const updated: TaskState = { ...existing }
-          if (data.progress) {
-            updated.percent = data.progress.percent ?? updated.percent
-            updated.current = data.progress.current ?? updated.current
-            updated.total = data.progress.total ?? updated.total
-            if (data.progress.label) {
-              updated.label = data.progress.label
-            }
-            if (
-              updated.percent >= 100 ||
-              (updated.total > 0 && updated.current >= updated.total)
-            ) {
-              updated.done = true
-            }
+          if (eventType === 'task_progress') {
+            updated.progressCount = updated.progressCount + 1
           }
-          if (data.message?.text) {
-            updated.messages = [...updated.messages, data.message.text]
+          if (eventType === 'task_completed' || eventType === 'task_failed') {
+            updated.done = true
+            updated.failed = eventType === 'task_failed'
           }
-          next.set(key, updated)
+          if (message?.text) {
+            updated.messages = [...updated.messages, message.text]
+          }
+          next.set(correlationKey, updated)
           return next
         })
       })
@@ -140,11 +135,10 @@ export function AsyncTasksDemo() {
           newTasks.set(ck, {
             correlationKey: ck,
             label: `Task ${i + 1}`,
-            percent: 0,
-            current: 0,
-            total: 0,
+            progressCount: 0,
             messages: [],
             done: false,
+            failed: false,
           })
         })
         setTasks(newTasks)
@@ -186,10 +180,10 @@ export function AsyncTasksDemo() {
 
       <p className="mb-4 text-sm text-white/60">
         Triggers multiple backend tasks, each tagged with a generated
-        correlation&nbsp;ID. The connected socket receives all{' '}
-        <code className="text-white/80">ASYNC_UPDATE</code> events for the user
-        scope and the UI filters them by correlation&nbsp;ID to render per-task
-        progress.
+        correlation&nbsp;key. The connected socket receives all{' '}
+        <code className="text-white/80">{TASK_EVENT_PREFIX}*</code> events for
+        the user scope and the UI filters them by correlation&nbsp;key to render
+        per-task progress.
       </p>
 
       <button
@@ -225,19 +219,29 @@ export function AsyncTasksDemo() {
                   {t.label}
                 </span>
                 <span className="text-xs text-white/50">
-                  {t.done ? 'Done' : `${t.percent}%`}
+                  {t.done
+                    ? t.failed
+                      ? 'Failed'
+                      : 'Done'
+                    : `${t.progressCount} update${t.progressCount !== 1 ? 's' : ''}`}
                 </span>
               </div>
 
-              {/* Progress bar */}
+              {/* Activity bar */}
               <div className="mb-2 h-2 overflow-hidden rounded-full bg-white/10">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${
                     t.done
-                      ? 'bg-green-500'
+                      ? t.failed
+                        ? 'bg-red-500'
+                        : 'bg-green-500'
                       : 'bg-gradient-to-r from-blue-500 to-purple-500'
                   }`}
-                  style={{ width: `${t.percent}%` }}
+                  style={{
+                    width: t.done
+                      ? '100%'
+                      : `${Math.min(t.progressCount * 20, 90)}%`,
+                  }}
                 />
               </div>
 

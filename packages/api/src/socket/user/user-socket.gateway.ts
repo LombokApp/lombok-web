@@ -1,7 +1,10 @@
 import { Logger } from '@nestjs/common'
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayInit,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets'
@@ -36,6 +39,26 @@ export class UserSocketGateway implements OnGatewayConnection, OnGatewayInit {
       this.logger.error('User socket connection error:', error)
       // TODO: send some message to the client so they know what to do?
       socket.disconnect()
+    }
+  }
+
+  @SubscribeMessage('subscribe')
+  async handleSubscribe(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: { folderId: string },
+  ): Promise<void> {
+    if (data.folderId) {
+      await this.userSocketService.subscribeFolderScope(socket, data)
+    }
+  }
+
+  @SubscribeMessage('unsubscribe')
+  async handleUnsubscribe(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: { folderId: string },
+  ): Promise<void> {
+    if (data.folderId) {
+      await this.userSocketService.unsubscribeFolderScope(socket, data)
     }
   }
 }

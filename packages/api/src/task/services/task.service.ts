@@ -10,6 +10,7 @@ import {
   TaskLogEntry,
   TaskOnCompleteConfig,
   TaskUpdate,
+  TaskUpdateType,
 } from '@lombokapp/types'
 import { addMs } from '@lombokapp/utils'
 import {
@@ -56,6 +57,7 @@ import {
 import { evalUpdateHandlerCondition } from '../util/eval-update-condition.util'
 import { serializeLogEntry } from '../util/log-encoder.util'
 import { withTaskIdempotencyKey } from '../util/task-idempotency-key.util'
+import { AsyncTaskUpdateBroadcasterService } from './async-task-update-broadcaster.service'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -89,6 +91,7 @@ export class TaskService {
     _appService,
     @Inject(forwardRef(() => FolderService))
     _folderService,
+    private readonly asyncTaskUpdateBroadcasterService: AsyncTaskUpdateBroadcasterService,
   ) {
     this.appService = _appService as AppService
     this.folderService = _folderService as FolderService
@@ -320,7 +323,7 @@ export class TaskService {
   }
 
   /**
-   * Used to trigger a core task on request from a user.
+   * Used to trigger a platform task on request from a user.
    *
    * @param userId - The user ID triggering the task.
    * @param taskIdentifier - The identifier of the core task to trigger.
@@ -362,7 +365,7 @@ export class TaskService {
       data: taskData,
       createdAt: now,
       updatedAt: now,
-      handlerType: 'core',
+      handlerType: CORE_IDENTIFIER,
       storageAccessPolicy,
       targetLocationFolderId: targetLocation?.folderId ?? null,
       targetLocationObjectKey: targetLocation?.objectKey ?? null,
@@ -437,7 +440,7 @@ export class TaskService {
       data: taskData,
       createdAt: now,
       updatedAt: now,
-      handlerType: 'core',
+      handlerType: CORE_IDENTIFIER,
       storageAccessPolicy,
       targetLocationFolderId: targetLocation?.folderId,
       targetLocationObjectKey: targetLocation?.objectKey,
@@ -803,29 +806,12 @@ export class TaskService {
       throw new ConflictException(`Failed to secure task: ${taskId}`)
     }
 
-    // Real-time delivery: emit task_started to app-user socket if task has a target scope
-    if (updatedTask.targetUserId || updatedTask.targetLocationFolderId) {
-      this.appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: updatedTask.correlationKey,
-          source: updatedTask.ownerIdentifier,
-          taskIdentifier: updatedTask.taskIdentifier,
-          targetUserId: updatedTask.targetUserId,
-          targetLocationFolderId: updatedTask.targetLocationFolderId,
-          targetLocationObjectKey: updatedTask.targetLocationObjectKey,
-        },
-        {
-          code: 'task_started',
-          message: {
-            level: 'info',
-            text: `Task started: ${updatedTask.taskIdentifier}`,
-            audience: 'system',
-          },
-          data: { taskId: updatedTask.id },
-          receivedAt: now.toISOString(),
-        },
-      )
-    }
+    // Broadcast update
+    this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+      updatedTask,
+      TaskUpdateType.task_started,
+      now,
+    )
 
     return { task: updatedTask }
   }
@@ -1116,34 +1102,21 @@ export class TaskService {
       }
     }
 
-    // Real-time delivery: emit task_completed/task_failed to app-user socket
-    // Only emit for terminal tasks (not requeued) with a target scope
-    if (
-      !shouldRequeue &&
-      (updatedTask.targetUserId || updatedTask.targetLocationFolderId)
-    ) {
-      this.appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: updatedTask.correlationKey,
-          source: updatedTask.ownerIdentifier,
-          taskIdentifier: updatedTask.taskIdentifier,
-          targetUserId: updatedTask.targetUserId,
-          targetLocationFolderId: updatedTask.targetLocationFolderId,
-          targetLocationObjectKey: updatedTask.targetLocationObjectKey,
-        },
-        {
-          code: completion.success ? 'task_completed' : 'task_failed',
-          message: {
-            level: completion.success ? 'info' : 'error',
-            text: completion.success
-              ? `Task completed: ${updatedTask.taskIdentifier}`
-              : `Task failed: ${updatedTask.taskIdentifier}`,
-            audience: 'system',
-          },
-          progress: completion.success ? { percent: 100 } : undefined,
-          data: { taskId: updatedTask.id },
-          receivedAt: now.toISOString(),
-        },
+    // Broadcast success/failure update
+    this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+      updatedTask,
+      completion.success
+        ? TaskUpdateType.task_completed
+        : TaskUpdateType.task_failed,
+      now,
+    )
+
+    if (shouldRequeue) {
+      // Broadcast requeue update
+      this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+        updatedTask,
+        TaskUpdateType.task_requeued,
+        now,
       )
     }
 
@@ -1185,20 +1158,12 @@ export class TaskService {
       return null
     } // task not in running state
 
-    // Real-time delivery: emit to app-user socket if task has a target scope
-    if (updatedTask.targetUserId || updatedTask.targetLocationFolderId) {
-      this.appUserSocketService.emitAsyncUpdate(
-        {
-          correlationKey: updatedTask.correlationKey,
-          source: updatedTask.ownerIdentifier,
-          taskIdentifier: updatedTask.taskIdentifier,
-          targetUserId: updatedTask.targetUserId,
-          targetLocationFolderId: updatedTask.targetLocationFolderId,
-          targetLocationObjectKey: updatedTask.targetLocationObjectKey,
-        },
-        storedUpdate,
-      )
-    }
+    // Broadcast update
+    this.asyncTaskUpdateBroadcasterService.handleAsyncTaskUpdate(
+      updatedTask,
+      TaskUpdateType.task_progress,
+      now,
+    )
 
     // Evaluate and dispatch onUpdate handlers
     const onUpdateHandlers = updatedTask.invocation.onUpdate ?? []

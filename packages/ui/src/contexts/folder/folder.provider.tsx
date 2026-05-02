@@ -49,40 +49,25 @@ export const FolderContextProvider = ({
         void folderMetadataQuery.refetch()
       } else if (FolderPushMessage.OBJECT_UPDATED === message) {
         void folderQuery.refetch()
-        // const folderObject = message.payload as FolderObjectData
-        // const previewSize = 'small'
-        // void (
-        //   folderObject.contentMetadata.previews &&
-        //   previewSize in folderObject.contentMetadata.previews
-        //     ? getData(
-        //         folderObject.folder.id,
-        //         `${folderObject.objectKey}____previews/${folderObject.contentMetadata.previews[previewSize]?.path}`,
-        //       )
-        //     : Promise.resolve(undefined)
-        // ).then((file) => {
-        //   folderContext.showNotification({
-        //     level: LogLevel.INFO,
-        //     message: `Object "${folderObject.objectKey}" updated`,
-        //     thumbnailSrc: file?.dataURL,
-        //   })
-        // })
-        // if (folderObject.objectKey in folderObjects.current.positions) {
-        //   const position =
-        //     folderObjects.current.positions[folderObject.objectKey]
-        //   folderObjects.current.results[position] = folderObject
-        //   renderFolderObjectPreview(
-        //     (f, o) => handleObjectLinkClick(f, o, position),
-        //     (f, o) => ({ filePromise: getData(f, o) }),
-        //     position,
-        //     folderObject,
-        //     true,
-        //   )
-        // }
       }
     },
     [folderQuery, folderMetadataQuery],
   )
-  const { socket } = useWebsocket('folder', messageHandler, { folderId })
+  const { socket } = useWebsocket('user', messageHandler)
+
+  // Subscribe to folder scope after socket connects
+  React.useEffect(() => {
+    if (!socket?.connected || !folderId) {
+      return
+    }
+
+    socket.emit('subscribe', { folderId })
+
+    return () => {
+      socket.emit('unsubscribe', { folderId })
+    }
+  }, [socket?.connected, socket, folderId])
+
   const showNotification = React.useCallback(
     (notification: Notification) => {
       toast({
@@ -111,16 +96,9 @@ export const FolderContextProvider = ({
       params: { path: { folderId, objectKey } },
     })
 
-    // if (folderMetadataQuery.data) {
-    //   // Refresh folder data
-    //   await Promise.all([folderQuery.refetch(), folderMetadataQuery.refetch()])
-    // }
-
     showNotification({
       level: LogLevel.INFO,
       title: `Object "${objectKey}" deleted`,
-      // message: `Object "${objectKey}" deleted`,
-      // thumbnailSrc: file?.dataURL,
     })
   }
 
