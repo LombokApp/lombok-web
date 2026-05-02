@@ -400,9 +400,12 @@ describe('Docker Jobs', () => {
         'provision',
         '--secret',
         expect.any(String),
+        '--chown-paths',
+        '/mnt/user/appdata/somepath',
         expect.stringContaining('LOMBOK_CONTAINER_TOKEN='),
         expect.stringContaining('LOMBOK_PLATFORM_URL='),
       ],
+      { user: 'root' },
     ])
 
     expect(execSpy.mock.calls[1]).toEqual([

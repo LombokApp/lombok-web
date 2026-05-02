@@ -202,6 +202,7 @@ export const AppSocketMessageSchemaMap = {
   GET_APP_STORAGE_SIGNED_URLS: getAppStorageSignedUrlsSchema,
   AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
+  EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobSchema,
   TRIGGER_APP_TASK: triggerAppTaskSchema,
   REPORT_TASK_UPDATE: reportTaskUpdateSchema,
   GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
@@ -228,52 +229,56 @@ export const createResponseSchema = <T extends z.ZodType>(resultSchema: T) =>
   ])
 
 export const executeAppDockerJobResponseSchema = createResponseSchema(
-  z.discriminatedUnion('jobSuccess', [
+  z.union([
     z.object({
+      // submitted and execution succeeded
       jobId: z.string(),
-      jobSuccess: z.literal(true),
-      jobResult: jsonSerializableObjectSchema,
+      submitSuccess: z.literal(true),
+      containerId: z.string(),
+      execution: z.object({
+        success: z.literal(true),
+        result: jsonSerializableObjectSchema,
+      }),
     }),
     z.object({
+      // submit failed
+      jobId: z.string().nullable(),
+      submitSuccess: z.literal(false),
+      submitError: appMessageErrorSchema,
+      containerId: z.string().nullable(),
+      execution: z.null(),
+    }),
+    z.object({
+      // submitted but execution failed
       jobId: z.string(),
-      jobSuccess: z.literal(false),
-      jobResult: z.union([
-        z.object({
-          submitError: appMessageErrorSchema,
-        }),
-        z.object({
-          jobError: appMessageErrorSchema,
-        }),
-      ]),
+      submitSuccess: z.literal(true),
+      containerId: z.string(),
+      execution: z.object({
+        success: z.literal(false),
+        error: appMessageErrorSchema,
+        result: z.null(),
+      }),
     }),
   ]),
 )
 
-export const buildExecuteAppDockerJobResponseSchema = <T extends z.ZodType>(
-  resultSchema: T,
-) => {
-  return createResponseSchema(
-    z.discriminatedUnion('jobSuccess', [
-      z.object({
-        jobId: z.string(),
-        jobSuccess: z.literal(true),
-        jobResult: resultSchema,
-      }),
-      z.object({
-        jobId: z.string(),
-        jobSuccess: z.literal(false),
-        jobResult: z.union([
-          z.object({
-            submitError: appMessageErrorSchema,
-          }),
-          z.object({
-            jobError: appMessageErrorSchema,
-          }),
-        ]),
-      }),
-    ]),
-  )
-}
+export const executeAppDockerJobAsyncResponseSchema = createResponseSchema(
+  z.union([
+    z.object({
+      // submit succeeded
+      jobId: z.string(),
+      submitSuccess: z.literal(true),
+      containerId: z.string(),
+    }),
+    z.object({
+      // submit failed
+      jobId: z.string().nullable(),
+      submitSuccess: z.literal(false),
+      submitError: appMessageErrorSchema,
+      containerId: z.string().nullable(),
+    }),
+  ]),
+)
 
 const signedUrlSchema = z.object({
   url: z.string(),
@@ -305,6 +310,7 @@ export const AppSocketMessageResponseSchemaMap = {
     }),
   ),
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
+  EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobAsyncResponseSchema,
   TRIGGER_APP_TASK: createResponseSchema(z.null()),
   REPORT_TASK_UPDATE: createResponseSchema(z.object({ success: z.boolean() })),
   GET_APP_CUSTOM_SETTINGS: createResponseSchema(

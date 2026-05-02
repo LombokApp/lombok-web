@@ -454,7 +454,7 @@ export class DockerJobsService {
   async executeDockerJob<T extends boolean>(
     params: DockerExecuteJobOptions,
     waitForCompletion: T,
-  ): Promise<DockerExecResult<T>> {
+  ): Promise<DockerJobExecResult<T>> {
     try {
       const startTime = performance.now()
 
@@ -703,16 +703,18 @@ export class DockerJobsService {
         this.logger.debug(
           `Job ${jobId} completed in ${(performance.now() - startTime).toFixed(0)}ms total`,
         )
-        return {
+        const submitResult: DockerJobExecuteResult = {
           ...completionResult,
           containerId,
         }
+        return submitResult as DockerJobExecResult<T>
       } else {
-        const submitResult: DockerSubmitResult = {
+        const submitResult: DockerJobSubmitResult = {
+          success: true,
           jobId,
           containerId,
         }
-        return submitResult as DockerExecResult<T>
+        return submitResult as DockerJobExecResult<T>
       }
     } catch (error) {
       if (error instanceof AsyncWorkError) {
@@ -753,7 +755,7 @@ export class DockerJobsService {
       maxRetries?: number
       retryPeriodMs?: number
     } = DEFAULT_WAIT_FOR_COMPLETION_OPTIONS,
-  ): Promise<DockerJobResult> {
+  ): Promise<DockerJobExecuteResult> {
     const latestState = () => this.getJobState(hostId, containerId, jobId)
     let currentJobState: DockerJobState = await latestState()
     const hasCompleted = () => !!currentJobState.completed_at
@@ -857,7 +859,7 @@ export class DockerJobsService {
     hostId: string,
     containerId: string,
     jobId: string,
-  ): Promise<DockerJobResult> {
+  ): Promise<DockerJobExecuteResult> {
     const command = ['lombok-worker-agent', 'job-result', '--job-id', jobId]
 
     const exec = await this.dockerClientService.execInContainer(
@@ -873,14 +875,24 @@ export class DockerJobsService {
 
     return agentResponse
       ? {
-          ...agentResponse,
-          jobId: agentResponse.job_id,
+          jobId,
           containerId,
+          timing: agentResponse.timing,
+          ...(agentResponse.success
+            ? {
+                success: true,
+                result: agentResponse.result,
+              }
+            : {
+                success: false,
+                executeError: agentResponse.error,
+              }),
         }
       : {
           success: false,
           jobId,
-          error: {
+          containerId,
+          executeError: {
             code: 'JOB_RESULT_NOT_FOUND',
             message: 'Job result not found\nError: ' + exec.stderr,
           },
@@ -1114,7 +1126,7 @@ export class DockerJobsService {
   }
 }
 
-type DockerJobResult =
+export type DockerJobExecuteResult =
   | {
       success: true
       jobId: string
@@ -1125,15 +1137,30 @@ type DockerJobResult =
   | {
       success: false
       jobId: string
-      containerId?: string
-      error: { code: string; message: string }
+      containerId: string
+      executeError: { code: string; message: string }
+      timing: Record<string, number>
+    }
+  | {
+      success: false
+      jobId: string | null
+      containerId: string | null
+      submitError: { code: string; message: string }
       timing: Record<string, number>
     }
 
-interface DockerSubmitResult {
-  jobId: string
-  containerId: string
-}
+export type DockerJobSubmitResult =
+  | {
+      success: false
+      jobId: string | null
+      containerId: string | null
+      error: { code: string; message: string }
+    }
+  | {
+      success: true
+      jobId: string
+      containerId: string
+    }
 
 interface DockerJobState {
   job_id: string
@@ -1159,6 +1186,6 @@ type DockerJobResultAgent =
       timing: Record<string, number>
     }
 
-type DockerExecResult<T extends boolean> = T extends true
-  ? DockerJobResult
-  : DockerSubmitResult
+type DockerJobExecResult<T extends boolean> = T extends true
+  ? DockerJobExecuteResult
+  : DockerJobSubmitResult

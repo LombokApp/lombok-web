@@ -8,8 +8,8 @@ import {
   appSocketMessageSchema,
   AppSocketMessageSchemaMap,
 } from '@lombokapp/types'
+import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import type { JWTService } from 'src/auth/services/jwt.service'
-import type { DockerSynchronousExecResult } from 'src/docker/services/client/docker-client.types'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
@@ -231,64 +231,118 @@ export async function handleAppSocketMessage(
         }
       }
     }
-    case 'EXECUTE_APP_DOCKER_JOB': {
-      let execResult: DockerSynchronousExecResult | undefined
+    case 'EXECUTE_APP_DOCKER_JOB_ASYNC':
       try {
-        execResult = await appService.executeAppDockerJob(
-          {
-            appIdentifier: requestingAppIdentifier,
-            ...parsedRequest.data,
+        const dockerJobExecuteAsyncResult =
+          await appService.executeAppDockerJob(
+            { appIdentifier: requestingAppIdentifier, ...parsedRequest.data },
+            false,
+          )
+        if ('submitError' in dockerJobExecuteAsyncResult) {
+          return {
+            result: {
+              jobId: dockerJobExecuteAsyncResult.jobId,
+              submitSuccess: false,
+              containerId: dockerJobExecuteAsyncResult.containerId ?? null,
+              submitError: dockerJobExecuteAsyncResult.submitError,
+            },
+          }
+        } else {
+          return {
+            result: {
+              jobId: dockerJobExecuteAsyncResult.jobId,
+              submitSuccess: true,
+              containerId: dockerJobExecuteAsyncResult.containerId,
+            },
+          }
+        }
+      } catch (error) {
+        const normalizedError =
+          error instanceof AsyncWorkError
+            ? error
+            : buildUnexpectedError({
+                code: 'UNEXPECTED_APP_DOCKER_JOB_ERROR',
+                message: `Unexpected error during executeAppDockerJob`,
+                error,
+              })
+
+        return {
+          error: {
+            code: normalizedError.code,
+            message: normalizedError.message,
+            details: normalizedError.toEnvelope(),
           },
+        }
+      }
+    case 'EXECUTE_APP_DOCKER_JOB':
+      try {
+        const dockerJobExecuteResult = await appService.executeAppDockerJob(
+          { appIdentifier: requestingAppIdentifier, ...parsedRequest.data },
           true,
         )
-      } catch (error: unknown) {
-        execResult = {
-          jobId: '',
-          submitError: {
-            code:
-              error instanceof Error &&
-              'code' in error &&
-              typeof error.code === 'string'
-                ? error.code
-                : 'EXECUTION_ERROR',
-            message:
-              error instanceof Error
-                ? `'Execution error: ${error.message}`
-                : 'Execution error',
+        if ('submitError' in dockerJobExecuteResult) {
+          return {
+            result: {
+              jobId: dockerJobExecuteResult.jobId,
+              submitSuccess: false,
+              containerId: dockerJobExecuteResult.containerId ?? null,
+              execution: null,
+              submitError: {
+                code: dockerJobExecuteResult.submitError.code,
+                message: dockerJobExecuteResult.submitError.message,
+                details: dockerJobExecuteResult.submitError.details ?? {},
+              },
+            },
+          }
+        } else if ('executeError' in dockerJobExecuteResult) {
+          return {
+            result: {
+              jobId: dockerJobExecuteResult.jobId,
+              submitSuccess: true,
+              containerId: dockerJobExecuteResult.containerId,
+              execution: {
+                success: false,
+                error: {
+                  code: dockerJobExecuteResult.executeError.code,
+                  message: dockerJobExecuteResult.executeError.message,
+                  details: dockerJobExecuteResult.executeError.details ?? {},
+                },
+                result: null,
+              },
+            },
+          }
+        } else {
+          return {
+            result: {
+              jobId: dockerJobExecuteResult.jobId,
+              submitSuccess: true,
+              containerId: dockerJobExecuteResult.containerId,
+              execution: {
+                success: true,
+                result: dockerJobExecuteResult.result,
+              },
+            },
+          }
+        }
+      } catch (error) {
+        const normalizedError =
+          error instanceof AsyncWorkError
+            ? error
+            : buildUnexpectedError({
+                code: 'UNEXPECTED_APP_DOCKER_JOB_ERROR',
+                message: `Unexpected error during executeAppDockerJob`,
+                error,
+              })
+
+        return {
+          error: {
+            code: normalizedError.code,
+            message: normalizedError.message,
+            details: normalizedError.toEnvelope(),
           },
         }
       }
-      if ('submitError' in execResult) {
-        return {
-          result: {
-            jobId: execResult.jobId,
-            jobSuccess: false,
-            jobResult: {
-              submitError: execResult.submitError,
-            },
-          },
-        }
-      } else if ('error' in execResult) {
-        return {
-          result: {
-            jobId: execResult.jobId,
-            jobSuccess: false,
-            jobResult: {
-              jobError: execResult.error,
-            },
-          },
-        }
-      } else if ('result' in execResult) {
-        return {
-          result: {
-            jobId: execResult.jobId,
-            jobSuccess: true,
-            jobResult: execResult.result,
-          },
-        }
-      }
-      throw new Error('Invalid execution result')
-    }
+
     case 'TRIGGER_APP_TASK': {
       await taskService.triggerAppActionTask({
         targetUserId: parsedRequest.data.targetUserId,
@@ -409,11 +463,12 @@ export async function handleAppSocketMessage(
     }
     case 'DESTROY_APP_DOCKER_CONTAINERS': {
       try {
-        const result = await appService.destroyAppWorkerDockerContainers(
-          requestingAppIdentifier,
-          parsedRequest.data,
-        )
-        return { result }
+        const destroyedCountResult =
+          await appService.destroyAppWorkerDockerContainers(
+            requestingAppIdentifier,
+            parsedRequest.data,
+          )
+        return { result: destroyedCountResult }
       } catch (error: unknown) {
         return {
           error: {
