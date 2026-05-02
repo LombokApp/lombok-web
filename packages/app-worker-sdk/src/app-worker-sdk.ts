@@ -80,6 +80,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'EXECUTE_APP_DOCKER_JOB'>>
+  executeAppDockerJobAsync: (
+    params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB_ASYNC'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'EXECUTE_APP_DOCKER_JOB_ASYNC'>>
   triggerAppTask: (
     params: AppSocketMessageDataMap['TRIGGER_APP_TASK'],
     options?: PlatformApiExecuteOptions,
@@ -218,6 +222,9 @@ export const buildAppClient = (
     },
     executeAppDockerJob(params, options) {
       return emitWithAck('EXECUTE_APP_DOCKER_JOB', params, options)
+    },
+    executeAppDockerJobAsync(params, options) {
+      return emitWithAck('EXECUTE_APP_DOCKER_JOB_ASYNC', params, options)
     },
     triggerAppTask(params, options) {
       return emitWithAck('TRIGGER_APP_TASK', params, options)

@@ -45,10 +45,12 @@ import { readDirRecursive } from 'src/core/utils/fs.util'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
 import { DockerClientService } from 'src/docker/services/client/docker-client.service'
-import { DockerExecResult } from 'src/docker/services/client/docker-client.types'
+import { AppDockerJobResult } from 'src/docker/services/client/docker-client.types'
 import {
   DOCKER_LABELS,
+  DockerJobExecuteResult,
   DockerJobsService,
+  DockerJobSubmitResult,
 } from 'src/docker/services/docker-jobs.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
@@ -2208,7 +2210,7 @@ export class AppService {
   async executeAppDockerJob<T extends boolean>(
     params: ExecuteAppDockerJobOptions,
     waitForCompletion: T = false as T,
-  ): Promise<DockerExecResult<T>> {
+  ): Promise<AppDockerJobResult<T>> {
     const {
       appIdentifier,
       profileIdentifier,
@@ -2250,7 +2252,7 @@ export class AppService {
     }
 
     // Execute the docker job — containerTarget resolution happens inside executeDockerJob
-    return this.dockerJobsService.executeDockerJob<T>(
+    const dockerJobExecution = await this.dockerJobsService.executeDockerJob<T>(
       {
         profileSpec,
         profileKey: `${appIdentifier}:${profileIdentifier}`,
@@ -2262,7 +2264,45 @@ export class AppService {
         userId: targetUserId,
       },
       waitForCompletion,
-    ) as Promise<DockerExecResult<T>>
+    )
+
+    if (waitForCompletion) {
+      const executeResult = dockerJobExecution as DockerJobExecuteResult
+      const appExecuteResult: AppDockerJobResult<true> = executeResult.success
+        ? {
+            containerId: executeResult.containerId,
+            jobId: executeResult.jobId,
+            result: executeResult.result,
+          }
+        : 'executeError' in executeResult
+          ? {
+              containerId: executeResult.containerId,
+              jobId: executeResult.jobId,
+              executeError: executeResult.executeError,
+            }
+          : {
+              containerId: executeResult.containerId ?? null,
+              jobId: executeResult.jobId ?? null,
+              submitError: {
+                code: 'JOB_SUBMISSION_FAILED',
+                message: 'Job submission failed',
+              },
+            }
+      return appExecuteResult
+    } else {
+      const submitResult = dockerJobExecution as DockerJobSubmitResult
+      const appSubmitResult: AppDockerJobResult<false> = submitResult.success
+        ? {
+            containerId: submitResult.containerId,
+            jobId: submitResult.jobId,
+          }
+        : {
+            containerId: submitResult.containerId,
+            jobId: submitResult.jobId,
+            submitError: submitResult.error,
+          }
+      return appSubmitResult as AppDockerJobResult<T>
+    }
   }
 
   /**

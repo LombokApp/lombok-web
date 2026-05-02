@@ -73,6 +73,9 @@ function createMockAppPlatformService(
     executeAppDockerJob: () => {
       throw new Error('Not implemented in test mock')
     },
+    executeAppDockerJobAsync: () => {
+      throw new Error('Not implemented in test mock')
+    },
     triggerAppTask: () => {
       throw new Error('Not implemented in test mock')
     },

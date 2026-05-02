@@ -53,13 +53,20 @@ export function buildTestServerClient(
     executeAppDockerJob: async () => ({
       result: {
         jobId: 'test-job-id',
-        success: true,
-        jobSuccess: true,
-        jobResult: {
-          result: {
-            success: true,
-          },
+        submitSuccess: true as const,
+        containerId: 'test-container-id',
+        execution: {
+          success: true as const,
+          result: { success: true },
         },
+      },
+    }),
+    // eslint-disable-next-line @typescript-eslint/require-await
+    executeAppDockerJobAsync: async () => ({
+      result: {
+        jobId: 'test-job-id',
+        submitSuccess: true as const,
+        containerId: 'test-container-id',
       },
     }),
     // eslint-disable-next-line @typescript-eslint/require-await

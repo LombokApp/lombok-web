@@ -109,15 +109,15 @@ export interface DockerPipeStream {
   destroy: () => void
 }
 
-export type DockerSynchronousExecResult =
+export type AppDockerJobSynchronousResult =
   | {
       jobId: string
       containerId: string
       result: JsonSerializableObject
     }
   | {
-      jobId: string
-      containerId?: string
+      jobId: string | null
+      containerId: string | null
       submitError: {
         code: string
         message: string
@@ -126,26 +126,31 @@ export type DockerSynchronousExecResult =
     }
   | {
       jobId: string
-      containerId?: string
-      error: {
+      containerId: string
+      executeError: {
         code: string
         message: string
         details?: JsonSerializableObject
       }
     }
 
-export interface DockerAsynchronousExecResult {
-  jobId: string
-  containerId: string
-  submitError?: {
-    code: string
-    message: string
-  }
-}
+export type AppDockerJobAsynchronousResult =
+  | {
+      jobId: string
+      containerId: string
+    }
+  | {
+      jobId: string | null
+      containerId: string | null
+      submitError: {
+        code: string
+        message: string
+      }
+    }
 
-export type DockerExecResult<T extends boolean> = T extends true
-  ? DockerSynchronousExecResult
-  : DockerAsynchronousExecResult
+export type AppDockerJobResult<T extends boolean> = T extends true
+  ? AppDockerJobSynchronousResult
+  : AppDockerJobAsynchronousResult
 
 export class DockerError extends Error {
   constructor(
