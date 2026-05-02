@@ -38,6 +38,7 @@ import { getCoreEventAggregationConfig } from 'src/notification/config/notificat
 import { buildAggregationKey } from 'src/notification/util/aggregation-key.util'
 import { OrmService } from 'src/orm/orm.service'
 import { getUtcTimestampBucket } from 'src/shared/utils/timestamp.util'
+import { AppUserSocketService } from 'src/socket/app-user/app-user-socket.service'
 import { UserSocketService } from 'src/socket/user/user-socket.service'
 import {
   CORE_EVENT_TRIGGERS_TO_TASKS_MAP,
@@ -76,6 +77,9 @@ export class EventService {
   get userSocketService(): UserSocketService {
     return this._userSocketService as UserSocketService
   }
+  get appUserSocketService(): AppUserSocketService {
+    return this._appUserSocketService as AppUserSocketService
+  }
 
   get appService(): AppService {
     return this._appService as AppService
@@ -91,6 +95,8 @@ export class EventService {
     private readonly _coreTaskService,
     @Inject(forwardRef(() => UserSocketService))
     private readonly _userSocketService,
+    @Inject(forwardRef(() => AppUserSocketService))
+    private readonly _appUserSocketService,
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
@@ -496,6 +502,30 @@ export class EventService {
         FolderPushMessage.EVENT_CREATED as FolderPushMessage,
         { event },
       )
+    }
+
+    // Broadcast app-emitted, user-targeted events on the app-user socket channel.
+    if (appIdentifier && targetUserId) {
+      this.appUserSocketService.emitUpdate({
+        update: {
+          code: `app:${appIdentifier}:${eventIdentifier}`,
+          data: {
+            eventId: event.id,
+            eventIdentifier,
+            emitterIdentifier: appIdentifier,
+            targetUserId,
+            targetLocationFolderId: targetLocation?.folderId ?? null,
+            targetLocationObjectKey: targetLocation?.objectKey ?? null,
+            data,
+            createdAt: now.toISOString(),
+          },
+        },
+        scope: {
+          targetUserId,
+          targetAppIdentifier: appIdentifier,
+          targetLocationFolderId: targetLocation?.folderId ?? null,
+        },
+      })
     }
 
     void this.coreTaskService.startDrainCoreTasks()

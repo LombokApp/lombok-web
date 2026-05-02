@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts --format esm,cjs --dts --external bun,@lombokapp/auth-utils,@lombokapp/types,@lombokapp/sdk",
+    "build": "rm -rf ./dist && NODE_ENV=production tsup src/index.ts --format esm,cjs --dts --external bun,@lombokapp/auth-utils,@lombokapp/types,@lombokapp/sdk,socket.io-client",
     "dev": "bun --watch src/index.ts",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -23,7 +23,8 @@
     "@lombokapp/types": "workspace:*",
     "@lombokapp/auth-utils": "workspace:*",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "socket.io-client": "catalog:"
   },
   "devDependencies": {
     "@types/bun": "catalog:",
