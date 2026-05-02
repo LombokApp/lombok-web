@@ -90,6 +90,13 @@ export const dbQuerySchema = z.object({
 export const emitEventSchema = z.object({
   eventIdentifier: eventIdentifierSchema,
   data: jsonSerializableObjectSchema,
+  targetUserId: z.uuid().optional(),
+  targetLocation: z
+    .object({
+      folderId: z.string(),
+      objectKey: z.string().optional(),
+    })
+    .optional(),
 })
 
 export const dbExecSchema = z.object({
