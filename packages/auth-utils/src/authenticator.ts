@@ -12,12 +12,28 @@ export interface AuthenticatorStateType {
   isLoaded: boolean
 }
 
-export interface TokensType {
+export interface DefinedTokensType {
   accessToken: string
   refreshToken: string
 }
 
+export type TokensType =
+  | {
+      accessToken: string
+      refreshToken: string
+    }
+  | {
+      accessToken: undefined
+      refreshToken: undefined
+    }
+
 export type AuthenticatorEventNames = 'onStateChanged'
+
+export interface TokenStore {
+  ready: () => Promise<void>
+  setTokens: (tokens: TokensType) => Promise<void>
+  getTokens: () => Promise<TokensType>
+}
 
 export class Authenticator {
   private _state: AuthenticatorStateType = {
@@ -26,47 +42,29 @@ export class Authenticator {
   }
   private readonly eventTarget =
     typeof window !== 'undefined' ? new EventTarget() : undefined
-  private readonly tokens: Partial<TokensType> = {}
   private readonly $apiClient: ReturnType<typeof createFetchClient<paths>>
-  private readonly onTokensCreated?: (tokens: {
-    accessToken: string
-    refreshToken: string
-  }) => void | Promise<void>
-  private readonly onTokensRefreshed?: (tokens: {
-    accessToken: string
-    refreshToken: string
-  }) => void | Promise<void>
+  private readonly onTokensCreated?: (
+    tokens: DefinedTokensType,
+  ) => void | Promise<void>
+  private readonly onTokensRefreshed?: (
+    tokens: DefinedTokensType,
+  ) => void | Promise<void>
   private readonly onLogout?: () => void | Promise<void>
-  private readonly getAccessTokenFn: () =>
-    | string
-    | undefined
-    | Promise<string | undefined>
-  private readonly getRefreshTokenFn?: () =>
-    | string
-    | undefined
-    | Promise<string | undefined>
-
+  private inFlightGetAccessToken: Promise<string | undefined> | undefined
+  private readonly tokenStore: TokenStore
   constructor(
     readonly options: {
       basePath: string
-      onTokensCreated?: (tokens: {
-        accessToken: string
-        refreshToken: string
-      }) => void | Promise<void>
-      onTokensRefreshed?: (tokens: {
-        accessToken: string
-        refreshToken: string
-      }) => void | Promise<void>
+      onTokensCreated?: (tokens: DefinedTokensType) => void | Promise<void>
+      onTokensRefreshed?: (tokens: DefinedTokensType) => void | Promise<void>
       onLogout?: () => void | Promise<void>
-      accessToken: () => string | undefined | Promise<string | undefined>
-      refreshToken?: () => string | undefined | Promise<string | undefined>
+      tokenStore?: TokenStore
+      debugLogging?: boolean
     },
   ) {
     this.onTokensCreated = options.onTokensCreated
     this.onTokensRefreshed = options.onTokensRefreshed
     this.onLogout = options.onLogout
-    this.getAccessTokenFn = options.accessToken
-    this.getRefreshTokenFn = options.refreshToken
     this.$apiClient = createFetchClient<paths>({
       baseUrl: options.basePath,
       fetch: async (request) => {
@@ -74,51 +72,127 @@ export class Authenticator {
         return fetch(new Request(request, { headers }))
       },
     })
-
-    setTimeout(() => {
-      void (async () => {
-        // Use provided token functions if available
-        const accessToken = await this.getAccessTokenFn()
-        if (accessToken && verifyToken(accessToken)) {
-          this.tokens.accessToken = accessToken
-          let refreshToken: string | undefined
-          if (this.getRefreshTokenFn) {
-            refreshToken = await this.getRefreshTokenFn()
+    this.tokenStore = (() => {
+      let ready = false
+      const _holder =
+        options.tokenStore ??
+        (() => {
+          const storedTokens: TokensType = {
+            accessToken: undefined,
+            refreshToken: undefined,
           }
-          this.tokens.refreshToken = refreshToken
-          this.state = { isAuthenticated: true, isLoaded: true }
+          return {
+            ready: () => Promise.resolve(),
+            // eslint-disable-next-line @typescript-eslint/require-await
+            setTokens: async (_tokens: TokensType) => {
+              if (_tokens.accessToken && _tokens.refreshToken) {
+                Object.assign(storedTokens, _tokens)
+              } else {
+                storedTokens.accessToken = undefined
+                storedTokens.refreshToken = undefined
+              }
+            },
+            // eslint-disable-next-line @typescript-eslint/require-await
+            getTokens: async () => {
+              return storedTokens
+            },
+          }
+        })()
+
+      const waitForReady = async () => {
+        if (ready) {
           return
         }
-        await this.reset()
-        this.state = { isAuthenticated: false, isLoaded: true }
-      })()
+        let timer: ReturnType<typeof setTimeout> | undefined
+        const timeout = new Promise<'timeout'>((resolve) => {
+          timer = setTimeout(() => resolve('timeout'), 5 * 1000)
+        })
+        const readied = _holder.ready().then(
+          () => 'ready' as const,
+          (err: unknown) => ({ err }),
+        )
+        try {
+          const result = await Promise.race([readied, timeout])
+          if (result === 'ready') {
+            ready = true
+            return
+          }
+          if (result === 'timeout') {
+            throw new Error('Token holder did not become ready')
+          }
+          throw result.err
+        } finally {
+          if (timer) {
+            clearTimeout(timer)
+          }
+        }
+      }
+
+      return {
+        ready: _holder.ready,
+        setTokens: (_t) => waitForReady().then(() => _holder.setTokens(_t)),
+        getTokens: () => waitForReady().then(_holder.getTokens),
+      }
+    })()
+
+    void this.tokenStore.getTokens().then((tokens) => {
+      if (tokens.accessToken && tokens.refreshToken) {
+        void this.setTokens({
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        })
+      } else {
+        void this.reset()
+      }
     })
   }
 
   // getAccessToken returns valid accessToken if it exists or refreshes the token if not valid.
-  public async getAccessToken() {
-    const token = await this.getAccessTokenFn()
-    if (token && verifyToken(token)) {
-      return token
+  public async getAccessToken(): Promise<string | undefined> {
+    if (this.inFlightGetAccessToken) {
+      return this.inFlightGetAccessToken
     }
-    if (this.getRefreshTokenFn) {
-      const refreshToken = await this.getRefreshTokenFn()
-      this.tokens.refreshToken = refreshToken
+    this.inFlightGetAccessToken = this.doGetAccessToken().finally(() => {
+      this.inFlightGetAccessToken = undefined
+    })
+    return this.inFlightGetAccessToken
+  }
+
+  private async doGetAccessToken(): Promise<string | undefined> {
+    const { accessToken, refreshToken } = await this.tokenStore.getTokens()
+    if (accessToken && verifyToken(accessToken)) {
+      return accessToken
     }
-    if (this.tokens.refreshToken) {
-      await this.refresh()
+    if (refreshToken) {
+      await this.doRefresh()
+      const refreshedTokens = await this.tokenStore.getTokens()
+      if (
+        refreshedTokens.accessToken &&
+        verifyToken(refreshedTokens.accessToken)
+      ) {
+        return refreshedTokens.accessToken
+      }
     }
     if (this.state.isAuthenticated) {
       await this.logout()
+    } else {
+      await this.reset()
     }
+    return undefined
   }
 
-  public async setTokens(tokens: TokensType) {
+  public async setTokens(tokens: DefinedTokensType) {
     if (!verifyToken(tokens.accessToken)) {
+      await this.tokenStore.setTokens({
+        accessToken: undefined,
+        refreshToken: undefined,
+      })
       throw new Error('Access token is invalid')
     }
-    this.tokens.accessToken = tokens.accessToken
-    this.tokens.refreshToken = tokens.refreshToken
+    await this.tokenStore.setTokens({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    })
     this.state = { isAuthenticated: true, isLoaded: true }
     if (this.onTokensCreated) {
       await this.onTokensCreated({
@@ -142,15 +216,10 @@ export class Authenticator {
           loginResponse.data ? { cause: loginResponse.data } : undefined,
         )
       }
-      this.tokens.accessToken = loginResponse.data.session.accessToken
-      this.tokens.refreshToken = loginResponse.data.session.refreshToken
-      this.state = { isAuthenticated: true, isLoaded: true }
-      if (this.onTokensCreated) {
-        await this.onTokensCreated({
-          accessToken: loginResponse.data.session.accessToken,
-          refreshToken: loginResponse.data.session.refreshToken,
-        })
-      }
+      await this.setTokens({
+        accessToken: loginResponse.data.session.accessToken,
+        refreshToken: loginResponse.data.session.refreshToken,
+      })
       return loginResponse
     } catch (error: unknown) {
       await this.reset()
@@ -160,7 +229,7 @@ export class Authenticator {
 
   public async getViewer() {
     const viewerResponse = await this.$apiClient.GET('/api/v1/viewer', {
-      headers: { Authorization: `Bearer ${this.tokens.accessToken}` },
+      headers: { Authorization: `Bearer ${await this.getAccessToken()}` },
     })
     if (viewerResponse.response.status !== 200 || !viewerResponse.data) {
       await this.logout()
@@ -232,17 +301,11 @@ export class Authenticator {
       }
 
       if (!('needsUsername' in ssoCallbackResponse.data)) {
-        this.tokens.accessToken = ssoCallbackResponse.data.accessToken
-        this.tokens.refreshToken = ssoCallbackResponse.data.refreshToken
-        this.state = { isAuthenticated: true, isLoaded: true }
-        if (this.onTokensCreated) {
-          await this.onTokensCreated({
-            accessToken: ssoCallbackResponse.data.accessToken,
-            refreshToken: ssoCallbackResponse.data.refreshToken,
-          })
-          return { needsUsername: false, success: true }
-        }
-        return { needsUsername: true, success: false }
+        await this.setTokens({
+          accessToken: ssoCallbackResponse.data.accessToken,
+          refreshToken: ssoCallbackResponse.data.refreshToken,
+        })
+        return { needsUsername: false, success: true }
       }
       return ssoCallbackResponse.data
     } catch (error: unknown) {
@@ -265,15 +328,10 @@ export class Authenticator {
           signupResponse.data ? { cause: signupResponse.data } : undefined,
         )
       }
-      this.tokens.accessToken = signupResponse.data.accessToken
-      this.tokens.refreshToken = signupResponse.data.refreshToken
-      this.state = { isAuthenticated: true, isLoaded: true }
-      if (this.onTokensCreated) {
-        await this.onTokensCreated({
-          accessToken: signupResponse.data.accessToken,
-          refreshToken: signupResponse.data.refreshToken,
-        })
-      }
+      await this.setTokens({
+        accessToken: signupResponse.data.accessToken,
+        refreshToken: signupResponse.data.refreshToken,
+      })
       return signupResponse
     } catch (error: unknown) {
       await this.reset()
@@ -295,7 +353,7 @@ export class Authenticator {
     let error: unknown
     let backendLogoutFailed = false
 
-    const { accessToken } = this.tokens
+    const { accessToken } = await this.tokenStore.getTokens()
 
     if (accessToken !== undefined) {
       try {
@@ -321,7 +379,6 @@ export class Authenticator {
     options?: boolean | AddEventListenerOptions,
   ) {
     this.eventTarget?.addEventListener(type, callback, options)
-    this.state = this._state
   }
 
   public removeEventListener(
@@ -332,8 +389,9 @@ export class Authenticator {
     this.eventTarget?.removeEventListener(type, callback, options)
   }
 
-  private async refresh() {
-    if (!this.tokens.refreshToken) {
+  private async doRefresh() {
+    const latestTokens = await this.tokenStore.getTokens()
+    if (!latestTokens.refreshToken) {
       throw new Error('no refresh token set')
     }
 
@@ -343,50 +401,49 @@ export class Authenticator {
         {
           params: {
             path: {
-              refreshToken: this.tokens.refreshToken,
+              refreshToken: latestTokens.refreshToken,
             },
           },
         },
       )
 
       if (
-        refreshTokenResponse.response.status !== 200 ||
+        refreshTokenResponse.response.status < 200 ||
+        refreshTokenResponse.response.status > 299 ||
         !refreshTokenResponse.data
       ) {
-        throw new Error(
-          'Failed to refresh token',
-          refreshTokenResponse.data
-            ? {
-                cause: refreshTokenResponse.data,
-              }
-            : undefined,
-        )
+        throw new Error('Failed to refresh token')
       }
 
       const { accessToken, refreshToken } = refreshTokenResponse.data.session
 
-      this.tokens.accessToken = accessToken
-      this.tokens.refreshToken = refreshToken
-      this.state = { isAuthenticated: true, isLoaded: true }
-      if (this.onTokensCreated) {
-        await this.onTokensCreated({ accessToken, refreshToken })
-      }
+      await this.setTokens({
+        accessToken,
+        refreshToken,
+      })
       if (this.onTokensRefreshed) {
         await this.onTokensRefreshed({ accessToken, refreshToken })
       }
     } catch (err: unknown) {
-      await this.reset()
+      await this.reset(err)
       throw err
     }
   }
 
-  private async reset() {
-    this.tokens.accessToken = undefined
-    this.tokens.refreshToken = undefined
-    if (this.state.isAuthenticated) {
+  private async reset(err?: unknown) {
+    if (err) {
+      // eslint-disable-next-line no-console
+      console.error('Auth reset due to unexpected error:', err)
+    }
+    await this.tokenStore.setTokens({
+      accessToken: undefined,
+      refreshToken: undefined,
+    })
+    const wasAuthenticated = this.state.isAuthenticated
+    this.state = { isAuthenticated: false, isLoaded: true }
+    if (wasAuthenticated) {
       await this.onLogout?.()
     }
-    this.state = { isAuthenticated: false, isLoaded: true }
   }
 
   public get state(): AuthenticatorStateType {

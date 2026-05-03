@@ -2,9 +2,7 @@ import type { AuthenticatorStateType } from '@lombokapp/auth-utils'
 import React from 'react'
 
 import { AppBrowserSdk } from '../../app-browser-sdk'
-import type { ISdkContext } from './app-browser-sdk.hook'
-
-const SdkContext = React.createContext<ISdkContext>({} as ISdkContext)
+import { SdkContext } from './app-browser-sdk.context'
 
 export const AppBrowserSdkContextProvider = ({
   children,
@@ -67,6 +65,7 @@ export const AppBrowserSdkContextProvider = ({
             : `/${to.pathAndQuery}`,
         })
       },
+      debugLogging: true,
     })
   })
 

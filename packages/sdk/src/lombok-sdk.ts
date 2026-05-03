@@ -1,3 +1,4 @@
+import type { TokenStore } from '@lombokapp/auth-utils'
 import { Authenticator } from '@lombokapp/auth-utils'
 import type { paths } from '@lombokapp/types'
 import createFetchClient from 'openapi-fetch'
@@ -7,15 +8,13 @@ export class LombokSdk {
   public authenticator: Authenticator
   constructor({
     basePath,
-    accessToken,
-    refreshToken,
     onTokensCreated,
     onTokensRefreshed,
     onLogout,
+    tokenStore,
+    debugLogging = false,
   }: {
     basePath: string
-    accessToken: () => string | undefined | Promise<string | undefined>
-    refreshToken?: () => string | undefined | Promise<string | undefined>
     onTokensCreated?: (tokens: {
       accessToken: string
       refreshToken: string
@@ -25,27 +24,28 @@ export class LombokSdk {
       refreshToken: string
     }) => void | Promise<void>
     onLogout?: () => void | Promise<void>
+    tokenStore?: TokenStore
+    debugLogging?: boolean
   }) {
     this.authenticator = new Authenticator({
       basePath,
-      accessToken,
-      refreshToken,
       onTokensCreated,
       onTokensRefreshed,
       onLogout,
+      debugLogging,
+      tokenStore,
     })
 
     this.apiClient = createFetchClient<paths>({
       baseUrl: basePath,
       fetch: async (request) => {
-        let token: string | undefined
-        if (typeof accessToken === 'function') {
-          token = await accessToken()
-        } else if (typeof accessToken === 'string') {
-          token = accessToken
-        } else {
-          token = await this.authenticator.getAccessToken()
-        }
+        // Always route through the authenticator so the apiClient (1) skips
+        // sending an expired access token, (2) shares the in-flight refresh
+        // dedup with every other caller, and (3) waits for an in-progress
+        // refresh to publish the new token before constructing headers.
+        // Bypassing this and reading the raw lambda means concurrent requests
+        // race the refresh and fan out 401s with the stale token.
+        const token = await this.authenticator.getAccessToken()
         const headers = new Headers(request.headers)
         if (token) {
           headers.set('Authorization', `Bearer ${token}`)
