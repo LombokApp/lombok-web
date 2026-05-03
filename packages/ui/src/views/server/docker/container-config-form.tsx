@@ -35,6 +35,8 @@ function stringToLines(s: string): string[] {
     .filter(Boolean)
 }
 
+type ConfigMount = NonNullable<DockerContainerResourceConfig['mounts']>[number]
+
 function stringToKeyValueRecord(s: string): Record<string, string> | undefined {
   const entries: Record<string, string> = {}
   for (const line of s.split('\n')) {
@@ -48,6 +50,42 @@ function stringToKeyValueRecord(s: string): Record<string, string> | undefined {
     }
   }
   return Object.keys(entries).length > 0 ? entries : undefined
+}
+
+function mountsToJson(val: ConfigMount[] | undefined): string {
+  if (!val || val.length === 0) {
+    return ''
+  }
+  return JSON.stringify(val, null, 2)
+}
+
+// Parse the textarea contents. Returns undefined for empty/whitespace
+// (meaning "no mounts configured"). Returns the parsed array for well-
+// formed JSON. Returns the error string itself so the caller can preserve
+// the user's in-progress input on the server round-trip — the server will
+// still reject it via Zod validation, which is the source of truth.
+function mountsFromJson(
+  s: string,
+):
+  | { kind: 'empty' }
+  | { kind: 'valid'; value: ConfigMount[] }
+  | { kind: 'invalid'; error: string } {
+  const trimmed = s.trim()
+  if (!trimmed) {
+    return { kind: 'empty' }
+  }
+  try {
+    const parsed: unknown = JSON.parse(trimmed)
+    if (!Array.isArray(parsed)) {
+      return { kind: 'invalid', error: 'Expected a JSON array of mounts' }
+    }
+    return { kind: 'valid', value: parsed as ConfigMount[] }
+  } catch (err) {
+    return {
+      kind: 'invalid',
+      error: err instanceof Error ? err.message : String(err),
+    }
+  }
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────
@@ -100,7 +138,7 @@ export function loadConfigState(
   cfg: DockerContainerResourceConfig,
 ): ContainerConfigState {
   return {
-    volumes: parseStringArray(cfg.volumes),
+    mounts: mountsToJson(cfg.mounts),
     tmpfs: parseKeyValueRecord(cfg.tmpfs),
     devices: parseStringArray(cfg.devices),
     env: (() => {
@@ -171,9 +209,11 @@ export function buildConfigFromState(
 ): DockerContainerResourceConfig {
   const config: DockerContainerResourceConfig = {}
 
-  const volLines = stringToLines(s.volumes)
-  if (volLines.length > 0) {
-    config.volumes = volLines
+  // Mounts is a JSON textarea. Well-formed JSON wins; invalid / in-progress
+  // input drops the field (server would reject it anyway). Empty = omit.
+  const parsedMounts = mountsFromJson(s.mounts)
+  if (parsedMounts.kind === 'valid') {
+    config.mounts = parsedMounts.value
   }
   const tmpfsRecord = stringToKeyValueRecord(s.tmpfs)
   if (tmpfsRecord) {
@@ -329,7 +369,7 @@ export function buildConfigFromState(
 }
 
 export interface ContainerConfigState {
-  volumes: string
+  mounts: string
   tmpfs: string
   devices: string
   env: string
@@ -368,7 +408,7 @@ export interface ContainerConfigState {
 }
 
 export const EMPTY_CONFIG_STATE: ContainerConfigState = {
-  volumes: '',
+  mounts: '',
   tmpfs: '',
   devices: '',
   env: '',
@@ -435,6 +475,8 @@ export function ContainerConfigForm({
       state.ports.map((p, i) => (i === index ? { ...p, [field]: value } : p)),
     )
 
+  const mountsParse = mountsFromJson(state.mounts)
+
   return (
     <div className="relative flex max-h-max min-h-0 rounded-lg border border-muted/40 bg-muted">
       <div className="pointer-events-none absolute -inset-x-px -top-px z-10 h-7 rounded-t-lg bg-linear-to-b from-muted to-transparent" />
@@ -444,14 +486,28 @@ export function ContainerConfigForm({
           {/* ── Storage ─────────────────────────────────────────── */}
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-medium">Storage</h3>
-            <ConfigTextarea
-              id="cfg-volumes"
-              label="Volumes"
-              placeholder={'/host/path:/container/path\n/data:/data:ro'}
-              hint="One volume mount per line."
-              value={state.volumes}
-              onChange={(v) => set('volumes', v)}
-            />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cfg-mounts">Mounts (JSON)</Label>
+              <textarea
+                id="cfg-mounts"
+                className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm placeholder:text-muted-foreground"
+                placeholder={`[\n  {\n    "type": "volume",\n    "target": "/workspace",\n    "volumeOptions": {\n      "driverConfig": {\n        "name": "local",\n        "options": {\n          "type": "nfs",\n          "o": "addr=10.0.0.5,nfsvers=4,rw",\n          "device": ":/mnt/user/codicle/{{appIdentifier}}"\n        }\n      }\n    }\n  }\n]`}
+                value={state.mounts}
+                onChange={(e) => set('mounts', e.target.value)}
+                rows={10}
+                spellCheck={false}
+              />
+              {mountsParse.kind === 'invalid' ? (
+                <p className="text-xs text-destructive">
+                  Invalid JSON: {mountsParse.error}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  JSON array of Docker mounts. Strings (e.g. {'{{ '}
+                  appIdentifier {'}}'}) are templatable. Empty = no mounts.
+                </p>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <ConfigTextarea
                 id="cfg-tmpfs"

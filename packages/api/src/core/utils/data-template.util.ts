@@ -180,17 +180,166 @@ async function resolveTemplateExpression(
   return found ? value : undefined
 }
 
-async function resolveValue(
-  value: JsonSerializableValue,
+type FilterMode = 'include' | 'exclude'
+
+interface KeyFilterRule {
+  path: string[]
+  mode: FilterMode
+}
+
+interface KeyFilter {
+  defaultMode: FilterMode
+  rules: KeyFilterRule[]
+}
+
+function pathEquals(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) {
+    return false
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false
+    }
+  }
+  return true
+}
+
+function isPrefixOrEqual(prefix: string[], path: string[]): boolean {
+  if (prefix.length > path.length) {
+    return false
+  }
+  for (let i = 0; i < prefix.length; i++) {
+    if (prefix[i] !== path[i]) {
+      return false
+    }
+  }
+  return true
+}
+
+function isStrictPrefix(prefix: string[], path: string[]): boolean {
+  return prefix.length < path.length && isPrefixOrEqual(prefix, path)
+}
+
+function buildKeyFilter(
+  onlyKeys: string[][] | undefined,
+  omitKeys: string[][] | undefined,
+): KeyFilter | undefined {
+  const hasOnly = !!onlyKeys && onlyKeys.length > 0
+  const hasOmit = !!omitKeys && omitKeys.length > 0
+  if (!hasOnly && !hasOmit) {
+    return undefined
+  }
+
+  if (hasOnly && hasOmit) {
+    for (const o of onlyKeys) {
+      for (const x of omitKeys) {
+        if (pathEquals(o, x)) {
+          throw new Error(
+            `dataFromTemplate: path [${o.join('.')}] appears in both onlyKeys and omitKeys`,
+          )
+        }
+      }
+    }
+  }
+
+  const rules: KeyFilterRule[] = []
+  if (hasOnly) {
+    for (const p of onlyKeys) {
+      rules.push({ path: p, mode: 'include' })
+    }
+  }
+  if (hasOmit) {
+    for (const p of omitKeys) {
+      rules.push({ path: p, mode: 'exclude' })
+    }
+  }
+
+  return {
+    // If onlyKeys is provided, the default is to exclude everything not listed.
+    // With only omitKeys, the default is to include everything not listed.
+    defaultMode: hasOnly ? 'exclude' : 'include',
+    rules,
+  }
+}
+
+function effectiveMode(filter: KeyFilter, path: string[]): FilterMode {
+  let longest: KeyFilterRule | null = null
+  for (const rule of filter.rules) {
+    if (
+      isPrefixOrEqual(rule.path, path) &&
+      (!longest || rule.path.length > longest.path.length)
+    ) {
+      longest = rule
+    }
+  }
+  return longest ? longest.mode : filter.defaultMode
+}
+
+function decideKey(
+  filter: KeyFilter,
+  newPath: string[],
+): 'resolveAll' | 'passthrough' | 'recurse' {
+  const hasDeeper = filter.rules.some((r) => isStrictPrefix(newPath, r.path))
+  if (hasDeeper) {
+    return 'recurse'
+  }
+  return effectiveMode(filter, newPath) === 'include'
+    ? 'resolveAll'
+    : 'passthrough'
+}
+
+async function resolveValue<
+  T = JsonSerializableValue,
+  R extends T | JsonSerializableObject = T | JsonSerializableObject,
+>(
+  value: T,
   inputs: { objects: Record<string, unknown>; functions: AvailableFunctions },
   validate: boolean,
-): Promise<JsonSerializableValue> {
+  filter?: KeyFilter,
+  path: string[] = [],
+): Promise<R> {
+  if (Array.isArray(value)) {
+    return Promise.all(
+      value.map((entry) => resolveValue(entry, inputs, validate, filter, path)),
+    ) as R
+  }
+
+  if (value !== null && typeof value === 'object') {
+    const resolvedObject: JsonSerializableObject = {}
+    for (const [key, entry] of Object.entries(
+      value as JsonSerializableObject,
+    )) {
+      const newPath = [...path, key]
+      const decision = filter ? decideKey(filter, newPath) : 'resolveAll'
+      if (decision === 'passthrough') {
+        resolvedObject[key] = entry
+      } else if (decision === 'resolveAll') {
+        resolvedObject[key] = await resolveValue(entry, inputs, validate)
+      } else {
+        resolvedObject[key] = await resolveValue(
+          entry,
+          inputs,
+          validate,
+          filter,
+          newPath,
+        )
+      }
+    }
+    return resolvedObject as R
+  }
+
+  // Primitive reached while filter is still in "recurse" mode: deeper rules
+  // can't apply to a leaf, so honour the effective mode at this path.
+  if (filter && effectiveMode(filter, path) === 'exclude') {
+    return value as R
+  }
+
   if (typeof value === 'string') {
     // Find all template expressions in the string
     const matches = Array.from(value.matchAll(TEMPLATE_EXPRESSION))
 
     if (matches.length === 0) {
-      return value
+      return value as R
     }
 
     // If the entire string is a single template expression, return the resolved value directly
@@ -206,11 +355,11 @@ async function resolveValue(
         inputs,
         { validate },
       )
-      return resolved === undefined ? null : resolved
+      return (resolved === undefined ? null : resolved) as R
     }
 
     // Multiple template expressions - resolve each and concatenate
-    let result = value
+    let result = value as string
     for (const match of matches) {
       const expression = match.groups?.expression
       const matchString = match[0]
@@ -229,28 +378,14 @@ async function resolveValue(
         result = result.replace(matchString, resolvedStr)
       }
     }
-    return result
+    return result as R
   }
 
-  if (Array.isArray(value)) {
-    return Promise.all(
-      value.map((entry) => resolveValue(entry, inputs, validate)),
-    )
-  }
-
-  if (value !== null && typeof value === 'object') {
-    const resolvedObject: JsonSerializableObject = {}
-    for (const [key, entry] of Object.entries(value)) {
-      resolvedObject[key] = await resolveValue(entry, inputs, validate)
-    }
-    return resolvedObject
-  }
-
-  return value
+  return value as R
 }
 
 export async function dataFromTemplate(
-  data: Record<string, JsonSerializableValue>,
+  data: Record<string, JsonSerializableValue | undefined>,
   {
     objects = {},
     functions = {},
@@ -261,20 +396,25 @@ export async function dataFromTemplate(
     objects: {},
     functions: {},
   },
-  options = { validate: false },
+  options: {
+    validate?: boolean
+    onlyKeys?: string[][]
+    omitKeys?: string[][]
+  } = {},
 ): Promise<JsonSerializableObject> {
   if (!isJsonValue(data)) {
     throw new Error('Data is not a valid JSON value')
   }
 
-  const parsedData: JsonSerializableObject = {}
-  for (const [key, value] of Object.entries(data)) {
-    parsedData[key] = await resolveValue(
-      value,
-      { objects, functions },
-      options.validate,
-    )
-  }
+  const validate = options.validate ?? false
+  const filter = buildKeyFilter(options.onlyKeys, options.omitKeys)
 
-  return parsedData
+  const resolved = await resolveValue(
+    data,
+    { objects, functions },
+    validate,
+    filter,
+    [],
+  )
+  return resolved
 }
