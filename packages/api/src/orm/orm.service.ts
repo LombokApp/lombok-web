@@ -141,6 +141,10 @@ export class OrmService {
         user: this._ormConfig.dbUser,
         password: this._ormConfig.dbPassword,
         database: this._ormConfig.dbName,
+        // Surface deadlocks loudly instead of hanging forever. If a caller
+        // can't get a connection within 10s, throw — better a noisy error
+        // than a silent freeze.
+        connectionTimeoutMillis: 10_000,
       })
     }
     return this._client

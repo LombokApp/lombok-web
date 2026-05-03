@@ -257,12 +257,15 @@ export class AppService {
     appIdentifier: string,
     {
       enabled,
+      tx,
     }: {
       enabled?: boolean
+      tx?: OrmService['db']
     } = {},
   ): Promise<App | undefined> {
     const idCondition = eq(appsTable.identifier, appIdentifier)
-    return this.ormService.db.query.appsTable.findFirst({
+    const db = tx ?? this.ormService.db
+    return db.query.appsTable.findFirst({
       where:
         typeof enabled === 'boolean'
           ? and(idCondition, eq(appsTable.enabled, enabled))
@@ -2006,24 +2009,26 @@ export class AppService {
   async validateAppUserAccess({
     appIdentifier,
     userId,
+    tx,
   }: {
     appIdentifier: string
     userId: string
+    tx?: OrmService['db']
   }): Promise<void> {
-    const app = await this.getApp(appIdentifier, { enabled: true })
+    const db = tx ?? this.ormService.db
+    const app = await this.getApp(appIdentifier, { enabled: true, tx })
     if (!app) {
       throw new UnauthorizedException(
         `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
       )
     }
 
-    const appUserSettings =
-      await this.ormService.db.query.appUserSettingsTable.findFirst({
-        where: and(
-          eq(appUserSettingsTable.appIdentifier, appIdentifier),
-          eq(appUserSettingsTable.userId, userId),
-        ),
-      })
+    const appUserSettings = await db.query.appUserSettingsTable.findFirst({
+      where: and(
+        eq(appUserSettingsTable.appIdentifier, appIdentifier),
+        eq(appUserSettingsTable.userId, userId),
+      ),
+    })
 
     const resolvedUserSettings = resolveUserAppSettings(app, appUserSettings)
     const enabled =
@@ -2041,18 +2046,21 @@ export class AppService {
   async validateAppFolderAccess({
     appIdentifier,
     folderId,
+    tx,
   }: {
     appIdentifier: string
     folderId: string
+    tx?: OrmService['db']
   }): Promise<void> {
-    const app = await this.getApp(appIdentifier, { enabled: true })
+    const db = tx ?? this.ormService.db
+    const app = await this.getApp(appIdentifier, { enabled: true, tx })
     if (!app) {
       throw new UnauthorizedException(
         `Unauthorized: app "${appIdentifier}" is not enabled or does not exist.`,
       )
     }
 
-    const folder = await this.ormService.db.query.foldersTable.findFirst({
+    const folder = await db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
     })
 
@@ -2060,21 +2068,19 @@ export class AppService {
       throw new NotFoundException(`Folder not found: ${folderId}`)
     }
 
-    const appUserSettings =
-      await this.ormService.db.query.appUserSettingsTable.findFirst({
-        where: and(
-          eq(appUserSettingsTable.appIdentifier, appIdentifier),
-          eq(appUserSettingsTable.userId, folder.ownerId),
-        ),
-      })
+    const appUserSettings = await db.query.appUserSettingsTable.findFirst({
+      where: and(
+        eq(appUserSettingsTable.appIdentifier, appIdentifier),
+        eq(appUserSettingsTable.userId, folder.ownerId),
+      ),
+    })
 
-    const appFolderSettings =
-      await this.ormService.db.query.appFolderSettingsTable.findFirst({
-        where: and(
-          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
-          eq(appFolderSettingsTable.folderId, folderId),
-        ),
-      })
+    const appFolderSettings = await db.query.appFolderSettingsTable.findFirst({
+      where: and(
+        eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+        eq(appFolderSettingsTable.folderId, folderId),
+      ),
+    })
 
     const resolvedFolderSettings = resolveFolderAppSettings(
       app,
