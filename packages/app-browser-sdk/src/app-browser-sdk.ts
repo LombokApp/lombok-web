@@ -1,3 +1,4 @@
+import type { TokensType } from '@lombokapp/auth-utils'
 import type { LombokApiClient } from '@lombokapp/sdk'
 import { LombokSdk } from '@lombokapp/sdk'
 import { getAppRequestWorkerHostname } from '@lombokapp/types'
@@ -16,6 +17,10 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   private static theme = 'light'
   private static initRequested = false
   private static initialData?: InitialData
+  private static readonly tokens: TokensType = {
+    accessToken: undefined,
+    refreshToken: undefined,
+  }
   private static sdk: LombokSdk | undefined = undefined
   private readonly config: AppBrowserSdkConfig
 
@@ -46,6 +51,19 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
 
   public get isInitialized(): boolean {
     return AppBrowserSdk.isInitialized
+  }
+
+  public waitForInitialized(): Promise<boolean> {
+    if (AppBrowserSdk.isInitialized) {
+      return Promise.resolve(true)
+    }
+    return waitForTrue(() => AppBrowserSdk.isInitialized, {
+      retryPeriod: 100,
+      maxRetries: 50,
+    }).then(
+      () => true,
+      () => false,
+    )
   }
 
   public get initRequested(): boolean {
@@ -79,11 +97,33 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     if (!AppBrowserSdk.sdk) {
       AppBrowserSdk.sdk = new LombokSdk({
         basePath: this.lombokApiBasePath,
-        accessToken: () => AppBrowserSdk.initialData?.accessToken,
-        refreshToken: () => AppBrowserSdk.initialData?.refreshToken,
+        tokenStore: {
+          ready: async () => {
+            await this.waitForInitialized()
+          },
+          // eslint-disable-next-line @typescript-eslint/require-await
+          setTokens: async (newTokens) =>
+            AppBrowserSdk.updateTokens(
+              newTokens.accessToken && newTokens.refreshToken
+                ? {
+                    accessToken: newTokens.accessToken,
+                    refreshToken: newTokens.refreshToken,
+                  }
+                : {
+                    accessToken: undefined,
+                    refreshToken: undefined,
+                  },
+            ),
+          getTokens: () => Promise.resolve(AppBrowserSdk.tokens),
+        },
+        debugLogging: this.config.debugLogging,
       })
     }
     return AppBrowserSdk.sdk
+  }
+
+  private static updateTokens(tokens: TokensType) {
+    Object.assign(AppBrowserSdk.tokens, tokens)
   }
 
   private static setInitialData(initialData: InitialData): void {
@@ -93,6 +133,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
       pathAndQuery: initialData.pathAndQuery,
       theme: initialData.theme,
     }
+    AppBrowserSdk.updateTokens(initialData)
   }
 
   private static setupMessageHandlers(
@@ -131,10 +172,6 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     this.config = config ?? {}
     void this.communicator.then(() => {
       this.config.onInitialize?.()
-      void this.sdk.authenticator.setTokens({
-        accessToken: AppBrowserSdk.initialData?.accessToken || '',
-        refreshToken: AppBrowserSdk.initialData?.refreshToken || '',
-      })
     })
   }
 
