@@ -14,10 +14,10 @@ import {
   DockerRegistryCredentialsController,
   DockerStandaloneContainersController,
 } from './controllers/docker-host-management.controller'
+import { DockerWorkerApiProxyController } from './controllers/docker-worker-api-proxy.controller'
 import { DockerWorkerHooksController } from './controllers/docker-worker-hooks.controller'
 import { TunnelAuthController } from './controllers/tunnel-auth.controller'
 import { DockerJobGuard } from './guards/docker-job.guard'
-import { DockerWorkerGuard } from './guards/docker-worker.guard'
 import { RunDockerWorkerTaskProcessor } from './processors/run-docker-worker.task-processor'
 import { DockerClientService } from './services/client/docker-client.service'
 import { DockerBridgeService } from './services/docker-bridge.service'
@@ -35,6 +35,7 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
   controllers: [
     AdminBridgeSessionController,
     BridgeSessionController,
+    DockerWorkerApiProxyController,
     DockerWorkerHooksController,
     TunnelAuthController,
     DockerHostsController,
@@ -50,7 +51,6 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     RunDockerWorkerTaskProcessor,
     DockerWorkerHookService,
     DockerJobGuard,
-    DockerWorkerGuard,
   ],
   exports: [
     DockerBridgeService,

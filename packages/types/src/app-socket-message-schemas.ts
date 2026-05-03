@@ -107,7 +107,6 @@ export const dbBatchSchema = z.object({
 
 export const authenticateUserSchema = z.object({
   token: z.string(),
-  appIdentifier: z.string(),
 })
 
 export const executeAppDockerJobSchema = z.object({

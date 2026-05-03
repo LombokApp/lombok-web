@@ -22,11 +22,7 @@ import {
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
 import { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
-import { DockerRefreshContainerTokenResponseDTO } from '../dto/docker-refresh-container-token-response.dto'
-import { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
-import { DockerRouteAppContainerResponseDTO } from '../dto/docker-route-app-container-response.dto'
 import { DockerJobGuard } from '../guards/docker-job.guard'
-import { DockerWorkerGuard } from '../guards/docker-worker.guard'
 import { DockerWorkerHookService } from '../services/docker-worker-hook.service'
 
 @Controller('/api/v1/docker')
@@ -159,53 +155,26 @@ export class DockerWorkerHooksController {
   }
 
   /**
-   * Refresh a container token, returning a new JWT with fresh expiry.
+   * Refresh a platform token (app or app-user) for a Docker container.
    * Called periodically by the worker agent to keep long-lived containers authenticated.
+   * Accepts both app_runtime_worker and app_user tokens.
    */
-  @Post('/refresh-container-token')
-  @UseGuards(DockerWorkerGuard)
+  @Post('/refresh-platform-token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Refresh a container token',
+    summary: 'Refresh a platform token for a Docker container',
     description:
-      'Returns a new container token with fresh expiry. ' +
-      'The current token must be valid (not expired).',
+      'Returns a new platform token with fresh expiry. ' +
+      'Accepts app_runtime_worker or app_user tokens.',
   })
-  refreshContainerToken(
+  async refreshPlatformToken(
     @Req() req: Request,
-  ): DockerRefreshContainerTokenResponseDTO {
-    const claims = req.dockerContainerClaims
-    if (!claims) {
-      throw new BadRequestException('Container claims not found')
+  ): Promise<{ accessToken: string; refreshToken?: string }> {
+    const authHeader = req.header('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new BadRequestException('Missing or invalid Authorization header')
     }
-    return this.dockerWorkerHooksService.refreshContainerToken(claims)
-  }
-
-  /**
-   * Route a request from an app container to an app runtime worker.
-   * This has the platform lookup a pending request on a running container,
-   * and forward it to the runtime worker to so the container doesn't need
-   * to hold (and refresh) authentication credentials.
-   */
-  @Post('/relay-request')
-  @UseGuards(DockerWorkerGuard)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Route a request from an app container to an app runtime worker',
-    description:
-      'Routes a request from an app container to an app runtime worker. ' +
-      'This has the platform lookup a pending request on a running container, ' +
-      "and forward it to the runtime worker to so the container doesn't need " +
-      'to hold (and refresh) authentication credentials.',
-  })
-  async routeAppContainerRequest(
-    @Req() req: Request,
-    @Body() body: DockerRouteAppContainerRequestDTO,
-  ): Promise<DockerRouteAppContainerResponseDTO> {
-    const claims = req.dockerContainerClaims
-    if (!claims) {
-      throw new BadRequestException('Container claims not found')
-    }
-    return this.dockerWorkerHooksService.routeAppContainerRequest(claims, body)
+    const token = authHeader.slice('Bearer '.length)
+    return this.dockerWorkerHooksService.refreshPlatformToken(token)
   }
 }

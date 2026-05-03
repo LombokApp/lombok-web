@@ -11,7 +11,6 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
@@ -24,6 +23,11 @@ import { appsTable } from 'src/app/entities/app.entity'
 import { appFolderSettingsTable } from 'src/app/entities/app-folder-settings.entity'
 import { AppService } from 'src/app/services/app.service'
 import { authConfig } from 'src/auth/config'
+import { AuthDurationSeconds } from 'src/auth/constants/duration.constants'
+import {
+  APP_RUNTIME_WORKER_JWT_SUB_PREFIX,
+  APP_USER_JWT_SUB_PREFIX,
+} from 'src/auth/services/jwt.service'
 import { coreConfig } from 'src/core/config'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
@@ -37,45 +41,22 @@ import { dockerJobResultSchema } from '../dto/docker-job-complete-request.dto'
 import { DockerJobPresignedUrlsRequestDTO } from '../dto/docker-job-presigned-urls-request.dto'
 import { DockerJobPresignedUrlsResponseDTO } from '../dto/docker-job-presigned-urls-response.dto'
 import type { DockerJobUpdateRequestDTO } from '../dto/docker-job-update-request.dto'
-import type { DockerRouteAppContainerRequestDTO } from '../dto/docker-route-app-container-request.dto'
-import type { DockerRouteAppContainerResponseDTO } from '../dto/docker-route-app-container-response.dto'
 import { DockerClientService } from './client/docker-client.service'
 
 const ALGORITHM = 'HS256'
 const DOCKER_WORKER_JOB_JWT_SUB_PREFIX = 'docker_worker_job:'
-const DOCKER_CONTAINER_JWT_SUB_PREFIX = 'docker_container:'
 
 // JWT expiry for worker job tokens (30 minutes)
 const WORKER_JOB_TOKEN_EXPIRY_SECONDS = 30 * 60
 
-// JWT expiry for container tokens (24 hours — containers are long-lived)
-const CONTAINER_TOKEN_EXPIRY_SECONDS = 24 * 60 * 60
-
 // The permission required for uploading files to a folder
 const WRITE_OBJECTS_PERMISSION: FolderScopeAppPermissions = 'WRITE_OBJECTS'
-
-const relayRequestContextSchema = z.object({
-  workerIdentifier: z.string(),
-  url: z.string(),
-  method: z.string(),
-  headers: z.record(z.string(), z.string()),
-  body: z.unknown().optional(),
-  authUser: z.literal(true).optional(),
-})
 
 export interface DockerWorkerJobClaims {
   jobId: string
   executorMetadata: DockerExecutorMetadata
   taskId: string
   storageAccessPolicy: StorageAccessPolicy
-}
-
-export interface DockerContainerClaims {
-  appIdentifier: string
-  profileKey: string
-  hostId: string
-  containerId: string
-  userId?: string
 }
 
 export type CompleteJobRequest = z.infer<typeof dockerJobResultSchema>
@@ -271,86 +252,99 @@ export class DockerWorkerHookService {
   }
 
   /**
-   * Create a long-lived JWT token scoped to a specific container.
-   * Injected into the container via `lombok-worker-agent provision` for relay-request auth.
+   * Create a long-lived app token for a Docker container (non-user-isolated).
+   * Same subject format as runtime workers (`app_runtime_worker:{appIdentifier}`)
+   * but with a 24-hour expiry suitable for persistent containers.
    */
-  createDockerContainerToken(params: {
+  createDockerAppToken(appIdentifier: string): string {
+    return jwt.sign(
+      {
+        aud: this._coreConfig.platformHost,
+        jti: uuidV4(),
+        scp: [],
+        sub: `${APP_RUNTIME_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
+      },
+      this._authConfig.authJwtSecret,
+      {
+        algorithm: ALGORITHM,
+        expiresIn: AuthDurationSeconds.DockerContainerAppToken,
+      },
+    )
+  }
+
+  /**
+   * Create platform credentials for a Docker container at provisioning time.
+   * User-isolated containers get an app-user token (session-backed).
+   * Shared containers get an app token (same format as runtime workers).
+   */
+  async createDockerPlatformCredentials(params: {
     appIdentifier: string
-    profileKey: string
-    hostId: string
-    containerId: string
     userId?: string
-  }): string {
-    const payload = {
-      aud: this._coreConfig.platformHost,
-      jti: uuidV4(),
-      sub: `${DOCKER_CONTAINER_JWT_SUB_PREFIX}${params.containerId}`,
-      app_identifier: params.appIdentifier,
-      profile_key: params.profileKey,
-      host_id: params.hostId,
-      container_id: params.containerId,
-      ...(params.userId ? { user_id: params.userId } : {}),
-    }
-
-    return jwt.sign(payload, this._authConfig.authJwtSecret, {
-      algorithm: ALGORITHM,
-      expiresIn: CONTAINER_TOKEN_EXPIRY_SECONDS,
-    })
-  }
-
-  /**
-   * Refresh a container token, issuing a new JWT with the same claims but fresh expiry.
-   */
-  refreshContainerToken(claims: DockerContainerClaims): { token: string } {
-    const token = this.createDockerContainerToken({
-      appIdentifier: claims.appIdentifier,
-      profileKey: claims.profileKey,
-      hostId: claims.hostId,
-      containerId: claims.containerId,
-      userId: claims.userId,
-    })
-    return { token }
-  }
-
-  /**
-   * Verify a container token and return the claims.
-   */
-  verifyDockerContainerToken(token: string): DockerContainerClaims {
-    try {
-      const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
-        algorithms: [ALGORITHM],
-        audience: this._coreConfig.platformHost,
-      }) as JwtPayload & {
-        app_identifier: string
-        profile_key: string
-        host_id: string
-        container_id: string
-        user_id?: string
-      }
-
-      if (!decoded.sub?.startsWith(DOCKER_CONTAINER_JWT_SUB_PREFIX)) {
-        throw new UnauthorizedException('Token is not a container token')
-      }
-
+  }): Promise<{
+    token: string
+    refreshToken?: string
+    tokenType: 'app_user' | 'app'
+  }> {
+    if (params.userId) {
+      const result = await this.appService.createAppUserAccessTokenAsApp({
+        actor: { appIdentifier: params.appIdentifier },
+        userId: params.userId,
+      })
       return {
-        appIdentifier: decoded.app_identifier,
-        profileKey: decoded.profile_key,
-        hostId: decoded.host_id,
-        containerId: decoded.container_id,
-        userId: decoded.user_id,
+        token: result.accessToken,
+        refreshToken: result.refreshToken,
+        tokenType: 'app_user',
       }
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error
-      }
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new UnauthorizedException('Container token has expired')
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new UnauthorizedException('Invalid container token')
-      }
-      throw error
     }
+
+    return {
+      token: this.createDockerAppToken(params.appIdentifier),
+      tokenType: 'app',
+    }
+  }
+
+  /**
+   * Refresh a platform token for a Docker container.
+   * Handles both app-user tokens (session-based) and app tokens.
+   */
+  async refreshPlatformToken(
+    token: string,
+  ): Promise<{ accessToken: string; refreshToken?: string }> {
+    const decoded = jwt.verify(token, this._authConfig.authJwtSecret, {
+      algorithms: [ALGORITHM],
+      audience: this._coreConfig.platformHost,
+    }) as JwtPayload
+
+    if (!decoded.sub) {
+      throw new UnauthorizedException('Token has no subject')
+    }
+
+    if (decoded.sub.startsWith(APP_RUNTIME_WORKER_JWT_SUB_PREFIX)) {
+      const appIdentifier = decoded.sub.slice(
+        APP_RUNTIME_WORKER_JWT_SUB_PREFIX.length,
+      )
+      return { accessToken: this.createDockerAppToken(appIdentifier) }
+    }
+
+    if (decoded.sub.startsWith(APP_USER_JWT_SUB_PREFIX)) {
+      // app_user:{userId}:{appIdentifier}
+      const parts = decoded.sub.slice(APP_USER_JWT_SUB_PREFIX.length).split(':')
+
+      const [userId, appIdentifier] = parts
+      if (parts.length < 2 || !userId || !appIdentifier) {
+        throw new UnauthorizedException('Invalid app-user token')
+      }
+      const result = await this.appService.createAppUserAccessTokenAsApp({
+        actor: { appIdentifier },
+        userId,
+      })
+      return {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      }
+    }
+
+    throw new UnauthorizedException('Unsupported token type for refresh')
   }
 
   /**
@@ -612,121 +606,59 @@ export class DockerWorkerHookService {
   }
 
   /**
-   * Route a request from an app container to an app runtime worker.
-   *
-   * 1. Validate the claimed hostId matches the container token's hostId
-   * 2. Find the container and verify its labels match the token claims
-   * 3. Read the pending request context from /tmp/lombok-relay-requests/<requestId>.json inside the container
-   * 4. Optionally create an app-user access token if the token has a userId
-   * 5. Forward the request to the core-worker at localhost:3001/worker-api and return the response
+   * Forward a request from a Docker container directly to an app runtime worker.
+   * The caller already has a valid platform token (app or app-user) — no relay needed.
    */
-  async routeAppContainerRequest(
-    claims: DockerContainerClaims,
-    body: DockerRouteAppContainerRequestDTO,
-  ): Promise<DockerRouteAppContainerResponseDTO> {
-    try {
-      const { appIdentifier, hostId, containerId, userId } = claims
+  async forwardToWorkerApi(params: {
+    appIdentifier: string
+    workerIdentifier: string
+    path: string
+    method: string
+    headers: Record<string, string>
+    body: unknown
+  }): Promise<{
+    status: number
+    headers: Record<string, string>
+    body: unknown
+  }> {
+    const normalizedPath = params.path.replace(/^\/+/, '')
+    const workerUrl = `http://localhost:3001/worker-api/${params.workerIdentifier}/${normalizedPath}`
 
-      // 1. Exec into container to read the request context
-      // When callerSubPath is provided, read from a caller-specific subdirectory
-      const relayDir = body.callerSubPath
-        ? `/tmp/lombok-relay-requests/${body.callerSubPath}`
-        : '/tmp/lombok-relay-requests'
-      const loadRequestContext = await this.dockerClientService.execInContainer(
-        hostId,
-        containerId,
-        ['cat', `${relayDir}/${body.requestId}.json`],
-      )
-      if (loadRequestContext.exitCode !== 0) {
-        throw new NotFoundException(
-          `Request file not found in container: ${loadRequestContext.stderr || 'exit code ' + String(loadRequestContext.exitCode)}`,
-        )
-      }
+    const forwardHeaders: Record<string, string> = {
+      ...params.headers,
+      Host: `app-server--${params.appIdentifier}.localhost`,
+    }
 
-      // 4. Parse and validate request context JSON
-      const requestContext = relayRequestContextSchema.parse(
-        JSON.parse(loadRequestContext.stdout),
-      )
+    const response = await fetch(workerUrl, {
+      method: params.method,
+      headers: forwardHeaders,
+      ...(params.body && params.method !== 'GET' && params.method !== 'HEAD'
+        ? {
+            body:
+              typeof params.body === 'string'
+                ? params.body
+                : JSON.stringify(params.body),
+          }
+        : {}),
+    })
 
-      // 5. Resolve user context (if authUser is requested)
-      let accessToken: string | undefined
-      if (requestContext.authUser) {
-        if (!userId) {
-          throw new UnauthorizedException(
-            'Request requires authenticated user but container has no user context',
-          )
-        }
-        const tokenResult = await this.appService.createAppUserAccessTokenAsApp(
-          {
-            actor: { appIdentifier },
-            userId,
-          },
-        )
-        accessToken = tokenResult.accessToken
-      }
+    const responseHeaders: Record<string, string> = {}
+    response.headers.forEach((value, key) => {
+      responseHeaders[key] = value
+    })
 
-      // 6. Build the forwarding URL and headers
-      const normalizedUrl = requestContext.url.replace(/^\/+/, '')
-      const workerUrl = `http://localhost:3001/worker-api/${requestContext.workerIdentifier}/${normalizedUrl}`
+    let responseBody: unknown
+    const contentType = response.headers.get('content-type')
+    if (contentType?.includes('application/json')) {
+      responseBody = await response.json()
+    } else {
+      responseBody = await response.text()
+    }
 
-      const forwardHeaders: Record<string, string> = {
-        ...requestContext.headers,
-        Host: `app-server--${appIdentifier}.localhost`,
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      }
-
-      // 7. Forward the request
-      const response = await fetch(workerUrl, {
-        method: requestContext.method,
-        headers: forwardHeaders,
-        ...(requestContext.body &&
-        requestContext.method !== 'GET' &&
-        requestContext.method !== 'HEAD'
-          ? {
-              body:
-                typeof requestContext.body === 'string'
-                  ? requestContext.body
-                  : JSON.stringify(requestContext.body),
-            }
-          : {}),
-      })
-
-      // 8. Read response and return
-      const responseHeaders: Record<string, string> = {}
-      response.headers.forEach((value, key) => {
-        responseHeaders[key] = value
-      })
-
-      let responseBody: unknown
-      const contentType = response.headers.get('content-type')
-      if (contentType?.includes('application/json')) {
-        responseBody = await response.json()
-      } else {
-        responseBody = await response.text()
-      }
-
-      return {
-        status: response.status,
-        headers: responseHeaders,
-        body: responseBody,
-      }
-    } catch (error) {
-      // Re-throw NestJS HTTP exceptions as-is
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException ||
-        error instanceof ForbiddenException ||
-        error instanceof UnauthorizedException ||
-        error instanceof ConflictException ||
-        error instanceof InternalServerErrorException
-      ) {
-        throw error
-      }
-      // Wrap unexpected errors
-      this.logger.error('routeAppContainerRequest failed', error)
-      throw new InternalServerErrorException(
-        `Failed to route app container request: ${error instanceof Error ? error.message : String(error)}`,
-      )
+    return {
+      status: response.status,
+      headers: responseHeaders,
+      body: responseBody,
     }
   }
 

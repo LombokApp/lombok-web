@@ -1585,7 +1585,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/docker/refresh-container-token": {
+    "/api/v1/docker/refresh-platform-token": {
         parameters: {
             query?: never;
             header?: never;
@@ -1595,30 +1595,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Refresh a container token
-         * @description Returns a new container token with fresh expiry. The current token must be valid (not expired).
+         * Refresh a platform token for a Docker container
+         * @description Returns a new platform token with fresh expiry. Accepts app_runtime_worker or app_user tokens.
          */
-        post: operations["DockerWorkerHooks_refreshContainerToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/docker/relay-request": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Route a request from an app container to an app runtime worker
-         * @description Routes a request from an app container to an app runtime worker. This has the platform lookup a pending request on a running container, and forward it to the runtime worker to so the container doesn't need to hold (and refresh) authentication credentials.
-         */
-        post: operations["DockerWorkerHooks_routeAppContainerRequest"];
+        post: operations["DockerWorkerHooks_refreshPlatformToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7016,9 +6996,6 @@ export interface components {
                 objectKey: string;
             }[];
         };
-        DockerJobUpdateRequestDTO__schema0: (string | null) | number | boolean | components["schemas"]["DockerJobUpdateRequestDTO__schema0"][] | {
-            [key: string]: components["schemas"]["DockerJobUpdateRequestDTO__schema0"];
-        };
         DockerJobUpdateRequestDTO: {
             code?: string;
             progress?: {
@@ -7034,22 +7011,7 @@ export interface components {
                 /** @enum {string} */
                 audience: "user" | "system";
             };
-            data?: {
-                [key: string]: components["schemas"]["DockerJobUpdateRequestDTO__schema0"];
-            };
             timestamp?: string;
-        };
-        DockerRefreshContainerTokenResponseDTO: {
-            token: string;
-        };
-        DockerRouteAppContainerRequestDTO: {
-            requestId: string;
-            callerSubPath?: string;
-        };
-        DockerRouteAppContainerResponseDTO: {
-            status: number;
-            headers: components["schemas"]["StringMapDTO"];
-            body: unknown;
         };
         DockerHostListResponse: {
             result: {
@@ -12792,7 +12754,7 @@ export interface operations {
             };
         };
     };
-    DockerWorkerHooks_refreshContainerToken: {
+    DockerWorkerHooks_refreshPlatformToken: {
         parameters: {
             query?: never;
             header?: never;
@@ -12805,50 +12767,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["DockerRefreshContainerTokenResponseDTO"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    DockerWorkerHooks_routeAppContainerRequest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DockerRouteAppContainerRequestDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DockerRouteAppContainerResponseDTO"];
-                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {

@@ -396,14 +396,11 @@ export class DockerJobsService {
 
     const containerId = container.id
 
-    // Provision the container with platform credentials (container token)
+    // Provision the container with platform credentials
     if (provision) {
-      const containerToken =
-        this.dockerWorkerHookService.createDockerContainerToken({
+      const credentials =
+        await this.dockerWorkerHookService.createDockerPlatformCredentials({
           appIdentifier: provision.appIdentifier,
-          profileKey: provision.profileKey,
-          hostId,
-          containerId,
           userId: provision.userId,
         })
 
@@ -426,8 +423,13 @@ export class DockerJobsService {
           ...(containerMountPoints.length > 0
             ? ['--chown-paths', containerMountPoints.join(',')]
             : []),
-          `LOMBOK_CONTAINER_TOKEN=${containerToken}`,
+          `LOMBOK_PLATFORM_TOKEN=${credentials.token}`,
+          `LOMBOK_PLATFORM_TOKEN_TYPE=${credentials.tokenType}`,
+          ...(credentials.refreshToken
+            ? [`LOMBOK_PLATFORM_REFRESH_TOKEN=${credentials.refreshToken}`]
+            : []),
           `LOMBOK_PLATFORM_URL=${platformUrl}`,
+          `LOMBOK_APP_IDENTIFIER=${provision.appIdentifier}`,
         ],
         { user: 'root' },
       )

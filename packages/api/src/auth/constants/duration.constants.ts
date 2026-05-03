@@ -8,6 +8,7 @@ export const enum AuthDurationSeconds {
   EmailVerification = 24 * 60 * 60,
   PasswordChange = 60 * 60,
   AppWorker = 30 * 60, // max time a worker can run for
+  DockerContainerAppToken = 24 * 60 * 60, // long-lived app token for persistent docker containers
 }
 
 /**
