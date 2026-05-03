@@ -20,7 +20,6 @@ export interface AppBrowserSdkConfig {
   onInitialize?: () => void
   onNavigateTo?: (to: { pathAndQuery: string }) => void
   onThemeChange?: (theme: string) => void
-  debugLogging?: boolean
 }
 
 export interface AppBrowserSdkInstance {

@@ -116,7 +116,6 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
             ),
           getTokens: () => Promise.resolve(AppBrowserSdk.tokens),
         },
-        debugLogging: this.config.debugLogging,
       })
     }
     return AppBrowserSdk.sdk

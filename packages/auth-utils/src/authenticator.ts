@@ -59,7 +59,6 @@ export class Authenticator {
       onTokensRefreshed?: (tokens: DefinedTokensType) => void | Promise<void>
       onLogout?: () => void | Promise<void>
       tokenStore?: TokenStore
-      debugLogging?: boolean
     },
   ) {
     this.onTokensCreated = options.onTokensCreated

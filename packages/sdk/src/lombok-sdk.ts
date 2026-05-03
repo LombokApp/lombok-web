@@ -12,7 +12,6 @@ export class LombokSdk {
     onTokensRefreshed,
     onLogout,
     tokenStore,
-    debugLogging = false,
   }: {
     basePath: string
     onTokensCreated?: (tokens: {
@@ -25,14 +24,12 @@ export class LombokSdk {
     }) => void | Promise<void>
     onLogout?: () => void | Promise<void>
     tokenStore?: TokenStore
-    debugLogging?: boolean
   }) {
     this.authenticator = new Authenticator({
       basePath,
       onTokensCreated,
       onTokensRefreshed,
       onLogout,
-      debugLogging,
       tokenStore,
     })
 

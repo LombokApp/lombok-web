@@ -211,9 +211,7 @@ export class SessionService {
     return this.jwtService.createAppUserToken({
       session,
       appIdentifier: details.app,
-      ...(typeof details.worker === 'string'
-        ? { worker: details.worker }
-        : {}),
+      ...(typeof details.worker === 'string' ? { worker: details.worker } : {}),
       ...(typeof details.platformAccess === 'boolean'
         ? { platformAccess: details.platformAccess }
         : {}),
