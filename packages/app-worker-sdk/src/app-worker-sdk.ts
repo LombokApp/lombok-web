@@ -318,10 +318,28 @@ export class LombokAppPgClient {
     }
   }
 
+  // Drizzle's transaction() checks `client instanceof Pool ||
+  // constructor.name.includes('Pool')` to decide whether to acquire a
+  // single connection for BEGIN/COMMIT. Without this, every query inside
+  // db.transaction() is routed through a separate pool checkout — any
+  // concurrent query (e.g. Promise.all) splits connections, the COMMIT
+  // lands on a non-tx checkout, and the in-tx connection's writes get
+  // rolled back when it idles. So we hand drizzle a real PoolClient.
+  async connect(): Promise<pg.PoolClient> {
+    const pool = await this.ensurePool()
+    return pool.connect()
+  }
+
   async end() {
     await this.pool?.end()
   }
 }
+
+// Make drizzle's `constructor.name.includes('Pool')` check pass without
+// renaming the public class — see the comment on `connect()` above.
+Object.defineProperty(LombokAppPgClient, 'name', {
+  value: 'LombokAppPgClientPool',
+})
 
 export const createLombokAppPgDatabase = <TDb extends Record<string, unknown>>(
   server: IAppPlatformService,
