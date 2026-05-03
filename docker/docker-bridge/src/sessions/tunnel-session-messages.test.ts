@@ -89,6 +89,7 @@ function makeAdapterPool(): AdapterPool {
       inspectExec: mock(async () => ({ running: false, pid: 0 })),
       killExec: mock(async () => {}),
       resizeExec: mock(async () => {}),
+      execSync: mock(async () => ({ stdout: '', stderr: '', exitCode: 0 })),
     })),
   } as unknown as AdapterPool
 }

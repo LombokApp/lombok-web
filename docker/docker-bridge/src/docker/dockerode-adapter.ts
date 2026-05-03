@@ -205,8 +205,11 @@ export class DockerodeAdapter implements DockerAdapter {
         stream.on('close', resolve)
         stream.on('error', resolve)
       })
-    } catch {
-      // Kill command failed — nothing more we can do
+    } catch (err) {
+      // killExec is best-effort: we have no logger handle here and the caller
+      // logs at warn-level. Swallow but do not silently lose the error type —
+      // the caller can decide what to do based on the post-kill inspectExec.
+      void err
     }
   }
 

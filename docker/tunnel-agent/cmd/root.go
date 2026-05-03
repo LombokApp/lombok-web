@@ -37,9 +37,9 @@ func Execute() error {
 func init() {
 	rootCmd.Flags().StringSlice("ports", nil, "Comma-separated list of local ports to proxy (required)")
 	rootCmd.Flags().String("log-level", "info", "Log level: debug, info, warn, error")
-	rootCmd.Flags().Duration("proxy-timeout", 30*time.Second, "HTTP proxy timeout")
+	rootCmd.Flags().Duration("proxy-timeout", 30*time.Second, "Maximum time to wait for upstream response headers; does not bound streamed response bodies")
 	rootCmd.Flags().Int("max-body-chunk", 1048576, "Max body chunk size in bytes (default 1MB)")
-	rootCmd.Flags().Int("health-port", 9091, "Health endpoint port (loopback only)")
+	rootCmd.Flags().Int("health-port", 0, "Health endpoint port (loopback only). 0 disables the health server.")
 	_ = rootCmd.MarkFlagRequired("ports")
 }
 
@@ -82,12 +82,15 @@ func runAgent(cmd *cobra.Command, args []string) error {
 	tr := transport.NewStdioTransport()
 	agent := tunnel.NewAgent(cfg, tr)
 
-	// Start health endpoint (loopback only).
-	go func() {
-		if err := health.StartHealthServer(ctx, cfg.HealthPort, agent); err != nil {
-			slog.Warn("health server error", "error", err)
-		}
-	}()
+	// Start health endpoint (loopback only). Disabled when HealthPort == 0
+	// to avoid bind collisions when multiple agents run in the same container.
+	if cfg.HealthPort > 0 {
+		go func() {
+			if err := health.StartHealthServer(ctx, cfg.HealthPort, agent); err != nil {
+				slog.Warn("health server error", "error", err)
+			}
+		}()
+	}
 
 	if err := agent.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		return fmt.Errorf("agent exited: %w", err)

@@ -57,6 +57,33 @@ export function createBridgeConnection(
       ws.close()
     }, 10000)
 
+    // Issue a DELETE that the browser will deliver even after the tab unloads.
+    // Used both for normal cleanup and for the pagehide path. `keepalive: true`
+    // is the modern equivalent of sendBeacon for non-GET methods.
+    const sendTeardown = (): void => {
+      try {
+        void fetch(`${urls.http}/sessions/${sessionId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+          keepalive: true,
+        }).catch(() => {
+          // Best-effort cleanup
+        })
+      } catch {
+        // Defensive: e.g. tab already navigated
+      }
+    }
+
+    const onPageHide = (): void => {
+      if (destroyed) {
+        return
+      }
+      sendTeardown()
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pagehide', onPageHide)
+    }
+
     ws.addEventListener(
       'open',
       () => {
@@ -98,18 +125,13 @@ export function createBridgeConnection(
             }
             destroyed = true
             isConnected = false
+            if (typeof window !== 'undefined') {
+              window.removeEventListener('pagehide', onPageHide)
+            }
             if (ws.readyState === WebSocket.OPEN) {
               ws.close()
             }
-            // Best-effort session teardown
-            void fetch(`${urls.http}/sessions/${sessionId}`, {
-              method: 'DELETE',
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }).catch(() => {
-              // Best-effort cleanup
-            })
+            sendTeardown()
           },
         }
 
@@ -131,6 +153,9 @@ export function createBridgeConnection(
 
     ws.addEventListener('close', () => {
       isConnected = false
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('pagehide', onPageHide)
+      }
       if (!destroyed) {
         onClose()
       }
@@ -141,6 +166,9 @@ export function createBridgeConnection(
       (ev) => {
         clearTimeout(timeout)
         if (!isConnected) {
+          if (typeof window !== 'undefined') {
+            window.removeEventListener('pagehide', onPageHide)
+          }
           reject(
             new Error(`Bridge WebSocket connect error: ${JSON.stringify(ev)}`),
           )

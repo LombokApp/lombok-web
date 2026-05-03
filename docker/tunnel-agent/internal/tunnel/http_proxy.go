@@ -107,6 +107,11 @@ func (p *HTTPProxy) clientFor(port int) *http.Client {
 		MaxIdleConns:        20,
 		MaxIdleConnsPerHost: 10,
 		IdleConnTimeout:     90 * time.Second,
+		// Bound only the time spent waiting for response headers. The total
+		// request lifetime is unbounded so streaming bodies (SSE, chunked
+		// AI completions) can run as long as upstream is sending; cancellation
+		// flows through the request context.
+		ResponseHeaderTimeout: p.timeout,
 		DialContext: (&net.Dialer{
 			Timeout: 5 * time.Second,
 		}).DialContext,
@@ -114,7 +119,6 @@ func (p *HTTPProxy) clientFor(port int) *http.Client {
 
 	client := &http.Client{
 		Transport: transport,
-		Timeout:   p.timeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Do not follow redirects — proxy them as-is.
 			return http.ErrUseLastResponse
