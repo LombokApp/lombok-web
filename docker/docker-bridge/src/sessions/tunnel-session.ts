@@ -29,6 +29,11 @@ import type { SessionManager } from './session-manager.js'
 /** Max body chunk size when streaming large request bodies (256KB) */
 const MAX_BODY_CHUNK = 256 * 1024
 
+/** Where the raw-exec wrapper records its container PID inside the target container. */
+function rawExecPidFilePath(sessionId: string): string {
+  return `/tmp/.bridge-pids/${sessionId}`
+}
+
 export interface StreamEntry {
   ws: unknown // ServerWebSocket reference
   type: 'http' | 'ws'
@@ -639,8 +644,11 @@ export class TunnelSessionHandler {
           if (inspect.running) {
             await adapter.killExec(session.containerId, inspect.pid)
           }
-        } catch {
-          // Best effort
+        } catch (err) {
+          this.logger.warn('Framed teardown: kill exec failed', {
+            sessionId: session.id,
+            error: err instanceof Error ? err.message : String(err),
+          })
         }
       }
 
@@ -677,22 +685,40 @@ export class TunnelSessionHandler {
       if (session.execStream) {
         try {
           session.execStream.destroy()
-        } catch {
-          // Ignore stream close errors
+        } catch (err) {
+          this.logger.warn('Raw teardown: execStream destroy failed', {
+            sessionId: session.id,
+            error: err instanceof Error ? err.message : String(err),
+          })
         }
       }
 
-      // Try to kill exec process
-      if (session.execId) {
-        try {
-          const adapter = this.adapterPool.get(session.hostId)
-          const info = await adapter.inspectExec(session.execId)
-          if (info.running && info.pid > 0) {
-            await adapter.killExec(session.containerId, info.pid)
-          }
-        } catch {
-          // Exec may already be gone
+      // Kill the wrapped tmux/raw process via the container-namespace PID file
+      // recorded by createRawExec. inspectExec.Pid is a host PID and is not
+      // addressable from inside the workspace container.
+      try {
+        const adapter = this.adapterPool.get(session.hostId)
+        const pidFilePath = rawExecPidFilePath(session.id)
+        const result = await adapter.execSync(session.containerId, [
+          'sh',
+          '-c',
+          'pid=$(cat "$1" 2>/dev/null); rm -f "$1"; ' +
+            'if [ -n "$pid" ]; then kill -KILL "$pid" 2>/dev/null || true; fi',
+          'sh',
+          pidFilePath,
+        ])
+        if (result.exitCode !== 0) {
+          this.logger.warn('Raw teardown: kill script non-zero exit', {
+            sessionId: session.id,
+            exitCode: result.exitCode,
+            stderr: result.stderr,
+          })
         }
+      } catch (err) {
+        this.logger.warn('Raw teardown: kill via container PID failed', {
+          sessionId: session.id,
+          error: err instanceof Error ? err.message : String(err),
+        })
       }
 
       // Close all connected WebSocket clients
@@ -909,12 +935,28 @@ export class TunnelSessionHandler {
   /**
    * Create a Docker exec for raw protocol sessions.
    * Does not start the exec — that happens on first attach.
+   *
+   * The user-supplied command is wrapped in a shell that records its own
+   * container-namespace PID to a known file before exec-replacing itself with
+   * the real command. teardown() reads that file to kill the process. We
+   * cannot rely on Docker's exec inspect Pid (which is a host PID) because the
+   * bridge runs in its own PID namespace and the kill is dispatched via
+   * `docker exec` inside the target container's PID namespace.
    */
   private async createRawExec(session: TunnelSession): Promise<void> {
     const adapter = this.adapterPool.get(session.hostId)
+    const pidFilePath = rawExecPidFilePath(session.id)
+    const wrappedCommand = [
+      'sh',
+      '-c',
+      'pidfile="$1"; shift; mkdir -p "$(dirname "$pidfile")" 2>/dev/null; echo $$ > "$pidfile"; exec "$@"',
+      'bridge-raw-wrapper',
+      pidFilePath,
+      ...session.command,
+    ]
     const execId = await adapter.createExec(
       session.containerId,
-      session.command,
+      wrappedCommand,
       { tty: session.tty },
     )
     session.execId = execId
@@ -923,6 +965,7 @@ export class TunnelSessionHandler {
       sessionId: session.id,
       containerId: session.containerId,
       execId,
+      pidFilePath,
     })
   }
 
