@@ -89,6 +89,8 @@ export class DockerClient {
             return
           }
 
+          let buildError: string | null = null
+
           // Collect build output
           stream.on('data', (chunk: Buffer) => {
             const text = chunk.toString('utf-8')
@@ -101,6 +103,9 @@ export class DockerClient {
                   process.stdout.write(json.stream)
                 } else if (json.error) {
                   process.stderr.write(`Error: ${json.error}\n`)
+                  buildError = buildError
+                    ? `${buildError}\n${json.error}`
+                    : json.error
                 } else if (json.status) {
                   process.stdout.write(`${json.status}\n`)
                 }
@@ -111,7 +116,11 @@ export class DockerClient {
           })
 
           stream.on('end', () => {
-            resolve()
+            if (buildError) {
+              reject(new Error(`Docker image build failed: ${buildError}`))
+            } else {
+              resolve()
+            }
           })
 
           stream.on('error', (error) => {
