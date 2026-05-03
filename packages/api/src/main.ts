@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core'
 import crypto from 'crypto'
+import express from 'express'
 
 import { CoreModule } from './core/core.module'
 import { appReference, setApp, setAppInitializing } from './shared/app-helper'
@@ -32,6 +33,11 @@ export async function buildApp() {
   app.useGlobalFilters(new HttpExceptionFilter())
   app.enableShutdownHooks()
   app.enableCors()
+  // Worker job completion bodies carry full script stdout/stderr (up to
+  // ~200KB) plus JSON overhead, which exceeds the body-parser default of
+  // 100kb and surfaces as `PayloadTooLargeError` → 500 at /docker/jobs/:id/complete.
+  app.use(express.json({ limit: '10mb' }))
+  app.use(express.urlencoded({ limit: '10mb', extended: true }))
   app.use((req, _res, next) => {
     const requestId = crypto.randomUUID()
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
