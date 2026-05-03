@@ -896,8 +896,8 @@
           "User Apps"
         ]
       },
-      "put": {
-        "operationId": "UserApps_putUserCustomSettings",
+      "patch": {
+        "operationId": "UserApps_patchUserCustomSettings",
         "parameters": [
           {
             "name": "appIdentifier",
@@ -913,7 +913,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AppCustomSettingsPutInputDTO"
+                "$ref": "#/components/schemas/AppCustomSettingsPatchInputDTO"
               }
             }
           }
@@ -955,7 +955,7 @@
             "bearer": []
           }
         ],
-        "summary": "Update custom settings for the current user (merge semantics)",
+        "summary": "Patch custom settings for the current user. Keys not present are\npreserved; explicit `null` values delete the key. Writes are atomic per\nkey, so concurrent patches on disjoint keys do not race.",
         "tags": [
           "User Apps"
         ]
@@ -4807,8 +4807,8 @@
           "Folders"
         ]
       },
-      "put": {
-        "operationId": "Folders_putFolderCustomSettings",
+      "patch": {
+        "operationId": "Folders_patchFolderCustomSettings",
         "parameters": [
           {
             "name": "folderId",
@@ -4832,7 +4832,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AppCustomSettingsPutInputDTO"
+                "$ref": "#/components/schemas/AppCustomSettingsPatchInputDTO"
               }
             }
           }
@@ -4874,7 +4874,7 @@
             "bearer": []
           }
         ],
-        "summary": "Update custom settings for an app on a folder (merge semantics)",
+        "summary": "Patch custom settings for an app on a folder. Keys not present are\npreserved; explicit `null` values delete the key. Writes are atomic per\nkey, so concurrent patches on disjoint keys do not race.",
         "tags": [
           "Folders"
         ]
@@ -11133,7 +11133,8 @@
                           "properties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -11415,7 +11416,8 @@
                           "patternProperties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -11697,7 +11699,8 @@
                           "required": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             }
                           }
                         },
@@ -11716,7 +11719,8 @@
                           "properties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -11998,7 +12002,8 @@
                           "patternProperties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -12280,7 +12285,8 @@
                           "required": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             }
                           }
                         },
@@ -13917,7 +13923,8 @@
                             "properties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -14199,7 +14206,8 @@
                             "patternProperties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -14481,7 +14489,8 @@
                             "required": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               }
                             }
                           },
@@ -14500,7 +14509,8 @@
                             "properties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -14782,7 +14792,8 @@
                             "patternProperties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -15064,7 +15075,8 @@
                             "required": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               }
                             }
                           },
@@ -16701,7 +16713,8 @@
                           "properties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -16983,7 +16996,8 @@
                           "patternProperties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -17265,7 +17279,8 @@
                           "required": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             }
                           }
                         },
@@ -17284,7 +17299,8 @@
                           "properties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -17566,7 +17582,8 @@
                           "patternProperties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -17848,7 +17865,8 @@
                           "required": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             }
                           }
                         },
@@ -19514,7 +19532,8 @@
                             "properties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -19796,7 +19815,8 @@
                             "patternProperties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -20078,7 +20098,8 @@
                             "required": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               }
                             }
                           },
@@ -20097,7 +20118,8 @@
                             "properties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -20379,7 +20401,8 @@
                             "patternProperties": {
                               "type": "object",
                               "propertyNames": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                               },
                               "additionalProperties": {
                                 "anyOf": [
@@ -20661,7 +20684,8 @@
                             "required": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                               }
                             }
                           },
@@ -22169,7 +22193,8 @@
                           "properties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -22451,7 +22476,8 @@
                           "patternProperties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -22733,7 +22759,8 @@
                           "required": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             }
                           }
                         },
@@ -22752,7 +22779,8 @@
                           "properties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -23034,7 +23062,8 @@
                           "patternProperties": {
                             "type": "object",
                             "propertyNames": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                             },
                             "additionalProperties": {
                               "anyOf": [
@@ -23316,7 +23345,8 @@
                           "required": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "type": "string",
+                              "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                             }
                           }
                         },
@@ -24269,7 +24299,8 @@
                   "properties": {
                     "type": "object",
                     "propertyNames": {
-                      "type": "string"
+                      "type": "string",
+                      "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                     },
                     "additionalProperties": {
                       "anyOf": [
@@ -24551,7 +24582,8 @@
                   "patternProperties": {
                     "type": "object",
                     "propertyNames": {
-                      "type": "string"
+                      "type": "string",
+                      "pattern": "^\\^[a-z0-9][a-z0-9_]*_$"
                     },
                     "additionalProperties": {
                       "anyOf": [
@@ -24833,7 +24865,8 @@
                   "required": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "pattern": "^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$"
                     }
                   }
                 },
@@ -24861,7 +24894,38 @@
           "settings"
         ]
       },
-      "AppCustomSettingsPutInputDTO": {
+      "AppCustomSettingsPatchInputDTO__schema0": {
+        "anyOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppCustomSettingsPatchInputDTO__schema0"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AppCustomSettingsPatchInputDTO__schema0"
+            }
+          }
+        ]
+      },
+      "AppCustomSettingsPatchInputDTO": {
         "type": "object",
         "properties": {
           "values": {
@@ -24870,24 +24934,7 @@
               "type": "string"
             },
             "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "array",
-                  "items": {}
-                }
-              ]
+              "$ref": "#/components/schemas/AppCustomSettingsPatchInputDTO__schema0"
             }
           }
         },

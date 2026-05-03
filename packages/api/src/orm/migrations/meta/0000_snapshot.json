@@ -1,5 +1,5 @@
 {
-  "id": "006c2640-10a4-4787-b1c2-8810893b143d",
+  "id": "ce0f7176-43a7-4463-89cf-47fbe68b6650",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -20,12 +20,17 @@
           "primaryKey": false,
           "notNull": true
         },
-        "values": {
-          "name": "values",
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -41,8 +46,8 @@
         }
       },
       "indexes": {
-        "app_custom_folder_settings_folder_app_unique": {
-          "name": "app_custom_folder_settings_folder_app_unique",
+        "app_custom_folder_settings_folder_app_idx": {
+          "name": "app_custom_folder_settings_folder_app_idx",
           "columns": [
             {
               "expression": "folder_id",
@@ -57,7 +62,7 @@
               "nulls": "last"
             }
           ],
-          "isUnique": true,
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -74,7 +79,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "app_custom_folder_settings_app_identifier_apps_identifier_fk": {
@@ -87,11 +92,20 @@
           "columnsTo": [
             "identifier"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "app_custom_folder_settings_folder_id_app_identifier_key_pk": {
+          "name": "app_custom_folder_settings_folder_id_app_identifier_key_pk",
+          "columns": [
+            "folder_id",
+            "app_identifier",
+            "key"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -113,12 +127,17 @@
           "primaryKey": false,
           "notNull": true
         },
-        "values": {
-          "name": "values",
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
@@ -134,8 +153,8 @@
         }
       },
       "indexes": {
-        "app_custom_user_settings_user_app_unique": {
-          "name": "app_custom_user_settings_user_app_unique",
+        "app_custom_user_settings_user_app_idx": {
+          "name": "app_custom_user_settings_user_app_idx",
           "columns": [
             {
               "expression": "user_id",
@@ -150,7 +169,7 @@
               "nulls": "last"
             }
           ],
-          "isUnique": true,
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -167,7 +186,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "app_custom_user_settings_app_identifier_apps_identifier_fk": {
@@ -180,11 +199,20 @@
           "columnsTo": [
             "identifier"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "app_custom_user_settings_user_id_app_identifier_key_pk": {
+          "name": "app_custom_user_settings_user_id_app_identifier_key_pk",
+          "columns": [
+            "user_id",
+            "app_identifier",
+            "key"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

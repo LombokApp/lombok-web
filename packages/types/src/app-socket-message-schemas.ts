@@ -164,9 +164,9 @@ export const getAppCustomSettingsSchema = z.object({
   userId: z.string(),
 })
 
-export const setAppCustomSettingsSchema = z.object({
+export const patchAppCustomSettingsSchema = z.object({
   userId: z.string(),
-  settings: z.record(z.string(), z.unknown()),
+  values: z.record(z.string(), z.unknown()),
 })
 
 export const createBridgeTunnelSchema = z.object({
@@ -212,7 +212,7 @@ export const AppSocketMessageSchemaMap = {
   TRIGGER_APP_TASK: triggerAppTaskSchema,
   REPORT_TASK_UPDATE: reportTaskUpdateSchema,
   GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
-  SET_APP_CUSTOM_SETTINGS: setAppCustomSettingsSchema,
+  PATCH_APP_CUSTOM_SETTINGS: patchAppCustomSettingsSchema,
   CREATE_BRIDGE_TUNNEL: createBridgeTunnelSchema,
   DELETE_BRIDGE_TUNNEL: deleteBridgeTunnelSchema,
   DESTROY_APP_DOCKER_CONTAINERS: destroyAppDockerContainersSchema,
@@ -323,7 +323,7 @@ export const AppSocketMessageResponseSchemaMap = {
   GET_APP_CUSTOM_SETTINGS: createResponseSchema(
     z.object({ values: z.record(z.string(), z.unknown()) }),
   ),
-  SET_APP_CUSTOM_SETTINGS: createResponseSchema(
+  PATCH_APP_CUSTOM_SETTINGS: createResponseSchema(
     z.object({ success: z.boolean() }),
   ),
   GET_LATEST_DB_CREDENTIALS: createResponseSchema(

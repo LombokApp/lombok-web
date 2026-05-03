@@ -15,7 +15,7 @@ export function useUserCustomSettings(appIdentifier: string) {
 export function useUpdateUserCustomSettings(appIdentifier: string) {
   const query = useUserCustomSettings(appIdentifier)
   return $api.useMutation(
-    'put',
+    'patch',
     '/api/v1/user/apps/{appIdentifier}/custom-settings',
     {
       onSuccess: () => {
@@ -62,7 +62,7 @@ export function useUpdateFolderCustomSettings(
 ) {
   const query = useFolderCustomSettings(folderId, appIdentifier)
   return $api.useMutation(
-    'put',
+    'patch',
     '/api/v1/folders/{folderId}/apps/{appIdentifier}/custom-settings',
     {
       onSuccess: () => {

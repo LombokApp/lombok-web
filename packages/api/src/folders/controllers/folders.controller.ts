@@ -18,7 +18,7 @@ import {
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
-import { AppCustomSettingsPutInputDTO } from 'src/app/dto/app-custom-settings-put-input.dto'
+import { AppCustomSettingsPatchInputDTO } from 'src/app/dto/app-custom-settings-patch-input.dto'
 import { AppFolderSettingsUpdateInputDTO } from 'src/app/dto/app-folder-settings-update-input.dto'
 import { AppCustomSettingsGetResponseDTO } from 'src/app/dto/responses/app-custom-settings-get-response.dto'
 import { AppFolderSettingsGetResponseDTO } from 'src/app/dto/responses/app-folder-settings-get-response.dto'
@@ -529,20 +529,22 @@ export class FoldersController {
   }
 
   /**
-   * Update custom settings for an app on a folder (merge semantics)
+   * Patch custom settings for an app on a folder. Keys not present are
+   * preserved; explicit `null` values delete the key. Writes are atomic per
+   * key, so concurrent patches on disjoint keys do not race.
    */
-  @Put('/:folderId/apps/:appIdentifier/custom-settings')
-  async putFolderCustomSettings(
+  @Patch('/:folderId/apps/:appIdentifier/custom-settings')
+  async patchFolderCustomSettings(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
     @Param('appIdentifier') appIdentifier: string,
-    @Body() body: AppCustomSettingsPutInputDTO,
+    @Body() body: AppCustomSettingsPatchInputDTO,
   ): Promise<AppCustomSettingsGetResponseDTO> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
     const app = await this.appCustomSettingsService.getAppOrThrow(appIdentifier)
-    await this.appCustomSettingsService.putFolderCustomSettings(
+    await this.appCustomSettingsService.patchFolderCustomSettings(
       folderId,
       app,
       body.values,

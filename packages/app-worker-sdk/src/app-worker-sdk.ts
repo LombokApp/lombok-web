@@ -100,10 +100,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['GET_APP_CUSTOM_SETTINGS'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_APP_CUSTOM_SETTINGS'>>
-  setAppCustomSettings: (
-    params: AppSocketMessageDataMap['SET_APP_CUSTOM_SETTINGS'],
+  patchAppCustomSettings: (
+    params: AppSocketMessageDataMap['PATCH_APP_CUSTOM_SETTINGS'],
     options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'SET_APP_CUSTOM_SETTINGS'>>
+  ) => Promise<SocketResponse<'PATCH_APP_CUSTOM_SETTINGS'>>
   createBridgeTunnel: (
     params: AppSocketMessageDataMap['CREATE_BRIDGE_TUNNEL'],
     options?: PlatformApiExecuteOptions,
@@ -245,8 +245,8 @@ export const buildAppClient = (
     getAppCustomSettings(params, options) {
       return emitWithAck('GET_APP_CUSTOM_SETTINGS', params, options)
     },
-    setAppCustomSettings(params, options) {
-      return emitWithAck('SET_APP_CUSTOM_SETTINGS', params, options)
+    patchAppCustomSettings(params, options) {
+      return emitWithAck('PATCH_APP_CUSTOM_SETTINGS', params, options)
     },
     createBridgeTunnel(params, options) {
       return emitWithAck('CREATE_BRIDGE_TUNNEL', params, options)

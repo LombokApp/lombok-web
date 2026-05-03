@@ -196,14 +196,18 @@ export interface paths {
         };
         /** Get resolved custom settings for the current user */
         get: operations["UserApps_getUserCustomSettings"];
-        /** Update custom settings for the current user (merge semantics) */
-        put: operations["UserApps_putUserCustomSettings"];
+        put?: never;
         post?: never;
         /** Remove custom settings for the current user (revert to defaults) */
         delete: operations["UserApps_deleteUserCustomSettings"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Patch custom settings for the current user. Keys not present are
+         *     preserved; explicit `null` values delete the key. Writes are atomic per
+         *     key, so concurrent patches on disjoint keys do not race.
+         */
+        patch: operations["UserApps_patchUserCustomSettings"];
         trace?: never;
     };
     "/api/v1/public/settings": {
@@ -925,14 +929,18 @@ export interface paths {
         };
         /** Get resolved custom settings for an app on a folder */
         get: operations["Folders_getFolderCustomSettings"];
-        /** Update custom settings for an app on a folder (merge semantics) */
-        put: operations["Folders_putFolderCustomSettings"];
+        put?: never;
         post?: never;
         /** Remove custom settings for an app on a folder (revert to user-level) */
         delete: operations["Folders_deleteFolderCustomSettings"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Patch custom settings for an app on a folder. Keys not present are
+         *     preserved; explicit `null` values delete the key. Writes are atomic per
+         *     key, so concurrent patches on disjoint keys do not race.
+         */
+        patch: operations["Folders_patchFolderCustomSettings"];
         trace?: never;
     };
     "/api/v1/access-keys": {
@@ -5485,9 +5493,12 @@ export interface components {
                 secretKeyPattern: string | null;
             };
         };
-        AppCustomSettingsPutInputDTO: {
+        AppCustomSettingsPatchInputDTO__schema0: (string | null) | number | boolean | components["schemas"]["AppCustomSettingsPatchInputDTO__schema0"][] | {
+            [key: string]: components["schemas"]["AppCustomSettingsPatchInputDTO__schema0"];
+        };
+        AppCustomSettingsPatchInputDTO: {
             values: {
-                [key: string]: (string | null) | number | boolean | unknown[];
+                [key: string]: components["schemas"]["AppCustomSettingsPatchInputDTO__schema0"];
             };
         };
         PublicSettingsGetResponse: {
@@ -8669,7 +8680,7 @@ export interface operations {
             };
         };
     };
-    UserApps_putUserCustomSettings: {
+    UserApps_deleteUserCustomSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -8678,19 +8689,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AppCustomSettingsPutInputDTO"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
-                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {
@@ -8712,7 +8717,7 @@ export interface operations {
             };
         };
     };
-    UserApps_deleteUserCustomSettings: {
+    UserApps_patchUserCustomSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -8721,13 +8726,19 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppCustomSettingsPatchInputDTO"];
+            };
+        };
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
+                };
             };
             /** @description Server Error */
             "5XX": {
@@ -10966,7 +10977,7 @@ export interface operations {
             };
         };
     };
-    Folders_putFolderCustomSettings: {
+    Folders_deleteFolderCustomSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -10976,19 +10987,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AppCustomSettingsPutInputDTO"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
-                };
+                content?: never;
             };
             /** @description Server Error */
             "5XX": {
@@ -11010,7 +11015,7 @@ export interface operations {
             };
         };
     };
-    Folders_deleteFolderCustomSettings: {
+    Folders_patchFolderCustomSettings: {
         parameters: {
             query?: never;
             header?: never;
@@ -11020,13 +11025,19 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppCustomSettingsPatchInputDTO"];
+            };
+        };
         responses: {
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AppCustomSettingsGetResponseDTO"];
+                };
             };
             /** @description Server Error */
             "5XX": {

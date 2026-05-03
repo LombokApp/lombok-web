@@ -29,7 +29,7 @@ export const AppSocketMessage = z.enum([
   'TRIGGER_APP_TASK',
   'REPORT_TASK_UPDATE',
   'GET_APP_CUSTOM_SETTINGS',
-  'SET_APP_CUSTOM_SETTINGS',
+  'PATCH_APP_CUSTOM_SETTINGS',
   'CREATE_BRIDGE_TUNNEL',
   'DELETE_BRIDGE_TUNNEL',
   'DESTROY_APP_DOCKER_CONTAINERS',
@@ -451,13 +451,42 @@ export const jsonSchema07PropertySchema = z.union([
   }),
 ])
 
+/**
+ * Valid app settings key format: lowercase letters, digits, and underscores,
+ * may not start or end with an underscore. Enforced both at app-install time
+ * (on `properties` keys) and at write time (on incoming PATCH values).
+ */
+export const SETTINGS_KEY_REGEX = /^[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$/
+
+/**
+ * Valid `patternProperties` key (the regex string itself). Must be a literal
+ * lowercase prefix anchored at start and terminated by an underscore, so that
+ * every key it matches is guaranteed to satisfy SETTINGS_KEY_REGEX provided
+ * the suffix is also valid. Example: `^provider_`.
+ */
+export const SETTINGS_PATTERN_PROPERTY_REGEX = /^\^[a-z0-9][a-z0-9_]*_$/
+
+const settingsKeySchema = z
+  .string()
+  .regex(
+    SETTINGS_KEY_REGEX,
+    'Setting keys must be lowercase a-z, 0-9, or _ and must not start or end with _',
+  )
+
+const settingsPatternPropertyKeySchema = z
+  .string()
+  .regex(
+    SETTINGS_PATTERN_PROPERTY_REGEX,
+    'patternProperties keys must be a literal lowercase prefix regex ending with _, e.g. `^provider_`',
+  )
+
 export const jsonSchema07ObjectSchema = z.object({
   type: z.literal('object'),
-  properties: z.record(z.string(), jsonSchema07PropertySchema),
+  properties: z.record(settingsKeySchema, jsonSchema07PropertySchema),
   patternProperties: z
-    .record(z.string(), jsonSchema07PropertySchema)
+    .record(settingsPatternPropertyKeySchema, jsonSchema07PropertySchema)
     .optional(),
-  required: z.array(z.string()).optional(),
+  required: z.array(settingsKeySchema).optional(),
 })
 
 export const appSettingsConfigSchema = z

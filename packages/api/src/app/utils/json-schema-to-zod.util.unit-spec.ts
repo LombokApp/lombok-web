@@ -137,16 +137,14 @@ describe('jsonSchemaToZod', () => {
         GITHUB_TOKEN: { type: 'string' },
       },
       patternProperties: {
-        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+        '^SOME_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
       },
     }
     const zod = jsonSchemaToZod(schema)
-    expect(zod.safeParse({ ANTHROPIC_API_KEY: 'sk-abc' }).success).toBe(true)
-    expect(zod.safeParse({ ANTHROPIC_API_KEY_1234: 'sk-abc' }).success).toBe(
-      true,
-    )
+    expect(zod.safeParse({ SOME_API_KEY: 'sk-abc' }).success).toBe(true)
+    expect(zod.safeParse({ SOME_API_KEY_1234: 'sk-abc' }).success).toBe(true)
     expect(
-      zod.safeParse({ GITHUB_TOKEN: 'ghp_abc', ANTHROPIC_API_KEY: 'sk-abc' })
+      zod.safeParse({ GITHUB_TOKEN: 'ghp_abc', SOME_API_KEY: 'sk-abc' })
         .success,
     ).toBe(true)
   })
@@ -156,18 +154,14 @@ describe('jsonSchemaToZod', () => {
       type: 'object',
       properties: {},
       patternProperties: {
-        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+        '^SOME_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
       },
     }
     const zod = jsonSchemaToZod(schema)
     // Trailing garbage after the key name
-    expect(zod.safeParse({ ANTHROPIC_API_KEYBOARD: 'value' }).success).toBe(
-      false,
-    )
+    expect(zod.safeParse({ SOME_API_KEYBOARD: 'value' }).success).toBe(false)
     // Suffix without underscore separator
-    expect(zod.safeParse({ ANTHROPIC_API_KEYextra: 'value' }).success).toBe(
-      false,
-    )
+    expect(zod.safeParse({ SOME_API_KEYextra: 'value' }).success).toBe(false)
   })
 
   it('should reject keys not matching any property or pattern', () => {
@@ -177,7 +171,7 @@ describe('jsonSchemaToZod', () => {
         GITHUB_TOKEN: { type: 'string' },
       },
       patternProperties: {
-        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+        '^SOME_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
       },
     }
     const zod = jsonSchemaToZod(schema)
@@ -189,11 +183,11 @@ describe('jsonSchemaToZod', () => {
       type: 'object',
       properties: {},
       patternProperties: {
-        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+        '^SOME_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
       },
     }
     const zod = jsonSchemaToZod(schema)
-    expect(zod.safeParse({ ANTHROPIC_API_KEY: 123 }).success).toBe(false)
+    expect(zod.safeParse({ SOME_API_KEY: 123 }).success).toBe(false)
   })
 
   it('should validate array properties within object items', () => {
@@ -619,15 +613,13 @@ describe('jsonSchemaToPartialZod', () => {
         GITHUB_TOKEN: { type: 'string' },
       },
       patternProperties: {
-        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+        '^SOME_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
       },
     }
     const zod = jsonSchemaToPartialZod(schema)
-    expect(zod.safeParse({ ANTHROPIC_API_KEY: 'sk-abc' }).success).toBe(true)
-    expect(zod.safeParse({ ANTHROPIC_API_KEY: null }).success).toBe(true)
-    expect(zod.safeParse({ ANTHROPIC_API_KEY_1234: 'sk-abc' }).success).toBe(
-      true,
-    )
+    expect(zod.safeParse({ SOME_API_KEY: 'sk-abc' }).success).toBe(true)
+    expect(zod.safeParse({ SOME_API_KEY: null }).success).toBe(true)
+    expect(zod.safeParse({ SOME_API_KEY_1234: 'sk-abc' }).success).toBe(true)
   })
 
   it('should make object properties optional and nullable in partial mode', () => {
@@ -663,7 +655,7 @@ describe('jsonSchemaToPartialZod', () => {
         GITHUB_TOKEN: { type: 'string' },
       },
       patternProperties: {
-        '^ANTHROPIC_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
+        '^SOME_API_KEY(_[A-Za-z0-9]+)?$': { type: 'string' },
       },
     }
     const zod = jsonSchemaToPartialZod(schema)

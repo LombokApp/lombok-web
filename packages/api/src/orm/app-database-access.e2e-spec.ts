@@ -35,7 +35,7 @@ function createMockAppPlatformService(
     deleteBridgeTunnel: () => {
       throw new Error('Not implemented in test mock')
     },
-    setAppCustomSettings: () => {
+    patchAppCustomSettings: () => {
       throw new Error('Not implemented in test mock')
     },
     getAppCustomSettings: () => {

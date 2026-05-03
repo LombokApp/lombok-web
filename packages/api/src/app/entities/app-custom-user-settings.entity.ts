@@ -1,10 +1,11 @@
 import { relations } from 'drizzle-orm'
 import {
+  index,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
-  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 import { usersTable } from 'src/users/entities/user.entity'
@@ -15,20 +16,21 @@ export const appCustomUserSettingsTable = pgTable(
   'app_custom_user_settings',
   {
     userId: uuid('user_id')
-      .references(() => usersTable.id)
+      .references(() => usersTable.id, { onDelete: 'cascade' })
       .notNull(),
     appIdentifier: text('app_identifier')
-      .references(() => appsTable.identifier)
+      .references(() => appsTable.identifier, { onDelete: 'cascade' })
       .notNull(),
-    values: jsonb('values')
-      .$type<Record<string, unknown>>()
-      .notNull()
-      .default({}),
+    key: text('key').notNull(),
+    value: jsonb('value').$type<unknown>().notNull(),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
   (table) => [
-    uniqueIndex('app_custom_user_settings_user_app_unique').on(
+    primaryKey({
+      columns: [table.userId, table.appIdentifier, table.key],
+    }),
+    index('app_custom_user_settings_user_app_idx').on(
       table.userId,
       table.appIdentifier,
     ),
@@ -49,7 +51,7 @@ export const appCustomUserSettingsRelations = relations(
   }),
 )
 
-export type AppCustomUserSettings =
+export type AppCustomUserSetting =
   typeof appCustomUserSettingsTable.$inferSelect
-export type NewAppCustomUserSettings =
+export type NewAppCustomUserSetting =
   typeof appCustomUserSettingsTable.$inferInsert

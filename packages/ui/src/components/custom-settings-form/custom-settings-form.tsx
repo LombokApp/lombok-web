@@ -30,8 +30,6 @@ import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 import { Plus, RotateCcw, Trash2 } from 'lucide-react'
 import React from 'react'
 
-const MASKED_VALUE = '********'
-
 interface CustomSettingsFormProps {
   schema: CustomSettingsSchema
   values: Record<string, unknown>
@@ -732,7 +730,10 @@ export function CustomSettingsForm({
   const [localValues, setLocalValues] = React.useState<Record<string, unknown>>(
     () => ({ ...values }),
   )
-  // Track which secret fields have been modified by the user
+  // Track which secret fields the user touched. Secrets arrive from the
+  // server as masked placeholders; only keys the user actually edited should
+  // be included in the PATCH body. Untouched secrets are omitted and remain
+  // as stored.
   const [modifiedSecrets, setModifiedSecrets] = React.useState<Set<string>>(
     () => new Set(),
   )
@@ -757,29 +758,29 @@ export function CustomSettingsForm({
     }
   }
 
+  const isDirty = (key: string) => {
+    if (isSecretKey(key, secretKeyPattern)) {
+      return modifiedSecrets.has(key)
+    }
+    return JSON.stringify(values[key]) !== JSON.stringify(localValues[key])
+  }
+
   const handleSave = () => {
+    // PATCH semantics: only send keys the user actually changed. Untouched
+    // keys (including untouched secrets) are preserved server-side.
     const submitValues: Record<string, unknown> = {}
     for (const [key] of propertyEntries) {
-      const localVal = localValues[key]
-      if (isSecretKey(key, secretKeyPattern) && !modifiedSecrets.has(key)) {
-        // Secret not modified — send masked value to preserve existing
-        submitValues[key] = MASKED_VALUE
-      } else {
-        submitValues[key] = localVal ?? null
+      if (!isDirty(key)) {
+        continue
       }
+      const localVal = localValues[key]
+      submitValues[key] = localVal ?? null
     }
     onSave(submitValues)
   }
 
   // Check if anything changed from server values
-  const hasChanges = propertyEntries.some(([key]) => {
-    const serverVal = values[key]
-    const localVal = localValues[key]
-    if (isSecretKey(key, secretKeyPattern)) {
-      return modifiedSecrets.has(key)
-    }
-    return JSON.stringify(serverVal) !== JSON.stringify(localVal)
-  })
+  const hasChanges = propertyEntries.some(([key]) => isDirty(key))
 
   // Check if any values are explicitly set (not all defaults)
   const hasCustomValues = Object.values(sources).some((s) => s !== 'default')

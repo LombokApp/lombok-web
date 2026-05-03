@@ -412,7 +412,7 @@ export async function handleAppSocketMessage(
         )
       return { result: { values: settingsResult.values } }
     }
-    case 'SET_APP_CUSTOM_SETTINGS': {
+    case 'PATCH_APP_CUSTOM_SETTINGS': {
       const app = await appService.getApp(requestingAppIdentifier)
       if (!app) {
         return { error: { code: 404, message: 'App not found.' } }
@@ -425,10 +425,10 @@ export async function handleAppSocketMessage(
           },
         }
       }
-      await customSettingsService.putUserCustomSettings(
+      await customSettingsService.patchUserCustomSettings(
         parsedRequest.data.userId,
         app,
-        parsedRequest.data.settings,
+        parsedRequest.data.values,
       )
       return { result: { success: true } }
     }
