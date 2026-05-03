@@ -32554,10 +32554,182 @@
                 "config": {
                   "type": "object",
                   "properties": {
-                    "volumes": {
+                    "mounts": {
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "readOnly": {
+                                "type": "boolean"
+                              },
+                              "type": {
+                                "type": "string",
+                                "const": "volume"
+                              },
+                              "source": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "minLength": 1
+                              },
+                              "volumeOptions": {
+                                "type": "object",
+                                "properties": {
+                                  "noCopy": {
+                                    "type": "boolean"
+                                  },
+                                  "labels": {
+                                    "$ref": "#/components/schemas/StringMapDTO"
+                                  },
+                                  "driverConfig": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "options": {
+                                        "$ref": "#/components/schemas/StringMapDTO"
+                                      },
+                                      "createSubpath": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
+                                  },
+                                  "subpath": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "driverConfig"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "type",
+                              "source"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "readOnly": {
+                                "type": "boolean"
+                              },
+                              "type": {
+                                "type": "string",
+                                "const": "bind"
+                              },
+                              "source": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "bindOptions": {
+                                "type": "object",
+                                "properties": {
+                                  "propagation": {
+                                    "type": "string",
+                                    "enum": [
+                                      "private",
+                                      "rprivate",
+                                      "shared",
+                                      "rshared",
+                                      "slave",
+                                      "rslave"
+                                    ]
+                                  },
+                                  "nonRecursive": {
+                                    "type": "boolean"
+                                  },
+                                  "createMountpoint": {
+                                    "type": "boolean"
+                                  },
+                                  "readOnlyNonRecursive": {
+                                    "type": "boolean"
+                                  },
+                                  "readOnlyForceRecursive": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "propagation"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "type",
+                              "source"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "readOnly": {
+                                "type": "boolean"
+                              },
+                              "type": {
+                                "type": "string",
+                                "const": "tmpfs"
+                              },
+                              "source": {
+                                "not": {}
+                              },
+                              "tmpfsOptions": {
+                                "type": "object",
+                                "properties": {
+                                  "sizeBytes": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
+                                  "mode": {
+                                    "type": "number"
+                                  },
+                                  "options": {
+                                    "minItems": 1,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "sizeBytes",
+                                  "mode"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "type",
+                              "source"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "env": {
@@ -32813,10 +32985,182 @@
                   "null"
                 ],
                 "properties": {
-                  "volumes": {
+                  "mounts": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "volume"
+                            },
+                            "source": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "minLength": 1
+                            },
+                            "volumeOptions": {
+                              "type": "object",
+                              "properties": {
+                                "noCopy": {
+                                  "type": "boolean"
+                                },
+                                "labels": {
+                                  "$ref": "#/components/schemas/StringMapDTO"
+                                },
+                                "driverConfig": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "options": {
+                                      "$ref": "#/components/schemas/StringMapDTO"
+                                    },
+                                    "createSubpath": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
+                                },
+                                "subpath": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "driverConfig"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "bind"
+                            },
+                            "source": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "bindOptions": {
+                              "type": "object",
+                              "properties": {
+                                "propagation": {
+                                  "type": "string",
+                                  "enum": [
+                                    "private",
+                                    "rprivate",
+                                    "shared",
+                                    "rshared",
+                                    "slave",
+                                    "rslave"
+                                  ]
+                                },
+                                "nonRecursive": {
+                                  "type": "boolean"
+                                },
+                                "createMountpoint": {
+                                  "type": "boolean"
+                                },
+                                "readOnlyNonRecursive": {
+                                  "type": "boolean"
+                                },
+                                "readOnlyForceRecursive": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "propagation"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "tmpfs"
+                            },
+                            "source": {
+                              "not": {}
+                            },
+                            "tmpfsOptions": {
+                              "type": "object",
+                              "properties": {
+                                "sizeBytes": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "mode": {
+                                  "type": "number"
+                                },
+                                "options": {
+                                  "minItems": 1,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "sizeBytes",
+                                "mode"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        }
+                      ]
                     }
                   },
                   "env": {
@@ -33058,10 +33402,182 @@
               "config": {
                 "type": "object",
                 "properties": {
-                  "volumes": {
+                  "mounts": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "volume"
+                            },
+                            "source": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "minLength": 1
+                            },
+                            "volumeOptions": {
+                              "type": "object",
+                              "properties": {
+                                "noCopy": {
+                                  "type": "boolean"
+                                },
+                                "labels": {
+                                  "$ref": "#/components/schemas/StringMapDTO"
+                                },
+                                "driverConfig": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "options": {
+                                      "$ref": "#/components/schemas/StringMapDTO"
+                                    },
+                                    "createSubpath": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
+                                },
+                                "subpath": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "driverConfig"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "bind"
+                            },
+                            "source": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "bindOptions": {
+                              "type": "object",
+                              "properties": {
+                                "propagation": {
+                                  "type": "string",
+                                  "enum": [
+                                    "private",
+                                    "rprivate",
+                                    "shared",
+                                    "rshared",
+                                    "slave",
+                                    "rslave"
+                                  ]
+                                },
+                                "nonRecursive": {
+                                  "type": "boolean"
+                                },
+                                "createMountpoint": {
+                                  "type": "boolean"
+                                },
+                                "readOnlyNonRecursive": {
+                                  "type": "boolean"
+                                },
+                                "readOnlyForceRecursive": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "propagation"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "tmpfs"
+                            },
+                            "source": {
+                              "not": {}
+                            },
+                            "tmpfsOptions": {
+                              "type": "object",
+                              "properties": {
+                                "sizeBytes": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "mode": {
+                                  "type": "number"
+                                },
+                                "options": {
+                                  "minItems": 1,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "sizeBytes",
+                                "mode"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        }
+                      ]
                     }
                   },
                   "env": {
@@ -33316,10 +33832,182 @@
             "type": "object",
             "default": {},
             "properties": {
-              "volumes": {
+              "mounts": {
                 "type": "array",
                 "items": {
-                  "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "volume"
+                        },
+                        "source": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
+                        },
+                        "volumeOptions": {
+                          "type": "object",
+                          "properties": {
+                            "noCopy": {
+                              "type": "boolean"
+                            },
+                            "labels": {
+                              "$ref": "#/components/schemas/StringMapDTO"
+                            },
+                            "driverConfig": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "options": {
+                                  "$ref": "#/components/schemas/StringMapDTO"
+                                },
+                                "createSubpath": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            "subpath": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "driverConfig"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "bind"
+                        },
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "bindOptions": {
+                          "type": "object",
+                          "properties": {
+                            "propagation": {
+                              "type": "string",
+                              "enum": [
+                                "private",
+                                "rprivate",
+                                "shared",
+                                "rshared",
+                                "slave",
+                                "rslave"
+                              ]
+                            },
+                            "nonRecursive": {
+                              "type": "boolean"
+                            },
+                            "createMountpoint": {
+                              "type": "boolean"
+                            },
+                            "readOnlyNonRecursive": {
+                              "type": "boolean"
+                            },
+                            "readOnlyForceRecursive": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "propagation"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "tmpfs"
+                        },
+                        "source": {
+                          "not": {}
+                        },
+                        "tmpfsOptions": {
+                          "type": "object",
+                          "properties": {
+                            "sizeBytes": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "mode": {
+                              "type": "number"
+                            },
+                            "options": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "sizeBytes",
+                            "mode"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    }
+                  ]
                 }
               },
               "env": {
@@ -33545,10 +34233,182 @@
           "config": {
             "type": "object",
             "properties": {
-              "volumes": {
+              "mounts": {
                 "type": "array",
                 "items": {
-                  "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "volume"
+                        },
+                        "source": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
+                        },
+                        "volumeOptions": {
+                          "type": "object",
+                          "properties": {
+                            "noCopy": {
+                              "type": "boolean"
+                            },
+                            "labels": {
+                              "$ref": "#/components/schemas/StringMapDTO"
+                            },
+                            "driverConfig": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "options": {
+                                  "$ref": "#/components/schemas/StringMapDTO"
+                                },
+                                "createSubpath": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            "subpath": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "driverConfig"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "bind"
+                        },
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "bindOptions": {
+                          "type": "object",
+                          "properties": {
+                            "propagation": {
+                              "type": "string",
+                              "enum": [
+                                "private",
+                                "rprivate",
+                                "shared",
+                                "rshared",
+                                "slave",
+                                "rslave"
+                              ]
+                            },
+                            "nonRecursive": {
+                              "type": "boolean"
+                            },
+                            "createMountpoint": {
+                              "type": "boolean"
+                            },
+                            "readOnlyNonRecursive": {
+                              "type": "boolean"
+                            },
+                            "readOnlyForceRecursive": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "propagation"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "tmpfs"
+                        },
+                        "source": {
+                          "not": {}
+                        },
+                        "tmpfsOptions": {
+                          "type": "object",
+                          "properties": {
+                            "sizeBytes": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "mode": {
+                              "type": "number"
+                            },
+                            "options": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "sizeBytes",
+                            "mode"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    }
+                  ]
                 }
               },
               "env": {
@@ -33806,10 +34666,182 @@
                 "config": {
                   "type": "object",
                   "properties": {
-                    "volumes": {
+                    "mounts": {
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "readOnly": {
+                                "type": "boolean"
+                              },
+                              "type": {
+                                "type": "string",
+                                "const": "volume"
+                              },
+                              "source": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "minLength": 1
+                              },
+                              "volumeOptions": {
+                                "type": "object",
+                                "properties": {
+                                  "noCopy": {
+                                    "type": "boolean"
+                                  },
+                                  "labels": {
+                                    "$ref": "#/components/schemas/StringMapDTO"
+                                  },
+                                  "driverConfig": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "options": {
+                                        "$ref": "#/components/schemas/StringMapDTO"
+                                      },
+                                      "createSubpath": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
+                                  },
+                                  "subpath": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "driverConfig"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "type",
+                              "source"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "readOnly": {
+                                "type": "boolean"
+                              },
+                              "type": {
+                                "type": "string",
+                                "const": "bind"
+                              },
+                              "source": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "bindOptions": {
+                                "type": "object",
+                                "properties": {
+                                  "propagation": {
+                                    "type": "string",
+                                    "enum": [
+                                      "private",
+                                      "rprivate",
+                                      "shared",
+                                      "rshared",
+                                      "slave",
+                                      "rslave"
+                                    ]
+                                  },
+                                  "nonRecursive": {
+                                    "type": "boolean"
+                                  },
+                                  "createMountpoint": {
+                                    "type": "boolean"
+                                  },
+                                  "readOnlyNonRecursive": {
+                                    "type": "boolean"
+                                  },
+                                  "readOnlyForceRecursive": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "propagation"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "type",
+                              "source"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "readOnly": {
+                                "type": "boolean"
+                              },
+                              "type": {
+                                "type": "string",
+                                "const": "tmpfs"
+                              },
+                              "source": {
+                                "not": {}
+                              },
+                              "tmpfsOptions": {
+                                "type": "object",
+                                "properties": {
+                                  "sizeBytes": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
+                                  "mode": {
+                                    "type": "number"
+                                  },
+                                  "options": {
+                                    "minItems": 1,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "sizeBytes",
+                                  "mode"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "type",
+                              "source"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "env": {
@@ -34081,10 +35113,182 @@
               "config": {
                 "type": "object",
                 "properties": {
-                  "volumes": {
+                  "mounts": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "volume"
+                            },
+                            "source": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "minLength": 1
+                            },
+                            "volumeOptions": {
+                              "type": "object",
+                              "properties": {
+                                "noCopy": {
+                                  "type": "boolean"
+                                },
+                                "labels": {
+                                  "$ref": "#/components/schemas/StringMapDTO"
+                                },
+                                "driverConfig": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    },
+                                    "options": {
+                                      "$ref": "#/components/schemas/StringMapDTO"
+                                    },
+                                    "createSubpath": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
+                                },
+                                "subpath": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "driverConfig"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "bind"
+                            },
+                            "source": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "bindOptions": {
+                              "type": "object",
+                              "properties": {
+                                "propagation": {
+                                  "type": "string",
+                                  "enum": [
+                                    "private",
+                                    "rprivate",
+                                    "shared",
+                                    "rshared",
+                                    "slave",
+                                    "rslave"
+                                  ]
+                                },
+                                "nonRecursive": {
+                                  "type": "boolean"
+                                },
+                                "createMountpoint": {
+                                  "type": "boolean"
+                                },
+                                "readOnlyNonRecursive": {
+                                  "type": "boolean"
+                                },
+                                "readOnlyForceRecursive": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "propagation"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "target": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "readOnly": {
+                              "type": "boolean"
+                            },
+                            "type": {
+                              "type": "string",
+                              "const": "tmpfs"
+                            },
+                            "source": {
+                              "not": {}
+                            },
+                            "tmpfsOptions": {
+                              "type": "object",
+                              "properties": {
+                                "sizeBytes": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "mode": {
+                                  "type": "number"
+                                },
+                                "options": {
+                                  "minItems": 1,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "sizeBytes",
+                                "mode"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "target",
+                            "type",
+                            "source"
+                          ]
+                        }
+                      ]
                     }
                   },
                   "env": {
@@ -34355,10 +35559,182 @@
             "type": "object",
             "default": {},
             "properties": {
-              "volumes": {
+              "mounts": {
                 "type": "array",
                 "items": {
-                  "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "volume"
+                        },
+                        "source": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
+                        },
+                        "volumeOptions": {
+                          "type": "object",
+                          "properties": {
+                            "noCopy": {
+                              "type": "boolean"
+                            },
+                            "labels": {
+                              "$ref": "#/components/schemas/StringMapDTO"
+                            },
+                            "driverConfig": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "options": {
+                                  "$ref": "#/components/schemas/StringMapDTO"
+                                },
+                                "createSubpath": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            "subpath": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "driverConfig"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "bind"
+                        },
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "bindOptions": {
+                          "type": "object",
+                          "properties": {
+                            "propagation": {
+                              "type": "string",
+                              "enum": [
+                                "private",
+                                "rprivate",
+                                "shared",
+                                "rshared",
+                                "slave",
+                                "rslave"
+                              ]
+                            },
+                            "nonRecursive": {
+                              "type": "boolean"
+                            },
+                            "createMountpoint": {
+                              "type": "boolean"
+                            },
+                            "readOnlyNonRecursive": {
+                              "type": "boolean"
+                            },
+                            "readOnlyForceRecursive": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "propagation"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "tmpfs"
+                        },
+                        "source": {
+                          "not": {}
+                        },
+                        "tmpfsOptions": {
+                          "type": "object",
+                          "properties": {
+                            "sizeBytes": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "mode": {
+                              "type": "number"
+                            },
+                            "options": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "sizeBytes",
+                            "mode"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    }
+                  ]
                 }
               },
               "env": {
@@ -34607,10 +35983,182 @@
             "type": "object",
             "default": {},
             "properties": {
-              "volumes": {
+              "mounts": {
                 "type": "array",
                 "items": {
-                  "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "volume"
+                        },
+                        "source": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "minLength": 1
+                        },
+                        "volumeOptions": {
+                          "type": "object",
+                          "properties": {
+                            "noCopy": {
+                              "type": "boolean"
+                            },
+                            "labels": {
+                              "$ref": "#/components/schemas/StringMapDTO"
+                            },
+                            "driverConfig": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "options": {
+                                  "$ref": "#/components/schemas/StringMapDTO"
+                                },
+                                "createSubpath": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            "subpath": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "driverConfig"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "bind"
+                        },
+                        "source": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "bindOptions": {
+                          "type": "object",
+                          "properties": {
+                            "propagation": {
+                              "type": "string",
+                              "enum": [
+                                "private",
+                                "rprivate",
+                                "shared",
+                                "rshared",
+                                "slave",
+                                "rslave"
+                              ]
+                            },
+                            "nonRecursive": {
+                              "type": "boolean"
+                            },
+                            "createMountpoint": {
+                              "type": "boolean"
+                            },
+                            "readOnlyNonRecursive": {
+                              "type": "boolean"
+                            },
+                            "readOnlyForceRecursive": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "propagation"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "readOnly": {
+                          "type": "boolean"
+                        },
+                        "type": {
+                          "type": "string",
+                          "const": "tmpfs"
+                        },
+                        "source": {
+                          "not": {}
+                        },
+                        "tmpfsOptions": {
+                          "type": "object",
+                          "properties": {
+                            "sizeBytes": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "mode": {
+                              "type": "number"
+                            },
+                            "options": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "sizeBytes",
+                            "mode"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "type",
+                        "source"
+                      ]
+                    }
+                  ]
                 }
               },
               "env": {

@@ -210,7 +210,6 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
                     return socket.join(roomKey)
                   },
                 ),
-                // eslint-disable-next-line promise/no-nesting
               ).then(() => {
                 socket.onAny((event: string, ...args: unknown[]) => {
                   if (event === 'APP_API') {

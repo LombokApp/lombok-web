@@ -19,11 +19,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Get the request object from the arguments host
     const request = ctx.getRequest<Request>()
     this.logger.debug(
-      'API EXCEPTION (%s %s):',
-      request.method,
-      request.url,
+      `API EXCEPTION (${request.method} ${request.url}):`,
       exception,
-      exception.stack,
     )
 
     // Get the status code from the exception

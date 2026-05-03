@@ -21,6 +21,7 @@ import { buildPlatformOrigin } from 'src/core/utils/platform-origin.util'
 import { waitForCondition } from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
 
+import type { DockerResourceMount } from '../dto/docker-resource-config-input.dto'
 import type { DockerResourceConfig } from '../entities/docker-profile-resource-assignment.entity'
 import {
   type ContainerCreateOptions,
@@ -62,6 +63,44 @@ export const DOCKER_LABELS = {
   STANDALONE_CONTAINER_ID: 'lombok.standalone_container_id',
 } as const
 
+/** Image used by the ephemeral mkdir helper that pre-creates mount source paths. */
+const MOUNT_INIT_HELPER_IMAGE = 'alpine:3.20'
+
+/** Polling parameters for awaiting the helper container's exit. */
+const MOUNT_INIT_WAIT_OPTIONS = {
+  retryPeriodMs: 200,
+  maxRetries: 150,
+  totalMaxDurationMs: 30000,
+}
+
+/**
+ * Extract all container-side destination paths (the `target` field) from a
+ * set of mount configs. Returns an empty array when `mounts` is nullish or
+ * empty. Order is preserved; duplicates are not deduplicated.
+ */
+export function extractMountTargets(
+  mounts: DockerResourceMount[] | undefined | null,
+): string[] {
+  return (mounts ?? []).map((mount) => mount.target)
+}
+
+/**
+ * Subset of {@link extractMountTargets} limited to mounts whose contents
+ * we own and may safely chown. Excludes volume mounts backed by an external
+ * driver (e.g. NFS): those directories are managed by the remote server and
+ * `chown` from the client side typically fails under `root_squash`.
+ */
+export function extractChownableMountTargets(
+  mounts: DockerResourceMount[] | undefined | null,
+): string[] {
+  return (mounts ?? [])
+    .filter(
+      (mount) =>
+        !(mount.type === 'volume' && mount.volumeOptions?.driverConfig),
+    )
+    .map((mount) => mount.target)
+}
+
 @Injectable({ scope: Scope.DEFAULT })
 export class DockerJobsService {
   private readonly logger = new Logger(DockerJobsService.name)
@@ -83,6 +122,127 @@ export class DockerJobsService {
     this.dockerHostManagementService =
       _dockerHostManagementService as DockerHostManagementService
     this.dockerClientService = _dockerClientService as DockerClientService
+  }
+
+  /**
+   * Resolve lombok-managed `driverConfig.createSubpath` on volume mounts:
+   * pre-create the subdirectory on the backing filesystem, then rewrite
+   * `device` to include it so the real container mounts the final path.
+   *
+   * For each matching mount, runs an ephemeral alpine helper that mounts
+   * the volume with its original `device` (which must already exist) and
+   * does `mkdir -p /parent/<createSubpath>`. `createSubpath` is then
+   * stripped from `driverConfig` (it's not a Docker field) and appended
+   * to `driverConfig.options.device` before the real mount.
+   *
+   * Mounts without `createSubpath` pass through unchanged.
+   */
+  private async initializeMountSourcePaths(
+    hostId: string,
+    mounts: DockerResourceMount[] | undefined,
+  ): Promise<DockerResourceMount[] | undefined> {
+    if (!mounts?.length) {
+      return mounts
+    }
+
+    const result: DockerResourceMount[] = []
+    for (const mount of mounts) {
+      if (
+        mount.type !== 'volume' ||
+        !mount.volumeOptions?.driverConfig.createSubpath
+      ) {
+        result.push(mount)
+        continue
+      }
+
+      const { createSubpath, ...driverConfigForDocker } =
+        mount.volumeOptions.driverConfig
+
+      await this.ensureVolumeSubpathExists(
+        hostId,
+        driverConfigForDocker,
+        createSubpath,
+      )
+
+      const existingDevice = driverConfigForDocker.options?.device ?? ''
+      const appendedDevice =
+        existingDevice.replace(/\/+$/, '') +
+        '/' +
+        createSubpath.replace(/^\/+/, '')
+
+      result.push({
+        ...mount,
+        volumeOptions: {
+          ...mount.volumeOptions,
+          driverConfig: {
+            ...driverConfigForDocker,
+            options: {
+              ...(driverConfigForDocker.options ?? {}),
+              device: appendedDevice,
+            },
+          },
+        },
+      })
+    }
+    return result
+  }
+
+  private async ensureVolumeSubpathExists(
+    hostId: string,
+    driverConfig: NonNullable<
+      NonNullable<
+        Extract<DockerResourceMount, { type: 'volume' }>['volumeOptions']
+      >['driverConfig']
+    >,
+    subpath: string,
+  ): Promise<void> {
+    await this.dockerClientService
+      .pullImage(hostId, MOUNT_INIT_HELPER_IMAGE)
+      .catch((error: unknown) => {
+        this.logger.debug(
+          `Pulling ${MOUNT_INIT_HELPER_IMAGE} failed (assuming cached): ${error instanceof Error ? error.message : String(error)}`,
+        )
+      })
+
+    const container = await this.dockerClientService.createContainer(hostId, {
+      image: MOUNT_INIT_HELPER_IMAGE,
+      labels: {
+        [DOCKER_LABELS.PLATFORM_HOST]: this._coreConfig.platformHost,
+        [DOCKER_LABELS.CONTAINER_TYPE]: 'mount-init',
+      },
+      mounts: [
+        {
+          source: null,
+          type: 'volume',
+          target: '/parent',
+          volumeOptions: { driverConfig },
+        },
+      ],
+      command: ['mkdir', '-p', `/parent/${subpath}`],
+      start: true,
+    })
+
+    try {
+      await waitForCondition(
+        async () => {
+          const info = await this.dockerClientService.findContainerById(
+            hostId,
+            container.id,
+          )
+          return info?.state === 'exited'
+        },
+        `Mount source init timed out (subpath="${subpath}")`,
+        MOUNT_INIT_WAIT_OPTIONS,
+      )
+    } finally {
+      await this.dockerClientService
+        .removeContainer(hostId, container.id, { force: true })
+        .catch((error: unknown) => {
+          this.logger.warn(
+            `Failed to remove mount-init container ${container.id}: ${error instanceof Error ? error.message : String(error)}`,
+          )
+        })
+    }
   }
 
   /**
@@ -362,22 +522,32 @@ export class DockerJobsService {
     const { hostId, ...config } = await this.resolveDockerHostConfigForProfile(
       attributes.profileKey,
     )
-
-    // Resolve {{ }} template expressions in volumes with runtime context
-    let resolvedVolumes = config.volumes
-    if (config.volumes?.length && templateContext) {
-      const resolved = await dataFromTemplate(
-        { volumes: config.volumes },
-        { objects: templateContext },
-      )
-      resolvedVolumes = resolved.volumes as string[]
+    // Resolve {{ }} template expressions in mounts with runtime context.
+    // Strings anywhere in the mount structure (notably `source` and
+    // `volumeOptions.driverConfig.options.device`) are interpolated.
+    if (config.mounts?.length && templateContext) {
+      config.mounts = (await Promise.all(
+        config.mounts.map(async (mount) => {
+          return dataFromTemplate(
+            mount,
+            { objects: templateContext },
+            { onlyKeys: [['source'], ['volumeOptions']] },
+          )
+        }),
+      )) as typeof config.mounts
     }
+
+    // Pre-create host-side source paths (e.g. NFS subpaths) so the real
+    // container start doesn't fail on a missing directory. Also rewrites
+    // mounts that use `driverConfig.createSubpath` — strips the field and
+    // appends its value to `device`.
+    config.mounts = await this.initializeMountSourcePaths(hostId, config.mounts)
 
     const container = await this.dockerClientService.findOrCreateContainer(
       hostId,
       {
         ...config,
-        volumes: resolvedVolumes,
+        mounts: config.mounts,
         image,
         labels: { ...config.labels, ...labels },
         start: true,
@@ -406,11 +576,11 @@ export class DockerJobsService {
 
       const platformUrl = buildPlatformOrigin(this._coreConfig)
 
-      // Extract container-side mount points from volumes (format: host:container[:opts])
-      // so provision can chown them to the container's default user.
-      const containerMountPoints = (resolvedVolumes ?? [])
-        .map((v) => v.split(':')[1])
-        .filter((p): p is string => !!p)
+      // Extract container-side mount points so provision can chown them to
+      // the container's default user. Skip external-driver volumes (e.g.
+      // NFS) — those are managed by the remote server and `root_squash`
+      // will reject client-side chown.
+      const containerMountPoints = extractChownableMountTargets(config.mounts)
 
       const provisionExec = await this.dockerClientService.execInContainer(
         hostId,

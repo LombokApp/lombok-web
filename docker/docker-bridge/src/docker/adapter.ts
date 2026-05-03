@@ -1,5 +1,7 @@
 import type net from 'node:net'
 
+import { z } from 'zod'
+
 export interface ExecOptions {
   tty: boolean
   env?: string[]
@@ -24,12 +26,84 @@ export interface ContainerInfo {
   state: string
 }
 
+// ─── Mount schema — Zod, peer of the API-side schema in packages/api's
+// DTO. Validates at the bridge boundary (defence in depth) and is the
+// single source of truth for the BridgeMount TS type below.
+
+const driverConfigSchema = z.object({
+  name: z.string().nonempty(),
+  options: z.record(z.string(), z.string()).optional(),
+})
+
+const volumeOptionsSchema = z.object({
+  noCopy: z.boolean(),
+  labels: z.record(z.string(), z.string()),
+  driverConfig: driverConfigSchema,
+  subpath: z.string().nonempty().optional(),
+})
+
+const bindOptionsSchema = z.object({
+  propagation: z.enum([
+    'private',
+    'rprivate',
+    'shared',
+    'rshared',
+    'slave',
+    'rslave',
+  ]),
+  nonRecursive: z.boolean().optional(),
+  createMountpoint: z.boolean().optional(),
+  readOnlyNonRecursive: z.boolean().optional(),
+  readOnlyForceRecursive: z.boolean().optional(),
+})
+
+const tmpfsOptionsSchema = z.object({
+  sizeBytes: z.number().positive(),
+  mode: z.number(),
+  options: z.array(z.array(z.string())).nonempty().optional(),
+})
+
+// `source` lives on each variant — its nullability is type-dependent:
+//   • volume — optional (omitted = anonymous volume)
+//   • bind   — required (must name a host path)
+//   • tmpfs  — forbidden (no backing path; in-memory filesystem)
+const mountBase = {
+  target: z.string().nonempty(),
+  readOnly: z.boolean().optional(),
+  consistency: z
+    .enum(['default', 'consistent', 'cached', 'delegated'])
+    .optional(),
+}
+
+export const bridgeMountSchema = z.discriminatedUnion('type', [
+  z.object({
+    ...mountBase,
+    type: z.literal('volume'),
+    source: z.string().nonempty().nullable(),
+    volumeOptions: volumeOptionsSchema.optional(),
+  }),
+  z.object({
+    ...mountBase,
+    type: z.literal('bind'),
+    source: z.string().nonempty(),
+    bindOptions: bindOptionsSchema.optional(),
+  }),
+  z.object({
+    ...mountBase,
+    type: z.literal('tmpfs'),
+    source: z.never().optional(),
+    tmpfsOptions: tmpfsOptionsSchema.optional(),
+  }),
+])
+
+export type BridgeMount = z.infer<typeof bridgeMountSchema>
+
 export interface CreateContainerOptions {
   image: string
   labels: Record<string, string>
   env?: Record<string, string>
   extraHosts?: string[]
-  volumes?: string[]
+  mounts?: BridgeMount[]
   networkMode?: string
   gpus?: { driver: string; deviceIds: string[] }
   capAdd?: string[]
