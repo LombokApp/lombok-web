@@ -17,7 +17,7 @@ const (
 	createPresignedURLsPath = "/api/v1/docker/jobs/%s/request-presigned-urls"
 	startPath               = "/api/v1/docker/jobs/%s/start"
 	completionPath          = "/api/v1/docker/jobs/%s/complete"
-	updatePath              = "/api/v1/docker/jobs/%s/update"
+	progressReportPath      = "/api/v1/docker/jobs/%s/progress"
 
 	// HTTP timeouts
 	requestTimeout       = 30 * time.Second
@@ -158,8 +158,8 @@ func (c *Client) SignalCompletion(ctx context.Context, jobID string, req *types.
 	return nil
 }
 
-// SendUpdate forwards a mid-execution update to the platform
-func (c *Client) SendUpdate(ctx context.Context, jobID string, update json.RawMessage) error {
+// SendProgressUpdate forwards a mid-execution progress update to the platform
+func (c *Client) SendProgressUpdate(ctx context.Context, jobID string, progressUpdate json.RawMessage) error {
 	if c.baseURL == "" || c.token == "" {
 		return fmt.Errorf("platform client not configured (missing baseURL or token)")
 	}
@@ -167,9 +167,9 @@ func (c *Client) SendUpdate(ctx context.Context, jobID string, update json.RawMe
 	ctx, cancel := context.WithTimeout(ctx, signalRequestTimeout)
 	defer cancel()
 
-	url := fmt.Sprintf(c.baseURL+updatePath, jobID)
+	url := fmt.Sprintf(c.baseURL+progressReportPath, jobID)
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(update))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(progressUpdate))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

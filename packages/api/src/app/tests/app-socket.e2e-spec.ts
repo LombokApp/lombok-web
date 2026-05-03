@@ -13,6 +13,7 @@ import {
 import { eq } from 'drizzle-orm'
 import { io, type Socket } from 'socket.io-client'
 import { eventsTable } from 'src/event/entities/event.entity'
+import { runWithThreadContext } from 'src/shared/thread-context'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
@@ -306,6 +307,57 @@ describe('App Socket Interface', () => {
       (task) => task.taskIdentifier === 'socket_test_task',
     )
     expect(matchingTasks.length).toBeGreaterThan(0)
+  })
+
+  it('stamps runtime executorMetadata on REPORT_TASK_UPDATE based on the worker-daemon instanceId', async () => {
+    await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
+
+    // Seed a task that's been started so the update is accepted.
+    const task = await runWithThreadContext(crypto.randomUUID(), async () =>
+      testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: SOCKET_TEST_APP_SLUG,
+        taskIdentifier: 'socket_test_task',
+        taskData: { seed: 'for-update' },
+      }),
+    )
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      executorMetadata: {
+        type: 'runtime',
+        metadata: { workerIdentifier: 'minimal_worker' },
+      },
+    })
+
+    // Connect as a runtime worker — the gateway parses the worker
+    // identifier out of the `worker-daemon--{workerIdentifier}--{executionId}`
+    // instanceId convention.
+    socket = await connectSocket('worker-daemon--minimal_worker--exec-1', [
+      'socket_test_task',
+    ])
+
+    const response = await buildAppClient(
+      socket,
+      serverBaseUrl,
+    ).reportTaskProgress({
+      taskId: task.id,
+      progressReport: { details: { percent: 42 } },
+    })
+    expect('result' in response).toBe(true)
+
+    const stored =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    expect(stored!.progressReports).toHaveLength(1)
+    const recorded = stored!.progressReports[0] as {
+      details?: { percent?: number }
+      executorMetadata?: { type: string; metadata: Record<string, unknown> }
+    }
+    expect(recorded.details?.percent).toBe(42)
+    expect(recorded.executorMetadata?.type).toBe('runtime')
+    expect(recorded.executorMetadata?.metadata.workerIdentifier).toBe(
+      'minimal_worker',
+    )
   })
 
   it('should return error for invalid message format', async () => {

@@ -34,10 +34,22 @@ const buildTriggerIdempotencyData = (
       }
     case 'app_action':
       return { requestId: trigger.invokeContext.requestId }
-    case 'task_child':
+    case 'task_complete_child':
       return {
         parentTaskId: trigger.invokeContext.parentTask.id,
         onCompleteHandlerIndex: trigger.invokeContext.onCompleteHandlerIndex,
+      }
+    case 'task_progress_child':
+      return {
+        parentTaskId: trigger.invokeContext.parentTask.id,
+        onProgressHandlerIndex: trigger.invokeContext.onProgressHandlerIndex,
+        // include progressReport timestamp/code so repeated identical
+        // reports produce distinct child tasks rather than collide on
+        // the idempotency key
+        progressReportCode:
+          trigger.invokeContext.parentTask.progressReport.code ?? null,
+        progressReportTimestamp:
+          trigger.invokeContext.parentTask.progressReport.timestamp ?? null,
       }
   }
 }

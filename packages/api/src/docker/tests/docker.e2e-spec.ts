@@ -289,7 +289,7 @@ const triggerAppDockerHandledTask = async (
       updatedAt: expect.any(Date),
       handlerType: CORE_IDENTIFIER,
       handlerIdentifier: null,
-      updates: [],
+      progressReports: [],
       correlationKey: null,
       progress: null,
     })
@@ -815,7 +815,7 @@ describe('Docker Jobs', () => {
       updatedAt: expect.any(Date),
       handlerType: 'docker',
       handlerIdentifier: 'dummy_profile_two:test_job_other',
-      updates: [],
+      progressReports: [],
       correlationKey: null,
       progress: null,
     })
@@ -1004,7 +1004,7 @@ describe('Docker Jobs', () => {
       updatedAt: expect.any(Date),
       handlerType: 'docker',
       handlerIdentifier: 'dummy_profile_two:test_job_other',
-      updates: [],
+      progressReports: [],
       correlationKey: null,
       progress: null,
     })
@@ -1888,7 +1888,7 @@ describe('Docker Jobs', () => {
       updatedAt: expect.any(Date),
       handlerType: 'docker',
       handlerIdentifier: 'dummy_profile_two:test_job_other',
-      updates: [],
+      progressReports: [],
       correlationKey: null,
       progress: null,
     })
@@ -1957,6 +1957,9 @@ describe('Docker Jobs', () => {
     expect(startedInnerTask?.completedAt).toBeFalsy()
     expect(startedInnerTask?.startedAt).toBeDefined()
     expect(startedInnerTask?.systemLog.length).toBe(1)
+    // After the worker-agent's startJob hook calls registerHeartbeat
+    // with the full DockerExecutorMetadata, the `started` log payload
+    // is upgraded in place to carry containerId/hostId.
     expect(startedInnerTask?.systemLog.at(0)).toEqual({
       at: expect.any(Date),
       logType: 'started',
@@ -1968,6 +1971,8 @@ describe('Docker Jobs', () => {
             jobIdentifier: 'test_job_other',
             profileHash: '679f45ae',
             profileKey: `${TEST_APP_SLUG}:dummy_profile_two`,
+            containerId: expect.any(String),
+            hostId: expect.any(String),
           },
         },
       },
@@ -2005,6 +2010,8 @@ describe('Docker Jobs', () => {
               jobIdentifier: 'test_job_other',
               profileHash: '679f45ae',
               profileKey: `${TEST_APP_SLUG}:dummy_profile_two`,
+              containerId: expect.any(String),
+              hostId: expect.any(String),
             },
           },
         },

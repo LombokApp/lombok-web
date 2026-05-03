@@ -1,7 +1,7 @@
 import {
   CORE_IDENTIFIER,
+  TaskProgressMessageLevel,
   TaskUpdateAudience,
-  TaskUpdateMessageLevel,
   TaskUpdateType,
 } from '@lombokapp/types'
 import { Injectable, Logger } from '@nestjs/common'
@@ -39,26 +39,22 @@ export const TASK_UPDATE_AUDIENCES_MAP = {
 }
 
 @Injectable()
-export class AsyncTaskUpdateBroadcasterService {
-  private readonly logger = new Logger(AsyncTaskUpdateBroadcasterService.name)
+export class TaskUpdateBroadcasterService {
+  private readonly logger = new Logger(TaskUpdateBroadcasterService.name)
 
   constructor(
     private readonly userSocketService: UserSocketService,
     private readonly appUserSocketService: AppUserSocketService,
   ) {}
 
-  handleAsyncTaskUpdate(
-    task: Task,
-    updateType: TaskUpdateType,
-    _ts?: Date,
-  ): void {
+  handleTaskUpdate(task: Task, updateType: TaskUpdateType, _ts?: Date): void {
     const ts = _ts ?? new Date()
     const update = {
       message: {
         level:
           updateType === TaskUpdateType.task_failed
-            ? TaskUpdateMessageLevel.error
-            : TaskUpdateMessageLevel.info,
+            ? TaskProgressMessageLevel.error
+            : TaskProgressMessageLevel.info,
         text: taskUpdateDescriptionForType(updateType, task),
         audience: TASK_UPDATE_AUDIENCES_MAP[updateType],
       },

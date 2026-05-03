@@ -1,4 +1,4 @@
-import { TaskUpdateMessageLevel } from '@lombokapp/types'
+import { TaskProgressMessageLevel } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { io, type Socket } from 'socket.io-client'
@@ -40,9 +40,12 @@ const TEST_EXECUTOR_METADATA = {
   metadata: { workerIdentifier: 'test-worker' },
 }
 
+// Runtime executor has the same shape at start and at completion
+// (only `workerIdentifier`), so there is no separate "partial" form.
+// Keep the alias for call sites that want to signal "pre-full" data.
 const TEST_EXECUTOR_METADATA_PARTIAL = {
   type: 'runtime' as const,
-  metadata: {},
+  metadata: { workerIdentifier: 'test-worker' },
 }
 
 const getTaskByIdentifier = async (
@@ -265,7 +268,9 @@ describe('Task lifecycle', () => {
         where: eq(tasksTable.taskIdentifier, SOCKET_DATA_TASK_IDENTIFIER),
       })
 
-    const childTask = tasks.find((t) => t.invocation.kind === 'task_child')
+    const childTask = tasks.find(
+      (t) => t.invocation.kind === 'task_complete_child',
+    )
     expect(childTask).toBeTruthy()
     expect(childTask?.data).toEqual({
       taskKeyValue: 'test-value',
@@ -336,12 +341,14 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    if (childTask.invocation.kind === 'task_child') {
+    if (childTask.invocation.kind === 'task_complete_child') {
       expect(childTask.invocation.invokeContext.parentTask.id).toBe(
         parentTask.id,
       )
     } else {
-      throw new Error('Child task was not created with a task_child trigger.')
+      throw new Error(
+        'Child task was not created with a task_complete_child trigger.',
+      )
     }
     expect(childTask.data).toEqual({
       inheritedPayload: 'from-event',
@@ -457,12 +464,14 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    if (childTask.invocation.kind === 'task_child') {
+    if (childTask.invocation.kind === 'task_complete_child') {
       expect(childTask.invocation.invokeContext.parentTask.id).toBe(
         parentTask.id,
       )
     } else {
-      throw new Error('Child task was not created with a task_child trigger.')
+      throw new Error(
+        'Child task was not created with a task_complete_child trigger.',
+      )
     }
     expect(childTask.invocation.onComplete).toEqual([
       {
@@ -514,8 +523,8 @@ describe('Task lifecycle', () => {
     if (!chainOne) {
       throw new Error('Chain one task was not created.')
     }
-    expect(chainOne.invocation.kind).toBe('task_child')
-    if (chainOne.invocation.kind === 'task_child') {
+    expect(chainOne.invocation.kind).toBe('task_complete_child')
+    if (chainOne.invocation.kind === 'task_complete_child') {
       expect(chainOne.invocation.onComplete).toBeUndefined()
       expect(chainOne.invocation.invokeContext.parentTask.id).toBe(childTask.id)
     }
@@ -663,8 +672,8 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    expect(childTask.invocation.kind).toBe('task_child')
-    if (childTask.invocation.kind === 'task_child') {
+    expect(childTask.invocation.kind).toBe('task_complete_child')
+    if (childTask.invocation.kind === 'task_complete_child') {
       expect(childTask.invocation.invokeContext.parentTask.id).toBe(
         parentTask.id,
       )
@@ -756,8 +765,8 @@ describe('Task lifecycle', () => {
       throw new Error('First on-complete child task was not created.')
     }
 
-    expect(firstChild.invocation.kind).toBe('task_child')
-    if (firstChild.invocation.kind === 'task_child') {
+    expect(firstChild.invocation.kind).toBe('task_complete_child')
+    if (firstChild.invocation.kind === 'task_complete_child') {
       expect(firstChild.invocation.invokeContext.parentTask.id).toBe(
         parentTask.id,
       )
@@ -797,8 +806,8 @@ describe('Task lifecycle', () => {
       throw new Error('Second on-complete child task was not created.')
     }
 
-    expect(secondChild.invocation.kind).toBe('task_child')
-    if (secondChild.invocation.kind === 'task_child') {
+    expect(secondChild.invocation.kind).toBe('task_complete_child')
+    if (secondChild.invocation.kind === 'task_complete_child') {
       expect(secondChild.invocation.invokeContext.parentTask.id).toBe(
         firstChild.id,
       )
@@ -863,8 +872,8 @@ describe('Task lifecycle', () => {
       throw new Error('On-complete child task was not created.')
     }
 
-    expect(childTask.invocation.kind).toBe('task_child')
-    if (childTask.invocation.kind === 'task_child') {
+    expect(childTask.invocation.kind).toBe('task_complete_child')
+    if (childTask.invocation.kind === 'task_complete_child') {
       expect(childTask.invocation.invokeContext.parentTask.success).toBe(false)
     }
   })
@@ -1334,7 +1343,7 @@ describe('Task lifecycle', () => {
       })
     })
 
-    // Start the task (registerTaskUpdate requires started & not completed)
+    // Start the task (registerTaskProgress requires started & not completed)
     await testModule!.services.taskService.registerTaskStarted({
       taskId: task.id,
       executorMetadata: TEST_EXECUTOR_METADATA,
@@ -1355,16 +1364,16 @@ describe('Task lifecycle', () => {
         resolve(data)
       })
 
-      // Simulate docker worker sending an update via registerTaskUpdate
-      void testModule!.services.taskService.registerTaskUpdate(task.id, {
-        progress: {
+      // Simulate docker worker sending an update via registerTaskProgress
+      void testModule!.services.taskService.registerTaskProgress(task.id, {
+        details: {
           percent: 50,
           current: 1,
           total: 2,
           label: 'Processing',
         },
         message: {
-          level: TaskUpdateMessageLevel.info,
+          level: TaskProgressMessageLevel.info,
           text: 'Halfway done',
           audience: 'user',
         },
@@ -1457,10 +1466,10 @@ describe('Task lifecycle', () => {
         resolve(data)
       })
 
-      void testModule!.services.taskService.registerTaskUpdate(task.id, {
-        progress: { percent: 75, label: 'Almost done' },
+      void testModule!.services.taskService.registerTaskProgress(task.id, {
+        details: { percent: 75, label: 'Almost done' },
         message: {
-          level: TaskUpdateMessageLevel.info,
+          level: TaskProgressMessageLevel.info,
           text: 'Processing folder data',
           audience: 'user',
         },
@@ -1492,19 +1501,19 @@ describe('Task lifecycle', () => {
     })
 
     // Send two updates
-    await testModule!.services.taskService.registerTaskUpdate(task.id, {
-      progress: { percent: 25, current: 1, total: 4 },
+    await testModule!.services.taskService.registerTaskProgress(task.id, {
+      details: { percent: 25, current: 1, total: 4 },
       message: {
-        level: TaskUpdateMessageLevel.info,
+        level: TaskProgressMessageLevel.info,
         text: 'Step 1',
         audience: 'user',
       },
     })
 
-    await testModule!.services.taskService.registerTaskUpdate(task.id, {
-      progress: { percent: 75, current: 3, total: 4 },
+    await testModule!.services.taskService.registerTaskProgress(task.id, {
+      details: { percent: 75, current: 3, total: 4 },
       message: {
-        level: TaskUpdateMessageLevel.info,
+        level: TaskProgressMessageLevel.info,
         text: 'Step 3',
         audience: 'user',
       },
@@ -1517,11 +1526,11 @@ describe('Task lifecycle', () => {
       })
 
     expect(updatedTask).toBeTruthy()
-    expect(updatedTask!.updates).toHaveLength(2)
-    expect(updatedTask!.updates[0]?.progress?.percent).toBe(25)
-    expect(updatedTask!.updates[0]?.receivedAt).toBeDefined()
-    expect(updatedTask!.updates[1]?.progress?.percent).toBe(75)
-    expect(updatedTask!.updates[1]?.receivedAt).toBeDefined()
+    expect(updatedTask!.progressReports).toHaveLength(2)
+    expect(updatedTask!.progressReports[0]?.details?.percent).toBe(25)
+    expect(updatedTask!.progressReports[0]?.receivedAt).toBeDefined()
+    expect(updatedTask!.progressReports[1]?.details?.percent).toBe(75)
+    expect(updatedTask!.progressReports[1]?.receivedAt).toBeDefined()
 
     // Latest progress should reflect the most recent update
     expect(updatedTask!.progress).toEqual({
@@ -1573,8 +1582,8 @@ describe('Task lifecycle', () => {
           resolve(true)
         }
       })
-      void testModule!.services.taskService.registerTaskUpdate(task.id, {
-        progress: { percent: 50 },
+      void testModule!.services.taskService.registerTaskProgress(task.id, {
+        details: { percent: 50 },
       })
       setTimeout(() => resolve(false), 1500)
     })
@@ -1586,10 +1595,10 @@ describe('Task lifecycle', () => {
       await testModule!.services.ormService.db.query.tasksTable.findFirst({
         where: eq(tasksTable.id, task.id),
       })
-    expect(updatedTask!.updates).toHaveLength(1)
+    expect(updatedTask!.progressReports).toHaveLength(1)
   })
 
-  it('rejects registerTaskUpdate for a task that is not started', async () => {
+  it('rejects registerTaskProgress for a task that is not started', async () => {
     await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
 
     const task = await runWithThreadContext(crypto.randomUUID(), async () => {
@@ -1600,18 +1609,18 @@ describe('Task lifecycle', () => {
       })
     })
 
-    // Do NOT start the task — registerTaskUpdate should return null
-    const result = await testModule!.services.taskService.registerTaskUpdate(
+    // Do NOT start the task — registerTaskProgress should return null
+    const result = await testModule!.services.taskService.registerTaskProgress(
       task.id,
       {
-        progress: { percent: 10 },
+        details: { percent: 10 },
       },
     )
 
     expect(result).toBeNull()
   })
 
-  it('rejects registerTaskUpdate for a completed task', async () => {
+  it('rejects registerTaskProgress for a completed task', async () => {
     await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
 
     const task = await runWithThreadContext(crypto.randomUUID(), async () => {
@@ -1633,11 +1642,11 @@ describe('Task lifecycle', () => {
       executorMetadata: TEST_EXECUTOR_METADATA,
     })
 
-    // Task is completed — registerTaskUpdate should return null
-    const result = await testModule!.services.taskService.registerTaskUpdate(
+    // Task is completed — registerTaskProgress should return null
+    const result = await testModule!.services.taskService.registerTaskProgress(
       task.id,
       {
-        progress: { percent: 99 },
+        details: { percent: 99 },
       },
     )
 
@@ -1663,7 +1672,23 @@ describe('Task lifecycle', () => {
     const appIdentifier = LIFECYCLE_APP_SLUG
     await enableAppForUser(userId, appIdentifier)
 
-    // Create task with targetUserId
+    // Connect the socket and arm the listener BEFORE triggering the task,
+    // so the started event can't fire before we're subscribed.
+    const appUserToken = await getAppUserToken(userId, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    const startedPromise = new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('Expected task_started event but got none')),
+        5000,
+      )
+      socket!.once('platform:tasks:task_started', (data) => {
+        clearTimeout(timeout)
+        resolve(data)
+      })
+    })
+
+    // Now trigger the task with targetUserId
     const task = await runWithThreadContext(crypto.randomUUID(), async () => {
       return testModule!.services.taskService.triggerAppActionTask({
         appIdentifier,
@@ -1674,20 +1699,7 @@ describe('Task lifecycle', () => {
       })
     })
 
-    // Connect socket before starting the task
-    const appUserToken = await getAppUserToken(userId, appIdentifier)
-    socket = await connectAppUserSocket(appUserToken)
-
-    const received = await new Promise<unknown>((resolve, reject) => {
-      const timeout = setTimeout(
-        () => reject(new Error('Expected task_started event but got none')),
-        5000,
-      )
-      socket!.once('platform:tasks:task_started', (data) => {
-        clearTimeout(timeout)
-        resolve(data)
-      })
-    })
+    const received = await startedPromise
 
     expect(received).toBeDefined()
     expect(
@@ -1925,5 +1937,304 @@ describe('Task lifecycle', () => {
     })
 
     expect(received).toBe(false)
+  })
+
+  // --- executorMetadata lifecycle tracking ---
+
+  it('persists ExecutorStartMetadata on the started system log entry', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: LIFECYCLE_APP_SLUG,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'exec-md-start' },
+      })
+    })
+
+    // Start with ExecutorStartMetadata — docker's pre-container case.
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+        },
+      },
+    })
+
+    const stored =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    const startedEntry = stored!.systemLog.find((e) => e.logType === 'started')
+    expect(startedEntry).toBeDefined()
+    const payload = startedEntry!.payload as {
+      executorMetadata: {
+        type: string
+        metadata: Record<string, unknown>
+      }
+    }
+    expect(payload.executorMetadata.type).toBe('docker')
+    expect(payload.executorMetadata.metadata.profileKey).toBe('app:profile')
+    expect(payload.executorMetadata.metadata.containerId).toBeUndefined()
+    expect(payload.executorMetadata.metadata.hostId).toBeUndefined()
+  })
+
+  it('upgrades the started log payload to full ExecutorMetadata on first heartbeat', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: LIFECYCLE_APP_SLUG,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'exec-md-upgrade' },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+        },
+      },
+    })
+
+    // First heartbeat from worker-agent carries the full metadata.
+    await testModule!.services.taskService.registerHeartbeat({
+      taskId: task.id,
+      heartbeatContext: { message: 'first heartbeat' },
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+          containerId: 'container-abc',
+          hostId: 'host-1',
+        },
+      },
+    })
+
+    const stored =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    const startedEntry = stored!.systemLog.find((e) => e.logType === 'started')
+    const payload = startedEntry!.payload as {
+      executorMetadata: {
+        type: string
+        metadata: Record<string, unknown>
+      }
+    }
+    expect(payload.executorMetadata.metadata.containerId).toBe('container-abc')
+    expect(payload.executorMetadata.metadata.hostId).toBe('host-1')
+    expect(stored!.latestHeartbeatAt).toBeInstanceOf(Date)
+  })
+
+  it('does not re-upgrade the started log payload on later heartbeats', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: LIFECYCLE_APP_SLUG,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'exec-md-no-redo' },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+        },
+      },
+    })
+
+    await testModule!.services.taskService.registerHeartbeat({
+      taskId: task.id,
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+          containerId: 'container-first',
+          hostId: 'host-1',
+        },
+      },
+    })
+
+    // A second heartbeat carrying different (but still valid) metadata
+    // must not clobber the original upgrade.
+    await testModule!.services.taskService.registerHeartbeat({
+      taskId: task.id,
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+          containerId: 'container-second',
+          hostId: 'host-2',
+        },
+      },
+    })
+
+    const stored =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    const startedEntry = stored!.systemLog.find((e) => e.logType === 'started')
+    const payload = startedEntry!.payload as {
+      executorMetadata: { metadata: Record<string, unknown> }
+    }
+    expect(payload.executorMetadata.metadata.containerId).toBe(
+      'container-first',
+    )
+    expect(payload.executorMetadata.metadata.hostId).toBe('host-1')
+  })
+
+  it('persists completion executorMetadata as-is on the success log entry', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: LIFECYCLE_APP_SLUG,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'exec-md-complete' },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      executorMetadata: TEST_EXECUTOR_METADATA,
+    })
+
+    await testModule!.services.taskService.registerTaskCompleted(task.id, {
+      success: true,
+      result: { ok: true },
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+          containerId: 'container-xyz',
+          hostId: 'host-9',
+        },
+      },
+    })
+
+    const stored =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    const successEntry = stored!.systemLog.find((e) => e.logType === 'success')
+    const payload = successEntry!.payload as {
+      result: Record<string, unknown>
+      executorMetadata: { type: string; metadata: Record<string, unknown> }
+    }
+    expect(payload.result).toEqual({ ok: true })
+    expect(payload.executorMetadata.type).toBe('docker')
+    expect(payload.executorMetadata.metadata.containerId).toBe('container-xyz')
+  })
+
+  it('persists completion executorMetadata as-is on the error log entry', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: LIFECYCLE_APP_SLUG,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'exec-md-error' },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      executorMetadata: TEST_EXECUTOR_METADATA,
+    })
+
+    // Use the ExecutorStartMetadata shape — the error happened before
+    // the container came up, so containerId/hostId aren't known.
+    await testModule!.services.taskService.registerTaskCompleted(task.id, {
+      success: false,
+      error: { code: 'FAIL', message: 'pre-exec failure' },
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+        },
+      },
+    })
+
+    const stored =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    const errorEntry = stored!.systemLog.find((e) => e.logType === 'error')
+    const payload = errorEntry!.payload as {
+      error: { code: string; message: string }
+      executorMetadata: { type: string; metadata: Record<string, unknown> }
+    }
+    expect(payload.error.code).toBe('FAIL')
+    expect(payload.executorMetadata.type).toBe('docker')
+    expect(payload.executorMetadata.metadata.jobIdentifier).toBe('job')
+    // Still in the pre-started form — not padded with empties.
+    expect(payload.executorMetadata.metadata.containerId).toBeUndefined()
+  })
+
+  it('stores executorMetadata on received task updates', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    const task = await runWithThreadContext(crypto.randomUUID(), async () => {
+      return testModule!.services.taskService.triggerAppActionTask({
+        appIdentifier: LIFECYCLE_APP_SLUG,
+        taskIdentifier: APP_ACTION_TASK_ID,
+        taskData: { test: 'exec-md-update' },
+      })
+    })
+
+    await testModule!.services.taskService.registerTaskStarted({
+      taskId: task.id,
+      executorMetadata: TEST_EXECUTOR_METADATA,
+    })
+
+    await testModule!.services.taskService.registerTaskProgress(task.id, {
+      details: { percent: 50 },
+      executorMetadata: {
+        type: 'docker',
+        metadata: {
+          profileKey: 'app:profile',
+          profileHash: 'h1',
+          jobIdentifier: 'job',
+          containerId: 'c-1',
+          hostId: 'h-1',
+        },
+      },
+    })
+
+    const stored =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, task.id),
+      })
+    expect(stored!.progressReports).toHaveLength(1)
+    const update = stored!.progressReports[0] as {
+      executorMetadata?: { metadata: Record<string, unknown> }
+    }
+    expect(update.executorMetadata?.metadata.containerId).toBe('c-1')
   })
 })

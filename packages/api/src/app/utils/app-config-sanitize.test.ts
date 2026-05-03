@@ -1,6 +1,7 @@
-import { appConfigSchema } from '@lombokapp/types'
 import { describe, expect, it } from 'bun:test'
 import type { z } from 'zod'
+
+import { appConfigSanitize } from './app-config-sanitize'
 
 type SafeParseReturnType<Input, Output> =
   | { success: true; data: Output }
@@ -12,6 +13,13 @@ describe('app-config-sanitize', () => {
       slug: 'testapp',
       label: 'Test App',
       description: 'A test application',
+      subscribedCoreEvents: ['core:object_added'],
+      runtimeWorkers: {
+        worker_one: {
+          entrypoint: 'worker.js',
+          description: 'Worker one',
+        },
+      },
     }
 
     const expectZodSuccess = (
@@ -64,7 +72,7 @@ describe('app-config-sanitize', () => {
     }
 
     it('should accept valid app config', () => {
-      const result = appConfigSchema.safeParse(baseValidConfig)
+      const result = appConfigSanitize.safeParse(baseValidConfig)
       expectZodSuccess(result)
     })
 
@@ -73,7 +81,7 @@ describe('app-config-sanitize', () => {
         ...baseValidConfig,
         label: 'Test\u0000App',
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -91,7 +99,7 @@ describe('app-config-sanitize', () => {
         ...baseValidConfig,
         description: 'Test\u0001control',
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'Control character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -112,12 +120,13 @@ describe('app-config-sanitize', () => {
             label: 'Task\u0000One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -139,7 +148,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -154,7 +164,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       // The sanitizer should catch non-finite numbers
       if (result.success) {
         // If it passes, that's actually a problem - the sanitizer should have caught it
@@ -179,7 +189,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -194,7 +205,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       // The sanitizer should catch NaN
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -219,7 +230,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -236,7 +248,7 @@ describe('app-config-sanitize', () => {
       // on circular references. The sanitizer should catch this, but if zod hangs
       // first, that's also acceptable - it means circular references won't make it through.
       // We'll test that the sanitizer catches circular refs in a simpler structure.
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       // If zod successfully parses and sanitizer catches it, verify the error
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -259,7 +271,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -274,7 +287,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -295,7 +308,7 @@ describe('app-config-sanitize', () => {
           },
         },
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'Control character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -315,7 +328,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -326,7 +340,7 @@ describe('app-config-sanitize', () => {
           },
         },
       }
-      const result = appConfigSchema.safeParse(validConfig)
+      const result = appConfigSanitize.safeParse(validConfig)
       expectZodSuccess(result)
     })
 
@@ -335,7 +349,7 @@ describe('app-config-sanitize', () => {
         ...baseValidConfig,
         description: 'Test\ttab\nnewline\rreturn',
       }
-      const result = appConfigSchema.safeParse(validConfig)
+      const result = appConfigSanitize.safeParse(validConfig)
       expectZodSuccess(result)
     })
 
@@ -348,7 +362,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -363,7 +378,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -383,7 +398,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -398,7 +414,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'Control character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -417,7 +433,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
           {
@@ -425,7 +442,8 @@ describe('app-config-sanitize', () => {
             label: 'Task Two',
             description: 'Second task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -445,7 +463,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -485,7 +503,7 @@ describe('app-config-sanitize', () => {
           KEY: 'value\u0000withNUL',
         },
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       // This might fail for schema reasons, but if it gets to sanitizer, should catch NUL
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -514,7 +532,7 @@ describe('app-config-sanitize', () => {
           folderDetailViews: [],
         },
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -541,7 +559,7 @@ describe('app-config-sanitize', () => {
           folderDetailViews: [],
         },
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'Control character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -565,7 +583,7 @@ describe('app-config-sanitize', () => {
           },
         },
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -587,12 +605,13 @@ describe('app-config-sanitize', () => {
             label: 'Task\u0000One',
             description: 'First\u0000task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         // Should report at least one NUL character issue
@@ -612,7 +631,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -631,7 +651,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -651,7 +671,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -666,7 +687,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       // The sanitizer should catch Infinity
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -687,7 +708,8 @@ describe('app-config-sanitize', () => {
             label: 'Task One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
@@ -702,7 +724,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
           _issue.message.includes('Non-finite number'),
@@ -754,7 +776,8 @@ describe('app-config-sanitize', () => {
             label: 'Task Two',
             description: 'Second task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
           {
@@ -807,7 +830,6 @@ describe('app-config-sanitize', () => {
                 jobs: [
                   {
                     identifier: 'http_job_one',
-                    maxPerContainer: 2,
                   },
                 ],
               },
@@ -847,9 +869,10 @@ describe('app-config-sanitize', () => {
               path: '/detail-view',
             },
           ],
+          folderDetailViews: [],
         },
       }
-      const result = appConfigSchema.safeParse(validConfig)
+      const result = appConfigSanitize.safeParse(validConfig)
       expectZodSuccess(result)
     })
 
@@ -893,7 +916,7 @@ describe('app-config-sanitize', () => {
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         // Should find at least one NUL character issue
@@ -913,12 +936,13 @@ describe('app-config-sanitize', () => {
             label: 'Task\u0000One',
             description: 'First task',
             handler: {
-              type: 'external',
+              type: 'runtime',
+              identifier: 'worker_one',
             },
           },
         ],
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>
@@ -943,7 +967,7 @@ describe('app-config-sanitize', () => {
           },
         },
       }
-      const result = appConfigSchema.safeParse(invalidConfig)
+      const result = appConfigSanitize.safeParse(invalidConfig)
       expectZodFailure(result, 'NUL character')
       if (!result.success) {
         const issue = result.error.issues.find((_issue) =>

@@ -365,6 +365,7 @@ export async function handleAppSocketMessage(
         taskIdentifier: parsedRequest.data.taskIdentifier,
         taskData: parsedRequest.data.inputData,
         onComplete: parsedRequest.data.onComplete,
+        onProgress: parsedRequest.data.onProgress,
         dontStartBefore: parsedRequest.data.dontStartBefore
           ? 'timestamp' in parsedRequest.data.dontStartBefore
             ? {
@@ -380,10 +381,30 @@ export async function handleAppSocketMessage(
 
       return { result: { taskId: task.id } }
     }
-    case 'REPORT_TASK_UPDATE': {
-      const result = await taskService.registerTaskUpdate(
+    case 'REPORT_TASK_PROGRESS': {
+      // Runtime workers connect with
+      //   instanceId = `worker-daemon--{workerIdentifier}--{executionId}`.
+      // Parse it to stamp the progress report with structured
+      // executorMetadata so onProgress handlers can address
+      // `{{executorMetadata.metadata.workerIdentifier}}` uniformly with
+      // the docker-originated progress path.
+      const instanceParts = handlerInstanceId.split('--')
+      const runtimeWorkerIdentifier =
+        instanceParts[0] === 'worker-daemon' && instanceParts[1]
+          ? instanceParts[1]
+          : undefined
+      const progressReport = runtimeWorkerIdentifier
+        ? {
+            ...parsedRequest.data.progressReport,
+            executorMetadata: {
+              type: 'runtime' as const,
+              metadata: { workerIdentifier: runtimeWorkerIdentifier },
+            },
+          }
+        : parsedRequest.data.progressReport
+      const result = await taskService.registerTaskProgress(
         parsedRequest.data.taskId,
-        parsedRequest.data.update,
+        progressReport,
       )
       if (!result) {
         return {

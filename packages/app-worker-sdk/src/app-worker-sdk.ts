@@ -92,10 +92,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['TRIGGER_APP_TASK'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'TRIGGER_APP_TASK'>>
-  reportTaskUpdate: (
-    params: AppSocketMessageDataMap['REPORT_TASK_UPDATE'],
+  reportTaskProgress: (
+    params: AppSocketMessageDataMap['REPORT_TASK_PROGRESS'],
     options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'REPORT_TASK_UPDATE'>>
+  ) => Promise<SocketResponse<'REPORT_TASK_PROGRESS'>>
   getAppCustomSettings: (
     params: AppSocketMessageDataMap['GET_APP_CUSTOM_SETTINGS'],
     options?: PlatformApiExecuteOptions,
@@ -239,8 +239,8 @@ export const buildAppClient = (
     getLatestDbCredentials(options) {
       return emitWithAck('GET_LATEST_DB_CREDENTIALS', options)
     },
-    reportTaskUpdate(params, options) {
-      return emitWithAck('REPORT_TASK_UPDATE', params, options)
+    reportTaskProgress(params, options) {
+      return emitWithAck('REPORT_TASK_PROGRESS', params, options)
     },
     getAppCustomSettings(params, options) {
       return emitWithAck('GET_APP_CUSTOM_SETTINGS', params, options)

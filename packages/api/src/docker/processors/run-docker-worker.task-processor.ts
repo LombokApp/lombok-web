@@ -133,8 +133,8 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
               }
             : {}),
           executorMetadata: {
-            type: 'system' as const,
-            metadata: {},
+            type: 'docker' as const,
+            metadata: executorMetadata,
           },
         }
 

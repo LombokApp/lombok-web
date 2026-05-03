@@ -3680,8 +3680,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "updates": {
-          "name": "updates",
+        "progress_reports": {
+          "name": "progress_reports",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,

@@ -98,12 +98,12 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	stdoutInterceptor := newJobLogInterceptor(payload.JobID, jobLogFile, logs.LogLevelInfo)
 	stderrInterceptor := newJobLogInterceptor(payload.JobID, jobLogFile, logs.LogLevelError)
 
-	// Wire up platform update forwarding for stdout magic lines
+	// Wire up platform progress update forwarding for stdout magic lines
 	if platformClient != nil {
-		stdoutInterceptor.onPlatformUpdate = func(update json.RawMessage) {
+		stdoutInterceptor.onPlatformProgressUpdate = func(progressUpdate json.RawMessage) {
 			ctx := context.Background()
-			if err := platformClient.SendUpdate(ctx, payload.JobID, update); err != nil {
-				logs.WriteAgentLog(logs.LogLevelWarn, "Failed to forward update", map[string]any{
+			if err := platformClient.SendProgressUpdate(ctx, payload.JobID, progressUpdate); err != nil {
+				logs.WriteAgentLog(logs.LogLevelWarn, "Failed to forward progress update", map[string]any{
 					"job_id": payload.JobID,
 					"error":  err.Error(),
 				})
@@ -264,8 +264,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		}
 	}
 
-	// Drain in-flight platform updates before signaling completion
-	stdoutInterceptor.updateWg.Wait()
+	// Drain in-flight platform progress updates before signaling completion
+	stdoutInterceptor.progressUpdateWg.Wait()
 
 	// Handle file uploads and platform completion if configured
 	var outputFiles []types.OutputFileRef
@@ -496,13 +496,13 @@ func launchExecAsyncCompletion(payload *types.JobPayload, jobState *types.JobSta
 
 // jobLogInterceptor intercepts output lines, parses structured logs, and writes to job logs.
 type jobLogInterceptor struct {
-	jobID            string
-	jobLogFile       *os.File
-	defaultLevel     logs.LogLevel
-	buffer           []byte
-	mu               sync.Mutex
-	onPlatformUpdate func(update json.RawMessage) // callback for platform updates
-	updateWg         sync.WaitGroup               // tracks in-flight update goroutines
+	jobID                    string
+	jobLogFile               *os.File
+	defaultLevel             logs.LogLevel
+	buffer                   []byte
+	mu                       sync.Mutex
+	onPlatformProgressUpdate func(progressUpdate json.RawMessage) // callback for platform progress updates
+	progressUpdateWg         sync.WaitGroup                       // tracks in-flight progress update goroutines
 }
 
 func newJobLogInterceptor(jobID string, jobLogFile *os.File, defaultLevel logs.LogLevel) *jobLogInterceptor {
@@ -541,18 +541,18 @@ func (w *jobLogInterceptor) Write(p []byte) (n int, err error) {
 }
 
 func (w *jobLogInterceptor) processLine(line string) {
-	// Check for platform update magic line (before structured log parsing)
-	const platformUpdatePrefix = "__PLATFORM_UPDATE__|"
-	if w.onPlatformUpdate != nil && strings.HasPrefix(line, platformUpdatePrefix) {
-		updateJSON := json.RawMessage(line[len(platformUpdatePrefix):])
-		if json.Valid(updateJSON) {
-			w.updateWg.Add(1)
+	// Check for platform progress update magic line (before structured log parsing)
+	const platformProgressUpdatePrefix = "__PLATFORM_PROGRESS_UPDATE__|"
+	if w.onPlatformProgressUpdate != nil && strings.HasPrefix(line, platformProgressUpdatePrefix) {
+		progressUpdateJSON := json.RawMessage(line[len(platformProgressUpdatePrefix):])
+		if json.Valid(progressUpdateJSON) {
+			w.progressUpdateWg.Add(1)
 			go func() {
-				defer w.updateWg.Done()
-				w.onPlatformUpdate(updateJSON)
+				defer w.progressUpdateWg.Done()
+				w.onPlatformProgressUpdate(progressUpdateJSON)
 			}()
 		} else {
-			logs.WriteAgentLog(logs.LogLevelWarn, "Invalid JSON in platform update line", map[string]any{
+			logs.WriteAgentLog(logs.LogLevelWarn, "Invalid JSON in platform progress update line", map[string]any{
 				"job_id": w.jobID,
 			})
 		}

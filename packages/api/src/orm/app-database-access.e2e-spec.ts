@@ -82,7 +82,7 @@ function createMockAppPlatformService(
     getAppTask: () => {
       throw new Error('Not implemented in test mock')
     },
-    reportTaskUpdate: () => {
+    reportTaskProgress: () => {
       throw new Error('Not implemented in test mock')
     },
     destroyAppDockerContainers: () => {

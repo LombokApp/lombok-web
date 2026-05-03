@@ -84,12 +84,12 @@ type HTTPJobSubmitResponse struct {
 
 // HTTPJobStatusResponse is the response when polling for job status
 type HTTPJobStatusResponse struct {
-	JobID    string            `json:"job_id"`
-	JobClass string            `json:"job_class,omitempty"`
-	Status   string            `json:"status"` // "pending", "running", "success", "failed"
-	Result   json.RawMessage   `json:"result,omitempty"`
-	Error    *JobError         `json:"error,omitempty"`
-	Updates  []json.RawMessage `json:"updates,omitempty"`
+	JobID           string            `json:"job_id"`
+	JobClass        string            `json:"job_class,omitempty"`
+	Status          string            `json:"status"` // "pending", "running", "success", "failed"
+	Result          json.RawMessage   `json:"result,omitempty"`
+	Error           *JobError         `json:"error,omitempty"`
+	ProgressUpdates []json.RawMessage `json:"progress_updates,omitempty"`
 }
 
 // HTTPJobResponse is the expected response from persistent HTTP workers (legacy sync mode)

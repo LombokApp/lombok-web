@@ -11,67 +11,6 @@ import type { JsonSerializableObject } from './json.types'
 import { jsonSerializableObjectSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
 
-// --- Task Update Types ---
-
-export const taskProgressSchema = z.object({
-  percent: z.number().min(0).max(100).optional(),
-  current: z.number().optional(),
-  total: z.number().optional(),
-  label: z.string().optional(),
-})
-export type TaskProgress = z.infer<typeof taskProgressSchema>
-
-export enum TaskUpdateMessageLevel {
-  debug = 'debug',
-  info = 'info',
-  warn = 'warn',
-  error = 'error',
-}
-
-export const taskUpdateMessageLevelSchema = z.enum(TaskUpdateMessageLevel)
-
-export enum TaskUpdateAudience {
-  system = 'system',
-  user = 'user',
-}
-
-export enum TaskUpdateType {
-  task_started = 'task_started',
-  task_progress = 'task_progress',
-  task_completed = 'task_completed',
-  task_requeued = 'task_requeued',
-  task_failed = 'task_failed',
-}
-
-export const taskUpdateMessageSchema = z.object({
-  level: taskUpdateMessageLevelSchema,
-  text: z.string(),
-  audience: z.enum(['user', 'system']),
-})
-export type TaskUpdateMessage = z.infer<typeof taskUpdateMessageSchema>
-
-export const taskUpdateSchema = z.object({
-  code: z.string().optional(),
-  progress: taskProgressSchema.optional(),
-  message: taskUpdateMessageSchema.optional(),
-  timestamp: z.string().optional(),
-})
-export type TaskUpdate = z.infer<typeof taskUpdateSchema>
-
-export const receivedTaskUpdateSchema = taskUpdateSchema.extend({
-  receivedAt: z.iso.datetime(),
-})
-export type ReceivedTaskUpdate = z.infer<typeof receivedTaskUpdateSchema>
-
-export const taskOnUpdateHandlerConfigSchema = z.object({
-  condition: z.string().optional(),
-  taskIdentifier: z.string(),
-  taskDataTemplate: jsonSerializableObjectSchema.optional(),
-})
-export type TaskOnUpdateHandlerConfig = z.infer<
-  typeof taskOnUpdateHandlerConfigSchema
->
-
 export type TaskData = JsonSerializableObject
 
 export const taskDataSchema: z.ZodType<TaskData> = jsonSerializableObjectSchema
@@ -192,6 +131,26 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
     }),
   )
 
+export const taskOnProgressConfigSchema = z.object({
+  taskIdentifier: taskIdentifierSchema,
+  condition: z
+    .string()
+    .min(1)
+    .refine(
+      (value) => {
+        const validation = validateConditionExpression(value)
+        return validation.valid
+      },
+      {
+        message: 'Invalid condition expression',
+      },
+    )
+    .optional(), // e.g. "progressReport.code === 'session-started'"
+  dataTemplate: jsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{progressReport.details.percent}}" }
+})
+
+export type TaskOnProgressConfig = z.infer<typeof taskOnProgressConfigSchema>
+
 const taskTriggerConfigBaseSchema = z.object({
   condition: z
     .string()
@@ -208,7 +167,7 @@ const taskTriggerConfigBaseSchema = z.object({
     .optional(),
   taskIdentifier: taskIdentifierSchema,
   onComplete: taskOnCompleteConfigSchema.array().optional(),
-  onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
+  onProgress: taskOnProgressConfigSchema.array().optional(),
 })
 
 export const scheduleUnitSchema = z.enum(['minutes', 'hours', 'days'])
@@ -261,122 +220,7 @@ export const userActionTaskTriggerConfigSchema = z
   })
   .extend(taskTriggerConfigBaseSchema.shape)
 
-// The invoked task's invocation context
-export const taskInvocationSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('system_action'),
-    invokeContext: z.object({
-      idempotencyData: jsonSerializableObjectSchema.optional(),
-    }),
-    onComplete: taskOnCompleteConfigSchema.array().optional(),
-    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
-  }),
-  z.object({
-    kind: z.literal('event'),
-    invokeContext: z.object({
-      eventId: z.guid(),
-      emitterIdentifier: z.string(),
-      eventIdentifier: eventIdentifierSchema.or(
-        corePrefixedEventIdentifierSchema,
-      ),
-      eventTriggerConfigIndex: z.number().int(),
-      dataTemplate: jsonSerializableObjectSchema.optional(),
-      targetUserId: z.guid().optional(),
-      targetLocation: targetLocationContextDTOSchema.optional(),
-      eventData: jsonSerializableObjectSchema,
-    }),
-    onComplete: taskOnCompleteConfigSchema.array().optional(),
-    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
-  }),
-  z.object({
-    kind: z.literal('schedule'),
-    invokeContext: z.object({
-      timestampBucket: z.string(),
-      name: z.string(),
-      config: z.object({
-        interval: z.number().int().positive(),
-        unit: z.enum(['minutes', 'hours', 'days']),
-      }),
-    }),
-    onComplete: taskOnCompleteConfigSchema.array().optional(),
-    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
-  }),
-  z.object({
-    kind: z.literal('user_action'),
-    invokeContext: z.object({
-      userId: z.guid(),
-      requestId: z.guid(),
-    }),
-    onComplete: taskOnCompleteConfigSchema.array().optional(),
-    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
-  }),
-  z.object({
-    kind: z.literal('app_action'),
-    invokeContext: z.object({
-      requestId: z.guid(),
-    }),
-    onComplete: taskOnCompleteConfigSchema.array().optional(),
-    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
-  }),
-  z.object({
-    kind: z.literal('task_child'),
-    invokeContext: z.object({
-      parentTask: z.object({
-        id: z.guid(),
-        identifier: z.string(),
-        success: z.boolean(),
-      }),
-      onCompleteHandlerIndex: z.number().int(),
-    }),
-    onComplete: taskOnCompleteConfigSchema.array().optional(),
-    onUpdate: z.array(taskOnUpdateHandlerConfigSchema).optional(),
-  }),
-])
-
-export const taskTriggerConfigSchema = z.discriminatedUnion('kind', [
-  eventTaskTriggerConfigSchema,
-  scheduleTaskTriggerConfigSchema,
-  userActionTaskTriggerConfigSchema,
-])
-
-export type TaskInvocation = z.infer<typeof taskInvocationSchema>
-
-export const taskConfigSchema = z
-  .object({
-    identifier: taskIdentifierSchema,
-    label: z.string().nonempty().min(1).max(128),
-    description: z.string(),
-    handler: z.object({
-      type: z.enum(['runtime', 'docker']),
-      identifier: z.string().nonempty(),
-    }),
-  })
-  .strict()
-
-export const taskDTOSchema = z.object({
-  id: z.guid(),
-  taskIdentifier: z.string(),
-  ownerIdentifier: z.string(),
-  invocation: taskInvocationSchema,
-  success: z.boolean().optional(),
-  handlerIdentifier: z.string().optional(),
-  data: taskDataSchema.optional(),
-  targetLocation: targetLocationContextDTOSchema.optional(),
-  error: z
-    .object({
-      code: z.string(),
-      message: z.string(),
-      details: jsonSerializableObjectSchema.optional(),
-    })
-    .optional(),
-  taskDescription: z.string(),
-  systemLog: z.array(taskSystemLogEntryDTOSchema),
-  taskLog: z.array(taskLogEntryDTOSchema),
-  startedAt: z.iso.datetime().optional(),
-  completedAt: z.iso.datetime().optional(),
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
-})
+// --- Executor Metadata ---
 
 export const requeueSchema = z.number().int().min(0)
 
@@ -435,24 +279,202 @@ export type ExecutorStartMetadata = z.infer<typeof executorStartMetadataSchema>
 export type DockerExecutorMetadata = z.infer<
   typeof dockerExecutorMetadataSchema
 >
-export type PartialExecutorMetadata = z.infer<
-  typeof partialExecutorMetadataSchema
+
+// --- Task Progress Report Types ---
+
+export const taskProgressDetailsSchema = z.object({
+  percent: z.number().min(0).max(100).optional(),
+  current: z.number().optional(),
+  total: z.number().optional(),
+  label: z.string().optional(),
+})
+export type TaskProgressDetails = z.infer<typeof taskProgressDetailsSchema>
+
+export enum TaskProgressMessageLevel {
+  debug = 'debug',
+  info = 'info',
+  warn = 'warn',
+  error = 'error',
+}
+
+export const taskProgressMessageLevelSchema = z.enum(TaskProgressMessageLevel)
+
+export enum TaskUpdateAudience {
+  system = 'system',
+  user = 'user',
+}
+
+// Broadcast-side lifecycle event kinds carried on the `/app-user`
+// socket. Intentionally keeps the legacy "Update" name to signal that
+// it describes the *async update* channel, not worker-originated
+// progress reports.
+export enum TaskUpdateType {
+  task_started = 'task_started',
+  task_progress = 'task_progress',
+  task_completed = 'task_completed',
+  task_requeued = 'task_requeued',
+  task_failed = 'task_failed',
+}
+
+export const taskProgressMessageSchema = z.object({
+  level: taskProgressMessageLevelSchema,
+  text: z.string(),
+  audience: z.enum(['user', 'system']),
+})
+export type TaskProgressMessage = z.infer<typeof taskProgressMessageSchema>
+
+export const taskProgressReportSchema = z.object({
+  code: z.string().optional(),
+  details: taskProgressDetailsSchema.optional(),
+  message: taskProgressMessageSchema.optional(),
+  timestamp: z.string().optional(),
+  executorMetadata: executorMetadataSchema.optional(),
+})
+export type TaskProgressReport = z.infer<typeof taskProgressReportSchema>
+
+export const receivedTaskProgressReportSchema = taskProgressReportSchema.extend(
+  {
+    receivedAt: z.iso.datetime(),
+  },
+)
+export type ReceivedTaskProgressReport = z.infer<
+  typeof receivedTaskProgressReportSchema
 >
 
-export const partialExecutorMetadataSchema = z.discriminatedUnion('type', [
+// --- Task Invocation ---
+
+// The invoked task's invocation context
+export const taskInvocationSchema = z.discriminatedUnion('kind', [
   z.object({
-    type: z.literal('system'),
-    metadata: systemExecutorMetadataSchema,
+    kind: z.literal('system_action'),
+    invokeContext: z.object({
+      idempotencyData: jsonSerializableObjectSchema.optional(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onProgress: z.array(taskOnProgressConfigSchema).optional(),
   }),
   z.object({
-    type: z.literal('docker'),
-    metadata: dockerExecutorMetadataSchema.partial(),
+    kind: z.literal('event'),
+    invokeContext: z.object({
+      eventId: z.guid(),
+      emitterIdentifier: z.string(),
+      eventIdentifier: eventIdentifierSchema.or(
+        corePrefixedEventIdentifierSchema,
+      ),
+      eventTriggerConfigIndex: z.number().int(),
+      dataTemplate: jsonSerializableObjectSchema.optional(),
+      targetUserId: z.guid().optional(),
+      targetLocation: targetLocationContextDTOSchema.optional(),
+      eventData: jsonSerializableObjectSchema,
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onProgress: z.array(taskOnProgressConfigSchema).optional(),
   }),
   z.object({
-    type: z.literal('runtime'),
-    metadata: runtimeExecutorMetadataSchema.partial(),
+    kind: z.literal('schedule'),
+    invokeContext: z.object({
+      timestampBucket: z.string(),
+      name: z.string(),
+      config: z.object({
+        interval: z.number().int().positive(),
+        unit: z.enum(['minutes', 'hours', 'days']),
+      }),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onProgress: z.array(taskOnProgressConfigSchema).optional(),
+  }),
+  z.object({
+    kind: z.literal('user_action'),
+    invokeContext: z.object({
+      userId: z.guid(),
+      requestId: z.guid(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onProgress: z.array(taskOnProgressConfigSchema).optional(),
+  }),
+  z.object({
+    kind: z.literal('app_action'),
+    invokeContext: z.object({
+      requestId: z.guid(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onProgress: z.array(taskOnProgressConfigSchema).optional(),
+  }),
+  z.object({
+    kind: z.literal('task_complete_child'),
+    invokeContext: z.object({
+      parentTask: z.object({
+        id: z.uuid(),
+        identifier: z.string(),
+        success: z.boolean(),
+        result: jsonSerializableObjectSchema,
+      }),
+      onCompleteHandlerIndex: z.number().int(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onProgress: taskOnProgressConfigSchema.array().optional(),
+  }),
+  z.object({
+    kind: z.literal('task_progress_child'),
+    invokeContext: z.object({
+      parentTask: z.object({
+        id: z.uuid(),
+        identifier: z.string(),
+        progressReport: taskProgressReportSchema,
+      }),
+      onProgressHandlerIndex: z.number().int(),
+    }),
+    onComplete: taskOnCompleteConfigSchema.array().optional(),
+    onProgress: taskOnProgressConfigSchema.array().optional(),
   }),
 ])
+
+export const taskTriggerConfigSchema = z.discriminatedUnion('kind', [
+  eventTaskTriggerConfigSchema,
+  scheduleTaskTriggerConfigSchema,
+  userActionTaskTriggerConfigSchema,
+])
+
+export type TaskInvocation = z.infer<typeof taskInvocationSchema>
+
+export const taskConfigSchema = z
+  .object({
+    identifier: taskIdentifierSchema,
+    label: z.string().nonempty().min(1).max(128),
+    description: z.string(),
+    handler: z.object({
+      type: z.enum(['runtime', 'docker']),
+      identifier: z.string().nonempty(),
+    }),
+  })
+  .strict()
+
+export const taskDTOSchema = z.object({
+  id: z.guid(),
+  taskIdentifier: z.string(),
+  ownerIdentifier: z.string(),
+  invocation: taskInvocationSchema,
+  success: z.boolean().optional(),
+  handlerIdentifier: z.string().optional(),
+  data: taskDataSchema.optional(),
+  targetLocation: targetLocationContextDTOSchema.optional(),
+  error: z
+    .object({
+      code: z.string(),
+      message: z.string(),
+      details: jsonSerializableObjectSchema.optional(),
+    })
+    .optional(),
+  taskDescription: z.string(),
+  systemLog: z.array(taskSystemLogEntryDTOSchema),
+  taskLog: z.array(taskLogEntryDTOSchema),
+  startedAt: z.iso.datetime().optional(),
+  completedAt: z.iso.datetime().optional(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+})
+
+// --- Task Response Types ---
 
 export const taskErrorResponseSchema = z.object({
   success: z.literal(false),
@@ -463,7 +485,13 @@ export const taskErrorResponseSchema = z.object({
     details: jsonSerializableObjectSchema.optional(),
   }),
   requeueDelayMs: requeueSchema.optional(),
-  executorMetadata: partialExecutorMetadataSchema.optional(),
+  // On the error path the executor may have failed before it reached
+  // a runtime-only state (e.g. docker container never came up), so we
+  // accept either the full ExecutorMetadata or the ExecutorStart form.
+  executorMetadata: z.union([
+    executorStartMetadataSchema,
+    executorMetadataSchema,
+  ]),
 })
 
 export const taskSuccessResponseSchema = z.object({
@@ -471,6 +499,45 @@ export const taskSuccessResponseSchema = z.object({
   result: jsonSerializableObjectSchema.optional(),
   executorMetadata: executorMetadataSchema,
 })
+
+// System log payload schemas — typed shapes for entries written by
+// registerTaskStarted/Completed/Heartbeat. The 'started' payload uses
+// ExecutorStartMetadata at registration time and is upgraded to the
+// full ExecutorMetadata on first heartbeat once the executor reports
+// runtime-only fields (e.g. containerId/hostId).
+export const taskStartedSystemLogPayloadSchema = z.object({
+  executorMetadata: z.union([
+    executorStartMetadataSchema,
+    executorMetadataSchema,
+  ]),
+})
+export type TaskStartedSystemLogPayload = z.infer<
+  typeof taskStartedSystemLogPayloadSchema
+>
+
+export const taskSuccessSystemLogPayloadSchema = z.object({
+  result: jsonSerializableObjectSchema.optional(),
+  executorMetadata: executorMetadataSchema,
+})
+export type TaskSuccessSystemLogPayload = z.infer<
+  typeof taskSuccessSystemLogPayloadSchema
+>
+
+export const taskErrorSystemLogPayloadSchema = z.object({
+  error: z.object({
+    code: z.string(),
+    name: z.string().optional(),
+    message: z.string(),
+    details: jsonSerializableObjectSchema.optional(),
+  }),
+  executorMetadata: z.union([
+    executorStartMetadataSchema,
+    executorMetadataSchema,
+  ]),
+})
+export type TaskErrorSystemLogPayload = z.infer<
+  typeof taskErrorSystemLogPayloadSchema
+>
 
 export const taskCompletionSchema = z.discriminatedUnion('success', [
   taskErrorResponseSchema,

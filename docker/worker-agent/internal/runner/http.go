@@ -306,12 +306,12 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			continue
 		}
 
-		// Forward any pending updates from the worker
-		if platformClient != nil && len(status.Updates) > 0 {
-			for _, update := range status.Updates {
+		// Forward any pending progress updates from the worker
+		if platformClient != nil && len(status.ProgressUpdates) > 0 {
+			for _, progressUpdate := range status.ProgressUpdates {
 				ctx := context.Background()
-				if err := platformClient.SendUpdate(ctx, payload.JobID, update); err != nil {
-					logs.WriteAgentLog(logs.LogLevelWarn, "Failed to forward update", map[string]any{
+				if err := platformClient.SendProgressUpdate(ctx, payload.JobID, progressUpdate); err != nil {
+					logs.WriteAgentLog(logs.LogLevelWarn, "Failed to forward progress update", map[string]any{
 						"job_id": payload.JobID,
 						"error":  err.Error(),
 					})
