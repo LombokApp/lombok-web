@@ -142,7 +142,7 @@ export const AuthContextProvider = ({
         signupParams,
       )
 
-      if ('needsUsername' in handleSSOResponse) {
+      if (handleSSOResponse.needsUsername) {
         const needsUsernameResponse = handleSSOResponse as {
           needsUsername: boolean
           provider: string
