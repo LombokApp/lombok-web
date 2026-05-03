@@ -216,19 +216,15 @@ const handleExecuteTask = async (
     workerIdentifier: executeTaskPayload.workerIdentifier,
   })
 
+  // Note: we no longer re-emit user stdout here. User `console.log` output
+  // from inside the worker daemon is already forwarded to this process's
+  // stdout via the daemon's structured logger (workerLogger 'user' channel),
+  // so the CoreWorkerService on the API side sees it exactly once.
   await scriptExecutor({
     task: executeTaskPayload.task,
     appIdentifier: executeTaskPayload.appIdentifier,
     workerIdentifier: executeTaskPayload.workerIdentifier,
     serverlessWorkerDetails,
-    onStdoutChunk: executionOptions?.printWorkerOutput
-      ? (text) => {
-          // eslint-disable-next-line no-console
-          console.log(
-            `[${executeTaskPayload.appIdentifier}/${executeTaskPayload.workerIdentifier}] ${text.trimEnd()}`,
-          )
-        }
-      : undefined,
   })
 }
 

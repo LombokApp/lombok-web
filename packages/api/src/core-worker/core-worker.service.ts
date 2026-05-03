@@ -367,6 +367,63 @@ export class CoreWorkerService {
   }
 
   // Ensure spawned worker is terminated when the API process is exiting
+  private emitWorkerLine(streamKind: 'stdout' | 'stderr', line: string): void {
+    if (!this._coreConfig.printCoreWorkerOutput) {
+      return
+    }
+    const trimmed = line.trimEnd()
+    if (!trimmed) {
+      return
+    }
+
+    const WORKER_LOG_JSON_PREFIX = 'LOMBOK_LOG '
+    if (trimmed.startsWith(WORKER_LOG_JSON_PREFIX)) {
+      try {
+        const record = JSON.parse(
+          trimmed.slice(WORKER_LOG_JSON_PREFIX.length),
+        ) as {
+          lvl?: string
+          ch?: string
+          msg?: string
+          app?: string
+          worker?: string
+          reqId?: string
+          data?: unknown
+        }
+        const level = record.lvl ?? 'info'
+        const channel = record.ch ?? 'daemon'
+        const source =
+          record.app && record.worker
+            ? `${record.app}/${record.worker}`
+            : 'core-worker'
+        const rid = record.reqId ? ` (${record.reqId.slice(0, 12)})` : ''
+        const extra = record.data ? ' ' + JSON.stringify(record.data) : ''
+        const formatted = `[worker:${source}][${channel}]${rid} ${record.msg ?? ''}${extra}`
+        const l = this.logger
+        if (level === 'error') {
+          l.error(formatted)
+        } else if (level === 'warn') {
+          l.warn(formatted)
+        } else if (level === 'debug' || level === 'trace') {
+          l.debug(formatted)
+        } else {
+          l.log(formatted)
+        }
+        return
+      } catch {
+        // fall through to raw print
+      }
+    }
+
+    const prefix =
+      streamKind === 'stdout' ? 'core-worker stdout' : 'core-worker stderr'
+    if (streamKind === 'stderr') {
+      this.logger.error(`[${prefix}] ${trimmed}`)
+    } else {
+      this.logger.debug(`[${prefix}] ${trimmed}`)
+    }
+  }
+
   private setupParentShutdownHooks(child: ReturnType<typeof Bun.spawn>) {
     const terminate = () => {
       try {
@@ -423,22 +480,38 @@ export class CoreWorkerService {
         env: {
           ...process.env,
           LOMBOK_CORE_WORKER_SOCKET_PATH: socketPath,
+          ...(this._coreConfig.coreWorkerLogChannels
+            ? { LOMBOK_WORKER_LOG: this._coreConfig.coreWorkerLogChannels }
+            : {}),
+          ...(this._coreConfig.coreWorkerLogPretty
+            ? { LOMBOK_WORKER_LOG_PRETTY: '1' }
+            : {}),
         },
       })
       this.setupParentShutdownHooks(this.child)
       let hasScheduledRetry = false
 
-      // Read stdout stream
-      const readStdout = async () => {
-        if (!this.child?.stdout) {
+      // Read stdout/stderr streams line-by-line. Structured log records
+      // emitted by the worker daemon are tagged with a "LOMBOK_LOG " prefix
+      // and routed through the NestJS logger at the appropriate level; other
+      // lines are treated as raw output.
+      const readLines = async (
+        streamKind: 'stdout' | 'stderr',
+      ): Promise<void> => {
+        const stream =
+          streamKind === 'stdout' ? this.child?.stdout : this.child?.stderr
+        if (!stream || typeof stream === 'number') {
           return
         }
-        const stdout = this.child.stdout
-        if (typeof stdout === 'number') {
-          return
-        }
-        const reader = stdout.getReader()
+        const reader = stream.getReader()
         const decoder = new TextDecoder()
+        let buffer = ''
+        const flush = (line: string) => {
+          if (!line) {
+            return
+          }
+          this.emitWorkerLine(streamKind, line)
+        }
         try {
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           while (true) {
@@ -446,9 +519,17 @@ export class CoreWorkerService {
             if (done) {
               break
             }
-            if (this._coreConfig.printCoreWorkerOutput) {
-              this.logger.debug(`[core-worker stdout] ${decoder.decode(value)}`)
+            buffer += decoder.decode(value, { stream: true })
+            let idx = buffer.indexOf('\n')
+            while (idx !== -1) {
+              const line = buffer.slice(0, idx)
+              buffer = buffer.slice(idx + 1)
+              flush(line)
+              idx = buffer.indexOf('\n')
             }
+          }
+          if (buffer) {
+            flush(buffer)
           }
         } catch {
           // Stream was closed or errored
@@ -457,34 +538,8 @@ export class CoreWorkerService {
         }
       }
 
-      // Read stderr stream
-      const readStderr = async () => {
-        if (!this.child?.stderr) {
-          return
-        }
-        const stderr = this.child.stderr
-        if (typeof stderr === 'number') {
-          return
-        }
-        const reader = stderr.getReader()
-        const decoder = new TextDecoder()
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-              break
-            }
-            if (this._coreConfig.printCoreWorkerOutput) {
-              this.logger.error(`[core-worker stderr] ${decoder.decode(value)}`)
-            }
-          }
-        } catch {
-          // Stream was closed or errored
-        } finally {
-          reader.releaseLock()
-        }
-      }
+      const readStdout = () => readLines('stdout')
+      const readStderr = () => readLines('stderr')
 
       // Start reading streams in background
       void readStdout()

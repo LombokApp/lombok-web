@@ -18,6 +18,8 @@ export const coreConfig = registerAs('core', () => {
         .string()
         .refine(isBoolean)
         .optional(),
+      CORE_WORKER_LOG_CHANNELS: z.string().optional(),
+      CORE_WORKER_LOG_PRETTY: z.string().refine(isBoolean).optional(),
       BRIDGE_TUNNEL_DOMAIN: z.string().optional(),
     }),
   )
@@ -38,5 +40,9 @@ export const coreConfig = registerAs('core', () => {
     printCoreWorkerNsjailVerboseOutput:
       env.PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT === '1' ||
       env.PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT === 'true',
+    coreWorkerLogChannels: env.CORE_WORKER_LOG_CHANNELS,
+    coreWorkerLogPretty:
+      env.CORE_WORKER_LOG_PRETTY === '1' ||
+      env.CORE_WORKER_LOG_PRETTY === 'true',
   }
 })

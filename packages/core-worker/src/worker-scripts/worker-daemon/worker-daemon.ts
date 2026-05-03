@@ -27,6 +27,7 @@ import createFetchClient from 'openapi-fetch'
 import { io } from 'socket.io-client'
 
 import { getAsyncWorkErrorFromAppTaskError } from './app-error-utils'
+import { setBaseLogContext, workerLogger } from './logger'
 import {
   connectToHostSocket,
   type SocketReader,
@@ -90,13 +91,21 @@ void (async () => {
     )
   }
 
-  // Override console methods to redirect all script logging to stdout
+  // Keep the original console.log for escape hatches that truly must bypass
+  // our override (currently unused — workerLogger is the preferred entry point).
   const originalConsoleLog = console.log
+  void originalConsoleLog
 
   const workerModuleStartContext = JSON.parse(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     process.argv[2]!,
   ) as WorkerModuleStartContext
+
+  setBaseLogContext({
+    app: workerModuleStartContext.appIdentifier,
+    worker: workerModuleStartContext.workerIdentifier,
+    executionId: workerModuleStartContext.executionId,
+  })
 
   const writeOutput = async (output: string) => {
     await fs.promises.appendFile(
@@ -105,67 +114,59 @@ void (async () => {
     )
   }
 
-  // Global console override that routes to request context or daemon-level logs
-  const createConsoleOverride = (level: string) => {
+  const formatArg = (a: unknown): string => {
+    if (typeof a === 'string') {
+      return a
+    }
+    if (
+      typeof a === 'number' ||
+      typeof a === 'boolean' ||
+      typeof a === 'bigint' ||
+      a === null ||
+      a === undefined
+    ) {
+      return String(a)
+    }
+    try {
+      return JSON.stringify(a, null, 2)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_e) {
+      return '[Unserializable]'
+    }
+  }
+
+  // Map user console.* calls to workerLogger `user` channel.
+  // Request-scoped: also mirror to per-request log file + stdout_chunk stream
+  // so the host can surface live output to API callers.
+  const createConsoleOverride = (
+    level: 'info' | 'warn' | 'error' | 'debug',
+    tag: 'LOG' | 'ERROR' | 'WARN' | 'INFO',
+  ) => {
     return (...args: unknown[]) => {
       const ctx = requestContext.getStore()
+      const msg = args.map(formatArg).join(' ')
 
       if (ctx) {
-        // Request-scoped logging
         const timestamp = new Date().toISOString()
-        const formatted = args
-          .map((a) => {
-            if (typeof a === 'string') {
-              return a
-            }
-            if (
-              typeof a === 'number' ||
-              typeof a === 'boolean' ||
-              typeof a === 'bigint' ||
-              a === null ||
-              a === undefined
-            ) {
-              return String(a)
-            }
-            try {
-              return JSON.stringify(a, null, 2)
-            } catch {
-              return '[Unserializable]'
-            }
-          })
-          .join(' ')
-        const line = `[${timestamp}] [${level}] ${formatted}\n`
-
-        // Write to per-request log file
+        const line = `[${timestamp}] [${tag}] ${msg}\n`
         void fs.promises
           .appendFile(ctx.outputLogFilepath, line)
           .catch(() => void 0)
-
-        // Emit to host via pipe for live streaming
-        void ctx.responseWriter
-          .writeStdoutChunk(ctx.requestId, line)
-          .catch(() => void 0)
+        workerLogger[level]('user', msg, { reqId: ctx.requestId })
       } else {
-        // Daemon-level logging
         const timestamp = new Date().toISOString()
-        const line = `[${timestamp}] [${level}] ${args
-          .map((arg) =>
-            typeof arg === 'object'
-              ? JSON.stringify(arg, null, 2)
-              : // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                String(arg),
-          )
-          .join(' ')}\n`
-        void writeOutput(line)
+        void writeOutput(`[${timestamp}] [${tag}] ${msg}\n`)
+        workerLogger[level]('user', msg)
       }
     }
   }
 
   // Install global console overrides
-  console.log = createConsoleOverride('LOG')
-  console.error = createConsoleOverride('ERROR')
-  console.warn = createConsoleOverride('WARN')
-  console.info = createConsoleOverride('INFO')
+  console.log = createConsoleOverride('info', 'LOG')
+  console.error = createConsoleOverride('error', 'ERROR')
+  console.warn = createConsoleOverride('warn', 'WARN')
+  console.info = createConsoleOverride('info', 'INFO')
+  console.debug = createConsoleOverride('debug', 'LOG')
 
   // Timing helper functions
   const getElapsedTime = (startTime: number) => {
@@ -177,14 +178,13 @@ void (async () => {
     startTime: number,
     additionalData?: Record<string, unknown>,
   ) => {
-    const elapsed = getElapsedTime(startTime)
-    const timingData = {
-      phase,
-      elapsedMs: Math.round(elapsed * 100) / 100, // Round to 2 decimal places
-      executionId: workerModuleStartContext.executionId,
-      ...additionalData,
+    if (!workerLogger.enabled('timing', 'debug')) {
+      return
     }
-    originalConsoleLog(`[TIMING] ${JSON.stringify(timingData)}\n`)
+    workerLogger.debug('timing', phase, {
+      elapsedMs: Math.round(getElapsedTime(startTime) * 100) / 100,
+      ...additionalData,
+    })
   }
 
   // Concurrency configuration
@@ -231,8 +231,8 @@ void (async () => {
     maxConcurrency: MAX_CONCURRENCY,
   })
 
-  originalConsoleLog('process.env:', process.env)
-  originalConsoleLog('Worker daemon start context:', workerModuleStartContext)
+  workerLogger.debug('daemon', 'env snapshot', { env: process.env })
+  workerLogger.info('daemon', 'start', { context: workerModuleStartContext })
 
   let userModule: {
     handleRequest?: RequestHandler
@@ -315,6 +315,13 @@ void (async () => {
     await requestContext.run(ctx, async () => {
       let response: Response | undefined
       const executionStartTime = Date.now()
+      let httpMeta: { method: string; path: string } | undefined
+      let taskMeta:
+        | {
+            taskIdentifier: string
+            invocationKind?: string
+          }
+        | undefined
 
       try {
         // Ensure user module is loaded before processing
@@ -322,6 +329,12 @@ void (async () => {
           const request = reconstructRequest(
             pipeRequest.data as SerializeableRequest,
           )
+          try {
+            const u = new URL(request.url)
+            httpMeta = { method: request.method, path: u.pathname + u.search }
+          } catch {
+            httpMeta = { method: request.method, path: request.url }
+          }
 
           // Authenticate the user if Authorization header is present
           let userId: string | undefined
@@ -342,9 +355,12 @@ void (async () => {
               })
             } else {
               const authHeader = request.headers.get('Authorization')
-              console.log(
-                `request.headers: ${JSON.stringify(request.headers.toJSON(), null, 2)}`,
-              )
+              if (workerLogger.enabled('http', 'debug')) {
+                workerLogger.debug('http', 'request headers', {
+                  reqId: pipeRequest.id,
+                  headers: request.headers.toJSON(),
+                })
+              }
               if (
                 authHeader?.startsWith('Bearer ') &&
                 pipeRequest.appIdentifier
@@ -388,9 +404,11 @@ void (async () => {
                   userId,
                   appIdentifier: pipeRequest.appIdentifier,
                 })
-                console.log(
-                  `Authenticated user: ${userId} for app: ${pipeRequest.appIdentifier}`,
-                )
+                workerLogger.debug('http', 'authenticated', {
+                  reqId: pipeRequest.id,
+                  userId,
+                  appIdentifier: pipeRequest.appIdentifier,
+                })
               } else {
                 logTiming('authentication_skipped', authStartTime, {
                   requestId: pipeRequest.id,
@@ -493,6 +511,16 @@ void (async () => {
           }
         } else {
           // Handle task
+          const taskData = pipeRequest.data as TaskDTO
+          taskMeta = {
+            taskIdentifier: taskData.taskIdentifier,
+            invocationKind: taskData.invocation.kind,
+          }
+          workerLogger.debug('task', 'started', {
+            reqId: pipeRequest.id,
+            taskIdentifier: taskMeta.taskIdentifier,
+            invocation: taskMeta.invocationKind,
+          })
           logTiming('execution_start', executionStartTime, {
             requestId: pipeRequest.id,
             executionType: 'task',
@@ -509,7 +537,7 @@ void (async () => {
           }
 
           try {
-            await userModule.handleTask(pipeRequest.data as TaskDTO, {
+            await userModule.handleTask(taskData, {
               serverClient,
               dbClient,
               createDb,
@@ -549,6 +577,29 @@ void (async () => {
           requestId: pipeRequest.id,
           totalRequestTime: getElapsedTime(requestStartTime),
         })
+
+        if (httpMeta) {
+          const status = response?.status ?? 200
+          const ms = getElapsedTime(requestStartTime)
+          const level: 'info' | 'warn' | 'error' =
+            status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info'
+          workerLogger[level]('http', 'request', {
+            reqId: pipeRequest.id,
+            method: httpMeta.method,
+            path: httpMeta.path,
+            status,
+            ms,
+          })
+        }
+
+        if (taskMeta) {
+          workerLogger.info('task', 'completed', {
+            reqId: pipeRequest.id,
+            taskIdentifier: taskMeta.taskIdentifier,
+            invocation: taskMeta.invocationKind,
+            ms: getElapsedTime(requestStartTime),
+          })
+        }
       } catch (err) {
         const normalizedError =
           err instanceof Error ? err : new Error(String(err))
@@ -593,26 +644,30 @@ void (async () => {
 
         await responseWriter.writeResponse(pipeResponse)
 
-        // Emit one more stdout chunk with error summary for visibility
-        try {
-          await responseWriter.writeStdoutChunk(
-            pipeRequest.id,
-            `[ERROR_SUMMARY] ${normalizedError.name + ': ' + normalizedError.message}\n`,
-          )
-        } catch {
-          void 0
-        }
-
         logTiming('error_response_sent', requestStartTime, {
           requestId: pipeRequest.id,
           totalRequestTime: getElapsedTime(requestStartTime),
         })
-      } finally {
-        // Ensure a newline to separate requests
-        try {
-          await responseWriter.writeStdoutChunk(pipeRequest.id, '\n')
-        } catch {
-          void 0
+
+        if (httpMeta) {
+          workerLogger.error('http', 'request', {
+            reqId: pipeRequest.id,
+            method: httpMeta.method,
+            path: httpMeta.path,
+            status: 500,
+            ms: getElapsedTime(requestStartTime),
+            error: normalizedError.name + ': ' + normalizedError.message,
+          })
+        }
+
+        if (taskMeta) {
+          workerLogger.error('task', 'failed', {
+            reqId: pipeRequest.id,
+            taskIdentifier: taskMeta.taskIdentifier,
+            invocation: taskMeta.invocationKind,
+            ms: getElapsedTime(requestStartTime),
+            error: normalizedError.name + ': ' + normalizedError.message,
+          })
         }
       }
     })
@@ -672,7 +727,7 @@ void (async () => {
     logTiming('host_socket_connected', Date.now())
 
     // Mark daemon as ready
-    console.log('Worker daemon ready, waiting for requests...')
+    workerLogger.info('daemon', 'ready, waiting for requests')
 
     // Main event loop - handle multiple requests concurrently
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -680,7 +735,11 @@ void (async () => {
       try {
         const requestStartTime = Date.now()
         logTiming('waiting_for_request_in_loop', requestStartTime)
-        const pipeRequest: WorkerRequest = await requestReader.readRequest()
+        const pipeRequest = await requestReader.readRequest()
+        if (!pipeRequest) {
+          workerLogger.info('daemon', 'shutdown requested by host')
+          break
+        }
         logTiming('read_maybe_request', Date.now(), {
           request: pipeRequest,
         })
@@ -699,7 +758,10 @@ void (async () => {
             )
             logTiming('handled_request', Date.now())
           } catch (error) {
-            console.error(`Error handling request ${pipeRequest.id}:`, error)
+            workerLogger.error('daemon', 'error handling request', {
+              reqId: pipeRequest.id,
+              error: error instanceof Error ? error.message : String(error),
+            })
 
             // Send error response for dispatch-level errors
             try {
@@ -742,12 +804,15 @@ void (async () => {
           pipeError instanceof Error &&
           pipeError.message.includes('Pipe closed')
         ) {
-          console.log('Pipe closed, shutting down worker daemon...')
+          workerLogger.info('daemon', 'pipe closed, shutting down')
           break
         }
 
         // For other pipe errors, continue trying to read
-        console.log('Continuing to wait for requests...')
+        workerLogger.warn('daemon', 'pipe error, continuing to wait', {
+          error:
+            pipeError instanceof Error ? pipeError.message : String(pipeError),
+        })
       }
     }
 
@@ -767,16 +832,24 @@ void (async () => {
       try {
         await requestReader.close()
       } catch (closeError) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to close request reader:', closeError)
+        workerLogger.error('daemon', 'failed to close request reader', {
+          error:
+            closeError instanceof Error
+              ? closeError.message
+              : String(closeError),
+        })
       }
     }
     if (responseWriter) {
       try {
         await responseWriter.close()
       } catch (closeError) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to close response writer:', closeError)
+        workerLogger.error('daemon', 'failed to close response writer', {
+          error:
+            closeError instanceof Error
+              ? closeError.message
+              : String(closeError),
+        })
       }
     }
 
@@ -830,7 +903,10 @@ void (async () => {
         serializedError,
       )
     } catch (writeError) {
-      console.error('Failed to write error log:', writeError)
+      workerLogger.error('daemon', 'failed to write error log', {
+        error:
+          writeError instanceof Error ? writeError.message : String(writeError),
+      })
     }
 
     process.exit(1)
