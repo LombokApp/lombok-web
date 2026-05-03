@@ -1,5 +1,6 @@
 import type { LombokApiClient } from '@lombokapp/sdk'
 import { LombokSdk } from '@lombokapp/sdk'
+import { getAppRequestWorkerHostname } from '@lombokapp/types'
 
 import { IframeCommunicator } from './iframe-communicator'
 import type {
@@ -56,11 +57,23 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   }
 
   public readonly lombokApiBasePath: string = (() => {
-    const potocol = window.location.protocol
+    const protocol = window.location.protocol
     const port = window.location.port
     const hostname = window.location.hostname.split('.').slice(1).join('.')
-    return `${potocol}//${hostname}${port ? `:${port}` : ''}`
+    return `${protocol}//${hostname}${port ? `:${port}` : ''}`
   })()
+
+  private readonly appIdentifier: string = (() => {
+    const firstLabel = window.location.hostname.split('.')[0] ?? ''
+    return firstLabel.startsWith('app-server--')
+      ? firstLabel.slice('app-server--'.length)
+      : ''
+  })()
+
+  private readonly platformHost: string = window.location.hostname
+    .split('.')
+    .slice(1)
+    .join('.')
 
   public get sdk(): LombokSdk {
     if (!AppBrowserSdk.sdk) {
@@ -166,10 +179,23 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     // Get the access token
     const accessToken = await this.authenticator.getAccessToken()
 
-    // Build the worker API URL
-    const workerApiUrl = `/worker-api/${workerIdentifier}/${
-      url.startsWith('/') ? url.slice(1) : url
-    }`
+    if (!this.appIdentifier) {
+      throw new Error(
+        'App identifier could not be derived from hostname — expected app-server--<app>.<platform_host>',
+      )
+    }
+
+    // Build the worker API URL — cross-origin to
+    // api-server--<worker>--<app>.<platform_host>
+    const apiHostname = getAppRequestWorkerHostname({
+      platformHost: this.platformHost,
+      appIdentifier: this.appIdentifier,
+      workerIdentifier,
+    })
+    const protocol = window.location.protocol
+    const port = window.location.port
+    const normalizedPath = url.startsWith('/') ? url.slice(1) : url
+    const workerApiUrl = `${protocol}//${apiHostname}${port ? `:${port}` : ''}/${normalizedPath}`
 
     // Create headers object, starting with user-provided headers
     const headers = new Headers(options?.headers)

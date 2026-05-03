@@ -606,63 +606,6 @@ export class DockerWorkerHookService {
   }
 
   /**
-   * Forward a request from a Docker container directly to an app runtime worker.
-   * The caller already has a valid platform token (app or app-user) — no relay needed.
-   */
-  async forwardToWorkerApi(params: {
-    appIdentifier: string
-    workerIdentifier: string
-    path: string
-    method: string
-    headers: Record<string, string>
-    body: unknown
-  }): Promise<{
-    status: number
-    headers: Record<string, string>
-    body: unknown
-  }> {
-    const normalizedPath = params.path.replace(/^\/+/, '')
-    const workerUrl = `http://localhost:3001/worker-api/${params.workerIdentifier}/${normalizedPath}`
-
-    const forwardHeaders: Record<string, string> = {
-      ...params.headers,
-      Host: `app-server--${params.appIdentifier}.localhost`,
-    }
-
-    const response = await fetch(workerUrl, {
-      method: params.method,
-      headers: forwardHeaders,
-      ...(params.body && params.method !== 'GET' && params.method !== 'HEAD'
-        ? {
-            body:
-              typeof params.body === 'string'
-                ? params.body
-                : JSON.stringify(params.body),
-          }
-        : {}),
-    })
-
-    const responseHeaders: Record<string, string> = {}
-    response.headers.forEach((value, key) => {
-      responseHeaders[key] = value
-    })
-
-    let responseBody: unknown
-    const contentType = response.headers.get('content-type')
-    if (contentType?.includes('application/json')) {
-      responseBody = await response.json()
-    } else {
-      responseBody = await response.text()
-    }
-
-    return {
-      status: response.status,
-      headers: responseHeaders,
-      body: responseBody,
-    }
-  }
-
-  /**
    * Process a mid-execution update from a running Docker worker.
    *
    * Orchestrates: store update -> emit socket -> dispatch onUpdate handlers

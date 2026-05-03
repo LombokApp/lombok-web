@@ -77,7 +77,7 @@ case "${1:-help}" in
         sh ./cmd/dev-tsc-all.sh
         ;;
       *)
-        echo "Usage: ./dx check <all|lint|prettier|tsc>" >&2
+        echo "Usage: ./dx check <all|eslint|prettier|tsc>" >&2
         exit 1
         ;;
     esac
