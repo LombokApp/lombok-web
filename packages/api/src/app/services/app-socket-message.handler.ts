@@ -152,6 +152,11 @@ export async function handleAppSocketMessage(
           emitterIdentifier: requestingAppIdentifier,
           eventIdentifier: parsedRequest.data.eventIdentifier,
           data: parsedRequest.data.data,
+          ...(parsedRequest.data.targetLocation
+            ? { targetLocation: parsedRequest.data.targetLocation }
+            : parsedRequest.data.targetUserId
+              ? { targetUserId: parsedRequest.data.targetUserId }
+              : {}),
         })
         return { result: { success: true } }
       } catch {
