@@ -20,6 +20,7 @@ export interface AppBrowserSdkConfig {
   onInitialize?: () => void
   onNavigateTo?: (to: { pathAndQuery: string }) => void
   onThemeChange?: (theme: string) => void
+  debugLogging?: boolean
 }
 
 export interface AppBrowserSdkInstance {
@@ -27,6 +28,5 @@ export interface AppBrowserSdkInstance {
   communicator: Promise<IframeCommunicator>
   apiClient: LombokApiClient
   authenticator: Authenticator
-  isInitialized: boolean
   destroy: () => void
 }

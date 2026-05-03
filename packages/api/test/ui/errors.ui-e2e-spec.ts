@@ -98,15 +98,16 @@ describe('UI E2E - Error Handling', () => {
       sessionStorage.clear()
     })
 
-    // Try to navigate to a protected route (if any)
-    await page.reload({ waitUntil: 'load' })
-    await page.waitForTimeout(1000)
+    // Navigate to a protected route — should redirect to /login
+    await page.goto(`${testModule!.frontendBaseUrl}/folders`, {
+      waitUntil: 'domcontentloaded',
+    })
     await page.waitForURL(`${testModule!.frontendBaseUrl}/login`, {
-      timeout: 1000,
+      timeout: 10000,
     })
 
     await testModule!.takeScreenshot(page, 'error-session-timeout')
 
     expect(page.url()).toContain('/login')
-  })
+  }, 30000)
 })

@@ -4,7 +4,7 @@ import type { AppBrowserSdk } from '../../app-browser-sdk'
 import { SdkContext } from './app-browser-sdk.provider'
 
 export interface ISdkContext {
-  isInitialized: AppBrowserSdk['isInitialized']
+  isInitialized: boolean
   apiClient: AppBrowserSdk['apiClient']
   theme: AppBrowserSdk['theme']
   authState: AppBrowserSdk['authenticator']['state']

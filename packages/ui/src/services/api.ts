@@ -9,25 +9,40 @@ import createClient from 'openapi-react-query'
 
 export const basePath = import.meta.env.VITE_BACKEND_HOST ?? ''
 
-const loadTokens = () => {
+const loadTokens = (): TokensType => {
   const accessToken = localStorage.getItem(STORAGE_ACCESS_TOKEN) ?? undefined
   const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN) ?? undefined
 
+  if (accessToken && refreshToken) {
+    return {
+      accessToken,
+      refreshToken,
+    }
+  }
   return {
-    accessToken,
-    refreshToken,
+    accessToken: undefined,
+    refreshToken: undefined,
   }
 }
 
 const saveTokens = ({ accessToken, refreshToken }: TokensType) => {
-  localStorage.setItem(STORAGE_ACCESS_TOKEN, accessToken)
-  localStorage.setItem(STORAGE_REFRESH_TOKEN, refreshToken)
+  if (accessToken && refreshToken) {
+    localStorage.setItem(STORAGE_ACCESS_TOKEN, accessToken)
+    localStorage.setItem(STORAGE_REFRESH_TOKEN, refreshToken)
+  } else {
+    localStorage.removeItem(STORAGE_ACCESS_TOKEN)
+    localStorage.removeItem(STORAGE_REFRESH_TOKEN)
+  }
 }
 
 export const sdkInstance = new LombokSdk({
   basePath,
-  accessToken: () => loadTokens().accessToken,
-  refreshToken: () => loadTokens().refreshToken,
+  tokenStore: {
+    ready: () => Promise.resolve(),
+    // eslint-disable-next-line @typescript-eslint/require-await
+    setTokens: async (newTokens) => saveTokens(newTokens),
+    getTokens: () => Promise.resolve(loadTokens()),
+  },
   onTokensRefreshed: (tokens) => saveTokens(tokens),
   onTokensCreated: (tokens) => saveTokens(tokens),
   onLogout: () => {

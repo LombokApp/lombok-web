@@ -182,9 +182,11 @@ export class SessionService {
         .returning()
     )[0]!
 
-    // Create new access and refresh tokens
+    // Re-issue an access token of the same shape as the original session.
     const accessToken =
-      await this.jwtService.createSessionAccessToken(updatedSession)
+      updatedSession.type === 'app_user'
+        ? await this.createAppUserAccessTokenForSession(updatedSession)
+        : await this.jwtService.createSessionAccessToken(updatedSession)
     const refreshToken = hashedTokenHelper.encode(updatedSession.id, secret)
 
     return {
@@ -192,6 +194,31 @@ export class SessionService {
       accessToken,
       refreshToken,
     }
+  }
+
+  private async createAppUserAccessTokenForSession(
+    session: Session,
+  ): Promise<string> {
+    const details = (session.typeDetails ?? {}) as {
+      app?: unknown
+      worker?: unknown
+      platformAccess?: unknown
+      extra?: unknown
+    }
+    if (typeof details.app !== 'string') {
+      throw new SessionInvalidException()
+    }
+    return this.jwtService.createAppUserToken({
+      session,
+      appIdentifier: details.app,
+      ...(typeof details.worker === 'string' ? { worker: details.worker } : {}),
+      ...(typeof details.platformAccess === 'boolean'
+        ? { platformAccess: details.platformAccess }
+        : {}),
+      ...(details.extra && typeof details.extra === 'object'
+        ? { extra: details.extra as JsonSerializableObject }
+        : {}),
+    })
   }
 
   async verifySessionWithAccessToken(accessToken: AccessTokenJWT) {
