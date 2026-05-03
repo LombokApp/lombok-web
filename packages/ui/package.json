@@ -43,7 +43,7 @@
     "zustand": "5.0.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "catalog:",
+    "@tailwindcss/vite": "catalog:",
     "tw-animate-css": "catalog:",
     "@types/bun": "catalog:",
     "@types/react": "catalog:",

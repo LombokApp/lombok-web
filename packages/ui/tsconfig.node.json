@@ -27,7 +27,6 @@
     "vite.config.ts",
     "tailwind.config.ts",
     "eslint.config.ts",
-    "postcss.config.ts",
     "src/worker.ts"
   ]
 }
