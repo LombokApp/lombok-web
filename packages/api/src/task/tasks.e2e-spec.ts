@@ -1672,7 +1672,23 @@ describe('Task lifecycle', () => {
     const appIdentifier = LIFECYCLE_APP_SLUG
     await enableAppForUser(userId, appIdentifier)
 
-    // Create task with targetUserId
+    // Connect the socket and arm the listener BEFORE triggering the task,
+    // so the started event can't fire before we're subscribed.
+    const appUserToken = await getAppUserToken(userId, appIdentifier)
+    socket = await connectAppUserSocket(appUserToken)
+
+    const startedPromise = new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('Expected task_started event but got none')),
+        5000,
+      )
+      socket!.once('platform:tasks:task_started', (data) => {
+        clearTimeout(timeout)
+        resolve(data)
+      })
+    })
+
+    // Now trigger the task with targetUserId
     const task = await runWithThreadContext(crypto.randomUUID(), async () => {
       return testModule!.services.taskService.triggerAppActionTask({
         appIdentifier,
@@ -1683,20 +1699,7 @@ describe('Task lifecycle', () => {
       })
     })
 
-    // Connect socket before starting the task
-    const appUserToken = await getAppUserToken(userId, appIdentifier)
-    socket = await connectAppUserSocket(appUserToken)
-
-    const received = await new Promise<unknown>((resolve, reject) => {
-      const timeout = setTimeout(
-        () => reject(new Error('Expected task_started event but got none')),
-        5000,
-      )
-      socket!.once('platform:tasks:task_started', (data) => {
-        clearTimeout(timeout)
-        resolve(data)
-      })
-    })
+    const received = await startedPromise
 
     expect(received).toBeDefined()
     expect(
