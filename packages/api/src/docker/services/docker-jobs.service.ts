@@ -598,6 +598,7 @@ export class DockerJobsService {
           ...(credentials.refreshToken
             ? [`LOMBOK_PLATFORM_REFRESH_TOKEN=${credentials.refreshToken}`]
             : []),
+          `LOMBOK_APP_JWT_PUBLIC_KEY=${credentials.publicKeyPem}`,
           `LOMBOK_PLATFORM_URL=${platformUrl}`,
           `LOMBOK_APP_IDENTIFIER=${provision.appIdentifier}`,
         ],
@@ -787,20 +788,21 @@ export class DockerJobsService {
       const { hostId, containerId } = resolvedContainer
 
       // 2. Execute the job
-      const jobToken = this.dockerWorkerHookService.createDockerWorkerJobToken({
-        jobId,
-        ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
-        storageAccessPolicy: params.storageAccessPolicy ?? {
-          rules: [],
-        },
-        executorMetadata: {
-          profileKey,
-          profileHash,
-          jobIdentifier,
-          containerId,
-          hostId,
-        },
-      })
+      const jobToken =
+        await this.dockerWorkerHookService.createDockerWorkerJobToken({
+          jobId,
+          ...(params.asyncTaskId ? { taskId: params.asyncTaskId } : {}),
+          storageAccessPolicy: params.storageAccessPolicy ?? {
+            rules: [],
+          },
+          executorMetadata: {
+            profileKey,
+            profileHash,
+            jobIdentifier,
+            containerId,
+            hostId,
+          },
+        })
 
       const jobExecuteOptions: JobExecuteOptions = {
         job_id: jobId,

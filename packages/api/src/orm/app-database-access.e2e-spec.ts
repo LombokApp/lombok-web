@@ -52,9 +52,6 @@ function createMockAppPlatformService(
     saveLogEntry: () => {
       throw new Error('Not implemented in test mock')
     },
-    authenticateUser: () => {
-      throw new Error('Not implemented in test mock')
-    },
     getMetadataSignedUrls: () => {
       throw new Error('Not implemented in test mock')
     },
@@ -64,7 +61,7 @@ function createMockAppPlatformService(
     getAppStorageSignedUrls: () => {
       throw new Error('Not implemented in test mock')
     },
-    getAppUserAccessToken: () => {
+    mintAppUserToken: () => {
       throw new Error('Not implemented in test mock')
     },
     updateContentMetadata: () => {

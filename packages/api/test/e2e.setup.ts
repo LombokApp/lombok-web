@@ -1,40 +1,8 @@
 import type { AppConfig } from '@lombokapp/types'
 import { spawn } from 'bun'
-import crypto from 'crypto'
 import fs from 'fs'
 
 import { DUMMY_APP_SLUG, E2E_TEST_APPS_PATH } from './e2e.contants'
-
-// Generate key pair for socket test app
-const generateKeyPair = (): Promise<{
-  publicKey: string
-  privateKey: string
-}> => {
-  return new Promise((resolve) => {
-    crypto.generateKeyPair(
-      'rsa',
-      {
-        modulusLength: 4096,
-        publicKeyEncoding: {
-          type: 'spki',
-          format: 'pem',
-        },
-        privateKeyEncoding: {
-          type: 'pkcs8',
-          format: 'pem',
-          cipher: undefined,
-          passphrase: undefined,
-        },
-      },
-      (err, publicKey, privateKey) => {
-        if (err) {
-          throw err
-        }
-        resolve({ publicKey, privateKey })
-      },
-    )
-  })
-}
 
 const MINIMAL_WORKER_CONTENT = `
 export const handleTask: TaskHandler = async function handleTask(task, { serverClient }) {
@@ -436,18 +404,6 @@ const addTestAppDefinition = async (appConfig: AppConfig) => {
   fs.writeFileSync(
     `${E2E_TEST_APPS_PATH}/${appConfig.slug}/workers/minimal-worker.ts`,
     MINIMAL_WORKER_CONTENT,
-  )
-
-  // Generate and store public key for sockettestapp
-  const { publicKey, privateKey } = await generateKeyPair()
-  fs.writeFileSync(
-    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/.publicKey`,
-    publicKey,
-  )
-  // Store private key in a file that tests can read
-  fs.writeFileSync(
-    `${E2E_TEST_APPS_PATH}/${appConfig.slug}/.privateKey`,
-    privateKey,
   )
 
   // Zip up the files and leave the zip at ${E2E_TEST_APPS_PATH}/${appConfig.slug}.zip

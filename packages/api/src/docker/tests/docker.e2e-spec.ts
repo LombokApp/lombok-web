@@ -410,6 +410,7 @@ describe('Docker Jobs', () => {
         '/mnt/user/appdata/somepath',
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN='),
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN_TYPE='),
+        expect.stringContaining('LOMBOK_APP_JWT_PUBLIC_KEY='),
         expect.stringContaining('LOMBOK_PLATFORM_URL='),
         expect.stringContaining('LOMBOK_APP_IDENTIFIER='),
       ],
@@ -568,6 +569,7 @@ describe('Docker Jobs', () => {
         expect.any(String),
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN='),
         expect.stringContaining('LOMBOK_PLATFORM_TOKEN_TYPE='),
+        expect.stringContaining('LOMBOK_APP_JWT_PUBLIC_KEY='),
         expect.stringContaining('LOMBOK_PLATFORM_URL='),
         expect.stringContaining('LOMBOK_APP_IDENTIFIER='),
       ],
@@ -794,7 +796,7 @@ describe('Docker Jobs', () => {
       execSpy.mock.calls[1]![2].at(-1) ?? '',
     )
     const claims =
-      testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
+      await testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
         parsedPayload.jobToken!,
         parsedPayload.jobId,
       )
@@ -1965,7 +1967,7 @@ describe('Docker Jobs', () => {
     const jobToken = parsedPayload.jobToken
     const jobId = parsedPayload.jobId
     const claims =
-      testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
+      await testModule!.services.dockerWorkerHookService.verifyDockerWorkerJobToken(
         jobToken ?? '',
         jobId,
       )
@@ -2169,9 +2171,7 @@ describe('Docker Jobs', () => {
   describe('platform token refresh', () => {
     it('should refresh an app token and return a new access token', async () => {
       const appToken =
-        testModule!.services.dockerWorkerHookService.createDockerAppToken(
-          TEST_APP_SLUG,
-        )
+        await testModule!.services.jwtService.mintAppToken(TEST_APP_SLUG)
 
       const result =
         await testModule!.services.dockerWorkerHookService.refreshPlatformToken(

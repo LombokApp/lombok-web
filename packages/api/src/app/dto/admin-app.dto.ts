@@ -15,7 +15,6 @@ export const adminAppDTOSchema = z.object({
   identifier: z.string(),
   slug: z.string(),
   label: z.string(),
-  publicKey: z.string(),
   config: appConfigSchema,
   requiresStorage: z.boolean(),
   enabled: z.boolean(),

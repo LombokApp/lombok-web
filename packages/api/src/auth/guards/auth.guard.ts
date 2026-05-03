@@ -1,15 +1,11 @@
+import { APP_USER_JWT_SUB_PREFIX } from '@lombokapp/types'
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
 import { UserService } from 'src/users/services/users.service'
 
-import {
-  APP_USER_JWT_SUB_PREFIX,
-  AuthTokenInvalidError,
-  JWTService,
-  USER_JWT_SUB_PREFIX,
-} from '../services/jwt.service'
+import { JWTService, USER_JWT_SUB_PREFIX } from '../services/jwt.service'
 import { AllowedActor, AuthGuardConfig } from './auth.guard-config'
 
 const BEARER_PREFIX = 'Bearer '
@@ -31,38 +27,31 @@ export class AuthGuard implements CanActivate {
     if (authHeader?.startsWith(BEARER_PREFIX)) {
       const config = this.resolveConfig(context)
       const token = authHeader.slice(BEARER_PREFIX.length)
-      const decodedJWT = this.jwtService.decodeJWT(token)
-      if (!decodedJWT.payload || typeof decodedJWT.payload == 'string') {
-        throw new AuthTokenInvalidError(token)
-      }
-      if (decodedJWT.payload.sub) {
-        const subject = decodedJWT.payload.sub
-        const userId = subject.split(':')[1] ?? ''
-        const loadUser = async () => {
-          request.user = await this.userService.getUserById({
-            id: userId,
-          })
-        }
-
+      const decodedPayload = this.jwtService.decodeJwtPayload(token)
+      const subject = decodedPayload.sub
+      if (subject) {
         if (
           subject.startsWith(USER_JWT_SUB_PREFIX) &&
           config.allowedActors.includes(AllowedActor.USER)
         ) {
-          // user
-          this.jwtService.verifyUserJWT(token)
-          await loadUser()
+          await this.jwtService.verifyUserJWT(token)
+          const userId = subject.split(':')[1] ?? ''
+          request.user = await this.userService.getUserById({ id: userId })
           return true
         } else if (
           subject.startsWith(APP_USER_JWT_SUB_PREFIX) &&
           config.allowedActors.includes(AllowedActor.APP_USER)
         ) {
-          // app user
-          this.jwtService.verifyAppUserJWT({
-            token,
-            userId,
-            appIdentifier: subject.split(':')[2] ?? '',
+          const claims = await this.jwtService.verifyAppToken(token)
+          if (claims.actorType !== 'app_user') {
+            return false
+          }
+          if (!claims.platformAccess) {
+            throw new UnauthorizedException()
+          }
+          request.user = await this.userService.getUserById({
+            id: claims.userId,
           })
-          await loadUser()
           return true
         }
         // Failed to verify that the subject passed the guard config

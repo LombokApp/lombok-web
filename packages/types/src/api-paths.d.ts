@@ -2040,7 +2040,6 @@ export interface components {
                 identifier: string;
                 slug: string;
                 label: string;
-                publicKey: string;
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
@@ -2700,7 +2699,6 @@ export interface components {
                 identifier: string;
                 slug: string;
                 label: string;
-                publicKey: string;
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {
@@ -3360,7 +3358,6 @@ export interface components {
                 identifier: string;
                 slug: string;
                 label: string;
-                publicKey: string;
                 config: {
                     requiresStorage?: boolean;
                     permissions?: {

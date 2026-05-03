@@ -20,11 +20,7 @@ import {
   AllowedActor,
   AuthGuardConfig,
 } from '../../auth/guards/auth.guard-config'
-import {
-  AccessTokenJWT,
-  APP_USER_JWT_SUB_PREFIX,
-  JWTService,
-} from '../../auth/services/jwt.service'
+import { JWTService } from '../../auth/services/jwt.service'
 import { ApiStandardErrorResponses } from '../../shared/decorators/api-standard-error-responses.decorator'
 import { CreateBridgeTunnelSessionRequestDTO } from '../dto/create-bridge-tunnel-session-request.dto'
 import { CreateBridgeTunnelSessionResponseDTO } from '../dto/create-bridge-tunnel-session-response.dto'
@@ -47,36 +43,22 @@ export class BridgeSessionController {
     private readonly dockerClientService: DockerClientService,
   ) {}
 
-  private extractAppUserIdentity(req: Request): {
+  private async extractAppUserIdentity(req: Request): Promise<{
     userId: string
     appIdentifier: string
-  } {
+  }> {
     const authHeader = req.header('Authorization')
     const token = authHeader?.slice(7)
     if (!token) {
       throw new UnauthorizedException('Missing authorization token')
     }
-    const verifiedToken = AccessTokenJWT.parse(
-      this.jwtService.verifyUserJWT(token),
-    )
-
-    if (!verifiedToken.sub.startsWith(APP_USER_JWT_SUB_PREFIX)) {
+    const claims = await this.jwtService.verifyAppToken(token)
+    if (claims.actorType !== 'app_user' || claims.worker !== undefined) {
       throw new UnauthorizedException(
-        'Invalid token subject for bridge session',
+        'Bridge session requires an app-user UI token',
       )
     }
-
-    const parts = verifiedToken.sub.split(':')
-    const userId = parts[1]
-    const appIdentifier = parts[2]
-
-    if (!userId || !appIdentifier) {
-      throw new UnauthorizedException(
-        'Invalid token subject for bridge session',
-      )
-    }
-
-    return { userId, appIdentifier }
+    return { userId: claims.userId, appIdentifier: claims.appIdentifier }
   }
 
   private async validateContainerAccess(
@@ -130,7 +112,7 @@ export class BridgeSessionController {
     @Req() req: Request,
     @Body() body: CreateBridgeTunnelSessionRequestDTO,
   ): Promise<CreateBridgeTunnelSessionResponseDTO> {
-    const { userId, appIdentifier } = this.extractAppUserIdentity(req)
+    const { userId, appIdentifier } = await this.extractAppUserIdentity(req)
 
     await this.validateContainerAccess(
       body.hostId,

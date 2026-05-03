@@ -48,10 +48,6 @@ export interface IAppPlatformService {
     entry: AppSocketMessageDataMap['SAVE_LOG_ENTRY'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'SAVE_LOG_ENTRY'>>
-  authenticateUser: (
-    params: AppSocketMessageDataMap['AUTHENTICATE_USER'],
-    options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'AUTHENTICATE_USER'>>
   getMetadataSignedUrls: (
     params: AppSocketMessageDataMap['GET_METADATA_SIGNED_URLS'],
     options?: PlatformApiExecuteOptions,
@@ -64,10 +60,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['GET_APP_STORAGE_SIGNED_URLS'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'GET_APP_STORAGE_SIGNED_URLS'>>
-  getAppUserAccessToken: (
-    params: AppSocketMessageDataMap['GET_APP_USER_ACCESS_TOKEN'],
+  mintAppUserToken: (
+    params: AppSocketMessageDataMap['MINT_APP_USER_TOKEN'],
     options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'GET_APP_USER_ACCESS_TOKEN'>>
+  ) => Promise<SocketResponse<'MINT_APP_USER_TOKEN'>>
   updateContentMetadata: (
     params: AppSocketMessageDataMap['UPDATE_CONTENT_METADATA'],
     options?: PlatformApiExecuteOptions,
@@ -215,14 +211,11 @@ export const buildAppClient = (
     getAppStorageSignedUrls(params, options) {
       return emitWithAck('GET_APP_STORAGE_SIGNED_URLS', params, options)
     },
-    getAppUserAccessToken(params, options) {
-      return emitWithAck('GET_APP_USER_ACCESS_TOKEN', params, options)
+    mintAppUserToken(params, options) {
+      return emitWithAck('MINT_APP_USER_TOKEN', params, options)
     },
     updateContentMetadata(params, options) {
       return emitWithAck('UPDATE_CONTENT_METADATA', params, options)
-    },
-    authenticateUser(params, options) {
-      return emitWithAck('AUTHENTICATE_USER', params, options)
     },
     executeAppDockerJob(params, options) {
       return emitWithAck('EXECUTE_APP_DOCKER_JOB', params, options)

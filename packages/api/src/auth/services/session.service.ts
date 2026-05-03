@@ -53,23 +53,30 @@ export class SessionService {
     }
   }
 
-  async createAppUserSession(
-    user: User,
-    appIdentifier: string,
-    extra?: JsonSerializableObject,
-  ) {
+  async createAppUserSession(params: {
+    user: User
+    appIdentifier: string
+    worker?: string
+    platformAccess?: boolean
+    extra?: JsonSerializableObject
+  }) {
+    const { user, appIdentifier, worker, extra } = params
+    const platformAccess = JWTService.resolvePlatformAccess(params)
     const secret = hashedTokenHelper.createSecretKey()
 
     const now = new Date()
+    const typeDetails: JsonSerializableObject = {
+      app: appIdentifier,
+      platformAccess,
+      ...(worker !== undefined ? { worker } : {}),
+      ...(extra ? { extra } : {}),
+    }
     const newSession: NewSession = {
       id: uuidV4(),
       userId: user.id,
       hash: hashedTokenHelper.createHash(secret),
       type: 'app_user',
-      typeDetails: {
-        ...(extra ?? {}),
-        app: appIdentifier,
-      },
+      typeDetails,
       expiresAt: sessionExpiresAt(now),
       createdAt: now,
       updatedAt: now,
@@ -82,10 +89,13 @@ export class SessionService {
         .returning()
     )[0]!
 
-    const accessToken = await this.jwtService.createAppUserAccessToken(
+    const accessToken = await this.jwtService.createAppUserToken({
       session,
       appIdentifier,
-    )
+      worker,
+      platformAccess,
+      extra,
+    })
     const refreshToken = hashedTokenHelper.encode(session.id, secret)
 
     return {

@@ -8,7 +8,6 @@ import {
   expect,
   it,
 } from 'bun:test'
-import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -22,35 +21,6 @@ import type { AppInstallResponse } from '../dto/responses/app-install-response.d
 import { buildAppZip, createTestAppConfig } from './app-zip-builder.util'
 
 const TEST_MODULE_KEY = 'apps_installation'
-
-/**
- * Generates a public key for testing
- */
-function generateKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
-  return new Promise((resolve, reject) => {
-    crypto.generateKeyPair(
-      'rsa',
-      {
-        modulusLength: 2048,
-        publicKeyEncoding: {
-          type: 'spki',
-          format: 'pem',
-        },
-        privateKeyEncoding: {
-          type: 'pkcs8',
-          format: 'pem',
-        },
-      },
-      (err, publicKey, privateKey) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve({ publicKey, privateKey })
-        }
-      },
-    )
-  })
-}
 
 describe('Apps Installation via Zip', () => {
   let testModule: TestModule | undefined
@@ -250,9 +220,7 @@ describe('Apps Installation via Zip', () => {
       const appDir = path.join(tempDir, 'test-app')
       await fs.promises.mkdir(appDir, { recursive: true })
 
-      // Write .publicKey but no config.json
-      const { publicKey } = await generateKeyPair()
-      await fs.promises.writeFile(path.join(appDir, '.publicKey'), publicKey)
+      // Empty app directory (no config.json) — installer should reject
 
       // Create a valid zip file
       const zipPath = path.join(tempDir, 'test-app.zip')

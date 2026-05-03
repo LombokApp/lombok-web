@@ -41,8 +41,9 @@ export const attemptStartHandleTaskByIdSchema = z.object({
   startContext: startContextSchema.optional(),
 })
 
-export const getAppUserAccessTokenSchema = z.object({
+export const mintAppUserTokenSchema = z.object({
   userId: z.uuid(),
+  platformAccess: z.boolean().optional(),
   extra: jsonSerializableObjectSchema.optional(),
 })
 
@@ -106,10 +107,6 @@ export const dbBatchSchema = z.object({
     }),
   ),
   atomic: z.boolean(),
-})
-
-export const authenticateUserSchema = z.object({
-  token: z.string(),
 })
 
 export const executeAppDockerJobSchema = z.object({
@@ -203,12 +200,11 @@ export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
   GET_CONTENT_SIGNED_URLS: getContentSignedUrlsSchema,
-  GET_APP_USER_ACCESS_TOKEN: getAppUserAccessTokenSchema,
+  MINT_APP_USER_TOKEN: mintAppUserTokenSchema,
   GET_METADATA_SIGNED_URLS: getMetadataSignedUrlsSchema,
   UPDATE_CONTENT_METADATA: updateMetadataSchema,
   GET_LATEST_DB_CREDENTIALS: z.undefined(),
   GET_APP_STORAGE_SIGNED_URLS: getAppStorageSignedUrlsSchema,
-  AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
   EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobSchema,
   GET_APP_TASK: getAppTaskSchema,
@@ -303,7 +299,7 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   SAVE_LOG_ENTRY: createResponseSchema(z.null()),
   GET_CONTENT_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
-  GET_APP_USER_ACCESS_TOKEN: createResponseSchema(
+  MINT_APP_USER_TOKEN: createResponseSchema(
     z.object({
       accessToken: z.string(),
       refreshToken: z.string(),
@@ -312,13 +308,6 @@ export const AppSocketMessageResponseSchemaMap = {
   GET_METADATA_SIGNED_URLS: createResponseSchema(z.array(signedUrlSchema)),
   UPDATE_CONTENT_METADATA: createResponseSchema(z.null()),
   GET_APP_STORAGE_SIGNED_URLS: createResponseSchema(z.array(z.string())),
-  AUTHENTICATE_USER: createResponseSchema(
-    z.object({
-      userId: z.string(),
-      success: z.boolean(),
-      extra: jsonSerializableObjectSchema.optional(),
-    }),
-  ),
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
   EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobAsyncResponseSchema,
   GET_APP_TASK: createResponseSchema(taskDTOSchema),

@@ -20,7 +20,7 @@ export class DockerJobGuard implements CanActivate {
     private readonly dockerWorkerHookService: DockerWorkerHookService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest()
     const authHeader = request.header('Authorization')
 
@@ -45,13 +45,12 @@ export class DockerJobGuard implements CanActivate {
 
     const jobId = urlParts[4]
 
-    // Verify the token and get claims (this is synchronous - JWT verification)
-    const claims = this.dockerWorkerHookService.verifyDockerWorkerJobToken(
-      token,
-      jobId,
-    )
+    const claims =
+      await this.dockerWorkerHookService.verifyDockerWorkerJobToken(
+        token,
+        jobId,
+      )
 
-    // Attach claims to request for use in controllers
     request.dockerWorkerClaims = claims
 
     return true

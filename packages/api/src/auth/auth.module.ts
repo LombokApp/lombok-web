@@ -19,6 +19,7 @@ import { AuthController } from './controllers/auth.controller'
 import { SSOController } from './controllers/sso.controller'
 import { AuthService } from './services/auth.service'
 import { JWTService } from './services/jwt.service'
+import { KeyDerivationService } from './services/key-derivation.service'
 import { OAuthService } from './services/oauth.service'
 import { SessionService } from './services/session.service'
 
@@ -31,8 +32,20 @@ import { SessionService } from './services/session.service'
     forwardRef(() => ServerModule),
   ],
   controllers: [AuthController, SSOController],
-  providers: [AuthService, JWTService, OAuthService, SessionService],
-  exports: [AuthService, JWTService, OAuthService, SessionService],
+  providers: [
+    AuthService,
+    JWTService,
+    KeyDerivationService,
+    OAuthService,
+    SessionService,
+  ],
+  exports: [
+    AuthService,
+    JWTService,
+    KeyDerivationService,
+    OAuthService,
+    SessionService,
+  ],
 })
 export class AuthModule implements OnModuleInit {
   private readonly logger = new Logger(AuthModule.name)

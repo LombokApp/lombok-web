@@ -111,7 +111,7 @@ describe('Task lifecycle', () => {
     appIdentifier: string,
   ): Promise<string> => {
     const { accessToken } =
-      await testModule!.services.appService.createAppUserAccessTokenAsApp({
+      await testModule!.services.appService.mintAppUserToken({
         actor: { appIdentifier },
         userId,
       })

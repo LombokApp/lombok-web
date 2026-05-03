@@ -9,6 +9,7 @@ import {
   buildAppClient,
   createLombokAppPgDatabase,
   LombokAppPgClient,
+  verifyAppToken,
 } from '@lombokapp/app-worker-sdk'
 import type { JsonSerializableObject, paths, TaskDTO } from '@lombokapp/types'
 import type {
@@ -367,22 +368,36 @@ void (async () => {
                 pipeRequest.appIdentifier
               ) {
                 const token = authHeader.slice('Bearer '.length)
+                const publicKeyPem = process.env.LOMBOK_APP_JWT_PUBLIC_KEY
+                if (!publicKeyPem) {
+                  throw new AsyncWorkError({
+                    name: 'AuthenticationFailed',
+                    origin: 'internal',
+                    message:
+                      'LOMBOK_APP_JWT_PUBLIC_KEY env var not set; cannot verify app tokens',
+                    code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
+                    stack: new Error().stack,
+                    details: {
+                      id: pipeRequest.id,
+                      timestamp: pipeRequest.timestamp,
+                    },
+                  })
+                }
 
-                const authResult = await serverClient.authenticateUser({
-                  token,
-                })
-
-                if ('error' in authResult) {
-                  const errorMessage = authResult.error.message
+                let claims: Awaited<ReturnType<typeof verifyAppToken>>
+                try {
+                  claims = await verifyAppToken(token, { publicKeyPem })
+                } catch (err) {
+                  const errorMessage =
+                    err instanceof Error ? err.message : String(err)
                   logTiming('authentication_failed', authStartTime, {
                     requestId: pipeRequest.id,
                     error: errorMessage,
                   })
-
                   throw new AsyncWorkError({
                     name: 'AuthenticationFailed',
                     origin: 'internal',
-                    message: authResult.error.message,
+                    message: errorMessage,
                     code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
                     stack: new Error().stack,
                     details: {
@@ -393,14 +408,57 @@ void (async () => {
                         method: request.method,
                       },
                       isSystemRequest: pipeRequest.isSystemRequest,
-                      original: authResult.error,
                     },
                   })
                 }
 
-                userId = authResult.result.userId
+                if (claims.actorType !== 'app_user') {
+                  throw new AsyncWorkError({
+                    name: 'AuthenticationFailed',
+                    origin: 'internal',
+                    message: `Token actor "${claims.actorType}" is not allowed for worker requests`,
+                    code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
+                    stack: new Error().stack,
+                    details: {
+                      id: pipeRequest.id,
+                      timestamp: pipeRequest.timestamp,
+                    },
+                  })
+                }
+                if (claims.appIdentifier !== pipeRequest.appIdentifier) {
+                  throw new AsyncWorkError({
+                    name: 'AuthenticationFailed',
+                    origin: 'internal',
+                    message: 'Token app identifier mismatch',
+                    code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
+                    stack: new Error().stack,
+                    details: {
+                      id: pipeRequest.id,
+                      timestamp: pipeRequest.timestamp,
+                    },
+                  })
+                }
+
+                userId = claims.userId
                 accessToken = token
-                actorExtra = authResult.result.extra
+                actorExtra = claims.extra
+                actor = {
+                  userId,
+                  actorType: 'app_user',
+                  platformAccess: claims.platformAccess,
+                  ...(claims.worker !== undefined
+                    ? { worker: claims.worker }
+                    : {}),
+                  userApiClient: createFetchClient<paths>({
+                    baseUrl: workerModuleStartContext.serverBaseUrl,
+                    fetch: async (fetchRequest) => {
+                      const headers = new Headers(fetchRequest.headers)
+                      headers.set('Authorization', `Bearer ${accessToken}`)
+                      return fetch(new Request(fetchRequest, { headers }))
+                    },
+                  }),
+                  extra: actorExtra ?? {},
+                }
                 logTiming('authentication_complete', authStartTime, {
                   requestId: pipeRequest.id,
                   userId,
@@ -410,6 +468,7 @@ void (async () => {
                   reqId: pipeRequest.id,
                   userId,
                   appIdentifier: pipeRequest.appIdentifier,
+                  actor: claims.actorType,
                 })
               } else {
                 logTiming('authentication_skipped', authStartTime, {
@@ -460,22 +519,6 @@ void (async () => {
                 },
               }),
             })
-          }
-
-          if (!actor && userId) {
-            actor = {
-              actorType: 'user',
-              userId,
-              userApiClient: createFetchClient<paths>({
-                baseUrl: workerModuleStartContext.serverBaseUrl,
-                fetch: async (fetchRequest) => {
-                  const headers = new Headers(fetchRequest.headers)
-                  headers.set('Authorization', `Bearer ${accessToken}`)
-                  return fetch(new Request(fetchRequest, { headers }))
-                },
-              }),
-              extra: actorExtra ?? {},
-            }
           }
 
           logTiming('execution_start', executionStartTime, {

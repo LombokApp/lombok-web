@@ -1372,6 +1372,7 @@ async function createWorkerProcess(
       ...environmentVariables.map((v) => `-E${v}`),
       `-EWORKER_APP_BASE_DIR=/app`,
       '-EWORKER_SCRATCH_DIR=/worker-tmp/scratch',
+      `-ELOMBOK_APP_JWT_PUBLIC_KEY=${process.env.LOMBOK_APP_JWT_PUBLIC_KEY}`,
       ...(process.env.LOMBOK_WORKER_LOG
         ? [`-ELOMBOK_WORKER_LOG=${process.env.LOMBOK_WORKER_LOG}`]
         : []),

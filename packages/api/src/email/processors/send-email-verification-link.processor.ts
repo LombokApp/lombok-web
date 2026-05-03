@@ -49,7 +49,7 @@ export class SendEmailVerificationLinkProcessor extends BaseCoreTaskProcessor<Co
       }
       let token: string
       try {
-        token = this.jwtService.createEmailVerificationToken({
+        token = await this.jwtService.createEmailVerificationToken({
           userId: user.id,
           email: user.email,
           emailVerifyKey: user.emailVerificationKey,

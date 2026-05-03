@@ -25,6 +25,7 @@ import nestjsConfig from '@nestjs/config'
 import crypto from 'crypto'
 import { Socket } from 'net'
 import { AppService } from 'src/app/services/app.service'
+import { KeyDerivationService } from 'src/auth/services/key-derivation.service'
 import { coreConfig } from 'src/core/config'
 import { transformFolderObjectToDTO } from 'src/folders/dto/transforms/folder-object.transforms'
 import { FolderService } from 'src/folders/services/folder.service'
@@ -57,6 +58,7 @@ export class CoreWorkerService {
   constructor(
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
+    private readonly keyDerivationService: KeyDerivationService,
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppService))
     _appService,
@@ -479,6 +481,8 @@ export class CoreWorkerService {
         stdin: 'pipe',
         env: {
           ...process.env,
+          LOMBOK_APP_JWT_PUBLIC_KEY:
+            this.keyDerivationService.getPublicKeyPem(),
           LOMBOK_CORE_WORKER_SOCKET_PATH: socketPath,
           ...(this._coreConfig.coreWorkerLogChannels
             ? { LOMBOK_WORKER_LOG: this._coreConfig.coreWorkerLogChannels }

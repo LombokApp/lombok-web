@@ -9,9 +9,6 @@ import {
   AppSocketMessageSchemaMap,
 } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
-import { eq } from 'drizzle-orm'
-import { sessionsTable } from 'src/auth/entities/session.entity'
-import type { JWTService } from 'src/auth/services/jwt.service'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
@@ -84,7 +81,6 @@ export async function handleAppSocketMessage(
     taskService,
     folderService,
     appService,
-    jwtService,
     customSettingsService,
   }: {
     eventService: EventService
@@ -92,7 +88,6 @@ export async function handleAppSocketMessage(
     logEntryService: LogEntryService
     folderService: FolderService
     taskService: TaskService
-    jwtService: JWTService
     appService: AppService
     customSettingsService: AppCustomSettingsService
   },
@@ -125,16 +120,24 @@ export async function handleAppSocketMessage(
             }))
         )
       })
-    case 'GET_APP_USER_ACCESS_TOKEN':
+    case 'MINT_APP_USER_TOKEN': {
+      const session = await appService.mintAppUserToken({
+        actor: { appIdentifier: requestingAppIdentifier },
+        userId: parsedRequest.data.userId,
+        ...(typeof parsedRequest.data.platformAccess === 'boolean'
+          ? { platformAccess: parsedRequest.data.platformAccess }
+          : {}),
+        ...(parsedRequest.data.extra
+          ? { extra: parsedRequest.data.extra }
+          : {}),
+      })
       return {
-        result: await appService.createAppUserAccessTokenAsApp({
-          actor: { appIdentifier: requestingAppIdentifier },
-          userId: parsedRequest.data.userId,
-          ...(parsedRequest.data.extra
-            ? { extra: parsedRequest.data.extra }
-            : {}),
-        }),
+        result: {
+          accessToken: session.accessToken,
+          refreshToken: session.refreshToken,
+        },
       }
+    }
     case 'EMIT_EVENT':
       try {
         const app = await appService.getApp(requestingAppIdentifier, {
@@ -192,67 +195,6 @@ export async function handleAppSocketMessage(
           parsedRequest.data,
         ),
       }
-    case 'AUTHENTICATE_USER': {
-      try {
-        const decodedJWT = jwtService.decodeJWT(parsedRequest.data.token)
-        if (!decodedJWT.payload || typeof decodedJWT.payload === 'string') {
-          return {
-            error: { code: 401, message: 'Invalid token payload' },
-          }
-        }
-        const subject = decodedJWT.payload.sub
-        if (!subject || typeof subject !== 'string') {
-          return {
-            error: { code: 401, message: 'Invalid token subject' },
-          }
-        }
-        const subjectParts = subject.split(':')
-        if (subjectParts.length !== 3 || subjectParts[0] !== 'app_user') {
-          return {
-            error: { code: 401, message: 'Invalid token format' },
-          }
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const userId = subjectParts[1]!
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const tokenAppIdentifier = subjectParts[2]!
-        if (tokenAppIdentifier !== requestingAppIdentifier) {
-          return {
-            error: { code: 401, message: 'Token app identifier mismatch' },
-          }
-        }
-        const verified = jwtService.verifyAppUserJWT({
-          token: parsedRequest.data.token,
-          userId,
-          appIdentifier: requestingAppIdentifier,
-        })
-        const sessionId =
-          typeof verified.jti === 'string'
-            ? verified.jti.split(':')[0]
-            : undefined
-        let extra: JsonSerializableObject | undefined
-        if (sessionId) {
-          const session = await ormService.db.query.sessionsTable.findFirst({
-            where: eq(sessionsTable.id, sessionId),
-          })
-          if (session?.typeDetails) {
-            const { app: _app, ...rest } = session.typeDetails
-            if (Object.keys(rest).length > 0) {
-              extra = rest as JsonSerializableObject
-            }
-          }
-        }
-        return { result: { userId, success: true, extra } }
-      } catch (error) {
-        return {
-          error: {
-            code: 401,
-            message:
-              error instanceof Error ? error.message : 'Authentication failed',
-          },
-        }
-      }
-    }
     case 'EXECUTE_APP_DOCKER_JOB_ASYNC':
       try {
         const dockerJobExecuteAsyncResult =

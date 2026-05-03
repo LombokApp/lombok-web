@@ -247,7 +247,7 @@ case "${1:-help}" in
     require_container
     case "${2:-}" in
       openapi)
-        $DOCKER_EXEC bun --cwd packages/api generate:openapi
+        bun --cwd packages/api generate:openapi
         ;;
       metadata)
         $DOCKER_EXEC bun --cwd packages/api generate:metadata

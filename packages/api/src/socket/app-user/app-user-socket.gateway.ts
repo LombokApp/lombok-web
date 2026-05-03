@@ -32,16 +32,19 @@ export class AppUserSocketGateway
 
   afterInit(namespace: Namespace): void {
     this.appUserSocketService.setNamespace(namespace)
+    namespace.use((socket, next) => {
+      this.appUserSocketService
+        .authenticateAndJoin(socket)
+        .then(() => next())
+        .catch((error: unknown) => {
+          this.logger.error('AppUser socket auth error:', error)
+          next(new Error('Unauthorized'))
+        })
+    })
   }
 
-  async handleConnection(socket: Socket): Promise<void> {
-    try {
-      await this.appUserSocketService.handleConnection(socket)
-    } catch (error: unknown) {
-      this.logger.error('AppUser socket connection error:', error)
-      socket.disconnect()
-    }
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleConnection(_socket: Socket): void {}
 
   @SubscribeMessage('subscribe')
   async handleSubscribe(

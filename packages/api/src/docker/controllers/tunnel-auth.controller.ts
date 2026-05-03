@@ -13,7 +13,7 @@ import {
 import type { ConfigType } from '@nestjs/config'
 import { ApiExcludeController } from '@nestjs/swagger'
 import type { Request, Response } from 'express'
-import * as jwt from 'jsonwebtoken'
+import * as jose from 'jose'
 import { coreConfig } from 'src/core/config'
 
 import { DockerBridgeService } from '../services/docker-bridge.service'
@@ -65,12 +65,13 @@ export class TunnelAuthController {
    * 3. Cookie only — SW refresh, sets fresh cookie, returns JSON
    */
   @Get()
-  authenticate(
+  async authenticate(
     @Req() req: Request,
     @Res() res: Response,
     @Query('token') queryToken?: string,
   ) {
     const secret = this.dockerBridgeService.getSecret()
+    const secretBytes = new TextEncoder().encode(secret)
     const tunnelHost = req.get('host') ?? ''
 
     // Validate the Host header matches the tunnel subdomain format
@@ -98,14 +99,14 @@ export class TunnelAuthController {
     let payload: SessionTokenPayload | null = null
 
     if (token) {
-      payload = this.verifySessionToken(token, secret)
+      payload = await this.verifySessionToken(token, secretBytes)
       if (!payload) {
         throw new UnauthorizedException('Invalid or expired tunnel token')
       }
     } else {
       const cookieToken = this.extractCookie(req, COOKIE_NAME)
       if (cookieToken) {
-        payload = this.verifySessionToken(cookieToken, secret)
+        payload = await this.verifySessionToken(cookieToken, secretBytes)
         if (!payload) {
           throw new UnauthorizedException(
             'Invalid or expired tunnel auth cookie',
@@ -135,11 +136,15 @@ export class TunnelAuthController {
     }
 
     // Mint a fresh cookie token with extended TTL, carrying forward the public_id
-    const freshToken = jwt.sign(
-      { public_id: payload.public_id, sid: payload.sid, uid: payload.uid },
-      secret,
-      { algorithm: 'HS256', expiresIn: TUNNEL_TOKEN_TTL_SECONDS },
-    )
+    const freshToken = await new jose.SignJWT({
+      public_id: payload.public_id,
+      sid: payload.sid,
+      uid: payload.uid,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime(`${TUNNEL_TOKEN_TTL_SECONDS}s`)
+      .sign(secretBytes)
 
     res.cookie(COOKIE_NAME, freshToken, {
       httpOnly: true,
@@ -258,18 +263,19 @@ async function refreshAuth() {
     return `${protocol}://${hostname}${portSuffix}`
   }
 
-  private verifySessionToken(
+  private async verifySessionToken(
     token: string,
-    secret: string,
-  ): SessionTokenPayload | null {
+    secret: Uint8Array,
+  ): Promise<SessionTokenPayload | null> {
     try {
-      const payload = jwt.verify(token, secret, {
+      const { payload } = await jose.jwtVerify(token, secret, {
         algorithms: ['HS256'],
-      }) as SessionTokenPayload
-      if (!payload.public_id) {
+      })
+      const typed = payload as unknown as SessionTokenPayload
+      if (!typed.public_id) {
         return null
       }
-      return payload
+      return typed
     } catch {
       return null
     }

@@ -10,7 +10,6 @@ export function transformAppToDTO(
     identifier: app.identifier,
     slug: app.slug,
     label: app.label,
-    publicKey: app.publicKey,
     config: app.config,
     manifest: app.manifest,
     connectedRuntimeWorkers,
