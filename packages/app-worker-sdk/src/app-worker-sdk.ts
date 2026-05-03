@@ -84,6 +84,10 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['EXECUTE_APP_DOCKER_JOB_ASYNC'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'EXECUTE_APP_DOCKER_JOB_ASYNC'>>
+  getAppTask: (
+    params: AppSocketMessageDataMap['GET_APP_TASK'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'GET_APP_TASK'>>
   triggerAppTask: (
     params: AppSocketMessageDataMap['TRIGGER_APP_TASK'],
     options?: PlatformApiExecuteOptions,
@@ -158,8 +162,8 @@ export const buildAppClient = (
       const parsedError = appMessageErrorSchema.safeParse(response.error)
       if (parsedError.success) {
         return {
-          error: response.error,
-        }
+          error: parsedError.data,
+        } as SocketResponse<K>
       }
       return {
         error: {
@@ -169,7 +173,7 @@ export const buildAppClient = (
             errors: z.flattenError(parsedError.error).fieldErrors,
           },
         },
-      }
+      } as SocketResponse<K>
     }
 
     const parsedResponse =
@@ -186,7 +190,7 @@ export const buildAppClient = (
             ).fieldErrors,
           },
         },
-      }
+      } as SocketResponse<K>
     }
 
     return parsedResponse.data as SocketResponse<K>
@@ -225,6 +229,9 @@ export const buildAppClient = (
     },
     executeAppDockerJobAsync(params, options) {
       return emitWithAck('EXECUTE_APP_DOCKER_JOB_ASYNC', params, options)
+    },
+    getAppTask(params, options) {
+      return emitWithAck('GET_APP_TASK', params, options)
     },
     triggerAppTask(params, options) {
       return emitWithAck('TRIGGER_APP_TASK', params, options)

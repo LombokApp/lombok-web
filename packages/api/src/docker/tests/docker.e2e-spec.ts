@@ -667,7 +667,10 @@ describe('Docker Jobs', () => {
       profileIdentifier: 'dummy_profile',
       jobIdentifier: 'test_job',
       jobData: {},
-      asyncTaskId: taskId,
+      asyncTask: {
+        taskId,
+        jobId: Bun.randomUUIDv5('1', taskId),
+      },
     })
 
     const payload = execSpy.mock.calls[1]![2].at(-1)

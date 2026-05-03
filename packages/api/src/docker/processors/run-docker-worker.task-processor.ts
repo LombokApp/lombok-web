@@ -1,4 +1,4 @@
-import { TaskCompletion } from '@lombokapp/types'
+import { deterministicJobId, TaskCompletion } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import {
   forwardRef,
@@ -70,7 +70,10 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
           jobData: innerTask.data,
           profileIdentifier: task.data.profileIdentifier,
           jobIdentifier: task.data.jobClassIdentifier,
-          asyncTaskId: task.id,
+          asyncTask: {
+            taskId: task.id,
+            jobId: deterministicJobId(innerTask.id, innerTask.attemptCount + 1),
+          },
           targetUserId: innerTask.targetUserId ?? undefined,
           storageAccessPolicy: innerTask.storageAccessPolicy ?? undefined,
         })

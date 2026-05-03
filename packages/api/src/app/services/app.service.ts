@@ -2217,7 +2217,7 @@ export class AppService {
       jobIdentifier,
       jobData,
       storageAccessPolicy,
-      asyncTaskId,
+      asyncTask,
       targetUserId,
     } = params
 
@@ -2258,7 +2258,8 @@ export class AppService {
         profileKey: `${appIdentifier}:${profileIdentifier}`,
         jobIdentifier,
         jobData,
-        asyncTaskId,
+        asyncTaskId: asyncTask?.taskId,
+        jobId: asyncTask?.jobId ?? crypto.randomUUID(),
         storageAccessPolicy,
         appIdentifier,
         userId: targetUserId,

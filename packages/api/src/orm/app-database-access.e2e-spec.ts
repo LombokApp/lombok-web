@@ -79,6 +79,9 @@ function createMockAppPlatformService(
     triggerAppTask: () => {
       throw new Error('Not implemented in test mock')
     },
+    getAppTask: () => {
+      throw new Error('Not implemented in test mock')
+    },
     reportTaskUpdate: () => {
       throw new Error('Not implemented in test mock')
     },

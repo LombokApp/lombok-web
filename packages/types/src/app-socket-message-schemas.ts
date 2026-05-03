@@ -9,6 +9,7 @@ import { jsonSerializableObjectSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
 import {
   storageAccessPolicySchema,
+  taskDTOSchema,
   taskOnCompleteConfigSchema,
   taskUpdateSchema,
 } from './task.types'
@@ -118,6 +119,11 @@ export const executeAppDockerJobSchema = z.object({
   targetUserId: z.string().optional(),
 })
 
+export const getAppTaskSchema = z.object({
+  taskId: z.uuid(),
+  targetUserId: z.uuid().optional(),
+})
+
 export const triggerAppTaskSchema = z.object({
   taskIdentifier: z.string(),
   inputData: jsonSerializableObjectSchema,
@@ -202,6 +208,7 @@ export const AppSocketMessageSchemaMap = {
   AUTHENTICATE_USER: authenticateUserSchema,
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobSchema,
   EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobSchema,
+  GET_APP_TASK: getAppTaskSchema,
   TRIGGER_APP_TASK: triggerAppTaskSchema,
   REPORT_TASK_UPDATE: reportTaskUpdateSchema,
   GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
@@ -310,6 +317,7 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   EXECUTE_APP_DOCKER_JOB: executeAppDockerJobResponseSchema,
   EXECUTE_APP_DOCKER_JOB_ASYNC: executeAppDockerJobAsyncResponseSchema,
+  GET_APP_TASK: createResponseSchema(taskDTOSchema),
   TRIGGER_APP_TASK: createResponseSchema(z.object({ taskId: z.string() })),
   REPORT_TASK_UPDATE: createResponseSchema(z.object({ success: z.boolean() })),
   GET_APP_CUSTOM_SETTINGS: createResponseSchema(

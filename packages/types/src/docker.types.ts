@@ -7,6 +7,9 @@ export interface ExecuteAppDockerJobOptions {
   jobIdentifier: string
   jobData: JsonSerializableObject
   storageAccessPolicy?: StorageAccessPolicy
-  asyncTaskId?: string
+  asyncTask?: {
+    taskId: string
+    jobId: string
+  }
   targetUserId?: string
 }

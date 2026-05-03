@@ -15,6 +15,7 @@ import type { FolderService } from 'src/folders/services/folder.service'
 import type { LogEntryService } from 'src/log/services/log-entry.service'
 import type { OrmService } from 'src/orm/orm.service'
 import type { TaskService } from 'src/task/services/task.service'
+import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
 import { z } from 'zod'
 
 import type { AppService } from './app.service'
@@ -343,6 +344,17 @@ export async function handleAppSocketMessage(
         }
       }
 
+    case 'GET_APP_TASK': {
+      const task = await taskService.getTaskAsApp(
+        requestingAppIdentifier,
+        parsedRequest.data.taskId,
+        { targetUserId: parsedRequest.data.targetUserId },
+      )
+      if (!task) {
+        return { error: { code: 404, message: 'Task not found.' } }
+      }
+      return { result: transformTaskToDTO(task) }
+    }
     case 'TRIGGER_APP_TASK': {
       const task = await taskService.triggerAppActionTask({
         targetUserId: parsedRequest.data.targetUserId,
