@@ -285,12 +285,14 @@ export class AppService {
     worker,
     platformAccess,
     extra,
+    accessTokenExpiresInSec,
   }: {
     actor: { appIdentifier: string }
     userId: string
     worker?: string
     platformAccess?: boolean
     extra?: JsonSerializableObject
+    accessTokenExpiresInSec?: number
   }) {
     await this.validateAppUserAccess({
       appIdentifier: actor.appIdentifier,
@@ -314,6 +316,9 @@ export class AppService {
       worker,
       platformAccess,
       extra,
+      ...(accessTokenExpiresInSec !== undefined
+        ? { accessTokenExpiresInSec }
+        : {}),
     })
   }
 
