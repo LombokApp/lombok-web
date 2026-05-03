@@ -2148,6 +2148,160 @@ describe('Docker Jobs', () => {
     ])
   })
 
+  it('should persist error.details from the worker on a failure completion', async () => {
+    await createTestUser(testModule!, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    execSpy.mockImplementation((_hostId, _containerId, command, _options?) => {
+      return Promise.resolve({
+        exitCode: 0,
+        stdout:
+          command[1] === 'job-state'
+            ? `{"job_id": "${command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+            : '',
+        stderr: '',
+      })
+    })
+
+    const { innerTask, dockerRunTask } = await triggerAppDockerHandledTask(
+      testModule!,
+      {
+        appIdentifier: TEST_APP_SLUG,
+        taskIdentifier: 'non_triggered_docker_worker_task',
+        taskData: { myTaskData: 'test' },
+      },
+    )
+
+    const parsedPayload = parseJobPayload(
+      execSpy.mock.calls[1]![2].at(-1) ?? '',
+    )
+    const jobToken = parsedPayload.jobToken
+    const jobId = parsedPayload.jobId
+
+    const startResponse = await _apiClient(jobToken).POST(
+      `/api/v1/docker/jobs/{jobId}/start`,
+      { params: { path: { jobId } } },
+    )
+    expect(responseStatus(startResponse)).toBe(200)
+
+    const errorDetails = {
+      stack: 'Error: boom\n  at handler (/app/worker.ts:42:5)',
+      attemptCount: 3,
+      hint: 'check input',
+    }
+
+    const completeResponse = await _apiClient(jobToken).POST(
+      `/api/v1/docker/jobs/{jobId}/complete`,
+      {
+        params: { path: { jobId } },
+        body: {
+          success: false,
+          error: {
+            code: 'CUSTOM_WORKER_ERROR',
+            message: 'simulated structured failure',
+            details: errorDetails,
+          },
+        },
+      },
+    )
+
+    expect(responseStatus(completeResponse)).toBe(200)
+
+    const completedInnerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, innerTask.id),
+      })
+
+    expect(completedInnerTask?.success).toBe(false)
+    expect(completedInnerTask?.error).toEqual({
+      code: 'CUSTOM_WORKER_ERROR',
+      name: 'Error',
+      message: 'simulated structured failure',
+      details: errorDetails,
+    })
+
+    // The error system log entry should also carry the structured details
+    const errorLog = completedInnerTask?.systemLog.find(
+      (entry) => entry.logType === 'error',
+    )
+    expect(errorLog).toBeDefined()
+    expect((errorLog?.payload as { error?: unknown }).error).toEqual({
+      code: 'CUSTOM_WORKER_ERROR',
+      name: 'Error',
+      message: 'simulated structured failure',
+      details: errorDetails,
+    })
+
+    // The docker-run task should also reflect the failure with details.
+    const completedDockerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, dockerRunTask.id),
+      })
+    expect(completedDockerTask?.success).toBe(false)
+    expect(completedDockerTask?.error?.details).toEqual(errorDetails)
+  })
+
+  it('should accept a failure completion without error.details (backwards compatible)', async () => {
+    await createTestUser(testModule!, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    execSpy.mockImplementation((_hostId, _containerId, command, _options?) => {
+      return Promise.resolve({
+        exitCode: 0,
+        stdout:
+          command[1] === 'job-state'
+            ? `{"job_id": "${command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+            : '',
+        stderr: '',
+      })
+    })
+
+    const { innerTask } = await triggerAppDockerHandledTask(testModule!, {
+      appIdentifier: TEST_APP_SLUG,
+      taskIdentifier: 'non_triggered_docker_worker_task',
+      taskData: { myTaskData: 'test' },
+    })
+
+    const parsedPayload = parseJobPayload(
+      execSpy.mock.calls[1]![2].at(-1) ?? '',
+    )
+    const jobToken = parsedPayload.jobToken
+    const jobId = parsedPayload.jobId
+
+    await _apiClient(jobToken).POST(`/api/v1/docker/jobs/{jobId}/start`, {
+      params: { path: { jobId } },
+    })
+
+    const completeResponse = await _apiClient(jobToken).POST(
+      `/api/v1/docker/jobs/{jobId}/complete`,
+      {
+        params: { path: { jobId } },
+        body: {
+          success: false,
+          error: {
+            code: 'WORKER_EXIT_ERROR',
+            message: 'worker exited with code 1',
+          },
+        },
+      },
+    )
+    expect(responseStatus(completeResponse)).toBe(200)
+
+    const completedInnerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, innerTask.id),
+      })
+
+    expect(completedInnerTask?.error?.code).toBe('WORKER_EXIT_ERROR')
+    // Without `details` being supplied, it must not appear on the persisted
+    // error or the agent will spuriously light up the details panel.
+    expect(completedInnerTask?.error?.details).toBeUndefined()
+  })
+
   it('should return unauthorized when lifecycle endpoints are called with an invalid token', async () => {
     const jobId = crypto.randomUUID()
 

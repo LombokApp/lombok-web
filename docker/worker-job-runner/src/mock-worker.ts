@@ -47,9 +47,28 @@ interface JobState {
   jobClass: string
   status: 'pending' | 'running' | 'success' | 'failed'
   result?: unknown
-  error?: { code: string; message: string }
+  error?: {
+    code: string
+    message: string
+    details?: Record<string, unknown>
+  }
   startedAt: string
   completedAt?: string
+}
+
+/**
+ * Error class that workers can throw to surface a structured error envelope
+ * (code, message, details) back to the worker-agent and platform.
+ */
+class MockJobError extends Error {
+  constructor(
+    public readonly code: string,
+    public readonly mockMessage: string,
+    public readonly details?: Record<string, unknown>,
+  ) {
+    super(mockMessage)
+    this.name = 'MockJobError'
+  }
 }
 
 // Store for tracking job states
@@ -719,6 +738,27 @@ const handleUpdatesDemo: JobHandler = async (input, ctx) => {
   return { updatesQueued: updates.length }
 }
 
+// Fails with a structured error envelope (code, message, details) so tests can
+// verify that the worker-agent forwards `details` end-to-end to the platform.
+interface FailWithDetailsInput {
+  code: string
+  message: string
+  details?: Record<string, unknown>
+}
+
+const handleFailWithDetails: JobHandler = (input, ctx) => {
+  if (
+    !isObject(input) ||
+    typeof (input as unknown as FailWithDetailsInput).code !== 'string' ||
+    typeof (input as unknown as FailWithDetailsInput).message !== 'string'
+  ) {
+    throw new Error('Invalid input: expected { code: string, message: string, details?: object }')
+  }
+  const { code, message, details } = input as unknown as FailWithDetailsInput
+  ctx.logger.log(`Throwing MockJobError ${code}: ${message}`)
+  throw new MockJobError(code, message, details)
+}
+
 // Job name registry
 const jobHandlers: Record<string, JobHandler> = {
   dummy_echo: handleDummyEcho,
@@ -752,6 +792,9 @@ const jobHandlers: Record<string, JobHandler> = {
 
   // Platform updates demonstration
   updates_demo: handleUpdatesDemo,
+
+  // Structured error envelope demonstration (for testing details propagation)
+  fail_with_details: handleFailWithDetails,
 }
 
 // =============================================================================
@@ -798,6 +841,21 @@ const executeJobAsync = async (
     // eslint-disable-next-line no-console
     console.log(`[job] Completed job_id=${jobId} job_class=${jobClass}`)
   } catch (err) {
+    if (err instanceof MockJobError) {
+      jobState.status = 'failed'
+      jobState.error = {
+        code: err.code,
+        message: err.mockMessage,
+        ...(err.details ? { details: err.details } : {}),
+      }
+      jobState.completedAt = new Date().toISOString()
+      ctx.logger.error(`Job failed: ${err.mockMessage}`)
+      // eslint-disable-next-line no-console
+      console.error(
+        `[job] Failed job_id=${jobId} job_class=${jobClass}: ${err.code} ${err.mockMessage}`,
+      )
+      return
+    }
     const message = err instanceof Error ? err.message : String(err)
     jobState.status = 'failed'
     jobState.error = {
@@ -1010,10 +1068,12 @@ const server = Bun.serve({
         response.error = jobState.error
       }
 
-      // Include and drain pending updates
+      // Include and drain pending progress updates. The agent expects this
+      // field as `progress_updates` (HTTPJobStatusResponse schema); using any
+      // other name causes the agent to silently drop them.
       const updates = pendingUpdates.get(jobId)
       if (updates && updates.length > 0) {
-        response.updates = updates
+        response.progress_updates = updates
         pendingUpdates.delete(jobId)
       }
 

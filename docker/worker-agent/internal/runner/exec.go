@@ -135,6 +135,12 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			"worker_startup_time_seconds": workerStartupDuration.Seconds(),
 		}
 
+		startErrorMessage := fmt.Sprintf("failed to start worker: %s", err.Error())
+		startErrorDetails := map[string]any{
+			"worker_command":   payload.WorkerCommand,
+			"underlying_error": err.Error(),
+		}
+
 		// Signal completion to platform if available
 		if platformClient != nil {
 			ctx := context.Background()
@@ -142,7 +148,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				Success: false,
 				Error: &types.JobError{
 					Code:    "WORKER_START_ERROR",
-					Message: fmt.Sprintf("failed to start worker: %s", err.Error()),
+					Message: startErrorMessage,
+					Details: startErrorDetails,
 				},
 			}
 			if err := platformClient.SignalCompletion(ctx, payload.JobID, completionReq); err != nil {
@@ -159,7 +166,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			"timing":    timing,
 			"error": map[string]interface{}{
 				"code":    "WORKER_START_ERROR",
-				"message": fmt.Sprintf("failed to start worker: %s", err.Error()),
+				"message": startErrorMessage,
+				"details": startErrorDetails,
 			},
 		}
 
@@ -175,7 +183,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			ExitCode: func() *int { v := 1; return &v }(),
 			Error: &types.JobError{
 				Code:    "WORKER_START_ERROR",
-				Message: fmt.Sprintf("failed to start worker: %s", err.Error()),
+				Message: startErrorMessage,
+				Details: startErrorDetails,
 			},
 		}
 		if err := state.WriteJobResult(jobResult); err != nil {
@@ -209,7 +218,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				JobStartTime:    jobStartTime,
 				WorkerStartTime: workerStartTime,
 				ExecCmd:         cmd,
-			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err))
+			}, "PLATFORM_START_SIGNAL_ERROR", fmt.Sprintf("failed to signal start to platform: %v", err), map[string]any{
+				"underlying_error": err.Error(),
+			})
 
 			os.Exit(1)
 			return cancelErr
@@ -255,12 +266,28 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 	var workerResult interface{}
 	var workerResultRaw json.RawMessage
-	// Read worker result from result file written by worker to JOB_RESULT_FILE
+	var workerSuppliedError *types.JobError
+	// Read worker result from result file written by worker to JOB_RESULT_FILE.
+	// Workers MAY return either a plain result object, or a structured envelope
+	// `{"success": false, "error": {"code": ..., "message": ..., "details": ...}}`
+	// to signal a failure with rich context.
 	if resultData, err := os.ReadFile(resultFilePath); err == nil {
 		var parsedResult interface{}
 		if err := json.Unmarshal(resultData, &parsedResult); err == nil {
 			workerResult = parsedResult
 			workerResultRaw = resultData
+		}
+
+		// Try to extract a worker-supplied structured error. Honored only when
+		// the envelope shape is well-formed: `error` is an object with a
+		// non-empty code (so we don't pick up unrelated `error` fields in
+		// arbitrary worker output).
+		var envelope struct {
+			Error *types.JobError `json:"error,omitempty"`
+		}
+		if err := json.Unmarshal(resultData, &envelope); err == nil &&
+			envelope.Error != nil && envelope.Error.Code != "" {
+			workerSuppliedError = envelope.Error
 		}
 	}
 
@@ -308,21 +335,36 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 
 		// Signal completion to platform
 		ctx := context.Background()
-		completionSuccess := exitCode == 0 && !uploadFailed
+		completionSuccess := exitCode == 0 && !uploadFailed && workerSuppliedError == nil
 		completionReq := &types.CompletionRequest{
 			Success:     completionSuccess,
 			Result:      workerResultRaw,
 			OutputFiles: outputFiles,
 		}
 		if exitCode != 0 {
-			completionReq.Error = &types.JobError{
-				Code:    "WORKER_EXIT_ERROR",
-				Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
+			if workerSuppliedError != nil {
+				// Prefer the worker's own structured error when available.
+				completionReq.Error = workerSuppliedError
+			} else {
+				completionReq.Error = &types.JobError{
+					Code:    "WORKER_EXIT_ERROR",
+					Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
+					Details: map[string]any{
+						"exit_code": exitCode,
+					},
+				}
 			}
+		} else if workerSuppliedError != nil {
+			// Worker exited 0 but signalled a structured failure in its result
+			// file. Treat as failure and forward the worker's error verbatim.
+			completionReq.Error = workerSuppliedError
 		} else if uploadFailed {
 			completionReq.Error = &types.JobError{
 				Code:    "FILE_UPLOAD_ERROR",
 				Message: fmt.Sprintf("failed to upload output files: %v", uploadError),
+				Details: map[string]any{
+					"underlying_error": uploadError.Error(),
+				},
 			}
 		}
 
@@ -339,8 +381,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		"worker_startup_time_seconds": workerStartupDuration.Seconds(),
 	}
 
-	// Determine final success status (job fails if worker failed OR upload failed)
-	finalSuccess := exitCode == 0 && !uploadFailed
+	// Determine final success status (job fails if worker exited non-zero,
+	// upload failed, or the worker emitted a structured error envelope).
+	finalSuccess := exitCode == 0 && !uploadFailed && workerSuppliedError == nil
 
 	result := map[string]interface{}{
 		"success":   finalSuccess,
@@ -360,16 +403,42 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		result["output_files"] = outputFiles
 	}
 
+	// Pick the canonical error to surface for this job, mirroring the
+	// completion-signal logic above.
+	var finalError *types.JobError
 	if exitCode != 0 {
-		result["error"] = map[string]interface{}{
-			"code":    "WORKER_EXIT_ERROR",
-			"message": fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
+		if workerSuppliedError != nil {
+			finalError = workerSuppliedError
+		} else {
+			finalError = &types.JobError{
+				Code:    "WORKER_EXIT_ERROR",
+				Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
+				Details: map[string]any{
+					"exit_code": exitCode,
+				},
+			}
 		}
+	} else if workerSuppliedError != nil {
+		finalError = workerSuppliedError
 	} else if uploadFailed {
-		result["error"] = map[string]interface{}{
-			"code":    "FILE_UPLOAD_ERROR",
-			"message": fmt.Sprintf("failed to upload output files: %v", uploadError),
+		finalError = &types.JobError{
+			Code:    "FILE_UPLOAD_ERROR",
+			Message: fmt.Sprintf("failed to upload output files: %v", uploadError),
+			Details: map[string]any{
+				"underlying_error": uploadError.Error(),
+			},
 		}
+	}
+
+	if finalError != nil {
+		errMap := map[string]interface{}{
+			"code":    finalError.Code,
+			"message": finalError.Message,
+		}
+		if len(finalError.Details) > 0 {
+			errMap["details"] = finalError.Details
+		}
+		result["error"] = errMap
 	}
 
 	resultJSON, _ := json.Marshal(result)
@@ -387,16 +456,8 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 	if workerResult != nil {
 		jobResult.Result = workerResult
 	}
-	if exitCode != 0 {
-		jobResult.Error = &types.JobError{
-			Code:    "WORKER_EXIT_ERROR",
-			Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
-		}
-	} else if uploadFailed {
-		jobResult.Error = &types.JobError{
-			Code:    "FILE_UPLOAD_ERROR",
-			Message: fmt.Sprintf("failed to upload output files: %v", uploadError),
-		}
+	if finalError != nil {
+		jobResult.Error = finalError
 	}
 	if err := state.WriteJobResult(jobResult); err != nil {
 		logs.WriteAgentLog(logs.LogLevelWarn, "Failed to write job result", map[string]any{
@@ -413,7 +474,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		jobState.Status = "success"
 	} else {
 		jobState.Status = "failed"
-		if exitCode != 0 {
+		if finalError != nil {
+			jobState.Error = finalError.Message
+		} else if exitCode != 0 {
 			jobState.Error = fmt.Sprintf("worker exited with code %d", exitCode)
 		} else if uploadFailed {
 			jobState.Error = fmt.Sprintf("failed to upload output files: %v", uploadError)
@@ -426,8 +489,9 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		})
 	}
 
-	// Exit with the worker's exit code, or error code if upload/completion signal failed
-	if completionSignalFailed || uploadFailed {
+	// Exit non-zero if anything went wrong: worker exit, upload failure,
+	// completion signal failure, or worker-supplied structured error.
+	if completionSignalFailed || uploadFailed || workerSuppliedError != nil {
 		os.Exit(1)
 	}
 	if exitCode != 0 {
