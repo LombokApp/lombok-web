@@ -9,6 +9,8 @@ import {
   AppSocketMessageSchemaMap,
 } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
+import { eq } from 'drizzle-orm'
+import { sessionsTable } from 'src/auth/entities/session.entity'
 import type { JWTService } from 'src/auth/services/jwt.service'
 import type { EventService } from 'src/event/services/event.service'
 import type { FolderService } from 'src/folders/services/folder.service'
@@ -128,6 +130,9 @@ export async function handleAppSocketMessage(
         result: await appService.createAppUserAccessTokenAsApp({
           actor: { appIdentifier: requestingAppIdentifier },
           userId: parsedRequest.data.userId,
+          ...(parsedRequest.data.extra
+            ? { extra: parsedRequest.data.extra }
+            : {}),
         }),
       }
     case 'EMIT_EVENT':
@@ -216,12 +221,28 @@ export async function handleAppSocketMessage(
             error: { code: 401, message: 'Token app identifier mismatch' },
           }
         }
-        jwtService.verifyAppUserJWT({
+        const verified = jwtService.verifyAppUserJWT({
           token: parsedRequest.data.token,
           userId,
           appIdentifier: requestingAppIdentifier,
         })
-        return { result: { userId, success: true } }
+        const sessionId =
+          typeof verified.jti === 'string'
+            ? verified.jti.split(':')[0]
+            : undefined
+        let extra: JsonSerializableObject | undefined
+        if (sessionId) {
+          const session = await ormService.db.query.sessionsTable.findFirst({
+            where: eq(sessionsTable.id, sessionId),
+          })
+          if (session?.typeDetails) {
+            const { app: _app, ...rest } = session.typeDetails
+            if (Object.keys(rest).length > 0) {
+              extra = rest as JsonSerializableObject
+            }
+          }
+        }
+        return { result: { userId, success: true, extra } }
       } catch (error) {
         return {
           error: {

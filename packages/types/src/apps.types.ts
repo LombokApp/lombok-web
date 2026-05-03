@@ -9,6 +9,7 @@ import {
   appSlugSchema,
   workerIdentifierSchema,
 } from './identifiers.types'
+import type { JsonSerializableObject } from './json.types'
 import { jsonSerializableObjectSchema } from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
@@ -46,6 +47,7 @@ export type WorkerApiActor =
       actorType: 'user'
       userId?: string
       userApiClient: LombokApiClient
+      extra?: JsonSerializableObject
     }
   | {
       actorType: 'system'

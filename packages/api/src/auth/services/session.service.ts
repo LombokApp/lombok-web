@@ -1,3 +1,4 @@
+import { JsonSerializableObject } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { and, eq } from 'drizzle-orm'
 import type { AccessTokenJWT } from 'src/auth/services/jwt.service'
@@ -52,7 +53,11 @@ export class SessionService {
     }
   }
 
-  async createAppUserSession(user: User, appIdentifier: string) {
+  async createAppUserSession(
+    user: User,
+    appIdentifier: string,
+    extra?: JsonSerializableObject,
+  ) {
     const secret = hashedTokenHelper.createSecretKey()
 
     const now = new Date()
@@ -62,6 +67,7 @@ export class SessionService {
       hash: hashedTokenHelper.createHash(secret),
       type: 'app_user',
       typeDetails: {
+        ...(extra ?? {}),
         app: appIdentifier,
       },
       expiresAt: sessionExpiresAt(now),

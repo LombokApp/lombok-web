@@ -8,6 +8,7 @@ import type {
   AppSearchResults,
   ExecuteAppDockerJobOptions,
   FolderScopeAppPermissions,
+  JsonSerializableObject,
   StorageAccessPolicy,
   UserScopeAppPermissions,
 } from '@lombokapp/types'
@@ -287,9 +288,11 @@ export class AppService {
   async createAppUserAccessTokenAsApp({
     actor,
     userId,
+    extra,
   }: {
     actor: { appIdentifier: string }
     userId: string
+    extra?: JsonSerializableObject
   }) {
     await this.validateAppUserAccess({
       appIdentifier: actor.appIdentifier,
@@ -307,17 +310,25 @@ export class AppService {
       throw new NotFoundException(`App not found: ${actor.appIdentifier}`)
     }
 
-    return this.sessionService.createAppUserSession(user, actor.appIdentifier)
+    return this.sessionService.createAppUserSession(
+      user,
+      actor.appIdentifier,
+      extra,
+    )
   }
 
-  async createAppUserSession(user: User, appIdentifier: string) {
+  async createAppUserSession(
+    user: User,
+    appIdentifier: string,
+    extra?: Record<string, string | number | boolean | null>,
+  ) {
     await this.validateAppUserAccess({ appIdentifier, userId: user.id })
     const app = await this.getApp(appIdentifier, { enabled: true })
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
 
-    return this.sessionService.createAppUserSession(user, appIdentifier)
+    return this.sessionService.createAppUserSession(user, appIdentifier, extra)
   }
 
   async handleAppRequest(

@@ -1,3 +1,4 @@
+import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   index,
   jsonb,
@@ -14,10 +15,7 @@ export const sessionsTable = pgTable(
     hash: text('hash').notNull(),
     userId: uuid('user_id').notNull(),
     type: text('type').notNull(),
-    typeDetails:
-      jsonb('type_details').$type<
-        Record<string, string | number | boolean | null>
-      >(),
+    typeDetails: jsonb('type_details').$type<JsonSerializableObject>(),
     expiresAt: timestamp('expires_at').notNull(),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),

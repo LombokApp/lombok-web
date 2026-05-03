@@ -12,6 +12,7 @@ import {
 } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { io, type Socket } from 'socket.io-client'
+import { sessionsTable } from 'src/auth/entities/session.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { runWithThreadContext } from 'src/shared/thread-context'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -276,6 +277,119 @@ describe('App Socket Interface', () => {
       console.log(`'result' not in response:`, response)
       throw new Error('Expected result in response')
     }
+  })
+
+  it('persists extra typeDetails on GET_APP_USER_ACCESS_TOKEN', async () => {
+    socket = await connectSocket('test-instance-1')
+
+    const {
+      session: { accessToken: userToken },
+    } = await createTestUser(testModule!, {
+      username: 'extrauser',
+      password: '123',
+    })
+
+    const viewer =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'extrauser'),
+      })
+    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const enableAppResponse = await testModule!
+      .apiClient(userToken)
+      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
+        params: { path: { appIdentifier } },
+        body: {
+          folderScopePermissionsDefault: null,
+          enabled: true,
+          permissions: ['READ_USER'],
+          folderScopeEnabledDefault: true,
+        },
+      })
+    expect(enableAppResponse.response.status).toBe(201)
+
+    const extra = {
+      workspaceId: 'ws-123',
+      role: 'editor',
+      seat: 7,
+      trial: true,
+      note: null,
+    }
+
+    const response = await buildAppClient(
+      socket,
+      serverBaseUrl,
+    ).getAppUserAccessToken({
+      userId: viewer?.id ?? '',
+      extra,
+    })
+
+    if (!('result' in response)) {
+      throw new Error('Expected result in response')
+    }
+    expect(typeof response.result.accessToken).toBe('string')
+
+    const sessions =
+      await testModule!.services.ormService.db.query.sessionsTable.findMany({
+        where: eq(sessionsTable.userId, viewer?.id ?? ''),
+        orderBy: (s, { desc }) => [desc(s.createdAt)],
+      })
+    expect(sessions.length).toBeGreaterThan(0)
+    const session = sessions[0]!
+    expect(session.type).toBe('app_user')
+    expect(session.typeDetails).toEqual({
+      ...extra,
+      app: appIdentifier,
+    })
+  })
+
+  it('reserved app key in extra cannot override appIdentifier', async () => {
+    socket = await connectSocket('test-instance-1')
+
+    const {
+      session: { accessToken: userToken },
+    } = await createTestUser(testModule!, {
+      username: 'reserveduser',
+      password: '123',
+    })
+
+    const viewer =
+      await testModule!.services.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, 'reserveduser'),
+      })
+    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const enableAppResponse = await testModule!
+      .apiClient(userToken)
+      .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
+        params: { path: { appIdentifier } },
+        body: {
+          folderScopePermissionsDefault: null,
+          enabled: true,
+          permissions: ['READ_USER'],
+          folderScopeEnabledDefault: true,
+        },
+      })
+    expect(enableAppResponse.response.status).toBe(201)
+
+    const response = await buildAppClient(
+      socket,
+      serverBaseUrl,
+    ).getAppUserAccessToken({
+      userId: viewer?.id ?? '',
+      extra: { app: 'spoofed-app', tag: 'ok' },
+    })
+
+    if (!('result' in response)) {
+      throw new Error('Expected result in response')
+    }
+
+    const sessions =
+      await testModule!.services.ormService.db.query.sessionsTable.findMany({
+        where: eq(sessionsTable.userId, viewer?.id ?? ''),
+        orderBy: (s, { desc }) => [desc(s.createdAt)],
+      })
+    const session = sessions[0]!
+    expect(session.typeDetails?.app).toBe(appIdentifier)
+    expect(session.typeDetails?.tag).toBe('ok')
   })
 
   it('should handle TRIGGER_APP_TASK message', async () => {

@@ -75,15 +75,17 @@ export class McpTokenService {
       )
       .orderBy(desc(sessionsTable.createdAt))
 
-    return sessions.map((session) => ({
-      id: session.id,
-      clientName: String(session.typeDetails?.['clientName'] ?? ''),
-      createdAt: session.createdAt,
-      lastUsedAt:
-        session.typeDetails?.['lastUsedAt'] != null
-          ? String(session.typeDetails['lastUsedAt'])
-          : null,
-    }))
+    return sessions.map((session) => {
+      const clientNameValue = session.typeDetails?.['clientName']
+      const lastUsedAtValue = session.typeDetails?.['lastUsedAt']
+      return {
+        id: session.id,
+        clientName: typeof clientNameValue === 'string' ? clientNameValue : '',
+        createdAt: session.createdAt,
+        lastUsedAt:
+          typeof lastUsedAtValue === 'string' ? lastUsedAtValue : null,
+      }
+    })
   }
 
   async revokeMcpToken(userId: string, tokenId: string): Promise<void> {
@@ -135,10 +137,11 @@ export class McpTokenService {
       .where(eq(sessionsTable.id, session.id))
       .execute()
 
+    const clientNameValue = session.typeDetails?.['clientName']
     return {
       id: session.id,
       userId: session.userId,
-      clientName: String(session.typeDetails?.['clientName'] ?? ''),
+      clientName: typeof clientNameValue === 'string' ? clientNameValue : '',
     }
   }
 }
