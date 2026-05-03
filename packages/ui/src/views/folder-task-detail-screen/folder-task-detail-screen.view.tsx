@@ -2,6 +2,7 @@ import { useParams } from 'react-router'
 
 import { TaskDetailUI } from '@/src/components/task-detail-ui/task-detail-ui'
 import { useFolderContext } from '@/src/contexts/folder'
+import { useTaskLiveUpdates } from '@/src/hooks/use-task-live-updates'
 import { $api } from '@/src/services/api'
 
 export function FolderTaskDetailScreen() {
@@ -23,6 +24,11 @@ export function FolderTaskDetailScreen() {
       refetchOnWindowFocus: false,
     },
   )
+
+  useTaskLiveUpdates(taskId || undefined, [
+    'get',
+    '/api/v1/folders/{folderId}/tasks/{taskId}',
+  ])
 
   return (
     <div className="flex flex-1 flex-col items-center">

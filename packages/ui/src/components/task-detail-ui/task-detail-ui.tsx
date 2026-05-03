@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { Progress } from '@lombokapp/ui-toolkit/components/progress/progress'
 import {
   Tabs,
   TabsContent,
@@ -26,7 +27,16 @@ import {
   TooltipTrigger,
 } from '@lombokapp/ui-toolkit/components/tooltip/tooltip'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
-import { AlertCircle, Check, ChevronRight, Code, Copy } from 'lucide-react'
+import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Circle,
+  Code,
+  Copy,
+  Zap,
+} from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router'
 
@@ -46,7 +56,68 @@ interface ErrorNode {
   error: JsonSerializableObject
 }
 
+type ProgressReport = NonNullable<
+  TaskWithLocationContextDTO['progressReports']
+>[number]
+type ProgressMessageLevel = NonNullable<ProgressReport['message']>['level']
+
+type TimelineEntry =
+  | { kind: 'created'; at: string }
+  | { kind: 'started'; at: string }
+  | {
+      kind: 'progress'
+      at: string
+      report: ProgressReport
+    }
+  | { kind: 'completed'; at: string }
+  | { kind: 'failed'; at: string }
+
 const ERROR_CHAIN_LIMIT = 8
+
+const PROGRESS_TIMELINE_DEFAULT_LIMIT = 50
+
+const progressLevelStyles: Record<
+  ProgressMessageLevel,
+  { circle: string; text: string }
+> = {
+  debug: {
+    circle: 'bg-muted text-muted-foreground',
+    text: 'text-muted-foreground',
+  },
+  info: {
+    circle: 'bg-blue-100 text-blue-600',
+    text: 'text-foreground',
+  },
+  warn: {
+    circle: 'bg-amber-100 text-amber-700',
+    text: 'text-amber-700',
+  },
+  error: {
+    circle: 'bg-red-100 text-red-600',
+    text: 'text-destructive',
+  },
+}
+
+const formatProgressDetails = (
+  details: ProgressReport['details'],
+): string | undefined => {
+  if (!details) {
+    return undefined
+  }
+  const parts: string[] = []
+  if (details.label) {
+    parts.push(details.label)
+  }
+  if (typeof details.percent === 'number') {
+    parts.push(`${Math.round(details.percent)}%`)
+  } else if (
+    typeof details.current === 'number' &&
+    typeof details.total === 'number'
+  ) {
+    parts.push(`${details.current} / ${details.total}`)
+  }
+  return parts.length ? parts.join(' · ') : undefined
+}
 
 const isJsonObject = (value: unknown): value is JsonSerializableObject =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -516,6 +587,352 @@ function TaskErrorDisplay({
   )
 }
 
+function TaskProgressView({
+  progress,
+  latestReport,
+}: {
+  progress?: TaskWithLocationContextDTO['progress']
+  latestReport?: ProgressReport
+}) {
+  const percent =
+    typeof progress?.percent === 'number'
+      ? Math.max(0, Math.min(100, progress.percent))
+      : undefined
+  const hasCounts =
+    typeof progress?.current === 'number' && typeof progress.total === 'number'
+
+  const messageLevel: ProgressMessageLevel =
+    latestReport?.message?.level ?? 'info'
+  const messageStyles = progressLevelStyles[messageLevel]
+
+  return (
+    <div className="space-y-3">
+      {typeof percent === 'number' ? (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{progress?.label ?? 'Progress'}</span>
+            <span className="font-mono">{Math.round(percent)}%</span>
+          </div>
+          <Progress value={percent} className="h-2" />
+        </div>
+      ) : (
+        progress?.label && (
+          <p className="text-sm font-medium">{progress.label}</p>
+        )
+      )}
+      {hasCounts && (
+        <p className="text-xs text-muted-foreground">
+          {progress.current} / {progress.total}
+        </p>
+      )}
+      {latestReport?.message?.text && (
+        <div className="rounded-md border bg-muted/30 p-3">
+          <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+            <span
+              className={cn(
+                'size-2 rounded-full',
+                messageStyles.circle.split(' ')[0],
+              )}
+            />
+            <span>{latestReport.message.level}</span>
+            {latestReport.code && (
+              <>
+                <span>·</span>
+                <span className="font-mono">{latestReport.code}</span>
+              </>
+            )}
+          </div>
+          <p
+            className={cn(
+              'whitespace-pre-wrap break-words text-sm',
+              messageStyles.text,
+            )}
+          >
+            {latestReport.message.text}
+          </p>
+        </div>
+      )}
+      {!latestReport && !progress && (
+        <p className="text-sm text-muted-foreground">
+          Waiting for progress updates...
+        </p>
+      )}
+    </div>
+  )
+}
+
+function TimelineRow({
+  circleClassName,
+  icon,
+  label,
+  at,
+}: {
+  circleClassName: string
+  icon: React.ReactNode
+  label: string
+  at: string
+}) {
+  return (
+    <div className="flex items-center gap-4">
+      <div
+        className={cn(
+          'flex size-8 items-center justify-center rounded-full',
+          circleClassName,
+        )}
+      >
+        {icon}
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-medium">{label}</p>
+        <div className="text-sm text-muted-foreground">
+          <DateDisplay date={at} showTimeSince={false} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TaskTimeline({ entries }: { entries: TimelineEntry[] }) {
+  const progressIndices = React.useMemo(() => {
+    const indices: number[] = []
+    entries.forEach((entry, index) => {
+      if (entry.kind === 'progress') {
+        indices.push(index)
+      }
+    })
+    return indices
+  }, [entries])
+
+  const [showAllProgress, setShowAllProgress] = React.useState(false)
+  const overLimit = progressIndices.length > PROGRESS_TIMELINE_DEFAULT_LIMIT
+  const hiddenProgressIndexSet = React.useMemo(() => {
+    if (!overLimit || showAllProgress) {
+      return new Set<number>()
+    }
+    const keepCount = PROGRESS_TIMELINE_DEFAULT_LIMIT
+    const hidden = new Set<number>()
+    const cutoff = progressIndices.length - keepCount
+    for (let i = 0; i < cutoff; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      hidden.add(progressIndices[i]!)
+    }
+    return hidden
+  }, [overLimit, showAllProgress, progressIndices])
+
+  const hiddenCount = hiddenProgressIndexSet.size
+  let collapsedRendered = false
+
+  return (
+    <div className="space-y-4">
+      {entries.map((entry, index) => {
+        if (hiddenProgressIndexSet.has(index)) {
+          if (collapsedRendered) {
+            return null
+          }
+          collapsedRendered = true
+          return (
+            <div
+              key="collapsed-progress"
+              className="flex items-center gap-4 text-xs text-muted-foreground"
+            >
+              <div className="flex size-8 items-center justify-center rounded-full border border-dashed border-muted-foreground/40">
+                <Circle className="size-3" />
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAllProgress(true)}
+                className="text-primary hover:underline"
+              >
+                Show {hiddenCount} earlier progress update
+                {hiddenCount === 1 ? '' : 's'}
+              </button>
+            </div>
+          )
+        }
+
+        if (entry.kind === 'created') {
+          return (
+            <TimelineRow
+              key={`created-${entry.at}`}
+              circleClassName="bg-blue-100 text-blue-600"
+              icon={
+                <svg
+                  className="size-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              }
+              label="Task Created"
+              at={entry.at}
+            />
+          )
+        }
+
+        if (entry.kind === 'started') {
+          return (
+            <TimelineRow
+              key={`started-${entry.at}`}
+              circleClassName="bg-yellow-100 text-yellow-600"
+              icon={
+                <svg
+                  className="size-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              }
+              label="Task Started"
+              at={entry.at}
+            />
+          )
+        }
+
+        if (entry.kind === 'completed') {
+          return (
+            <TimelineRow
+              key={`completed-${entry.at}`}
+              circleClassName="bg-green-100 text-green-600"
+              icon={
+                <svg
+                  className="size-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              }
+              label="Task Completed"
+              at={entry.at}
+            />
+          )
+        }
+
+        if (entry.kind === 'failed') {
+          return (
+            <TimelineRow
+              key={`failed-${entry.at}`}
+              circleClassName="bg-red-100 text-red-600"
+              icon={
+                <svg
+                  className="size-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              }
+              label="Task Failed"
+              at={entry.at}
+            />
+          )
+        }
+
+        const level: ProgressMessageLevel =
+          entry.report.message?.level ?? 'info'
+        const styles = progressLevelStyles[level]
+        const detailSummary = formatProgressDetails(entry.report.details)
+        const text = entry.report.message?.text
+        const code = entry.report.code
+
+        return (
+          <div
+            key={`progress-${index}-${entry.at}`}
+            className="flex items-start gap-4"
+          >
+            <div
+              className={cn(
+                'flex size-8 items-center justify-center rounded-full',
+                styles.circle,
+              )}
+            >
+              <Circle className="size-2 fill-current" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                {code && (
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {code}
+                  </span>
+                )}
+                {detailSummary && (
+                  <span className="text-xs text-muted-foreground">
+                    {detailSummary}
+                  </span>
+                )}
+              </div>
+              {text && (
+                <p
+                  className={cn(
+                    'mt-0.5 whitespace-pre-wrap break-words text-sm',
+                    styles.text,
+                  )}
+                >
+                  {text}
+                </p>
+              )}
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                <DateDisplay date={entry.at} showTimeSince={false} />
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function TaskResultView({
+  result,
+}: {
+  result?: JsonSerializableObject | undefined
+}) {
+  const hasResult = result !== undefined && Object.keys(result).length > 0
+
+  if (!hasResult) {
+    return <p className="text-sm text-muted-foreground">No result data</p>
+  }
+
+  const json = JSON.stringify(result, null, 2)
+
+  return (
+    <div className="group relative">
+      <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+        <CopyButton value={json} size="xs" variant="outline" />
+      </div>
+      <pre className="overflow-x-auto rounded-md bg-muted/50 p-3 font-mono text-sm">
+        {json}
+      </pre>
+    </div>
+  )
+}
+
 export function TaskDetailUI({
   taskData,
   isLoading,
@@ -648,12 +1065,13 @@ export function TaskDetailUI({
   const statusInfo = getStatusInfo(taskData)
   const errorPayload =
     taskData.success === false
-      ? (() => {
+      ? (taskData.error ??
+        (() => {
           const errorLog = [...taskData.systemLog]
             .reverse()
             .find((log) => log.logType === 'error')
           return errorLog?.payload?.error
-        })()
+        })())
       : undefined
 
   const errorToDisplay =
@@ -666,6 +1084,36 @@ export function TaskDetailUI({
             stack: 'No stacktrace available',
           }
       : undefined
+
+  const progressReports = taskData.progressReports ?? []
+  const latestReport: ProgressReport | undefined =
+    progressReports.length > 0
+      ? progressReports[progressReports.length - 1]
+      : undefined
+  const isRunning = Boolean(taskData.startedAt) && !taskData.completedAt
+  const showProgressCard =
+    isRunning && (Boolean(taskData.progress) || progressReports.length > 0)
+
+  const timelineEntries: TimelineEntry[] = [
+    { kind: 'created' as const, at: taskData.createdAt },
+    ...(taskData.startedAt
+      ? [{ kind: 'started' as const, at: taskData.startedAt }]
+      : []),
+    ...progressReports.map<TimelineEntry>((report) => ({
+      kind: 'progress' as const,
+      at: report.receivedAt,
+      report,
+    })),
+    ...(taskData.completedAt
+      ? [
+          taskData.success === false
+            ? { kind: 'failed' as const, at: taskData.completedAt }
+            : { kind: 'completed' as const, at: taskData.completedAt },
+        ]
+      : []),
+  ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at))
+
+  const result = taskData.success ? taskData.result : undefined
 
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
@@ -875,130 +1323,47 @@ export function TaskDetailUI({
                 <CardDescription>Task execution timeline</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex size-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                      <svg
-                        className="size-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Task Created</p>
-                      <div className="text-sm text-muted-foreground">
-                        <DateDisplay
-                          date={taskData.createdAt}
-                          showTimeSince={false}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {taskData.startedAt && (
-                    <>
-                      <div className="flex items-center gap-4">
-                        <div className="flex size-8 items-center justify-center rounded-full bg-yellow-100 text-yellow-600">
-                          <svg
-                            className="size-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13 10V3L4 14h7v7l9-11h-7z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">Task Started</p>
-                          <div className="text-sm text-muted-foreground">
-                            <DateDisplay
-                              date={taskData.startedAt}
-                              showTimeSince={false}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {taskData.completedAt && (
-                    <>
-                      <div className="flex items-center gap-4">
-                        <div className="flex size-8 items-center justify-center rounded-full bg-green-100 text-green-600">
-                          <svg
-                            className="size-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">Task Completed</p>
-                          <div className="text-sm text-muted-foreground">
-                            <DateDisplay
-                              date={taskData.completedAt}
-                              showTimeSince={false}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {taskData.completedAt && !taskData.success && (
-                    <>
-                      <div className="flex items-center gap-4">
-                        <div className="flex size-8 items-center justify-center rounded-full bg-red-100 text-red-600">
-                          <svg
-                            className="size-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">Task Failed</p>
-                          <div className="text-sm text-muted-foreground">
-                            <DateDisplay
-                              date={taskData.completedAt}
-                              showTimeSince={false}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                <TaskTimeline entries={timelineEntries} />
               </CardContent>
             </Card>
           </div>
+
+          {/* Progress Card */}
+          {showProgressCard && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="size-5 text-yellow-600" />
+                  Progress
+                </CardTitle>
+                <CardDescription>Latest update from the task</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TaskProgressView
+                  progress={taskData.progress}
+                  latestReport={latestReport}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Result Card */}
+          {taskData.success === true && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle2 className="size-5 text-green-600" />
+                  Result
+                </CardTitle>
+                <CardDescription>
+                  Output produced by the completed task
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TaskResultView result={result} />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Error Information Card */}
           {taskData.success === false && errorToDisplay && (
