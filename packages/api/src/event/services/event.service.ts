@@ -245,12 +245,20 @@ export class EventService {
       data,
       targetLocation,
       targetUserId,
+      skipValidation,
     }: {
       emitterIdentifier: string
       eventIdentifier: string
       data: JsonSerializableObject
       targetLocation?: { folderId: string; objectKey?: string }
       targetUserId?: string
+      /**
+       * Set when the public `emitEvent` has already validated. Skips the
+       * pre-write checks so we don't re-issue the same SELECTs inside the
+       * transaction's connection. Tx-passed callers (`emitEvent({tx})`)
+       * still go through validation here.
+       */
+      skipValidation?: boolean
     },
     tx: OrmService['db'],
   ) {
@@ -268,6 +276,7 @@ export class EventService {
     const app = appIdentifier
       ? await this.appService.getApp(appIdentifier.toLowerCase(), {
           enabled: true,
+          tx,
         })
       : undefined
 
@@ -277,18 +286,20 @@ export class EventService {
       )
     }
 
-    if (appIdentifier) {
+    if (appIdentifier && !skipValidation) {
       try {
         if (targetLocation) {
           await this.appService.validateAppFolderAccess({
             appIdentifier,
             folderId: targetLocation.folderId,
+            tx,
           })
         }
         if (targetUserId) {
           await this.appService.validateAppUserAccess({
             appIdentifier,
             userId: targetUserId,
+            tx,
           })
         }
       } catch (error) {
@@ -383,11 +394,13 @@ export class EventService {
             await this.appService.validateAppFolderAccess({
               appIdentifier: subscribedApp.identifier,
               folderId: targetLocation.folderId,
+              tx,
             })
           } else if (targetUserId) {
             await this.appService.validateAppUserAccess({
               appIdentifier: subscribedApp.identifier,
               userId: targetUserId,
+              tx,
             })
           }
         } catch (error) {
@@ -602,12 +615,71 @@ export class EventService {
           : {}),
     }
     if (options.tx) {
+      // Caller already in a transaction — preserve their atomicity scope and
+      // run everything (validation + writes + cascades) inside their tx.
       return this._emitEventInTx(args, options.tx)
-    } else {
-      return this.ormService.db.transaction(async (tx) => {
-        return this._emitEventInTx(args, tx)
-      })
     }
+
+    // Hoist validation out of the transaction. These are pool reads with no
+    // atomicity requirement — keeping them inside the tx pinned a connection
+    // for the entire validation duration, and a fan-out of N parallel emits
+    // exhausted the pool with each tx waiting on a second connection (the
+    // app/folder/user lookups). Now the only thing the tx covers is the
+    // event + tasks insert pair plus their recursive cascade.
+    if (!eventIdentifierSchema.safeParse(args.eventIdentifier).success) {
+      throw new InternalServerErrorException(
+        `Invalid event identifier: ${args.eventIdentifier}`,
+      )
+    }
+
+    const isCoreEmitter = args.emitterIdentifier === CORE_IDENTIFIER
+    const appIdentifier = !isCoreEmitter ? args.emitterIdentifier : undefined
+    const targetLocation =
+      'targetLocation' in args ? args.targetLocation : undefined
+    const targetUserId =
+      'targetUserId' in args ? args.targetUserId : undefined
+    if (appIdentifier) {
+      const app = await this.appService.getApp(appIdentifier.toLowerCase(), {
+        enabled: true,
+      })
+      if (!app) {
+        throw new InternalServerErrorException(
+          `No app found for identifier "${appIdentifier}"`,
+        )
+      }
+      try {
+        if (targetLocation) {
+          await this.appService.validateAppFolderAccess({
+            appIdentifier,
+            folderId: targetLocation.folderId,
+          })
+        }
+        if (targetUserId) {
+          await this.appService.validateAppUserAccess({
+            appIdentifier,
+            userId: targetUserId,
+          })
+        }
+      } catch (error) {
+        if (error instanceof UnauthorizedException) {
+          this.logger.warn('Unauthorized to emit event', {
+            eventIdentifier: args.eventIdentifier,
+            emitterIdentifier: args.emitterIdentifier,
+            data: args.data,
+            target: {
+              location: targetLocation,
+              userId: targetUserId,
+            },
+          })
+          return
+        }
+        throw error
+      }
+    }
+
+    return this.ormService.db.transaction(async (tx) => {
+      return this._emitEventInTx({ ...args, skipValidation: true }, tx)
+    })
   }
 
   private buildEventInvocation(event: Event, eventTriggerConfigIndex: number) {

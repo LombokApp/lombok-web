@@ -273,6 +273,11 @@ export class LombokAppPgClient {
         password: creds.password,
         database: creds.database,
         ssl: false,
+        // Surface connection-acquire deadlocks loudly. Without this, a tx
+        // callback that triggers a second pool checkout (directly or via a
+        // helper that uses the pool client instead of the tx) hangs
+        // forever; with it, the second checkout throws after 10s.
+        connectionTimeoutMillis: 10_000,
       })
     }
 
