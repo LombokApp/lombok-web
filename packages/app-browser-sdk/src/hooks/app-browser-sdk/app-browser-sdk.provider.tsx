@@ -65,7 +65,6 @@ export const AppBrowserSdkContextProvider = ({
             : `/${to.pathAndQuery}`,
         })
       },
-      debugLogging: true,
     })
   })
 
