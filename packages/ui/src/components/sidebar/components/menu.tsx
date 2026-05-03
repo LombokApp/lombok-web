@@ -10,6 +10,7 @@ import { CollapseMenuButton } from './collapse-menu-button'
 import { NotificationsTrigger } from './notifications-trigger'
 import { SidebarGroup } from './sidebar-group'
 import { SidebarItem } from './sidebar-item'
+import { ThemeToggleTrigger } from './theme-toggle-trigger'
 
 interface MenuProps {
   isOpen: boolean | undefined
@@ -68,8 +69,9 @@ export function Menu({
           </ul>
         </nav>
       </ScrollArea>
-      <div className="space-y-1 px-3 pb-2">
+      <div className="space-y-1 border-t px-3 pb-2 pt-2">
         <NotificationsTrigger isOpen={isOpen} />
+        <ThemeToggleTrigger isOpen={isOpen} />
         <SidebarItem
           icon={LogOut}
           label="Sign out"
