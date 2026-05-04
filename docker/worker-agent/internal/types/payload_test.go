@@ -18,6 +18,9 @@ func TestJobError_UnmarshalJSON_PlainString(t *testing.T) {
 	if got.Message != "boom" {
 		t.Errorf("Message = %q, want %q", got.Message, "boom")
 	}
+	if got.Origin != ErrorOriginApp {
+		t.Errorf("Origin = %q, want %q", got.Origin, ErrorOriginApp)
+	}
 	if got.Details != nil {
 		t.Errorf("Details = %v, want nil", got.Details)
 	}
@@ -35,8 +38,21 @@ func TestJobError_UnmarshalJSON_StructuredWithoutDetails(t *testing.T) {
 	if got.Message != "Y" {
 		t.Errorf("Message = %q, want %q", got.Message, "Y")
 	}
+	if got.Origin != ErrorOriginApp {
+		t.Errorf("Origin = %q, want %q (default when omitted)", got.Origin, ErrorOriginApp)
+	}
 	if got.Details != nil {
 		t.Errorf("Details = %v, want nil", got.Details)
+	}
+}
+
+func TestJobError_UnmarshalJSON_StructuredWithExplicitOrigin(t *testing.T) {
+	var got JobError
+	if err := json.Unmarshal([]byte(`{"code":"X","message":"Y","origin":"platform"}`), &got); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got.Origin != ErrorOriginPlatform {
+		t.Errorf("Origin = %q, want %q", got.Origin, ErrorOriginPlatform)
 	}
 }
 
@@ -67,6 +83,7 @@ func TestJobError_MarshalJSON_RoundTrip(t *testing.T) {
 	original := JobError{
 		Code:    "X",
 		Message: "Y",
+		Origin:  ErrorOriginPlatform,
 		Details: map[string]any{"foo": "bar"},
 	}
 
@@ -80,7 +97,7 @@ func TestJobError_MarshalJSON_RoundTrip(t *testing.T) {
 		t.Fatalf("unmarshal failed: %v", err)
 	}
 
-	if decoded.Code != original.Code || decoded.Message != original.Message {
+	if decoded.Code != original.Code || decoded.Message != original.Message || decoded.Origin != original.Origin {
 		t.Errorf("round-trip mismatch: got %+v, want %+v", decoded, original)
 	}
 	if !reflect.DeepEqual(map[string]any(decoded.Details), original.Details) {
@@ -89,7 +106,7 @@ func TestJobError_MarshalJSON_RoundTrip(t *testing.T) {
 }
 
 func TestJobError_MarshalJSON_OmitsEmptyDetails(t *testing.T) {
-	original := JobError{Code: "X", Message: "Y"}
+	original := JobError{Code: "X", Message: "Y", Origin: ErrorOriginApp}
 
 	encoded, err := json.Marshal(original)
 	if err != nil {
@@ -97,7 +114,8 @@ func TestJobError_MarshalJSON_OmitsEmptyDetails(t *testing.T) {
 	}
 
 	// `details` should be omitted when nil/empty thanks to the `omitempty` tag.
-	wantJSON := `{"code":"X","message":"Y"}`
+	// `origin` is required, never omitted.
+	wantJSON := `{"code":"X","message":"Y","origin":"app"}`
 	if string(encoded) != wantJSON {
 		t.Errorf("encoded = %s, want %s", string(encoded), wantJSON)
 	}

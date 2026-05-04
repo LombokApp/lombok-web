@@ -449,7 +449,7 @@ export class DockerJobsService {
     if (!appIdentifier || !profileName) {
       throw new AsyncWorkError({
         name: 'DockerClientError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'DOCKER_NOT_CONFIGURED',
         message: `Invalid profile key "${profileKey}" — expected "appIdentifier:profileName"`,
       })
@@ -496,7 +496,7 @@ export class DockerJobsService {
       if (!host?.enabled) {
         throw new AsyncWorkError({
           name: 'DockerClientError',
-          origin: 'internal',
+          origin: 'platform',
           code: 'DOCKER_NOT_CONFIGURED',
           message: `Unrecognized Docker host "${hostId}" for container "${refContainerId}"`,
         })
@@ -510,7 +510,7 @@ export class DockerJobsService {
       if (!container) {
         throw new AsyncWorkError({
           name: 'DockerClientError',
-          origin: 'internal',
+          origin: 'platform',
           code: 'CONTAINER_NOT_FOUND',
           message: `Container "${refContainerId}" not found on host "${hostId}"`,
         })
@@ -558,7 +558,7 @@ export class DockerJobsService {
     if (!container) {
       throw new AsyncWorkError({
         name: 'DockerClientError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'CONTAINER_NOT_FOUND',
         message: 'Container not found after findOrCreateContainer call',
       })
@@ -608,7 +608,7 @@ export class DockerJobsService {
       if (provisionExec.exitCode !== 0) {
         throw new AsyncWorkError({
           name: 'ProvisionError',
-          origin: 'internal',
+          origin: 'platform',
           message: `Failed to provision container: exit=${provisionExec.exitCode} stdout=${provisionExec.stdout} stderr=${provisionExec.stderr}`,
           code: 'PROVISION_FAILED',
           stack: new Error().stack,
@@ -667,7 +667,7 @@ export class DockerJobsService {
         if (!resolvedContainerId || typeof resolvedContainerId !== 'string') {
           throw new AsyncWorkError({
             name: 'DockerClientError',
-            origin: 'internal',
+            origin: 'platform',
             code: 'INVALID_CONTAINER_TARGET',
             message:
               'containerIdTemplate did not resolve to a valid container ID',
@@ -689,7 +689,7 @@ export class DockerJobsService {
           ) {
             throw new AsyncWorkError({
               name: 'DockerClientError',
-              origin: 'internal',
+              origin: 'platform',
               code: 'CONTAINER_USER_MISMATCH',
               message: `Container "${resolvedContainerId}" does not belong to user "${userId}"`,
             })
@@ -859,7 +859,7 @@ export class DockerJobsService {
         )
         throw new AsyncWorkError({
           name: 'DockerJobSubmissionError',
-          origin: 'internal',
+          origin: 'platform',
           code: 'JOB_SUBMISSION_FAILED',
           message: startJobExec.stderr || `Job ${jobId} submission failed`,
           stack: new Error().stack,
@@ -956,7 +956,7 @@ export class DockerJobsService {
     }
     throw new AsyncWorkError({
       name: 'DockerWorkerCompletionError',
-      origin: 'internal',
+      origin: 'platform',
       code: 'COMPLETION_TIMEOUT',
       message: `Job is not completed after approximately ${maxRetries * retryPeriodMs}ms`,
     })
@@ -1008,7 +1008,7 @@ export class DockerJobsService {
     if (exec.exitCode !== 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'GET_JOB_STATE_FAILED',
         message: 'Failed to get job state: ' + exec.stderr,
       })
@@ -1017,7 +1017,7 @@ export class DockerJobsService {
     if (exec.stdout.length === 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'JOB_STATE_NOT_FOUND',
         message:
           'Job state not found\nError: ' + exec.stderr + '\n' + exec.stderr,
@@ -1184,7 +1184,7 @@ export class DockerJobsService {
     if (exec.exitCode !== 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'GET_WORKER_STATE_FAILED',
         message: 'Failed to get worker state: ' + exec.stderr,
       })
@@ -1193,7 +1193,7 @@ export class DockerJobsService {
     if (exec.stdout.length === 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'WORKER_STATE_NOT_FOUND',
         message:
           'Worker state not found\nError: ' + exec.stderr + '\n' + exec.stderr,
@@ -1257,7 +1257,7 @@ export class DockerJobsService {
     if (exec.exitCode !== 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'PURGE_JOBS_FAILED',
         message: 'Failed to purge jobs: ' + exec.stderr,
       })
@@ -1280,7 +1280,7 @@ export class DockerJobsService {
     if (!normalized.startsWith('http_')) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'WORKER_STATE_NOT_FOUND',
         message: `Worker ID must start with "http_": ${workerId}`,
       })
@@ -1289,7 +1289,7 @@ export class DockerJobsService {
     if (!Number.isFinite(port) || port <= 0) {
       throw new AsyncWorkError({
         name: 'DockerWorkerStateError',
-        origin: 'internal',
+        origin: 'platform',
         code: 'WORKER_STATE_NOT_FOUND',
         message: `Invalid worker port in worker ID: ${workerId}`,
       })

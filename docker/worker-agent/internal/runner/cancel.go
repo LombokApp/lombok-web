@@ -143,7 +143,9 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string, er
 		"worker_startup_time_seconds": workerStartupDuration.Seconds(),
 	}
 
-	// Signal completion to platform if available
+	// Signal completion to platform if available.
+	// Cancellations are agent-initiated (e.g., we couldn't signal start to the
+	// platform) — they're internal mechanics failures by definition.
 	if config.PlatformClient != nil {
 		ctx := context.Background()
 		completionReq := &types.CompletionRequest{
@@ -151,6 +153,7 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string, er
 			Error: &types.JobError{
 				Code:    errorCode,
 				Message: errorMessage,
+				Origin:  types.ErrorOriginPlatform,
 				Details: errorDetails,
 			},
 		}
@@ -165,6 +168,7 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string, er
 	errMap := map[string]interface{}{
 		"code":    errorCode,
 		"message": errorMessage,
+		"origin":  types.ErrorOriginPlatform,
 	}
 	if len(errorDetails) > 0 {
 		errMap["details"] = errorDetails
@@ -191,6 +195,7 @@ func CancelJob(config CancelJobConfig, errorCode string, errorMessage string, er
 		Error: &types.JobError{
 			Code:    errorCode,
 			Message: errorMessage,
+			Origin:  types.ErrorOriginPlatform,
 			Details: errorDetails,
 		},
 	}

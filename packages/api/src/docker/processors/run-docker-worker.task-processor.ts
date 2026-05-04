@@ -1,4 +1,4 @@
-import { deterministicJobId, TaskCompletion } from '@lombokapp/types'
+import { deterministicJobId } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import {
   forwardRef,
@@ -13,6 +13,7 @@ import { BaseCoreTaskProcessor } from 'src/task/base.processor'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { TaskService } from 'src/task/services/task.service'
 import { CoreTaskName } from 'src/task/task.constants'
+import { buildTaskCompletions } from 'src/task/util/build-task-completions.util'
 
 import { DockerJobsService } from '../services/docker-jobs.service'
 
@@ -88,55 +89,21 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
             : buildUnexpectedError({
                 code: 'UNEXPECTED_DOCKER_EXECUTION_ERROR',
                 message:
-                  'Unexpected error during in run serverless worker core task processor (run-docker-worker-task.processor.ts)',
-
+                  'Unexpected error during in run docker worker core task processor (run-docker-worker-task.processor.ts)',
                 error,
               })
-        const highestLevelAppError =
-          normalizedError.resolveHighestLevelAppError()
-        const runnerSuccess = !!highestLevelAppError
 
-        const innerTaskCompletion = {
-          success: false,
-          requeueDelayMs: highestLevelAppError?.requeueDelayMs,
-          executorMetadata: {
-            type: 'docker',
-            metadata: executorMetadata,
-          },
-          error: {
-            code: highestLevelAppError?.code ?? 'EXECUTION_ERROR',
-            name: highestLevelAppError?.name ?? 'ExecutionError',
-            message:
-              highestLevelAppError?.message ??
-              `There was an error executing the task (${typeof highestLevelAppError?.requeueDelayMs !== 'undefined' ? 'requeued' : 'see admin logs for details'})`,
-            ...(highestLevelAppError
-              ? {
-                  name: highestLevelAppError.name,
-                  message: highestLevelAppError.message,
-                  stack: highestLevelAppError.stack,
-                  details: highestLevelAppError.toEnvelope(),
-                }
-              : {}), // TODO: add some details for an internal (non-app) error
-          },
-        } as const
-
-        const runnerTaskCompletion = {
-          success: runnerSuccess,
-          ...(!runnerSuccess
-            ? {
-                error: {
-                  code: normalizedError.code,
-                  name: normalizedError.name,
-                  message: normalizedError.message,
-                  details: normalizedError.toEnvelope(),
-                },
-              }
-            : {}),
-          executorMetadata: {
-            type: 'docker' as const,
-            metadata: executorMetadata,
-          },
+        const dockerExecutorMetadata = {
+          type: 'docker' as const,
+          metadata: executorMetadata,
         }
+
+        const { innerTaskCompletion, runnerTaskCompletion } =
+          buildTaskCompletions({
+            normalizedError,
+            innerExecutorMetadata: dockerExecutorMetadata,
+            runnerExecutorMetadata: dockerExecutorMetadata,
+          })
 
         await this.ormService.db.transaction(async (tx) => {
           await this.taskService.registerTaskCompleted(
@@ -147,7 +114,7 @@ export class RunDockerWorkerTaskProcessor extends BaseCoreTaskProcessor<CoreTask
 
           await this.taskService.registerTaskCompleted(
             task.id,
-            runnerTaskCompletion as TaskCompletion,
+            runnerTaskCompletion,
             { tx },
           )
         })

@@ -372,7 +372,7 @@ void (async () => {
                 if (!publicKeyPem) {
                   throw new AsyncWorkError({
                     name: 'AuthenticationFailed',
-                    origin: 'internal',
+                    origin: 'platform',
                     message:
                       'LOMBOK_APP_JWT_PUBLIC_KEY env var not set; cannot verify app tokens',
                     code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
@@ -396,7 +396,7 @@ void (async () => {
                   })
                   throw new AsyncWorkError({
                     name: 'AuthenticationFailed',
-                    origin: 'internal',
+                    origin: 'platform',
                     message: errorMessage,
                     code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
                     stack: new Error().stack,
@@ -415,7 +415,7 @@ void (async () => {
                 if (claims.actorType !== 'app_user') {
                   throw new AsyncWorkError({
                     name: 'AuthenticationFailed',
-                    origin: 'internal',
+                    origin: 'platform',
                     message: `Token actor "${claims.actorType}" is not allowed for worker requests`,
                     code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
                     stack: new Error().stack,
@@ -428,7 +428,7 @@ void (async () => {
                 if (claims.appIdentifier !== pipeRequest.appIdentifier) {
                   throw new AsyncWorkError({
                     name: 'AuthenticationFailed',
-                    origin: 'internal',
+                    origin: 'platform',
                     message: 'Token app identifier mismatch',
                     code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
                     stack: new Error().stack,
@@ -489,7 +489,7 @@ void (async () => {
             const error = err instanceof Error ? err : new Error(String(err))
 
             throw new AsyncWorkError({
-              origin: 'internal',
+              origin: 'platform',
               name: 'UnknownAuthenticationError',
               message: 'Unknown authentication error',
               code: 'WORKER_REQUEST_AUTHENTICATION_FAILED',
@@ -504,7 +504,7 @@ void (async () => {
                 isSystemRequest: pipeRequest.isSystemRequest,
               },
               cause: new AsyncWorkError({
-                origin: 'internal',
+                origin: 'platform',
                 name: 'UnknownAuthenticationError',
                 code: 'UNKNOWN_AUTHENTICATION_ERROR',
                 message: 'Unknown authentication error',
@@ -820,7 +820,7 @@ void (async () => {
                   message: 'Error dispatching request',
                   cause: {
                     name: 'AsyncWorkDispatchError',
-                    origin: 'internal',
+                    origin: 'platform',
                     code: 'DISPATCH_ERROR',
                     message:
                       error instanceof Error ? error.message : String(error),
@@ -912,14 +912,14 @@ void (async () => {
         ? err.toEnvelope()
         : new AsyncWorkError({
             name: 'UnexpectedError',
-            origin: 'internal',
+            origin: 'platform',
             code: 'UNEXPECTED_ERROR_DURING_WORKER_EXECUTION',
             message: 'Unexpected error during worker execution',
             stack: new Error().stack,
             cause:
               err instanceof Error
                 ? {
-                    origin: 'internal',
+                    origin: 'platform',
                     name: 'UnexpectedError',
                     code: 'UNKNOWN_ERROR',
                     message: 'Unknown error',
@@ -931,7 +931,7 @@ void (async () => {
                     },
                   }
                 : {
-                    origin: 'internal',
+                    origin: 'platform',
                     name: 'UnexpectedError',
                     code: 'THROWN_NON_ERROR',
                     message: 'Non-error object thrown',

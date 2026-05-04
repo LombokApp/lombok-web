@@ -8,6 +8,7 @@ import { tasksTable } from 'src/task/entities/task.entity'
 import { TaskService } from 'src/task/services/task.service'
 import { CoreTaskName } from 'src/task/task.constants'
 import { transformTaskToDTO } from 'src/task/transforms/task.transforms'
+import { buildTaskCompletions } from 'src/task/util/build-task-completions.util'
 
 import { CoreWorkerService } from '../core-worker.service'
 
@@ -80,46 +81,13 @@ export class RunServerlessWorkerTaskProcessor extends BaseCoreTaskProcessor<Core
                 error,
               })
 
-        const highestLevelAppError =
-          normalizedError.resolveHighestLevelAppError()
-        const runnerSuccess = !!highestLevelAppError
-        innerTaskCompletion = {
-          success: false,
-          requeueDelayMs: highestLevelAppError?.requeueDelayMs,
-          executorMetadata: runtimeExecutorMetadata,
-          error: {
-            code: highestLevelAppError?.code ?? 'EXECUTION_ERROR',
-            name: highestLevelAppError?.name ?? 'ExecutionError',
-            message:
-              highestLevelAppError?.message ??
-              `There was an error executing the task (${typeof highestLevelAppError?.requeueDelayMs !== 'undefined' ? 'requeued' : 'see admin logs for details'})`,
-            ...(highestLevelAppError
-              ? {
-                  name: highestLevelAppError.name,
-                  message: highestLevelAppError.message,
-                  stack: highestLevelAppError.stack,
-                  details: highestLevelAppError.toEnvelope(),
-                }
-              : {}), // TODO: add some details for an internal (non-app) error
-          },
-        }
-
-        runnerTaskCompletion = {
-          success: runnerSuccess,
-          ...(!runnerSuccess
-            ? {
-                error: {
-                  code: normalizedError.code,
-                  name: normalizedError.name,
-                  message: normalizedError.message,
-                  details: normalizedError.toEnvelope(),
-                },
-              }
-            : {
-                result: {},
-              }),
-          executorMetadata: { type: 'system', metadata: {} },
-        } as TaskCompletion
+        const built = buildTaskCompletions({
+          normalizedError,
+          innerExecutorMetadata: runtimeExecutorMetadata,
+          runnerExecutorMetadata: { type: 'system', metadata: {} },
+        })
+        innerTaskCompletion = built.innerTaskCompletion
+        runnerTaskCompletion = built.runnerTaskCompletion
       }
 
       // Update the inner and runner tasks in a transaction
