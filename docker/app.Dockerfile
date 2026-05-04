@@ -20,6 +20,7 @@ COPY packages/api/cmd/dev-entrypoint.sh ../dev-entrypoint.sh
 
 RUN apk add --no-cache \
   curl \
+  git \
   chromium=142.0.7444.59-r0 \
   nodejs \
   nginx-mod-http-js \
@@ -61,6 +62,11 @@ ENTRYPOINT ["sh", "../test-entrypoint.sh"]
 # install dependencies into temp directory
 # this will cache them and speed up future builds
 FROM base AS install
+
+# Build ID is fixed at image build time; the UI bundles a /build-id static asset
+# from this value and the API exposes it at /api/v1/public/build-id.
+ARG LOMBOK_BUILD_ID=unknown
+ENV LOMBOK_BUILD_ID=${LOMBOK_BUILD_ID}
 
 RUN apk add --no-cache nodejs
 
@@ -122,6 +128,10 @@ FROM base AS release
 
 # copy in all the compiled application
 COPY --from=install /temp/dev ./
+
+# Build ID is fixed at image build time and exposed at runtime via /api/v1/public/build-id.
+ARG LOMBOK_BUILD_ID=unknown
+ENV LOMBOK_BUILD_ID=${LOMBOK_BUILD_ID}
 
 # run the app
 EXPOSE 8080/tcp

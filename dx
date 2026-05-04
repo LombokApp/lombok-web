@@ -2,11 +2,83 @@
 set -euo pipefail
 
 export DOCKER_CLI_HINTS=false
-CONTAINER="lombok-dev"
+
+PROJECT_ID_FILE=".lombok-project-id"
+
+# Word lists for friendly project names like `lombok-dev-amber-otter`.
+DX_ADJECTIVES=(amber bold brave calm cosy daring dapper eager earthy fluffy
+  frosty gentle golden happy ivory jolly keen lucky merry nimble opal plucky
+  quiet ruby silver sunny tidy umber vivid witty zesty)
+DX_NOUNS=(badger condor crane dolphin elk falcon fox gull hare heron ibis jay
+  koala lion lynx mole newt otter owl panda puffin quail raven salmon stoat
+  tiger urchin viper wren yak zebra)
+
+# Resolve dev project ID + build ID.
+#   - Project ID: stable per-checkout, persisted in .lombok-project-id (gitignored).
+#     Used as COMPOSE_PROJECT_NAME so containers/volumes survive commits.
+#   - Build ID: <project>-<branch>-<hash>, recomputed every invocation. Surfaced
+#     by /api/v1/public/build-id and /build-id; never used as the compose name.
+# Pass "generate" to create the project ID if missing (only `up` should do this).
+resolve_build_id() {
+  local mode="${1:-require}"
+  local project=""
+  if [ -f "$PROJECT_ID_FILE" ]; then
+    project=$(tr -d '[:space:]' < "$PROJECT_ID_FILE")
+  fi
+  if [ -z "$project" ]; then
+    if [ "$mode" = "generate" ]; then
+      local adj noun
+      adj=${DX_ADJECTIVES[$((RANDOM % ${#DX_ADJECTIVES[@]}))]}
+      noun=${DX_NOUNS[$((RANDOM % ${#DX_NOUNS[@]}))]}
+      project="lombok-dev-${adj}-${noun}"
+      printf '%s\n' "$project" > "$PROJECT_ID_FILE"
+      echo "Generated dev project ID: $project (saved to $PROJECT_ID_FILE)" >&2
+    else
+      echo "No $PROJECT_ID_FILE found. Run './dx up' first to generate one." >&2
+      exit 1
+    fi
+  fi
+  local hash="nogit" branch="" branch_part=""
+  if command -v git >/dev/null 2>&1; then
+    hash=$(git rev-parse --short HEAD 2>/dev/null || echo "nogit")
+    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  fi
+  if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+    # Compose project names allow only [a-z0-9_-]; fold to that and trim.
+    branch_part=$(printf '%s' "$branch" \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed -e 's/[^a-z0-9_-]/-/g' -e 's/--*/-/g' -e 's/^-//' -e 's/-$//' \
+      | cut -c1-40)
+  fi
+  if [ -n "$branch_part" ]; then
+    export LOMBOK_BUILD_ID="${project}-${branch_part}-${hash}"
+  else
+    export LOMBOK_BUILD_ID="${project}-${hash}"
+  fi
+  export COMPOSE_PROJECT_NAME="$project"
+
+  # In a git worktree, `.git` is a file pointing at an absolute host path
+  # (e.g., /Users/.../.git/worktrees/<name>). For `git` inside the container
+  # to resolve refs, we bind-mount the host's git common dir at the same
+  # absolute path. Compose volume defaults to /dev/null when unset/empty.
+  if command -v git >/dev/null 2>&1; then
+    local git_common_dir resolved=""
+    git_common_dir=$(git rev-parse --git-common-dir 2>/dev/null || true)
+    if [ -n "$git_common_dir" ] && [ -d "$git_common_dir" ]; then
+      resolved=$(cd "$git_common_dir" 2>/dev/null && pwd -P || true)
+    fi
+    if [ -n "$resolved" ]; then
+      export HOST_GIT_COMMON_DIR="$resolved"
+    fi
+  fi
+}
 
 require_container() {
-  if ! docker container inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true; then
-    echo "Container '$CONTAINER' is not running. Start it with: ./dx up" >&2
+  resolve_build_id
+  local cid
+  cid=$(docker compose ps -q api 2>/dev/null || true)
+  if [ -z "$cid" ] || ! docker container inspect -f '{{.State.Running}}' "$cid" 2>/dev/null | grep -q true; then
+    echo "No running api container for project '$COMPOSE_PROJECT_NAME'. Start it with: ./dx up" >&2
     exit 1
   fi
 }
@@ -15,9 +87,9 @@ require_container() {
 # Run as user bun via su-exec because the container drops CAP_KILL,
 # so root cannot signal bun-owned processes.
 if [ -t 0 ]; then
-  DOCKER_EXEC="docker exec -it $CONTAINER su-exec bun"
+  DOCKER_EXEC="docker compose exec api su-exec bun"
 else
-  DOCKER_EXEC="docker exec $CONTAINER su-exec bun"
+  DOCKER_EXEC="docker compose exec -T api su-exec bun"
 fi
 
 usage() {
@@ -51,8 +123,8 @@ Commands:
   purge minio          Tear down and remove the MinIO data volume
   generate openapi     Generate the OpenAPI spec
   generate metadata    Generate NestJS metadata
-  release standalone   Build the standalone release image
-  release separate-db  Build the separate-db release image
+  release standalone <version>   Build the standalone release image (e.g. 1.2.1-beta-rc3)
+  release separate-db <version>  Build the separate-db release image (e.g. 1.2.1-beta-rc3)
   install              Force-reinstall dependencies on host and in container
   exec <cmd...>        Run an arbitrary command inside the container
   logs                 Tail the container logs
@@ -211,6 +283,7 @@ case "${1:-help}" in
     ;;
 
   up)
+    resolve_build_id generate
     if [ "${2:-}" = "-d" ]; then
       docker compose up -d
     else
@@ -218,24 +291,28 @@ case "${1:-help}" in
     fi
     ;;
   up:rebuild)
+    resolve_build_id generate
     docker compose up --build
     ;;
   down)
+    resolve_build_id
     docker compose down
     ;;
   kill)
+    resolve_build_id
     docker compose kill
     ;;
   purge)
+    resolve_build_id
     case "${2:-}" in
       all)
         docker compose down --volumes --rmi local --remove-orphans
         ;;
       db)
-        docker compose down && docker volume rm lombok-web_pgdata
+        docker compose down && docker volume rm "${COMPOSE_PROJECT_NAME}_pgdata"
         ;;
       minio)
-        docker compose down && docker volume rm lombok-web_miniodata
+        docker compose down && docker volume rm "${COMPOSE_PROJECT_NAME}_miniodata"
         ;;
       *)
         echo "Usage: ./dx purge <all|db|minio>" >&2
@@ -259,15 +336,20 @@ case "${1:-help}" in
     esac
     ;;
   release)
+    version="${3:-}"
+    if [ -z "$version" ]; then
+      echo "Usage: ./dx release <standalone|separate-db> <version>   (e.g. ./dx release standalone 1.2.1-beta-rc3)" >&2
+      exit 1
+    fi
     case "${2:-}" in
       standalone)
-        (cd ./deploy && sh ./build-standalone.sh)
+        (cd ./deploy && sh ./build-standalone.sh "$version")
         ;;
       separate-db)
-        (cd ./deploy && sh ./build-separate-db.sh)
+        (cd ./deploy && sh ./build-separate-db.sh "$version")
         ;;
       *)
-        echo "Usage: ./dx release <standalone|separate-db>" >&2
+        echo "Usage: ./dx release <standalone|separate-db> <version>" >&2
         exit 1
         ;;
     esac
@@ -282,7 +364,7 @@ case "${1:-help}" in
     ;;
   logs)
     require_container
-    docker logs -f "$CONTAINER"
+    docker compose logs -f api
     ;;
   shell)
     require_container

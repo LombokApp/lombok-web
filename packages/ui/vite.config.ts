@@ -6,6 +6,8 @@ import path from 'path'
 import type { PluginOption } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
 
+import { buildIdPlugin } from './build-id-plugin'
+
 // Custom plugin for subdomain routing
 function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
   return {
@@ -83,6 +85,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       tailwindcss(),
       react(),
+      buildIdPlugin(),
       ...(mode === 'development' ? [subdomainProxyPlugin(env)] : []),
     ] as PluginOption[],
     resolve: {

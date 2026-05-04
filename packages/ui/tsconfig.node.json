@@ -25,6 +25,7 @@
   },
   "include": [
     "vite.config.ts",
+    "build-id-plugin.ts",
     "tailwind.config.ts",
     "eslint.config.ts",
     "src/worker.ts"
