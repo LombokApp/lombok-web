@@ -636,8 +636,7 @@ export class EventService {
     const appIdentifier = !isCoreEmitter ? args.emitterIdentifier : undefined
     const targetLocation =
       'targetLocation' in args ? args.targetLocation : undefined
-    const targetUserId =
-      'targetUserId' in args ? args.targetUserId : undefined
+    const targetUserId = 'targetUserId' in args ? args.targetUserId : undefined
     if (appIdentifier) {
       const app = await this.appService.getApp(appIdentifier.toLowerCase(), {
         enabled: true,
