@@ -7169,6 +7169,8 @@ export interface components {
                 name?: string;
                 code: string;
                 message: string;
+                /** @enum {string} */
+                origin: "platform" | "app";
                 details?: {
                     [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
                 };

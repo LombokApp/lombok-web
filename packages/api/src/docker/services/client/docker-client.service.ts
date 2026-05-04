@@ -671,7 +671,7 @@ export class DockerClientService {
           error instanceof Error ? error : new Error(String(error)),
           {
             name: 'DockerClientError',
-            origin: 'internal',
+            origin: 'platform',
             message: `Failed to list containers by labels: ${error instanceof Error ? error.message : String(error)}`,
             code: 'LIST_CONTAINERS_BY_LABELS_FAILED',
             stack: new Error().stack,

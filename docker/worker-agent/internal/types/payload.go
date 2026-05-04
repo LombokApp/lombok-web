@@ -99,6 +99,15 @@ type HTTPJobResponse struct {
 	Error   *JobError       `json:"error,omitempty"`
 }
 
+// Error origin classification. "app" means the failure came from the worker's
+// (user-controlled) code; "platform" means the failure came from the agent or
+// platform mechanics. The platform uses this to decide whether the runner task
+// itself should fail or whether only the inner task should.
+const (
+	ErrorOriginApp      = "app"
+	ErrorOriginPlatform = "platform"
+)
+
 // JobError represents an error from a job execution.
 // Supports both structured {"code":"...","message":"...","details":{...}} and plain string
 // formats during JSON unmarshaling, so that validation errors from workers
@@ -106,19 +115,25 @@ type HTTPJobResponse struct {
 type JobError struct {
 	Code    string         `json:"code"`
 	Message string         `json:"message"`
+	Origin  string         `json:"origin"`
 	Details map[string]any `json:"details,omitempty"`
 }
 
 // UnmarshalJSON handles both string and object error formats from workers.
 //
-//	String:  "some error"           → JobError{Code: "UNKNOWN", Message: "some error"}
-//	Object:  {"code":"X","message":"Y"} → JobError{Code: "X", Message: "Y"}
+//	String:  "some error"           → JobError{Code: "UNKNOWN", Message: "some error", Origin: "app"}
+//	Object:  {"code":"X","message":"Y"} → JobError{Code: "X", Message: "Y", Origin: "app"}
+//
+// Anything that arrives via worker output is by definition worker-supplied, so
+// origin defaults to "app" when omitted. Agent-generated errors set Origin
+// explicitly at construction.
 func (e *JobError) UnmarshalJSON(data []byte) error {
 	// Try plain string first (the common mismatch case)
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
 		e.Code = "UNKNOWN"
 		e.Message = s
+		e.Origin = ErrorOriginApp
 		return nil
 	}
 	// Fall back to structured object
@@ -128,6 +143,9 @@ func (e *JobError) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*e = JobError(a)
+	if e.Origin == "" {
+		e.Origin = ErrorOriginApp
+	}
 	return nil
 }
 

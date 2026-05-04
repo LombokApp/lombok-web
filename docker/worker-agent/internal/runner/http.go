@@ -129,6 +129,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				Error: &types.JobError{
 					Code:    "WORKER_NOT_READY",
 					Message: err.Error(),
+					Origin:  types.ErrorOriginPlatform,
 					Details: errorDetails,
 				},
 			}
@@ -143,6 +144,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"error": map[string]interface{}{
 				"code":    "WORKER_NOT_READY",
 				"message": err.Error(),
+				"origin":  types.ErrorOriginPlatform,
 				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{
@@ -231,6 +233,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"error": map[string]interface{}{
 				"code":    "JOB_SUBMIT_FAILED",
 				"message": err.Error(),
+				"origin":  types.ErrorOriginPlatform,
 				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{
@@ -282,7 +285,9 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			}
 		}
 
-		// Signal completion to platform if available
+		// Signal completion to platform if available.
+		// JOB_NOT_ACCEPTED is the worker rejecting the job — that's an app
+		// concern (the worker decided this job isn't valid for it).
 		if platformClient != nil {
 			ctx := context.Background()
 			completionReq := &types.CompletionRequest{
@@ -290,6 +295,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				Error: &types.JobError{
 					Code:    "JOB_NOT_ACCEPTED",
 					Message: errMsg,
+					Origin:  types.ErrorOriginApp,
 					Details: errorDetails,
 				},
 			}
@@ -304,6 +310,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"error": map[string]interface{}{
 				"code":    "JOB_NOT_ACCEPTED",
 				"message": errMsg,
+				"origin":  types.ErrorOriginApp,
 				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{
@@ -378,7 +385,10 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"timeout_seconds": jobPollTimeout.Seconds(),
 		}
 
-		// Signal completion to platform if available
+		// Signal completion to platform if available.
+		// JOB_POLL_TIMEOUT means the worker never finished its job — the worker
+		// is user code, so this is treated as an app-side hang rather than a
+		// platform mechanics failure.
 		if platformClient != nil {
 			ctx := context.Background()
 			completionReq := &types.CompletionRequest{
@@ -386,6 +396,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 				Error: &types.JobError{
 					Code:    "JOB_POLL_TIMEOUT",
 					Message: jobState.Error,
+					Origin:  types.ErrorOriginApp,
 					Details: errorDetails,
 				},
 			}
@@ -400,6 +411,7 @@ func RunPersistentHTTP(payload *types.JobPayload, jobStartTime time.Time) error 
 			"error": map[string]interface{}{
 				"code":    "JOB_POLL_TIMEOUT",
 				"message": jobState.Error,
+				"origin":  types.ErrorOriginApp,
 				"details": errorDetails,
 			},
 			"timing": map[string]interface{}{

@@ -31876,6 +31876,13 @@
                   "message": {
                     "type": "string"
                   },
+                  "origin": {
+                    "type": "string",
+                    "enum": [
+                      "platform",
+                      "app"
+                    ]
+                  },
                   "details": {
                     "type": "object",
                     "propertyNames": {
@@ -31888,7 +31895,8 @@
                 },
                 "required": [
                   "code",
-                  "message"
+                  "message",
+                  "origin"
                 ]
               },
               "outputFiles": {

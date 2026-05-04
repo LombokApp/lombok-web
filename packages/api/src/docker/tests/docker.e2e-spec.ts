@@ -2112,6 +2112,8 @@ describe('Docker Jobs', () => {
 
     expect(completedDockerTask?.completedAt).toBeDefined()
     expect(completedDockerTask?.systemLog.length).toEqual(2)
+    // The runner (docker) task itself has no result of its own — that's the
+    // inner task's domain. The runner just orchestrated the docker job.
     expect(completedDockerTask?.systemLog).toEqual([
       {
         at: expect.any(Date),
@@ -2129,9 +2131,7 @@ describe('Docker Jobs', () => {
         logType: 'success',
         message: 'Task completed successfully',
         payload: {
-          result: {
-            message: 'done',
-          },
+          result: {},
           executorMetadata: {
             metadata: {
               containerId: '1',
@@ -2148,7 +2148,7 @@ describe('Docker Jobs', () => {
     ])
   })
 
-  it('should persist error.details from the worker on a failure completion', async () => {
+  it('should fail inner task and succeed runner task when worker reports an app-origin failure', async () => {
     await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
@@ -2201,6 +2201,7 @@ describe('Docker Jobs', () => {
           error: {
             code: 'CUSTOM_WORKER_ERROR',
             message: 'simulated structured failure',
+            origin: 'app',
             details: errorDetails,
           },
         },
@@ -2219,7 +2220,7 @@ describe('Docker Jobs', () => {
       code: 'CUSTOM_WORKER_ERROR',
       name: 'Error',
       message: 'simulated structured failure',
-      details: errorDetails,
+      details: { ...errorDetails, origin: 'app' },
     })
 
     // The error system log entry should also carry the structured details
@@ -2231,19 +2232,20 @@ describe('Docker Jobs', () => {
       code: 'CUSTOM_WORKER_ERROR',
       name: 'Error',
       message: 'simulated structured failure',
-      details: errorDetails,
+      details: { ...errorDetails, origin: 'app' },
     })
 
-    // The docker-run task should also reflect the failure with details.
+    // The docker-run (runner) task should succeed: the runner faithfully
+    // reported an app-origin failure, so the runner mechanics did their job.
     const completedDockerTask =
       await testModule!.services.ormService.db.query.tasksTable.findFirst({
         where: eq(tasksTable.id, dockerRunTask.id),
       })
-    expect(completedDockerTask?.success).toBe(false)
-    expect(completedDockerTask?.error?.details).toEqual(errorDetails)
+    expect(completedDockerTask?.success).toBe(true)
+    expect(completedDockerTask?.error).toBeNull()
   })
 
-  it('should accept a failure completion without error.details (backwards compatible)', async () => {
+  it('should accept a failure completion without error.details', async () => {
     await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
@@ -2285,6 +2287,7 @@ describe('Docker Jobs', () => {
           error: {
             code: 'WORKER_EXIT_ERROR',
             message: 'worker exited with code 1',
+            origin: 'app',
           },
         },
       },
@@ -2297,9 +2300,76 @@ describe('Docker Jobs', () => {
       })
 
     expect(completedInnerTask?.error?.code).toBe('WORKER_EXIT_ERROR')
-    // Without `details` being supplied, it must not appear on the persisted
-    // error or the agent will spuriously light up the details panel.
-    expect(completedInnerTask?.error?.details).toBeUndefined()
+    // Without `details` being supplied, only the synthesized origin should
+    // appear under details — no other free-form fields.
+    expect(completedInnerTask?.error?.details).toEqual({ origin: 'app' })
+  })
+
+  it('should fail both inner and runner tasks when agent reports a platform-origin failure', async () => {
+    await createTestUser(testModule!, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    execSpy.mockImplementation((_hostId, _containerId, command, _options?) => {
+      return Promise.resolve({
+        exitCode: 0,
+        stdout:
+          command[1] === 'job-state'
+            ? `{"job_id": "${command.at(-1)}", "job_class": "test_job", "status": "complete", "success": true, "started_at": "${new Date().toISOString()}"}`
+            : '',
+        stderr: '',
+      })
+    })
+
+    const { innerTask, dockerRunTask } = await triggerAppDockerHandledTask(
+      testModule!,
+      {
+        appIdentifier: TEST_APP_SLUG,
+        taskIdentifier: 'non_triggered_docker_worker_task',
+        taskData: { myTaskData: 'test' },
+      },
+    )
+
+    const parsedPayload = parseJobPayload(
+      execSpy.mock.calls[1]![2].at(-1) ?? '',
+    )
+    const jobToken = parsedPayload.jobToken
+    const jobId = parsedPayload.jobId
+
+    await _apiClient(jobToken).POST(`/api/v1/docker/jobs/{jobId}/start`, {
+      params: { path: { jobId } },
+    })
+
+    const completeResponse = await _apiClient(jobToken).POST(
+      `/api/v1/docker/jobs/{jobId}/complete`,
+      {
+        params: { path: { jobId } },
+        body: {
+          success: false,
+          error: {
+            code: 'WORKER_START_ERROR',
+            message: 'failed to spawn worker process',
+            origin: 'platform',
+          },
+        },
+      },
+    )
+    expect(responseStatus(completeResponse)).toBe(200)
+
+    const completedInnerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, innerTask.id),
+      })
+    const completedDockerTask =
+      await testModule!.services.ormService.db.query.tasksTable.findFirst({
+        where: eq(tasksTable.id, dockerRunTask.id),
+      })
+
+    expect(completedInnerTask?.success).toBe(false)
+    expect(completedInnerTask?.error?.code).toBe('WORKER_START_ERROR')
+    expect(completedDockerTask?.success).toBe(false)
+    expect(completedDockerTask?.error?.code).toBe('WORKER_START_ERROR')
   })
 
   it('should return unauthorized when lifecycle endpoints are called with an invalid token', async () => {

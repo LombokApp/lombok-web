@@ -457,39 +457,74 @@ export class DockerWorkerHookService {
         throw new NotFoundException(`Inner task not found: ${innerTask}`)
       }
 
-      const innerTaskCompletion: TaskCompletion = completeJobRequest.success
-        ? {
-            success: true,
-            result: completeJobRequest.result,
-            executorMetadata: {
-              type: 'docker',
-              metadata: claims.executorMetadata,
-            },
-          }
-        : {
-            success: false,
-            executorMetadata: {
-              type: 'docker',
-              metadata: claims.executorMetadata,
-            },
-            error: {
-              name: completeJobRequest.error.name ?? 'Error',
-              code: completeJobRequest.error.code,
-              message: completeJobRequest.error.message,
-              ...(completeJobRequest.error.details
-                ? { details: completeJobRequest.error.details }
-                : {}),
-            },
-          }
+      const dockerExecutorMetadata = {
+        type: 'docker' as const,
+        metadata: claims.executorMetadata,
+      }
 
-      // Trigger completion of the docker handler task
+      let innerTaskCompletion: TaskCompletion
+      let runnerTaskCompletion: TaskCompletion
+
+      if (completeJobRequest.success) {
+        innerTaskCompletion = {
+          success: true,
+          result: completeJobRequest.result,
+          executorMetadata: dockerExecutorMetadata,
+        }
+        runnerTaskCompletion = {
+          success: true,
+          result: {},
+          executorMetadata: dockerExecutorMetadata,
+        }
+      } else {
+        const { name, code, message, origin, details } =
+          completeJobRequest.error
+        // Persist origin alongside any worker-supplied details so it's
+        // queryable for diagnostics. The task error schema has no top-level
+        // origin field today.
+        const innerErrorDetails = { ...(details ?? {}), origin }
+
+        innerTaskCompletion = {
+          success: false,
+          executorMetadata: dockerExecutorMetadata,
+          error: {
+            name: name ?? 'Error',
+            code,
+            message,
+            details: innerErrorDetails,
+          },
+        }
+
+        // Runner mechanics succeed when the inner failure was caused by app
+        // code; the runner did its job and faithfully reported the outcome.
+        // Only origin: 'platform' (Docker provisioning, agent failures, etc.)
+        // counts as a runner-level failure.
+        if (origin === 'app') {
+          runnerTaskCompletion = {
+            success: true,
+            result: {},
+            executorMetadata: dockerExecutorMetadata,
+          }
+        } else {
+          runnerTaskCompletion = {
+            success: false,
+            executorMetadata: dockerExecutorMetadata,
+            error: {
+              name: name ?? 'Error',
+              code,
+              message,
+              details: innerErrorDetails,
+            },
+          }
+        }
+      }
+
       await this.taskService.registerTaskCompleted(
         dockerTask.id,
-        innerTaskCompletion,
+        runnerTaskCompletion,
         { tx },
       )
 
-      // Trigger completion of the inner task
       await this.taskService.registerTaskCompleted(
         innerTask.id,
         innerTaskCompletion,

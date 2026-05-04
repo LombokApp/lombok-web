@@ -149,6 +149,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				Error: &types.JobError{
 					Code:    "WORKER_START_ERROR",
 					Message: startErrorMessage,
+					Origin:  types.ErrorOriginPlatform,
 					Details: startErrorDetails,
 				},
 			}
@@ -167,6 +168,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			"error": map[string]interface{}{
 				"code":    "WORKER_START_ERROR",
 				"message": startErrorMessage,
+				"origin":  types.ErrorOriginPlatform,
 				"details": startErrorDetails,
 			},
 		}
@@ -184,6 +186,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			Error: &types.JobError{
 				Code:    "WORKER_START_ERROR",
 				Message: startErrorMessage,
+				Origin:  types.ErrorOriginPlatform,
 				Details: startErrorDetails,
 			},
 		}
@@ -346,9 +349,12 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 				// Prefer the worker's own structured error when available.
 				completionReq.Error = workerSuppliedError
 			} else {
+				// Worker process is user-controlled code; a non-zero exit
+				// without a structured envelope is an app-side crash.
 				completionReq.Error = &types.JobError{
 					Code:    "WORKER_EXIT_ERROR",
 					Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
+					Origin:  types.ErrorOriginApp,
 					Details: map[string]any{
 						"exit_code": exitCode,
 					},
@@ -362,6 +368,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			completionReq.Error = &types.JobError{
 				Code:    "FILE_UPLOAD_ERROR",
 				Message: fmt.Sprintf("failed to upload output files: %v", uploadError),
+				Origin:  types.ErrorOriginPlatform,
 				Details: map[string]any{
 					"underlying_error": uploadError.Error(),
 				},
@@ -413,6 +420,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 			finalError = &types.JobError{
 				Code:    "WORKER_EXIT_ERROR",
 				Message: fmt.Sprintf("worker exited with code %d: %s", exitCode, exitError),
+				Origin:  types.ErrorOriginApp,
 				Details: map[string]any{
 					"exit_code": exitCode,
 				},
@@ -424,6 +432,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		finalError = &types.JobError{
 			Code:    "FILE_UPLOAD_ERROR",
 			Message: fmt.Sprintf("failed to upload output files: %v", uploadError),
+			Origin:  types.ErrorOriginPlatform,
 			Details: map[string]any{
 				"underlying_error": uploadError.Error(),
 			},
@@ -434,6 +443,7 @@ func RunExecPerJob(payload *types.JobPayload, jobStartTime time.Time) error {
 		errMap := map[string]interface{}{
 			"code":    finalError.Code,
 			"message": finalError.Message,
+			"origin":  finalError.Origin,
 		}
 		if len(finalError.Details) > 0 {
 			errMap["details"] = finalError.Details

@@ -76,7 +76,7 @@ export class NotReadyAsyncWorkError extends AsyncWorkError {
   constructor(args: Omit<AsyncWorkErrorConstructorArg, 'origin' | 'class'>) {
     super({
       ...args,
-      origin: 'internal',
+      origin: 'platform',
       requeueDelayMs: args.requeueDelayMs,
       code: args.code,
       message: args.message,
@@ -95,7 +95,7 @@ export class AsyncWorkDispatchError extends AsyncWorkError {
   ) {
     super({
       ...args,
-      origin: 'internal',
+      origin: 'platform',
       ...(args.requeueDelayMs ? { requeueDelayMs: args.requeueDelayMs } : {}),
       code: args.code ?? 'DISPATCH_ERROR',
       message: args.message,
@@ -183,14 +183,14 @@ export const convertErrorToAsyncWorkError = (
       ? new AsyncWorkError({
           ...error,
           ...wrapper,
-          origin: wrapper.origin ?? 'internal',
+          origin: wrapper.origin ?? 'platform',
           details: wrapper.details,
           cause: convertErrorToAsyncWorkError(error),
         })
       : error
   }
   const errorRepr = {
-    origin: 'internal' as const,
+    origin: 'platform' as const,
     code: 'code' in error ? String(error.code) : 'ERROR',
     name: error.name,
     message: error.message,
@@ -204,7 +204,7 @@ export const convertErrorToAsyncWorkError = (
   return wrapper
     ? new AsyncWorkError({
         ...wrapper,
-        origin: wrapper.origin ?? 'internal',
+        origin: wrapper.origin ?? 'platform',
         cause: new AsyncWorkError(errorRepr),
       })
     : new AsyncWorkError(errorRepr)
@@ -227,7 +227,7 @@ export const buildUnexpectedError = ({
     error instanceof Error ? error : new Error(String(error))
 
   return new AsyncWorkError({
-    origin: 'internal',
+    origin: 'platform',
     code,
     message,
     name: 'UnexpectedError',
@@ -235,7 +235,7 @@ export const buildUnexpectedError = ({
     cause:
       error instanceof Error
         ? {
-            origin: isAppError ? 'app' : 'internal',
+            origin: isAppError ? 'app' : 'platform',
             code: 'UNEXPECTED_ERROR',
             name: normalizedError.name,
             message: normalizedError.message,
@@ -251,7 +251,7 @@ export const buildUnexpectedError = ({
               : {}),
           }
         : {
-            origin: 'internal',
+            origin: 'platform',
             code: 'THROWN_NON_ERROR',
             name: 'UnexpectedError',
             message: 'Non-error object thrown',

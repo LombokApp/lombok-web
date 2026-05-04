@@ -1717,7 +1717,7 @@ export async function runWorker(
       if (!error) {
         throw new AsyncWorkError({
           name: 'InvalidWorkerError',
-          origin: 'internal',
+          origin: 'platform',
           code: 'NO_ERROR_PROVIDED',
           message: 'Response marked as failed but no error provided',
           stack: new Error().stack,
@@ -1738,7 +1738,7 @@ export async function runWorker(
     if (!pipeResponse.response) {
       throw new AsyncWorkError({
         name: 'InvalidWorkerResponse',
-        origin: 'internal',
+        origin: 'platform',
         code: 'NO_RESPONSE_DATA_RECEIVED',
         message: 'No response data received for request',
         stack: new Error().stack,

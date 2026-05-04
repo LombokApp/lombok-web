@@ -67,7 +67,7 @@ export const getAsyncWorkErrorFromAppTaskError = (
   if (appTaskErrorValidationSuccess) {
     return new AsyncWorkError({
       name: 'Error',
-      origin: 'internal',
+      origin: 'platform',
       message: 'App threw an AppTaskError',
       code: 'APP_TASK_ERROR',
       stack,
@@ -96,7 +96,7 @@ export const getAsyncWorkErrorFromAppTaskError = (
 
   return new AsyncWorkError({
     name: 'Error',
-    origin: 'internal',
+    origin: 'platform',
     message: 'App threw an AppTaskError which was invalid',
     code: 'APP_THREW_INVALID_APP_TASK_ERROR',
     stack: new Error().stack,

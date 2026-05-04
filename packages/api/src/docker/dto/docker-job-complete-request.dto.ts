@@ -1,4 +1,5 @@
 import { jsonSerializableObjectSchema, requeueSchema } from '@lombokapp/types'
+import { errorOriginSchema } from '@lombokapp/worker-utils'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
@@ -21,6 +22,7 @@ export const errorResponseSchema = z
       name: z.string().optional(),
       code: z.string(),
       message: z.string(),
+      origin: errorOriginSchema,
       details: jsonSerializableObjectSchema.optional(),
     }),
   })

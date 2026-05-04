@@ -1,13 +1,13 @@
 import { jsonSerializableObjectSchema, requeueSchema } from '@lombokapp/types'
 import { z } from 'zod'
 
-export const errorOriginSchema = z.enum(['internal', 'app'])
+export const errorOriginSchema = z.enum(['platform', 'app'])
 
 export type ErrorOrigin = z.infer<typeof errorOriginSchema>
 
 // {
 //   "type": "work_error",
-//   "origin": "internal | app",
+//   "origin": "platform | app",
 //   "requeueDelayMs": number,
 //   "message": "human-readable summary",
 //   "code": "stable_machine_code",
