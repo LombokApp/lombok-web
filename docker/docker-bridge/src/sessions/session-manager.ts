@@ -21,9 +21,13 @@ export class SessionManager {
     return 'sess_' + crypto.randomUUID().replace(/-/g, '').slice(0, 21)
   }
 
+  // The `tn-` prefix puts a hyphen inside the publicId — that hyphen
+  // partitions publicIds from app/worker identifiers (which are [a-z0-9_]+),
+  // so tunnel hostnames cannot collide with api-server--{worker}--{app}
+  // or app-server--{name} patterns.
   private generatePublicId(): string {
     for (let i = 0; i < 10; i++) {
-      const id = crypto.randomUUID().replace(/-/g, '').slice(0, 12)
+      const id = 'tn-' + crypto.randomUUID().replace(/-/g, '').slice(0, 10)
       if (!this.tunnelIndex.has(id)) {
         return id
       }

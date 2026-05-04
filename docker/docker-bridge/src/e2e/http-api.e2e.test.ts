@@ -351,7 +351,7 @@ describe('Bridge HTTP API E2E', () => {
       expect(body.protocol).toBe('raw')
       expect(body.mode).toBe('ephemeral')
       expect(body.state).toBe('created')
-      expect(body.public_id).toMatch(/^[a-f0-9]{12}$/)
+      expect(body.public_id).toMatch(/^tn-[a-f0-9]{10}$/)
       expect(body.label).toBe('terminal')
       expect(body.app_id).toBe('coder')
       expect(body.agent_ready).toBe(false)

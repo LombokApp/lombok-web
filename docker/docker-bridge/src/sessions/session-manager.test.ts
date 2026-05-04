@@ -42,7 +42,7 @@ describe('SessionManager', () => {
         '--ports',
         '3000',
       ])
-      expect(session.publicId).toMatch(/^[a-f0-9]{12}$/)
+      expect(session.publicId).toMatch(/^tn-[a-f0-9]{10}$/)
       expect(session.label).toBe('preview')
       expect(session.appIdentifier).toBe('coder')
       expect(session.agentReady).toBe(false)

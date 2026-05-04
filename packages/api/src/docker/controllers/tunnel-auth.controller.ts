@@ -21,8 +21,13 @@ import { DockerBridgeService } from '../services/docker-bridge.service'
 const COOKIE_NAME = 'tunnel_auth'
 const TUNNEL_TOKEN_TTL_SECONDS = 86400 // 24 hours
 
-/** Tunnel subdomain format: {label}--{publicId}--{appIdentifier}.{platformHost} */
-const TUNNEL_DOMAIN_REGEX = /^(.+)--([a-z0-9]+)--([^.]+)\.(.+)$/
+/**
+ * Tunnel subdomain format: {label}--{publicId}--{appIdentifier}.{platformHost}
+ * publicId is `tn-{hex}` — the embedded hyphen partitions tunnel hostnames
+ * from the api-server--{worker}--{app} space (worker/app are [a-z0-9_]+).
+ */
+const TUNNEL_DOMAIN_REGEX =
+  /^([a-z0-9][a-z0-9-]{0,30}[a-z0-9])--(tn-[a-f0-9]+)--([a-z0-9_]+)\.(.+)$/
 
 interface SessionTokenPayload {
   sub: string
