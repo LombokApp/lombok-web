@@ -1385,9 +1385,31 @@ describe('Task lifecycle', () => {
       (received as { data: { correlationKey: string } }).data.correlationKey,
     ).toBe('ck-docker-update-1')
     expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
+    // Worker's own message text is forwarded when the report supplies one,
+    // instead of the generic "Task progress: <id>" envelope label.
     expect((received as { message: { text: string } }).message.text).toBe(
-      `Task progress: ${APP_ACTION_TASK_ID}`,
+      'Halfway done',
     )
+    // Granular progress details (percent/current/total/label) must be
+    // forwarded so subscribers like codicle's clone progress UI can render
+    // per-stage updates from `gitWithProgress`.
+    expect(
+      (
+        received as {
+          progress: {
+            percent: number
+            current: number
+            total: number
+            label: string
+          }
+        }
+      ).progress,
+    ).toEqual({
+      percent: 50,
+      current: 1,
+      total: 2,
+      label: 'Processing',
+    })
     expect((received as { receivedAt: string }).receivedAt).toBeDefined()
   })
 
@@ -1481,6 +1503,15 @@ describe('Task lifecycle', () => {
       (received as { data: { correlationKey: string } }).data.correlationKey,
     ).toBe('ck-docker-folder-1')
     expect((received as { data: { taskId: string } }).data.taskId).toBe(task.id)
+    expect(
+      (received as { progress: { percent: number; label: string } }).progress,
+    ).toEqual({
+      percent: 75,
+      label: 'Almost done',
+    })
+    expect((received as { message: { text: string } }).message.text).toBe(
+      'Processing folder data',
+    )
   })
 
   it('stores task updates in the database and tracks latest progress', async () => {

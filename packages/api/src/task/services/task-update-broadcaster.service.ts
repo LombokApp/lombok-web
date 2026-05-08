@@ -1,5 +1,8 @@
 import {
   CORE_IDENTIFIER,
+  ReceivedTaskProgressReport,
+  TaskProgressDetails,
+  TaskProgressMessage,
   TaskProgressMessageLevel,
   TaskUpdateAudience,
   TaskUpdateType,
@@ -47,21 +50,36 @@ export class TaskUpdateBroadcasterService {
     private readonly appUserSocketService: AppUserSocketService,
   ) {}
 
-  handleTaskUpdate(task: Task, updateType: TaskUpdateType, _ts?: Date): void {
+  handleTaskUpdate(
+    task: Task,
+    updateType: TaskUpdateType,
+    _ts?: Date,
+    progressReport?: ReceivedTaskProgressReport,
+  ): void {
     const ts = _ts ?? new Date()
+    const reportMessage: TaskProgressMessage | undefined =
+      progressReport?.message
+    const message = reportMessage ?? {
+      level:
+        updateType === TaskUpdateType.task_failed
+          ? TaskProgressMessageLevel.error
+          : TaskProgressMessageLevel.info,
+      text: taskUpdateDescriptionForType(updateType, task),
+      audience: TASK_UPDATE_AUDIENCES_MAP[updateType],
+    }
+    // Synthesize percent: 100 on task_completed so UIs can finalize bars.
+    const progress: TaskProgressDetails | undefined =
+      progressReport?.details ??
+      (updateType === TaskUpdateType.task_completed
+        ? { percent: 100 }
+        : undefined)
     const update = {
-      message: {
-        level:
-          updateType === TaskUpdateType.task_failed
-            ? TaskProgressMessageLevel.error
-            : TaskProgressMessageLevel.info,
-        text: taskUpdateDescriptionForType(updateType, task),
-        audience: TASK_UPDATE_AUDIENCES_MAP[updateType],
-      },
+      message,
       data: {
         taskId: task.id,
         correlationKey: task.correlationKey ?? null,
       },
+      ...(progress ? { progress } : {}),
       receivedAt: ts.toISOString(),
     }
 

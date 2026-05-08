@@ -1387,11 +1387,11 @@ export class TaskService {
       return null
     } // task not in running state
 
-    // Broadcast async update
     this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
       updatedTask,
       TaskUpdateType.task_progress,
       now,
+      storedProgressReport,
     )
 
     // Evaluate and dispatch onProgress handlers
