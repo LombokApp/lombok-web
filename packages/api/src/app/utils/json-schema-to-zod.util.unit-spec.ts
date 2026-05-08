@@ -687,3 +687,124 @@ describe('extractSchemaDefaults', () => {
     expect(extractSchemaDefaults(schema)).toEqual({})
   })
 })
+
+describe('jsonSchemaToZod nullable primitive types', () => {
+  it('rejects null on canonical literal-typed primitive', () => {
+    const zod = jsonSchemaToZod({
+      type: 'object',
+      properties: { label: { type: 'string' } },
+      required: ['label'],
+    })
+    expect(zod.safeParse({ label: 'hi' }).success).toBe(true)
+    expect(zod.safeParse({ label: null }).success).toBe(false)
+    expect(zod.safeParse({}).success).toBe(false)
+  })
+
+  it('accepts null when type uses the JSON-Schema tuple form', () => {
+    // `["string", "null"]` is standard JSON Schema 07 nullable primitive.
+    const zod = jsonSchemaToZod({
+      type: 'object',
+      properties: { activated_at: { type: ['string', 'null'] } },
+      required: ['activated_at'],
+    })
+    expect(zod.safeParse({ activated_at: '2026-05-08' }).success).toBe(true)
+    expect(zod.safeParse({ activated_at: null }).success).toBe(true)
+    // Required-but-missing is still rejected — nullability is independent.
+    expect(zod.safeParse({}).success).toBe(false)
+  })
+
+  it('supports tuple form for number / integer / boolean primitives', () => {
+    const numZod = jsonSchemaToZod({
+      type: 'object',
+      properties: { v: { type: ['number', 'null'] } },
+      required: ['v'],
+    })
+    expect(numZod.safeParse({ v: 1.5 }).success).toBe(true)
+    expect(numZod.safeParse({ v: null }).success).toBe(true)
+    expect(numZod.safeParse({ v: 'no' }).success).toBe(false)
+
+    const intZod = jsonSchemaToZod({
+      type: 'object',
+      properties: { v: { type: ['integer', 'null'] } },
+      required: ['v'],
+    })
+    expect(intZod.safeParse({ v: 7 }).success).toBe(true)
+    expect(intZod.safeParse({ v: null }).success).toBe(true)
+    expect(intZod.safeParse({ v: 1.5 }).success).toBe(false)
+
+    const boolZod = jsonSchemaToZod({
+      type: 'object',
+      properties: { v: { type: ['boolean', 'null'] } },
+      required: ['v'],
+    })
+    expect(boolZod.safeParse({ v: false }).success).toBe(true)
+    expect(boolZod.safeParse({ v: null }).success).toBe(true)
+    expect(boolZod.safeParse({ v: 0 }).success).toBe(false)
+  })
+
+  it('preserves enum + min/max + pattern constraints alongside nullable', () => {
+    const zod = jsonSchemaToZod({
+      type: 'object',
+      properties: {
+        status: { type: ['string', 'null'], enum: ['pending', 'active'] },
+        count: { type: ['integer', 'null'], minimum: 0, maximum: 10 },
+        slug: { type: ['string', 'null'], pattern: '^[a-z]+$' },
+      },
+      required: ['status', 'count', 'slug'],
+    })
+    expect(
+      zod.safeParse({ status: 'active', count: 5, slug: 'foo' }).success,
+    ).toBe(true)
+    expect(
+      zod.safeParse({ status: null, count: null, slug: null }).success,
+    ).toBe(true)
+    expect(
+      zod.safeParse({ status: 'other', count: 5, slug: 'foo' }).success,
+    ).toBe(false)
+    expect(
+      zod.safeParse({ status: 'active', count: 99, slug: 'foo' }).success,
+    ).toBe(false)
+    expect(
+      zod.safeParse({ status: 'active', count: 5, slug: 'BAR' }).success,
+    ).toBe(false)
+  })
+
+  it('honours nullable inside patternProperties values', () => {
+    const zod = jsonSchemaToZod({
+      type: 'object',
+      properties: {},
+      patternProperties: {
+        '^prov_': {
+          type: 'object',
+          properties: {
+            label: { type: 'string' },
+            activated_at: { type: ['string', 'null'] },
+          },
+          required: ['label'],
+        },
+      },
+    })
+    expect(
+      zod.safeParse({
+        prov_x: { label: 'x', activated_at: null },
+      }).success,
+    ).toBe(true)
+    expect(
+      zod.safeParse({
+        prov_x: { label: 'x', activated_at: '2026-05-08' },
+      }).success,
+    ).toBe(true)
+  })
+
+  it('jsonSchemaToPartialZod also accepts null for nullable primitives', () => {
+    const zod = jsonSchemaToPartialZod({
+      type: 'object',
+      properties: {
+        activated_at: { type: ['string', 'null'] },
+      },
+    })
+    expect(zod.safeParse({ activated_at: null }).success).toBe(true)
+    expect(zod.safeParse({ activated_at: '2026-05-08' }).success).toBe(true)
+    expect(zod.safeParse({}).success).toBe(true)
+  })
+})

@@ -12,6 +12,11 @@ import { type App, appsTable } from '../entities/app.entity'
 import { appCustomFolderSettingsTable } from '../entities/app-custom-folder-settings.entity'
 import { appCustomUserSettingsTable } from '../entities/app-custom-user-settings.entity'
 import { maskSecretValues } from '../utils/custom-settings-secrets.utils'
+import {
+  flattenZodIssues,
+  type FormattedZodIssue,
+  summariseZodError,
+} from '../utils/format-zod-issues'
 import { jsonSchemaPropertyToZod } from '../utils/json-schema-to-zod.util'
 import {
   resolveCustomSettings,
@@ -39,31 +44,56 @@ export class AppCustomSettingsService {
     schema: JsonSchema07Object,
     values: Record<string, unknown>,
   ): void {
+    // Collect every issue across every key before throwing — surfacing one
+    // error at a time forces apps to fix-and-retry in a tight loop, which is
+    // especially painful when the failure is in a deeply-nested schema (e.g.
+    // a single field of a single OAuth provider config). Each leaf carries
+    // the offending top-level key as the first path segment.
+    const issues: FormattedZodIssue[] = []
+    const summaries: string[] = []
     for (const [key, value] of Object.entries(values)) {
       if (!SETTINGS_KEY_REGEX.test(key)) {
-        throw new BadRequestException(
-          `Invalid setting key "${key}": must be lowercase a-z, 0-9, or _ and must not start or end with _`,
-        )
-      }
-      if (value === null) {
-        // Deletion — allowed for any key defined in the schema.
-        if (jsonSchemaPropertyToZod(schema, key) === null) {
-          throw new BadRequestException(`Unknown setting key: ${key}`)
-        }
+        issues.push({
+          path: key,
+          message:
+            'Setting key must be lowercase a-z / 0-9 / _ and must not start or end with _',
+        })
+        summaries.push(`Setting "${key}":\n  • invalid key format`)
         continue
       }
       const zodSchema = jsonSchemaPropertyToZod(schema, key)
       if (zodSchema === null) {
-        throw new BadRequestException(`Unknown setting key: ${key}`)
+        issues.push({ path: key, message: 'Unknown setting key' })
+        summaries.push(`Setting "${key}":\n  • unknown setting key`)
+        continue
+      }
+      // Deletion — allowed for any key defined in the schema.
+      if (value === null) {
+        continue
       }
       const result = zodSchema.safeParse(value)
       if (!result.success) {
-        throw new BadRequestException({
-          message: `Invalid value for setting "${key}"`,
-          errors: result.error.issues,
-        })
+        const flat = flattenZodIssues(result.error.issues).map((leaf) => ({
+          path: leaf.path ? `${key}.${leaf.path}` : key,
+          message: leaf.message,
+        }))
+        issues.push(...flat)
+        summaries.push(`Setting "${key}":\n${summariseZodError(result.error)}`)
       }
     }
+    if (issues.length === 0) {
+      return
+    }
+    const message =
+      issues.length === 1
+        ? `Invalid setting value: ${issues[0]?.path} — ${issues[0]?.message}`
+        : `Invalid settings patch (${issues.length} issues)\n${summaries.join(
+            '\n',
+          )}`
+    throw new BadRequestException({
+      message,
+      details: { issues },
+    })
   }
 
   private async readScopeValues(
