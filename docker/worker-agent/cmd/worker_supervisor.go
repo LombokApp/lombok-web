@@ -330,7 +330,11 @@ func (w *persistentWorkerLogInterceptor) processLine(line string) {
 	workerLogFile := w.workerLogFile
 	w.mu.Unlock()
 	if workerLogFile != nil {
-		_, _ = io.WriteString(workerLogFile, line+"\n")
+		// Emit the same structured timestamp|WORKER_<port>|LEVEL|JSON
+		// shape used by the unified log so consumers (e.g. worker.ts
+		// /diagnostics/logs) can dedupe by timestamp cursor.
+		formatted := logs.FormatStructuredWorkerLogLine(w.port, line, w.defaultLevel)
+		_, _ = io.WriteString(workerLogFile, formatted)
 	}
 
 	logs.WriteUnifiedWorkerLog(w.port, line, w.defaultLevel)

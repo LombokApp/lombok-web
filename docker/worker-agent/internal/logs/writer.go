@@ -347,18 +347,12 @@ func WriteJobLog(jobLogFile *os.File, jobID string, level LogLevel, message stri
 	return nil
 }
 
-// WriteUnifiedWorkerLog writes a worker log line to the unified log file with timestamp|WORKER_<port>| prefix.
-// All lines are converted to structured format: timestamp|WORKER_<port>|LEVEL|["message",{data}]
-// If the line is unstructured, defaultLevel is used.
-func WriteUnifiedWorkerLog(port int, line string, defaultLevel LogLevel) {
-	logMutex.Lock()
-	defer logMutex.Unlock()
-
-	if unifiedLogFile == nil {
-		return
-	}
-
-	// Get timestamp
+// FormatStructuredWorkerLogLine converts a raw worker log line into the
+// canonical timestamp|WORKER_<port>|LEVEL|["message",{data}] format. The
+// returned string includes a trailing newline. Used for both the unified
+// log and per-worker log files so consumers (e.g. the worker.ts diagnostics
+// log viewer) can rely on a stable, parseable format with timestamps.
+func FormatStructuredWorkerLogLine(port int, line string, defaultLevel LogLevel) string {
 	timestamp := formatLogTimestamp()
 
 	// Try to parse as job-specific structured log first
@@ -380,16 +374,7 @@ func WriteUnifiedWorkerLog(port int, line string, defaultLevel LogLevel) {
 			levelStr := strings.TrimSpace(parts[1])
 			jsonPart := strings.TrimSpace(parts[2])
 			level = LogLevel(levelStr)
-			// Validate level
-			validLevels := []LogLevel{LogLevelTrace, LogLevelDebug, LogLevelInfo, LogLevelWarn, LogLevelError, LogLevelFatal}
-			valid := false
-			for _, validLevel := range validLevels {
-				if level == validLevel {
-					valid = true
-					break
-				}
-			}
-			if valid {
+			if isValidLogLevel(level) {
 				// Parse the JSON array: ["message",{optional_data}]
 				var logArray []any
 				if err := json.Unmarshal([]byte(jsonPart), &logArray); err == nil && len(logArray) > 0 {
@@ -400,6 +385,8 @@ func WriteUnifiedWorkerLog(port int, line string, defaultLevel LogLevel) {
 						}
 					}
 				}
+			} else {
+				level = ""
 			}
 		}
 	}
@@ -432,8 +419,21 @@ func WriteUnifiedWorkerLog(port int, line string, defaultLevel LogLevel) {
 		logEntryJSON = []byte(fmt.Sprintf(`["%s"]`, message))
 	}
 
-	// Format: timestamp|WORKER_<port>|LEVEL|["message",{data}]
-	unifiedLine := fmt.Sprintf("%s|WORKER_%d|%s|%s\n", timestamp, port, level, string(logEntryJSON))
+	return fmt.Sprintf("%s|WORKER_%d|%s|%s\n", timestamp, port, level, string(logEntryJSON))
+}
+
+// WriteUnifiedWorkerLog writes a worker log line to the unified log file with timestamp|WORKER_<port>| prefix.
+// All lines are converted to structured format: timestamp|WORKER_<port>|LEVEL|["message",{data}]
+// If the line is unstructured, defaultLevel is used.
+func WriteUnifiedWorkerLog(port int, line string, defaultLevel LogLevel) {
+	logMutex.Lock()
+	defer logMutex.Unlock()
+
+	if unifiedLogFile == nil {
+		return
+	}
+
+	unifiedLine := FormatStructuredWorkerLogLine(port, line, defaultLevel)
 	_, _ = io.WriteString(unifiedLogFile, unifiedLine)
 	_ = unifiedLogFile.Sync()
 }
