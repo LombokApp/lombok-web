@@ -2322,6 +2322,41 @@ export class AppService {
    * Destroy Docker containers belonging to the requesting app.
    * The hostId is always resolved from the profile configuration.
    */
+  /**
+   * Resolve the running container for `(profileIdentifier, isolationKey)` of
+   * the requesting app — used by class-isolated workflows that need to point
+   * back at a container they earlier asked the platform to spawn (e.g. the
+   * codicle OAuth login flow attaching a terminal to its dedicated login
+   * container) without caching the pointer themselves. Returns `null` if no
+   * running container matches.
+   */
+  async resolveAppWorkerDockerContainer(
+    appIdentifier: string,
+    params: {
+      profileIdentifier: string
+      userId?: string
+      isolationKey: string
+    },
+  ): Promise<{ hostId: string; containerId: string } | null> {
+    const { profileIdentifier, userId, isolationKey } = params
+    const profileKey = `${appIdentifier}:${profileIdentifier}`
+    const profileSpec = await this.dockerJobsService.getProfileSpec(
+      appIdentifier,
+      profileIdentifier,
+    )
+    const { hostId } =
+      await this.dockerJobsService.resolveDockerHostConfigForProfile(profileKey)
+    const found = await this.dockerJobsService.findRunningAppWorkerContainer({
+      hostId,
+      profileKey,
+      appIdentifier,
+      profileSpec,
+      userId,
+      isolationKey: userId ? `user:${userId}:${isolationKey}` : isolationKey,
+    })
+    return found ? { hostId, containerId: found.containerId } : null
+  }
+
   async destroyAppWorkerDockerContainers(
     appIdentifier: string,
     params:

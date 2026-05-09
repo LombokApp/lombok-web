@@ -33,6 +33,7 @@ export const AppSocketMessage = z.enum([
   'CREATE_BRIDGE_TUNNEL',
   'DELETE_BRIDGE_TUNNEL',
   'DESTROY_APP_DOCKER_CONTAINERS',
+  'RESOLVE_APP_DOCKER_CONTAINER',
 ])
 
 export const appMessageErrorSchema = z.object({

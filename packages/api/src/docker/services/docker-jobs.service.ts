@@ -439,6 +439,47 @@ export class DockerJobsService {
   }
 
   /**
+   * Find the running container matching `(profileKey, isolationKey, userId?)`
+   * by docker labels. Returns `null` if nothing's running — exited / created /
+   * paused matches are filtered out so callers don't mistake a teardown-pending
+   * container for a live one. Class-isolated profiles guarantee at most one
+   * match; the first running container is returned.
+   */
+  async findRunningAppWorkerContainer(params: {
+    hostId: string
+    profileKey: string
+    appIdentifier: string
+    profileSpec: ContainerProfileConfig
+    userId?: string
+    isolationKey: string
+  }): Promise<{ containerId: string } | null> {
+    const {
+      hostId,
+      profileKey,
+      appIdentifier,
+      profileSpec,
+      userId,
+      isolationKey,
+    } = params
+    const profileHash = this.hashProfileSpec(profileSpec)
+    const containerProfileIdentifier = `lombok:profile_${profileKey}`
+    const labels = this.buildWorkerContainerLabels(
+      containerProfileIdentifier,
+      profileHash,
+      profileSpec.image,
+      appIdentifier,
+      userId,
+      isolationKey,
+    )
+    const containers = await this.dockerClientService.listContainersByLabels(
+      hostId,
+      labels,
+    )
+    const running = containers.find((c) => c.state === 'running')
+    return running ? { containerId: running.id } : null
+  }
+
+  /**
    * Resolve Docker host and resource config for a given profile key.
    * Uses the DB-backed resolution via DockerHostManagementService.
    */

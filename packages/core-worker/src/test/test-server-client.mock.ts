@@ -74,6 +74,9 @@ export function buildTestServerClient(
     destroyAppDockerContainers: () => {
       throw new Error('Not implemented in test mock')
     },
+    resolveAppDockerContainer: () => {
+      throw new Error('Not implemented in test mock')
+    },
   }
 
   return { ...base, ...overrides }
