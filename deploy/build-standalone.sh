@@ -1,12 +1,17 @@
 #!/bin/bash
 set -e
 
-BRANCH=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD | sed 's/[^A-Za-z0-9_\.-]/--/g' | head -c100)
+VERSION="${1:-}"
+if [ -z "$VERSION" ]; then
+    echo "Usage: $0 <version>   (e.g. $0 1.2.1-beta-rc3)" >&2
+    exit 1
+fi
+
 SHA1=$(git rev-parse --short HEAD)
-VERSION=$BRANCH-$SHA1-$(date +%s)
+BUILD_ID="$VERSION-$SHA1"
 NAME=lombok-standalone
 
-echo "Building version: $VERSION"
+echo "Building build ID: $BUILD_ID"
 
 # Detect local platform
 LOCAL_PLATFORM=$(uname -m)
@@ -18,7 +23,7 @@ fi
 
 # Build for local platform with --load to make it available in local Docker
 echo "Building for local platform: $PLATFORM"
-docker buildx build --platform $PLATFORM --load --no-cache --target standalone-release -t $NAME:$VERSION -t $NAME:latest -f "../docker/app.Dockerfile" ../
+docker buildx build --platform $PLATFORM --load --no-cache --build-arg LOMBOK_BUILD_ID=$BUILD_ID --target standalone-release -t $NAME:$BUILD_ID -t $NAME:latest -f "../docker/app.Dockerfile" ../
 
 # Run the container using docker-compose
 echo "Starting container with docker-compose..."

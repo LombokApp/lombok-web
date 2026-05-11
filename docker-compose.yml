@@ -1,8 +1,5 @@
-name: lombok-dev
-
 services:
   api:
-    container_name: lombok-dev
     build:
       context: .
       dockerfile: docker/app.Dockerfile
@@ -11,6 +8,10 @@ services:
       - ${PLATFORM_HOST}:127.0.0.1
       - ${DEV_S3_HOST:-localhost}:127.0.0.1
     environment:
+      # LOMBOK_BUILD_ID is intentionally NOT injected in dev — backend and Vite
+      # plugin recompute it live from .lombok-build-id + git so commit/branch
+      # changes take effect without a container restart. Prod images bake it in
+      # via Dockerfile ENV.
       - DEV_SEED_FILE=${DEV_SEED_FILE:-default.ts}
       - PLATFORM_HOST=${PLATFORM_HOST:-lombok.localhost}
       - DB_HOST=127.0.0.1
@@ -22,7 +23,6 @@ services:
       - PLATFORM_PORT=8080
       - AUTH_JWT_SECRET=00000000000000000000000000000000
       - AUTH_EMAIL_VERIFICATION_JWT_SECRET=00000000000000000000000000000000
-      - DOCKER_HOST_CONFIG=${DOCKER_HOST_CONFIG:-{}}
       - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
       - CREATE_DATABASE=true
       - RUN_MIGRATIONS=true
@@ -56,11 +56,15 @@ services:
       - ${LOCAL_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       - ${PGDATA_DIR:-pgdata}:/var/lib/postgresql/data
       - ${MINIO_DATA_DIR:-miniodata}:/var/lib/minio/data
+      # Worktree fix: a worktree's `.git` file points to an absolute host path
+      # under the parent repo's `.git` dir; mount that path verbatim so `git`
+      # inside the container resolves worktree refs. Falls through to a no-op
+      # mount when not set (regular checkouts don't need it).
+      - ${HOST_GIT_COMMON_DIR:-/dev/null}:${HOST_GIT_COMMON_DIR:-/dev/null}:ro
     ports:
-      - 8080:8080
-      - 5432:${HOST_DB_PORT:-5432}
-      - 9000:9000
-      - 9001:9001
+      - ${HOST_PLATFORM_PORT:-8080}:8080
+      - ${HOST_DB_PORT:-5432}:5432
+      - ${HOST_MINIO_PORT:-9000}:9000
     cap_drop: [ALL]
     cap_add:
       - SETUID

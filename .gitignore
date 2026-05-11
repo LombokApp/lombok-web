@@ -39,6 +39,7 @@ env.dev
 .aider*
 
 .linked-node-modules
+.lombok-project-id
 docker/worker-agent/dist
 docker/worker-agent/.gocache
 .claude
