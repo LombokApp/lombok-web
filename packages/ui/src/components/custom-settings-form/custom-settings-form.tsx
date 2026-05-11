@@ -148,6 +148,15 @@ function ArrayFieldInput({
     </div>
   )
 }
+// `type` can now be either the canonical literal (`"string"`) or the JSON
+// Schema tuple form (`["string", "null"]`) — collapse to the base literal
+// for switch-narrowing.
+function primitiveBase(
+  t: JsonSchema07PrimitiveProperty['type'],
+): 'string' | 'number' | 'integer' | 'boolean' {
+  return Array.isArray(t) ? t[0] : t
+}
+
 function PrimitiveFieldInput({
   id,
   property,
@@ -161,9 +170,14 @@ function PrimitiveFieldInput({
   isSecret: boolean
   onChange: (value: unknown) => void
 }) {
-  switch (property.type) {
+  const base = primitiveBase(property.type)
+  switch (base) {
     case 'string': {
-      if (property.enum) {
+      const stringProp = property as Extract<
+        JsonSchema07PrimitiveProperty,
+        { type: 'string' | ['string', 'null'] }
+      >
+      if (stringProp.enum) {
         return (
           <Select
             // eslint-disable-next-line @typescript-eslint/no-base-to-string
@@ -174,7 +188,7 @@ function PrimitiveFieldInput({
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
             <SelectContent>
-              {property.enum.map((option) => (
+              {stringProp.enum.map((option) => (
                 <SelectItem key={option} value={option}>
                   {option}
                 </SelectItem>
@@ -191,15 +205,21 @@ function PrimitiveFieldInput({
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
           placeholder={
-            property.default != null ? String(property.default) : undefined
+            stringProp.default != null ? String(stringProp.default) : undefined
           }
-          minLength={property.minLength}
-          maxLength={property.maxLength}
+          minLength={stringProp.minLength}
+          maxLength={stringProp.maxLength}
         />
       )
     }
     case 'number':
     case 'integer': {
+      const numProp = property as Extract<
+        JsonSchema07PrimitiveProperty,
+        {
+          type: 'number' | 'integer' | ['number', 'null'] | ['integer', 'null']
+        }
+      >
       return (
         <Input
           id={id}
@@ -212,18 +232,17 @@ function PrimitiveFieldInput({
               onChange(null)
               return
             }
-            const num =
-              property.type === 'integer' ? parseInt(raw, 10) : parseFloat(raw)
+            const num = base === 'integer' ? parseInt(raw, 10) : parseFloat(raw)
             if (!isNaN(num)) {
               onChange(num)
             }
           }}
           placeholder={
-            property.default != null ? String(property.default) : undefined
+            numProp.default != null ? String(numProp.default) : undefined
           }
-          min={property.minimum}
-          max={property.maximum}
-          step={property.type === 'integer' ? 1 : undefined}
+          min={numProp.minimum}
+          max={numProp.maximum}
+          step={base === 'integer' ? 1 : undefined}
         />
       )
     }

@@ -103,7 +103,6 @@ export class ServerConfigurationService {
           console.error(
             `Invalid value for config ${configObject.key}: ${JSON.stringify(parsedValue.error)}`,
           )
-          console.log('rawValue', rawValue)
           return acc
         }
         acc[configObject.key] = configObject.transformForResponse(

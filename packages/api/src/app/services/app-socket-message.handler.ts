@@ -414,12 +414,44 @@ export async function handleAppSocketMessage(
           },
         }
       }
-      await customSettingsService.patchUserCustomSettings(
-        parsedRequest.data.userId,
-        app,
-        parsedRequest.data.values,
-      )
-      return { result: { success: true } }
+      try {
+        await customSettingsService.patchUserCustomSettings(
+          parsedRequest.data.userId,
+          app,
+          parsedRequest.data.values,
+        )
+        return { result: { success: true } }
+      } catch (err: unknown) {
+        // Surface schema-validation failures with their structured `details`
+        // so the calling app can render which fields/keys broke. NestJS's
+        // BadRequestException stores the body on `err.response`.
+        if (
+          err != null &&
+          typeof err === 'object' &&
+          'status' in err &&
+          (err as { status?: number }).status === 400
+        ) {
+          const response = (err as { response?: unknown }).response
+          const body =
+            response != null && typeof response === 'object'
+              ? (response as Record<string, unknown>)
+              : null
+          const errMessage =
+            typeof body?.message === 'string' ? body.message : 'Bad request'
+          const details =
+            body?.details != null && typeof body.details === 'object'
+              ? (body.details as JsonSerializableObject)
+              : undefined
+          return {
+            error: {
+              code: 400,
+              message: errMessage,
+              ...(details ? { details } : {}),
+            },
+          }
+        }
+        throw err
+      }
     }
     case 'CREATE_BRIDGE_TUNNEL': {
       try {

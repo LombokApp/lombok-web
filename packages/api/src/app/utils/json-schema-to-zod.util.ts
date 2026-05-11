@@ -8,52 +8,92 @@ import type {
 } from '@lombokapp/types'
 import { z } from 'zod'
 
+/**
+ * Resolve a primitive property's `type` value to its base literal and a
+ * `nullable` flag. Accepts both the canonical literal (`"string"`) and the
+ * JSON-Schema tuple form (`["string", "null"]`) used to express nullable
+ * primitives. All primitive cases (string / number / integer / boolean)
+ * support both forms.
+ */
+function unpackPrimitiveType(t: JsonSchema07PrimitiveProperty['type']): {
+  base: 'string' | 'number' | 'integer' | 'boolean'
+  nullable: boolean
+} {
+  if (Array.isArray(t)) {
+    // Tuple form is `[<primitive>, "null"]` — the second slot is constrained
+    // to the literal `"null"` by the upstream Zod schema, so reaching here
+    // means the property is nullable.
+    return { base: t[0], nullable: true }
+  }
+  return { base: t, nullable: false }
+}
+
 function primitivePropertyToZod(
   prop: JsonSchema07PrimitiveProperty,
 ): z.ZodType {
-  switch (prop.type) {
+  const { base, nullable } = unpackPrimitiveType(prop.type)
+  let schema: z.ZodType
+  switch (base) {
     case 'string': {
-      let schema = z.string()
-      if (prop.enum) {
-        if (prop.enum.length > 0) {
-          return z.enum(prop.enum as [string, ...string[]])
-        }
-        return schema
+      const stringProp = prop as Extract<
+        JsonSchema07PrimitiveProperty,
+        { type: 'string' | ['string', 'null'] }
+      >
+      if (stringProp.enum) {
+        schema =
+          stringProp.enum.length > 0
+            ? z.enum(stringProp.enum as [string, ...string[]])
+            : z.string()
+        break
       }
-      if (prop.minLength !== undefined) {
-        schema = schema.min(prop.minLength)
+      let s = z.string()
+      if (stringProp.minLength !== undefined) {
+        s = s.min(stringProp.minLength)
       }
-      if (prop.maxLength !== undefined) {
-        schema = schema.max(prop.maxLength)
+      if (stringProp.maxLength !== undefined) {
+        s = s.max(stringProp.maxLength)
       }
-      if (prop.pattern) {
-        schema = schema.regex(new RegExp(prop.pattern))
+      if (stringProp.pattern) {
+        s = s.regex(new RegExp(stringProp.pattern))
       }
-      return schema
+      schema = s
+      break
     }
     case 'number': {
-      let schema = z.number()
-      if (prop.minimum !== undefined) {
-        schema = schema.min(prop.minimum)
+      const numProp = prop as Extract<
+        JsonSchema07PrimitiveProperty,
+        { type: 'number' | ['number', 'null'] }
+      >
+      let s = z.number()
+      if (numProp.minimum !== undefined) {
+        s = s.min(numProp.minimum)
       }
-      if (prop.maximum !== undefined) {
-        schema = schema.max(prop.maximum)
+      if (numProp.maximum !== undefined) {
+        s = s.max(numProp.maximum)
       }
-      return schema
+      schema = s
+      break
     }
     case 'integer': {
-      let schema = z.number().int()
-      if (prop.minimum !== undefined) {
-        schema = schema.min(prop.minimum)
+      const intProp = prop as Extract<
+        JsonSchema07PrimitiveProperty,
+        { type: 'integer' | ['integer', 'null'] }
+      >
+      let s = z.number().int()
+      if (intProp.minimum !== undefined) {
+        s = s.min(intProp.minimum)
       }
-      if (prop.maximum !== undefined) {
-        schema = schema.max(prop.maximum)
+      if (intProp.maximum !== undefined) {
+        s = s.max(intProp.maximum)
       }
-      return schema
+      schema = s
+      break
     }
     case 'boolean':
-      return z.boolean()
+      schema = z.boolean()
+      break
   }
+  return nullable ? schema.nullable() : schema
 }
 
 function nestedObjectToZod(prop: {

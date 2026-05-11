@@ -272,8 +272,19 @@ export const appSystemRequestRuntimeWorkersSchema = z
   })
   .strict()
 
+/**
+ * Per-primitive `type` value: either the literal (e.g. `"string"`) or a
+ * two-element tuple `[literal, "null"]` to mark the field nullable. This is
+ * standard JSON Schema 07 — supporting it lets app authors express nullable
+ * fields without dropping into `oneOf`. The accompanying `json-schema-to-zod`
+ * helpers detect the tuple form and emit a `.nullable()` Zod schema.
+ */
+const nullableType = <T extends 'string' | 'number' | 'integer' | 'boolean'>(
+  t: T,
+) => z.union([z.literal(t), z.tuple([z.literal(t), z.literal('null')])])
+
 const jsonSchema07StringPropertySchema = z.object({
-  type: z.literal('string'),
+  type: nullableType('string'),
   description: z.string().optional(),
   default: z.string().optional(),
   enum: z.array(z.string()).optional(),
@@ -283,7 +294,7 @@ const jsonSchema07StringPropertySchema = z.object({
 })
 
 const jsonSchema07NumberPropertySchema = z.object({
-  type: z.literal('number'),
+  type: nullableType('number'),
   description: z.string().optional(),
   default: z.number().optional(),
   minimum: z.number().optional(),
@@ -291,7 +302,7 @@ const jsonSchema07NumberPropertySchema = z.object({
 })
 
 const jsonSchema07IntegerPropertySchema = z.object({
-  type: z.literal('integer'),
+  type: nullableType('integer'),
   description: z.string().optional(),
   default: z.number().int().optional(),
   minimum: z.number().int().optional(),
@@ -299,7 +310,7 @@ const jsonSchema07IntegerPropertySchema = z.object({
 })
 
 const jsonSchema07BooleanPropertySchema = z.object({
-  type: z.literal('boolean'),
+  type: nullableType('boolean'),
   description: z.string().optional(),
   default: z.boolean().optional(),
 })

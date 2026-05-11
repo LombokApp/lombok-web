@@ -104,6 +104,7 @@ import { AppNotParsableException } from '../exceptions/app-not-parsable.exceptio
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
 import { appConfigSanitize } from '../utils/app-config-sanitize'
 import { generateAppIdentifierSuffix } from '../utils/app-id.util'
+import { summariseZodError } from '../utils/format-zod-issues'
 import {
   resolveFolderAppSettings,
   resolveUserAppSettings,
@@ -1356,7 +1357,7 @@ export class AppService {
       const sanitizedConfig = appConfigSanitize.safeParse(app.definition.config)
       if (!sanitizedConfig.success) {
         throw new AppInvalidException(
-          `Config is invalid: ${JSON.stringify(sanitizedConfig.error.issues, null, 2)}`,
+          `Config is invalid:\n${summariseZodError(sanitizedConfig.error)}`,
         )
       }
     }
