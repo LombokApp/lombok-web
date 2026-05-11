@@ -180,8 +180,23 @@ export async function buildUITestModule({
     process.env.PLAYWRIGHT_SHOULD_SAVE_SCREENSHOTS ?? '',
   )
 
+  // The vite preview server is now spawned by `e2e.run.ts` (the orchestrator)
+  // *outside* the bun-test process so bun-test's per-test "dangling
+  // subprocess" cleanup can't SIGKILL it between tests. The orchestrator
+  // hands us its frontend port and our pre-allocated backend port via env so
+  // this side can match them. Falls back to local allocation if those env
+  // vars aren't set (e.g. when invoking buildUITestModule from a non-orchestrated
+  // bun-test process).
+  const envBackendPort = process.env.UI_E2E_BACKEND_PORT
+    ? Number(process.env.UI_E2E_BACKEND_PORT)
+    : null
+  const envFrontendPort = process.env.UI_E2E_FRONTEND_PORT
+    ? Number(process.env.UI_E2E_FRONTEND_PORT)
+    : null
+
   // 1. Start backend API server on dynamic port
-  const backendPort = allocateNextPort(BACKEND_PORT_START, usedBackendPorts)
+  const backendPort =
+    envBackendPort ?? allocateNextPort(BACKEND_PORT_START, usedBackendPorts)
   if (debug) {
     console.log(`[1/3] Starting backend API server on port ${backendPort}...`)
   }
@@ -200,37 +215,38 @@ export async function buildUITestModule({
 
   await Bun.sleep(1500)
 
-  // 2. Start Vite preview server on dynamic port
-  const frontendPort = allocateNextPort(FRONTEND_PORT_START, usedFrontendPorts)
-  if (debug) {
-    console.log(`[2/3] Starting Vite preview server on port ${frontendPort}...`)
-  }
-
+  // 2. Vite preview server — spawned by the orchestrator when env-provided,
+  //    otherwise we fall back to spawning it in-process.
+  const frontendPort =
+    envFrontendPort ?? allocateNextPort(FRONTEND_PORT_START, usedFrontendPorts)
   const uiDir = path.resolve(__dirname, '../../../ui')
   const hosts = {
     frontend: `http://127.0.0.1:${frontendPort}`,
     backend: `http://127.0.0.1:${backendPort}`,
   }
-  const previewProcess = Bun.spawn({
-    cmd: [
-      'bunx',
-      'vite',
-      'preview',
-      '--port',
-      String(frontendPort),
-      '--strictPort',
-      '--host',
-      '127.0.0.1',
-    ],
-    cwd: uiDir,
-    stdout: debug ? 'inherit' : 'ignore',
-    stderr: debug ? 'inherit' : 'ignore',
-    env: {
-      ...process.env,
-      // Configure Vite preview to proxy to test backend
-      LOMBOK_BACKEND_HOST: hosts.backend,
-    },
-  })
+
+  const orchestratorOwnsPreview = envFrontendPort !== null
+  const previewProcess = orchestratorOwnsPreview
+    ? null
+    : Bun.spawn({
+        cmd: [
+          'bunx',
+          'vite',
+          'preview',
+          '--port',
+          String(frontendPort),
+          '--strictPort',
+          '--host',
+          '127.0.0.1',
+        ],
+        cwd: uiDir,
+        stdout: debug ? 'inherit' : 'ignore',
+        stderr: debug ? 'inherit' : 'ignore',
+        env: {
+          ...process.env,
+          LOMBOK_BACKEND_HOST: hosts.backend,
+        },
+      })
 
   // Wait for preview server to be ready
   await testModule.services.ormService.waitForInit()
@@ -432,10 +448,14 @@ export async function buildUITestModule({
       }
 
       await Promise.all([
-        new Promise((resolve) => {
+        new Promise<void>((resolve) => {
+          if (!previewProcess) {
+            // Preview is owned by the orchestrator — it tears it down.
+            resolve()
+            return
+          }
           try {
             previewProcess.kill()
-            previewProcess.disconnect()
           } catch (error) {
             if (debug) {
               console.error('Error killing preview process:', error)
@@ -450,8 +470,8 @@ export async function buildUITestModule({
               totalMaxDurationMs: 10000,
             },
           )
-            .then(resolve)
-            .catch(resolve)
+            .then(() => resolve())
+            .catch(() => resolve())
         }),
         browser.close().catch(() => undefined),
         originalShutdown(),

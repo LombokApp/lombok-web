@@ -100,7 +100,10 @@ const UploadModal = ({
                       <span className="max-w-[80%] truncate">
                         {uploadingFile.name}
                       </span>
-                      <span className="ml-2 whitespace-nowrap text-xs font-medium text-muted-foreground">
+                      <span
+                        className="ml-2 whitespace-nowrap text-xs font-medium text-muted-foreground"
+                        data-testid="upload-progress-percent"
+                      >
                         {`${Math.round(modalData.uploadingProgress[uploadingFile.name] ?? 0)}%`}
                       </span>
                     </div>

@@ -12,6 +12,39 @@ import {
 const TEST_MODULE_KEY = 'ui_folder_upload'
 
 /**
+ * After triggering an upload via `setInputFiles`, the in-process backend
+ * proceeds to S3 PUT + folder reindex + analyze-content workers (which spawn
+ * nsjail subprocesses). If the test ends while any of that is still pending,
+ * bun-test SIGKILLs the dangling subprocesses — which on the file-upload
+ * suite has historically taken the vite preview server / browser down with
+ * them, causing every following test to fail with ERR_CONNECTION_REFUSED.
+ *
+ * Block until every uploading file shows 100% in the modal so the pipeline
+ * is drained before the test returns.
+ */
+async function waitForUploadProgressComplete(
+  page: Page,
+  expectedFileCount: number,
+  timeoutMs = 20000,
+): Promise<void> {
+  const rows = page.getByTestId('upload-progress-percent')
+  await rows.first().waitFor({ state: 'attached', timeout: timeoutMs })
+  await page.waitForFunction(
+    (expected: number) => {
+      const els = Array.from(
+        document.querySelectorAll('[data-testid="upload-progress-percent"]'),
+      )
+      if (els.length < expected) {
+        return false
+      }
+      return els.every((el) => el.textContent.trim() === '100%')
+    },
+    expectedFileCount,
+    { timeout: timeoutMs },
+  )
+}
+
+/**
  * Helper to create a test folder and user, then navigate to folder and open upload modal
  */
 async function setupFolderAndOpenUploadModal(
@@ -51,12 +84,17 @@ async function setupFolderAndOpenUploadModal(
   await page.waitForLoadState()
   await testModule.takeScreenshot(page, 'folder-detail-page')
 
-  // Find and click the actions dropdown menu
-  const actionsButton = page
-    .locator('button[aria-haspopup="menu"], button[aria-expanded]')
-    .first()
+  // Find and click the folder's actions dropdown via its testid.
+  //
+  // `force: true` bypasses Playwright's "is the target obscured?" check. At
+  // wide enough viewports (@4xl container, ~896px) the folder sidebar's
+  // `max-w-0 overflow-x-visible` wrapper extends its rendered content over
+  // adjacent header elements and intercepts pointer events on top of the
+  // actions trigger. The trigger itself is still the right element to fire
+  // a click on — Radix's dropdown opens on click regardless of overlay.
+  const actionsButton = page.getByTestId('folder-actions-trigger')
   await actionsButton.waitFor({ state: 'visible', timeout: 5000 })
-  await actionsButton.click()
+  await actionsButton.click({ force: true })
 
   await page.waitForTimeout(500)
 
@@ -140,6 +178,8 @@ describe('UI E2E - Folder File Upload', () => {
     const hasFileName = await fileName.isVisible().catch(() => false)
 
     expect(hasFileName).toBe(true)
+
+    await waitForUploadProgressComplete(page, 1)
   }, 30000)
 
   it('should show upload progress bar', async () => {
@@ -170,6 +210,8 @@ describe('UI E2E - Folder File Upload', () => {
     const hasProgress = await progressText.isVisible().catch(() => false)
 
     expect(hasProgress).toBe(true)
+
+    await waitForUploadProgressComplete(page, 1)
   }, 30000)
 
   it('should upload multiple files at once', async () => {
@@ -216,6 +258,8 @@ describe('UI E2E - Folder File Upload', () => {
     const hasFile3 = await file3.isVisible().catch(() => false)
 
     expect(hasFile1 || hasFile2 || hasFile3).toBe(true)
+
+    await waitForUploadProgressComplete(page, 3)
   }, 30000)
 
   it('should display dropzone with upload instructions', async () => {
@@ -315,5 +359,7 @@ describe('UI E2E - Folder File Upload', () => {
     const hasPercentage = await percentage.isVisible().catch(() => false)
 
     expect(hasPercentage).toBe(true)
+
+    await waitForUploadProgressComplete(page, 1)
   }, 30000)
 })
