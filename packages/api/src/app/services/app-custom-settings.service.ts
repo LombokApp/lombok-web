@@ -2,11 +2,14 @@ import type { AppSettingsConfig, JsonSchema07Object } from '@lombokapp/types'
 import { SETTINGS_KEY_REGEX } from '@lombokapp/types'
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
 import { and, eq, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
+import { AppUserSocketService } from 'src/socket/app-user/app-user-socket.service'
 
 import { type App, appsTable } from '../entities/app.entity'
 import { appCustomFolderSettingsTable } from '../entities/app-custom-folder-settings.entity'
@@ -29,7 +32,46 @@ interface CustomSettingsGetResponse {
 
 @Injectable()
 export class AppCustomSettingsService {
-  constructor(private readonly ormService: OrmService) {}
+  constructor(
+    private readonly ormService: OrmService,
+    @Inject(forwardRef(() => AppUserSocketService))
+    private readonly appUserSocketService: AppUserSocketService,
+  ) {}
+
+  /**
+   * Notify every open browser tab of `userId` that `app`'s user-scoped
+   * settings just changed, so the UI can refetch its cached settings query
+   * without a manual reload. Mirrors the `<entity>_changed` event shape that
+   * runtime workers emit via `serverClient.emitEvent`, so apps can use a
+   * single listener (`useAppEvent('<app>', 'settings_changed')`) regardless
+   * of whether the mutation came from the platform settings UI or the app's
+   * own API. Best-effort — a failed broadcast must not break the patch.
+   */
+  private broadcastUserSettingsChanged(userId: string, app: App): void {
+    try {
+      this.appUserSocketService.emitUpdate({
+        update: {
+          code: `app:${app.identifier}:settings_changed`,
+          data: {
+            emitterIdentifier: app.identifier,
+            eventIdentifier: 'settings_changed',
+            targetUserId: userId,
+            targetLocationFolderId: null,
+            targetLocationObjectKey: null,
+            data: {},
+            createdAt: new Date().toISOString(),
+          },
+        },
+        scope: {
+          targetUserId: userId,
+          targetAppIdentifier: app.identifier,
+          targetLocationFolderId: null,
+        },
+      })
+    } catch {
+      // Non-fatal: cross-tab sync best-effort.
+    }
+  }
 
   private getSettingsConfig(app: App): AppSettingsConfig | undefined {
     return app.config.settings
@@ -230,6 +272,7 @@ export class AppCustomSettingsService {
       }
     })
 
+    this.broadcastUserSettingsChanged(userId, app)
     return this.getUserCustomSettings(userId, app)
   }
 
@@ -242,6 +285,7 @@ export class AppCustomSettingsService {
           eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
         ),
       )
+    this.broadcastUserSettingsChanged(userId, app)
   }
 
   // --- Folder-level custom settings ---
