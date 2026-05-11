@@ -517,5 +517,27 @@ export async function handleAppSocketMessage(
         }
       }
     }
+    case 'RESOLVE_APP_DOCKER_CONTAINER': {
+      try {
+        const result = await appService.resolveAppWorkerDockerContainer(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Container resolution failed',
+          },
+        }
+      }
+    }
   }
 }

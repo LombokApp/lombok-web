@@ -112,6 +112,17 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['DESTROY_APP_DOCKER_CONTAINERS'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'DESTROY_APP_DOCKER_CONTAINERS'>>
+  /**
+   * Resolve the live container running for a (profile, isolationKey) pair.
+   * Returns the running container's `{hostId, containerId}` or `null` if no
+   * matching container is currently running. Useful for class-isolated
+   * profiles where the runtime needs to reach a container it earlier asked
+   * the platform to spin up but doesn't want to cache the pointer itself.
+   */
+  resolveAppDockerContainer: (
+    params: AppSocketMessageDataMap['RESOLVE_APP_DOCKER_CONTAINER'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'RESOLVE_APP_DOCKER_CONTAINER'>>
 }
 
 interface PlatformApiExecuteOptions {
@@ -249,6 +260,9 @@ export const buildAppClient = (
     },
     destroyAppDockerContainers(params, options) {
       return emitWithAck('DESTROY_APP_DOCKER_CONTAINERS', params, options)
+    },
+    resolveAppDockerContainer(params, options) {
+      return emitWithAck('RESOLVE_APP_DOCKER_CONTAINER', params, options)
     },
   }
 }

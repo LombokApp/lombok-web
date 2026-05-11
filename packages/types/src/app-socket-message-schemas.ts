@@ -203,6 +203,19 @@ export const destroyAppDockerContainersSchema = z.union([
   }),
 ])
 
+/**
+ * Resolve the live container running for a (profile, isolationKey) pair.
+ * Class-isolated container profiles spin up at most one container per
+ * isolation key per user — this returns the one currently in `running`
+ * state, or null if no live container matches. The platform filters out
+ * exited / dead matches so callers don't get a zombie pointer.
+ */
+export const resolveAppDockerContainerSchema = z.object({
+  profileIdentifier: z.string(),
+  userId: z.string().optional(),
+  isolationKey: z.string(),
+})
+
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
@@ -222,6 +235,7 @@ export const AppSocketMessageSchemaMap = {
   CREATE_BRIDGE_TUNNEL: createBridgeTunnelSchema,
   DELETE_BRIDGE_TUNNEL: deleteBridgeTunnelSchema,
   DESTROY_APP_DOCKER_CONTAINERS: destroyAppDockerContainersSchema,
+  RESOLVE_APP_DOCKER_CONTAINER: resolveAppDockerContainerSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketMessageDataMap = {
@@ -359,6 +373,9 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   DESTROY_APP_DOCKER_CONTAINERS: createResponseSchema(
     z.object({ destroyedCount: z.number() }),
+  ),
+  RESOLVE_APP_DOCKER_CONTAINER: createResponseSchema(
+    z.object({ hostId: z.string(), containerId: z.string() }).nullable(),
   ),
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
