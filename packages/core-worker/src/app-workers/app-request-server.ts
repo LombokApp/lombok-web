@@ -5,7 +5,7 @@ import type {
   CoreWorkerMessagePayloadTypes,
   ServerlessWorkerExecConfig,
 } from '@lombokapp/worker-utils'
-import { uniqueExecutionKey } from '@lombokapp/worker-utils'
+import { AsyncWorkError, uniqueExecutionKey } from '@lombokapp/worker-utils'
 import fs from 'fs'
 import path from 'path'
 import { runWorker } from 'src/worker-scripts/run-worker'
@@ -100,13 +100,21 @@ export const buildAppRequestServer = ({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
+      const status =
+        error instanceof AsyncWorkError &&
+        error.code === 'WORKER_REQUEST_AUTHENTICATION_FAILED'
+          ? 401
+          : 500
       return new Response(
         JSON.stringify({
-          error: 'Worker execution failed',
+          error:
+            status === 401
+              ? 'Worker request authentication failed'
+              : 'Worker execution failed',
           message: errorMessage,
         }),
         {
-          status: 500,
+          status,
           headers: { 'Content-Type': 'application/json' },
         },
       )
