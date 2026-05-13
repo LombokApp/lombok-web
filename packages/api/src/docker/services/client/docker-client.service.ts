@@ -19,6 +19,7 @@ import { DockerBridgeService } from '../docker-bridge.service'
 import { DockerHostManagementService } from '../docker-host-management.service'
 import { DOCKER_CONTAINER_TYPES, DOCKER_LABELS } from '../docker-jobs.service'
 import {
+  BridgeHttpError,
   type ConnectionTestResult,
   type ContainerInfo,
   type DockerContainerGpuInfo,
@@ -128,8 +129,9 @@ export class DockerClientService {
       const error = (await response.json().catch(() => ({
         error: response.statusText,
       }))) as { error?: string }
-      throw new Error(
+      throw new BridgeHttpError(
         `Bridge ${method} ${path} failed (${response.status}): ${error.error ?? response.statusText}`,
+        response.status,
       )
     }
 
@@ -620,38 +622,42 @@ export class DockerClientService {
     containerId: string,
     options?: { start?: boolean },
   ): Promise<ContainerInfo | undefined> {
-    const container = await this.withErrorGuard(
-      async () => this.getContainerInspect(hostId, containerId),
-      (error) =>
-        convertErrorToAsyncWorkError(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            name: 'DockerClientError',
-            message: `Failed to find container by id "${containerId}": ${error instanceof Error ? error.message : String(error)}`,
-            code: 'FIND_CONTAINER_BY_ID_FAILED',
-            stack: new Error().stack,
-            details: { containerId },
-          },
-        ),
-    ).then((containerInspect) => {
-      const state: ContainerInfo['state'] = containerInspect.State.Running
-        ? 'running'
-        : containerInspect.State.Paused
-          ? 'paused'
-          : containerInspect.State.Status === 'exited'
-            ? 'exited'
-            : containerInspect.State.Status === 'created'
-              ? 'created'
-              : 'unknown'
-      return {
-        id: containerInspect.Id,
-        image: containerInspect.Config.Image,
-        labels: containerInspect.Config.Labels,
-        state,
-        reusable: !containerInspect.State.Dead,
-        createdAt: containerInspect.Created,
+    let containerInspect: ContainerInspectInfo
+    try {
+      containerInspect = await this.getContainerInspect(hostId, containerId)
+    } catch (error: unknown) {
+      if (error instanceof BridgeHttpError && error.statusCode === 404) {
+        return undefined
       }
-    })
+      throw convertErrorToAsyncWorkError(
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          name: 'DockerClientError',
+          message: `Failed to find container by id "${containerId}": ${error instanceof Error ? error.message : String(error)}`,
+          code: 'FIND_CONTAINER_BY_ID_FAILED',
+          stack: new Error().stack,
+          details: { containerId },
+        },
+      )
+    }
+
+    const state: ContainerInfo['state'] = containerInspect.State.Running
+      ? 'running'
+      : containerInspect.State.Paused
+        ? 'paused'
+        : containerInspect.State.Status === 'exited'
+          ? 'exited'
+          : containerInspect.State.Status === 'created'
+            ? 'created'
+            : 'unknown'
+    const container: ContainerInfo = {
+      id: containerInspect.Id,
+      image: containerInspect.Config.Image,
+      labels: containerInspect.Config.Labels,
+      state,
+      reusable: !containerInspect.State.Dead,
+      createdAt: containerInspect.Created,
+    }
 
     if (options?.start) {
       return this.ensureContainerRunning(hostId, container)
