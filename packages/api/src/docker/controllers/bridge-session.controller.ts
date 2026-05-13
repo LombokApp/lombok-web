@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   HttpCode,
   HttpStatus,
   Logger,
+  NotFoundException,
   Post,
   Req,
   UnauthorizedException,
@@ -76,19 +78,19 @@ export class BridgeSessionController {
     )
 
     if (!container) {
-      throw new Error(
+      throw new NotFoundException(
         `No running container found for instance "${containerId}"`,
       )
     }
 
     const containerAppId = container.labels[DOCKER_LABELS.APP_ID]
     if (!containerAppId || containerAppId !== appIdentifier) {
-      throw new Error('Container not owned by this app')
+      throw new ForbiddenException('Container not owned by this app')
     }
 
     const containerUserId = container.labels[DOCKER_LABELS.USER_ID]
     if (!containerUserId || containerUserId !== userId) {
-      throw new Error('Container not owned by this user')
+      throw new ForbiddenException('Container not owned by this user')
     }
 
     return container

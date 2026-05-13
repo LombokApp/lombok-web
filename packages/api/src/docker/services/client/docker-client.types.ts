@@ -170,6 +170,16 @@ export class DockerError extends Error {
   }
 }
 
+export class BridgeHttpError extends Error {
+  constructor(
+    message: string,
+    public readonly statusCode: number,
+  ) {
+    super(message)
+    this.name = 'BridgeHttpError'
+  }
+}
+
 export class DockerLogAccessError extends DockerError {
   constructor(code: string, message: string) {
     super(code, message)
