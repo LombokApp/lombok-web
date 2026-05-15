@@ -1010,8 +1010,11 @@ async function ensureLinkedNodeModulesMirror(): Promise<string> {
 
 // Helper function to parse request body based on Content-Type and HTTP method
 async function parseRequestBody(request: Request): Promise<unknown> {
-  // Methods that typically don't have request bodies
-  const methodsWithoutBody = ['GET', 'HEAD', 'DELETE', 'OPTIONS']
+  // Methods that never have request bodies. DELETE is allowed to carry a body
+  // (RFC 9110 §9.3.5) — handlers may use it to convey delete options, so we
+  // must forward it. The Content-Length / Content-Type checks below short-
+  // circuit when there's nothing to parse.
+  const methodsWithoutBody = ['GET', 'HEAD', 'OPTIONS']
 
   if (methodsWithoutBody.includes(request.method)) {
     return undefined
