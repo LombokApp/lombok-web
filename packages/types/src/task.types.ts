@@ -8,7 +8,11 @@ import {
 import { targetLocationContextDTOSchema } from './folder.types'
 import { taskIdentifierSchema } from './identifiers.types'
 import type { JsonSerializableObject } from './json.types'
-import { jsonSerializableObjectSchema } from './json.types'
+import {
+  jsonSerializableObjectSchema,
+  pgSafeJsonSerializableObjectSchema,
+  pgSafeStringSchema,
+} from './json.types'
 import {
   isValidCronExpression,
   isValidIanaTimezone,
@@ -117,8 +121,7 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
   z.lazy(() =>
     z.object({
       taskIdentifier: taskIdentifierSchema,
-      condition: z
-        .string()
+      condition: pgSafeStringSchema
         .min(1)
         .refine(
           (value) => {
@@ -130,15 +133,14 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
           },
         )
         .optional(), // e.g. "task.success"
-      dataTemplate: jsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{task.result.someKey}}" }
+      dataTemplate: pgSafeJsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{task.result.someKey}}" }
       onComplete: taskOnCompleteConfigSchema.array().optional(),
     }),
   )
 
 export const taskOnProgressConfigSchema = z.object({
   taskIdentifier: taskIdentifierSchema,
-  condition: z
-    .string()
+  condition: pgSafeStringSchema
     .min(1)
     .refine(
       (value) => {
@@ -150,14 +152,13 @@ export const taskOnProgressConfigSchema = z.object({
       },
     )
     .optional(), // e.g. "progressReport.code === 'session-started'"
-  dataTemplate: jsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{progressReport.details.percent}}" }
+  dataTemplate: pgSafeJsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{progressReport.details.percent}}" }
 })
 
 export type TaskOnProgressConfig = z.infer<typeof taskOnProgressConfigSchema>
 
 const taskTriggerConfigBaseSchema = z.object({
-  condition: z
-    .string()
+  condition: pgSafeStringSchema
     .min(1)
     .refine(
       (value) => {
@@ -220,7 +221,7 @@ export const scheduleTaskTriggerConfigSchema = z
     // invocation context), (b) the platform can dedupe per-bucket fires via
     // the idempotency hash, and (c) the app gets durable identity across
     // restarts without having to persist platform-generated UUIDs.
-    triggerKey: z.string(),
+    triggerKey: pgSafeStringSchema,
   })
   .extend(taskTriggerConfigBaseSchema.shape)
 
@@ -234,11 +235,11 @@ export const eventTaskTriggerConfigSchema = z
     eventIdentifier: eventIdentifierSchema.or(
       corePrefixedEventIdentifierSchema,
     ),
-    dataTemplate: jsonSerializableObjectSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
+    dataTemplate: pgSafeJsonSerializableObjectSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
     // Optional on events — supply one to get the same idempotent-re-register
     // and human-readable discriminator semantics that schedules get for free.
     // When set, must be unique per app across all triggers (config + runtime).
-    triggerKey: z.string().optional(),
+    triggerKey: pgSafeStringSchema.optional(),
   })
   .extend(taskTriggerConfigBaseSchema.shape)
 

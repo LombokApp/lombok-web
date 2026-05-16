@@ -33,6 +33,46 @@ export type JsonSerializableObject = z.infer<
   typeof jsonSerializableObjectSchema
 >
 
+/**
+ * Strings that will ultimately land in a Postgres `text` or `jsonb` column.
+ * Postgres rejects the NUL character (U+0000) in both — its jsonb parser
+ * refuses NULs even though the JSON spec allows them — so we reject at the
+ * wire layer to surface a clean 400 instead of an opaque pg 500.
+ *
+ * Use only on control-plane string fields (config keys, expression strings)
+ * where NULs are essentially never legitimate. App-supplied opaque blobs
+ * (worker results, errors, inputData) take a separate base64-encoded path.
+ */
+const NUL_CHAR = String.fromCharCode(0)
+export const pgSafeStringSchema = z
+  .string()
+  .refine((s) => !s.includes(NUL_CHAR), {
+    message: 'must not contain NUL characters',
+  })
+
+/**
+ * pg-safe variants of the JSON schemas. Identical shape to the permissive
+ * versions above except every string position (record keys and leaf values)
+ * is run through pgSafeStringSchema. Use for nested config payloads like
+ * dataTemplate where every nested string lands in jsonb verbatim.
+ */
+export const pgSafeJsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
+  z.lazy(() =>
+    z.union([
+      pgSafeStringSchema,
+      z.number(),
+      z.boolean(),
+      z.null(),
+      z.array(pgSafeJsonSerializableValueSchema),
+      z.record(pgSafeStringSchema, pgSafeJsonSerializableValueSchema),
+    ]),
+  )
+
+export const pgSafeJsonSerializableObjectSchema = z.record(
+  pgSafeStringSchema,
+  pgSafeJsonSerializableValueSchema,
+)
+
 export type JsonConversionMode = 'strict' | 'recursive'
 
 const convertUnknownToJsonSerializableValueRecursive = (
