@@ -1,4 +1,5 @@
 import {
+  AppConfig,
   AppTaskConfig,
   CORE_IDENTIFIER,
   CoreEvent,
@@ -27,8 +28,10 @@ import {
   ilike,
   or,
   SQL,
+  sql,
 } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
+import { appRuntimeTriggersTable } from 'src/app/entities/app-runtime-trigger.entity'
 import { AppService } from 'src/app/services/app.service'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { evalTriggerHandlerCondition } from 'src/event/util/eval-trigger-condition.util'
@@ -143,76 +146,118 @@ export class EventService {
 
       const tasksToInsert: NewTask[] = []
 
+      const tryEnqueueScheduleTask = async (input: {
+        appConfig: AppConfig
+        appIdentifier: string
+        scheduleTrigger: ScheduleTaskTriggerConfig
+        runtimeTriggerId?: string
+      }) => {
+        const { appConfig, appIdentifier, scheduleTrigger, runtimeTriggerId } =
+          input
+        const intervalMs = this.getScheduleIntervalMs(scheduleTrigger)
+        const earliestAllowed = new Date(nowMs - intervalMs)
+
+        const taskDefinition = appConfig.tasks?.find(
+          (task) => task.identifier === scheduleTrigger.taskIdentifier,
+        )
+
+        if (!taskDefinition) {
+          this.logger.error(
+            `Task definition not found: ${scheduleTrigger.taskIdentifier}`,
+          )
+          return
+        }
+
+        const { handlerType, handlerIdentifier } =
+          this.resolveTaskHandler(taskDefinition)
+
+        const newTask = withTaskIdempotencyKey({
+          id: uuidV4(),
+          invocation: {
+            kind: 'schedule',
+            invokeContext: {
+              timestampBucket: getUtcScheduleBucket(
+                scheduleTrigger.config,
+                now,
+              ).bucketStart.toISOString(),
+              triggerKey: scheduleTrigger.triggerKey,
+              config: {
+                interval: scheduleTrigger.config.interval,
+                unit: scheduleTrigger.config.unit,
+              },
+              ...(runtimeTriggerId ? { runtimeTriggerId } : {}),
+            },
+          },
+          taskIdentifier: taskDefinition.identifier,
+          taskDescription: taskDefinition.description,
+          data: {},
+          ownerId: appIdentifier,
+          createdAt: now,
+          updatedAt: now,
+          handlerType,
+          handlerIdentifier,
+        })
+
+        const existingTask =
+          await this.ormService.db.query.tasksTable.findFirst({
+            columns: { id: true, createdAt: true },
+            where: and(
+              eq(tasksTable.ownerId, appIdentifier),
+              eq(tasksTable.taskIdentifier, newTask.taskIdentifier),
+              eq(tasksTable.idempotencyKey, newTask.idempotencyKey),
+              gte(tasksTable.createdAt, earliestAllowed),
+            ),
+            orderBy: desc(tasksTable.createdAt),
+          })
+
+        if (existingTask) {
+          return
+        }
+        tasksToInsert.push(newTask)
+      }
+
       for (const app of enabledApps) {
         const scheduleTriggers = (app.config.triggers ?? []).filter(
           (trigger) => trigger.kind === 'schedule',
         )
+        for (const scheduleTrigger of scheduleTriggers) {
+          await tryEnqueueScheduleTask({
+            appConfig: app.config,
+            appIdentifier: app.identifier,
+            scheduleTrigger,
+          })
+        }
+      }
 
-        if (!scheduleTriggers.length) {
+      // Runtime-registered schedule triggers live in app_runtime_triggers
+      // (not app.config.triggers) but follow the same firing semantics. Join
+      // to apps so we get config (to resolve the task definition) and filter
+      // on enabled status in one query.
+      const runtimeScheduleRows = await this.ormService.db
+        .select({
+          trigger: appRuntimeTriggersTable,
+          identifier: appsTable.identifier,
+          config: appsTable.config,
+        })
+        .from(appRuntimeTriggersTable)
+        .innerJoin(appsTable, eq(appRuntimeTriggersTable.appId, appsTable.id))
+        .where(
+          and(
+            sql`(${appRuntimeTriggersTable.definition} ->> 'kind') = 'schedule'`,
+            eq(appsTable.enabled, true),
+          ),
+        )
+
+      for (const row of runtimeScheduleRows) {
+        if (row.trigger.definition.kind !== 'schedule') {
           continue
         }
-
-        for (const scheduleTrigger of scheduleTriggers) {
-          const intervalMs = this.getScheduleIntervalMs(scheduleTrigger)
-          const earliestAllowed = new Date(nowMs - intervalMs)
-
-          const taskDefinition = app.config.tasks?.find(
-            (task) => task.identifier === scheduleTrigger.taskIdentifier,
-          )
-
-          if (!taskDefinition) {
-            this.logger.error(
-              `Task definition not found: ${scheduleTrigger.taskIdentifier}`,
-            )
-            continue
-          }
-
-          const { handlerType, handlerIdentifier } =
-            this.resolveTaskHandler(taskDefinition)
-
-          const newTask = withTaskIdempotencyKey({
-            id: uuidV4(),
-            invocation: {
-              kind: 'schedule',
-              invokeContext: {
-                timestampBucket: getUtcScheduleBucket(
-                  scheduleTrigger.config,
-                  now,
-                ).bucketStart.toISOString(),
-                name: scheduleTrigger.name,
-                config: {
-                  interval: scheduleTrigger.config.interval,
-                  unit: scheduleTrigger.config.unit,
-                },
-              },
-            },
-            taskIdentifier: taskDefinition.identifier,
-            taskDescription: taskDefinition.description,
-            data: {},
-            ownerId: app.identifier,
-            createdAt: now,
-            updatedAt: now,
-            handlerType,
-            handlerIdentifier,
-          })
-
-          const existingTask =
-            await this.ormService.db.query.tasksTable.findFirst({
-              columns: { id: true, createdAt: true },
-              where: and(
-                eq(tasksTable.ownerId, app.identifier),
-                eq(tasksTable.taskIdentifier, newTask.taskIdentifier),
-                eq(tasksTable.idempotencyKey, newTask.idempotencyKey),
-                gte(tasksTable.createdAt, earliestAllowed),
-              ),
-              orderBy: desc(tasksTable.createdAt),
-            })
-
-          if (existingTask) {
-            continue
-          }
-          tasksToInsert.push(newTask)
-        }
+        await tryEnqueueScheduleTask({
+          appConfig: row.config,
+          appIdentifier: row.identifier,
+          scheduleTrigger: row.trigger.definition,
+          runtimeTriggerId: row.trigger.id,
+        })
       }
 
       if (!tasksToInsert.length) {
@@ -387,105 +432,182 @@ export class EventService {
         : []
 
     const tasks: NewTask[] = []
+
+    // Per-trigger task build. Shared between config-sourced triggers (walked
+    // off subscribedApp.config.triggers) and runtime-sourced triggers
+    // (rows in app_runtime_triggers).
+    const buildEventTriggeredTask = async (input: {
+      subscribedApp: { identifier: string; config: AppConfig }
+      trigger: Extract<
+        NonNullable<AppConfig['triggers']>[number],
+        { kind: 'event' }
+      >
+      triggerRef:
+        | { source: 'config'; index: number }
+        | { source: 'runtime'; id: string }
+    }) => {
+      const { subscribedApp, trigger, triggerRef } = input
+      const taskDefinition = subscribedApp.config.tasks?.find(
+        (task) => task.identifier === trigger.taskIdentifier,
+      )
+      if (!taskDefinition) {
+        this.logger.error(
+          `Task definition not found for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}`,
+        )
+        return
+      }
+
+      const triggerConditionResult = trigger.condition
+        ? evalTriggerHandlerCondition(trigger.condition, event)
+        : undefined
+
+      if (trigger.condition && triggerConditionResult === false) {
+        this.logger.debug(
+          `Trigger condition failed for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}, on event: ${event.id} (${event.eventIdentifier})`,
+        )
+        return
+      }
+
+      const task: NewTask = withTaskIdempotencyKey({
+        id: uuidV4(),
+        invocation: {
+          ...trigger,
+          invokeContext: this.buildEventInvocation(
+            event,
+            triggerRef,
+            trigger.triggerKey,
+          ),
+        },
+        targetLocationFolderId: targetLocation?.folderId,
+        targetLocationObjectKey: targetLocation?.objectKey,
+        taskDescription: taskDefinition.description,
+        taskIdentifier: taskDefinition.identifier,
+        data: trigger.dataTemplate
+          ? await parseDataFromEventWithTrigger(trigger.dataTemplate, event, {
+              createPresignedUrl:
+                this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
+                  subscribedApp.identifier,
+                ),
+            })
+          : {},
+        ownerId: subscribedApp.identifier,
+        systemLog: [
+          {
+            at: new Date(),
+            logType: 'started',
+            message: 'Task is started',
+          },
+        ],
+        createdAt: now,
+        updatedAt: now,
+        handlerType: taskDefinition.handler.type,
+        handlerIdentifier: (
+          taskDefinition.handler as { identifier: string } | undefined
+        )?.identifier,
+      })
+      tasks.push(task)
+      await this.emitRunnableTaskEnqueuedEvent(task, tx)
+    }
+
+    // Per-app folder/user access check — bails out early if the app is not
+    // enabled for this scope. Returns true if the app may proceed.
+    const checkAppAccess = async (
+      targetAppIdentifier: string,
+    ): Promise<boolean> => {
+      try {
+        if (targetLocation) {
+          await this.appService.validateAppFolderAccess({
+            appIdentifier: targetAppIdentifier,
+            folderId: targetLocation.folderId,
+            tx,
+          })
+        } else if (targetUserId) {
+          await this.appService.validateAppUserAccess({
+            appIdentifier: targetAppIdentifier,
+            userId: targetUserId,
+            tx,
+          })
+        }
+        return true
+      } catch (error) {
+        if (error instanceof UnauthorizedException) {
+          return false
+        }
+        throw error
+      }
+    }
+
     await Promise.all(
       subscribedApps.map(async (subscribedApp) => {
-        try {
-          if (targetLocation) {
-            await this.appService.validateAppFolderAccess({
-              appIdentifier: subscribedApp.identifier,
-              folderId: targetLocation.folderId,
-              tx,
-            })
-          } else if (targetUserId) {
-            await this.appService.validateAppUserAccess({
-              appIdentifier: subscribedApp.identifier,
-              userId: targetUserId,
-              tx,
-            })
-          }
-        } catch (error) {
-          if (error instanceof UnauthorizedException) {
-            // App is not enabled for this user or folder
-            return Promise.resolve()
-          }
+        if (!(await checkAppAccess(subscribedApp.identifier))) {
+          return
         }
-        return Promise.all(
+        await Promise.all(
           (subscribedApp.config.triggers ?? []).map(
             async (trigger, eventTriggerConfigIndex) => {
               if (
                 trigger.kind === 'event' &&
                 trigger.eventIdentifier === eventTriggerIdentifier
               ) {
-                const taskDefinition = subscribedApp.config.tasks?.find(
-                  (task) => task.identifier === trigger.taskIdentifier,
-                )
-                if (!taskDefinition) {
-                  this.logger.error(
-                    `Task definition not found for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}`,
-                  )
-                  return Promise.resolve()
-                }
-
-                const triggerConditionResult = trigger.condition
-                  ? evalTriggerHandlerCondition(trigger.condition, event)
-                  : undefined
-
-                if (trigger.condition && triggerConditionResult === false) {
-                  this.logger.debug(
-                    `Trigger condition failed for app "${subscribedApp.identifier}" and trigger "${trigger.kind}": ${trigger.taskIdentifier}, on event: ${event.id} (${event.eventIdentifier})`,
-                  )
-                  return Promise.resolve()
-                }
-
-                // Build the base task object
-                const task: NewTask = withTaskIdempotencyKey({
-                  id: uuidV4(),
-                  invocation: {
-                    ...trigger,
-                    invokeContext: this.buildEventInvocation(
-                      event,
-                      eventTriggerConfigIndex,
-                    ),
+                await buildEventTriggeredTask({
+                  subscribedApp,
+                  trigger,
+                  triggerRef: {
+                    source: 'config',
+                    index: eventTriggerConfigIndex,
                   },
-                  targetLocationFolderId: targetLocation?.folderId,
-                  targetLocationObjectKey: targetLocation?.objectKey,
-                  taskDescription: taskDefinition.description,
-                  taskIdentifier: taskDefinition.identifier,
-                  data: trigger.dataTemplate
-                    ? await parseDataFromEventWithTrigger(
-                        trigger.dataTemplate,
-                        event,
-                        {
-                          createPresignedUrl:
-                            this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
-                              subscribedApp.identifier,
-                            ),
-                        },
-                      )
-                    : {},
-                  ownerId: subscribedApp.identifier,
-                  systemLog: [
-                    {
-                      at: new Date(),
-                      logType: 'started',
-                      message: 'Task is started',
-                    },
-                  ],
-                  createdAt: now,
-                  updatedAt: now,
-                  handlerType: taskDefinition.handler.type,
-                  handlerIdentifier: (
-                    taskDefinition.handler as { identifier: string } | undefined
-                  )?.identifier,
                 })
-                tasks.push(task)
-                // emit a runnable task enqueued event that will trigger the creation of a docker or worker runner task
-                await this.emitRunnableTaskEnqueuedEvent(task, tx)
               }
-              return Promise.resolve()
             },
           ),
         )
+      }),
+    )
+
+    // Runtime-registered event triggers — joined to apps so we get
+    // identifier + config in one query, and filter on enabled status. For
+    // app-emitted (non-core) events we restrict to triggers belonging to
+    // the emitting app, matching the config-side semantics above.
+    const runtimeEventRows =
+      !isCoreEmitter && !app
+        ? []
+        : await tx
+            .select({
+              trigger: appRuntimeTriggersTable,
+              identifier: appsTable.identifier,
+              config: appsTable.config,
+            })
+            .from(appRuntimeTriggersTable)
+            .innerJoin(
+              appsTable,
+              eq(appRuntimeTriggersTable.appId, appsTable.id),
+            )
+            .where(
+              and(
+                // Uses the expression index on
+                // (definition->>'eventIdentifier') WHERE (definition->>'kind')='event'.
+                sql`(${appRuntimeTriggersTable.definition} ->> 'kind') = 'event'`,
+                sql`(${appRuntimeTriggersTable.definition} ->> 'eventIdentifier') = ${eventTriggerIdentifier}`,
+                eq(appsTable.enabled, true),
+                ...(isCoreEmitter || !app
+                  ? []
+                  : [eq(appRuntimeTriggersTable.appId, app.id)]),
+              ),
+            )
+
+    await Promise.all(
+      runtimeEventRows.map(async (row) => {
+        if (row.trigger.definition.kind !== 'event') {
+          return
+        }
+        if (!(await checkAppAccess(row.identifier))) {
+          return
+        }
+        await buildEventTriggeredTask({
+          subscribedApp: { identifier: row.identifier, config: row.config },
+          trigger: row.trigger.definition,
+          triggerRef: { source: 'runtime', id: row.trigger.id },
+        })
       }),
     )
 
@@ -681,10 +803,24 @@ export class EventService {
     })
   }
 
-  private buildEventInvocation(event: Event, eventTriggerConfigIndex: number) {
+  private buildEventInvocation(
+    event: Event,
+    triggerRef:
+      | number
+      | { source: 'config'; index: number }
+      | { source: 'runtime'; id: string },
+    triggerKey?: string,
+  ) {
+    const refFields =
+      typeof triggerRef === 'number'
+        ? { eventTriggerConfigIndex: triggerRef }
+        : triggerRef.source === 'config'
+          ? { eventTriggerConfigIndex: triggerRef.index }
+          : { runtimeTriggerId: triggerRef.id }
     return {
       eventId: event.id,
-      eventTriggerConfigIndex,
+      ...refFields,
+      ...(triggerKey ? { triggerKey } : {}),
       emitterId: event.emitterId,
       eventIdentifier: event.eventIdentifier,
       targetUserId: event.targetUserId ?? undefined,

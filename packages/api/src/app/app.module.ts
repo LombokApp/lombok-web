@@ -17,6 +17,7 @@ import { AppsController } from './controllers/apps.controller'
 import { UserAppsController } from './controllers/user-apps.controller'
 import { AppService } from './services/app.service'
 import { AppCustomSettingsService } from './services/app-custom-settings.service'
+import { AppRuntimeTriggerService } from './services/app-runtime-trigger.service'
 
 @Module({
   imports: [
@@ -35,10 +36,11 @@ import { AppCustomSettingsService } from './services/app-custom-settings.service
   providers: [
     AppService,
     AppCustomSettingsService,
+    AppRuntimeTriggerService,
     S3Service,
     ServerConfigurationService,
   ],
-  exports: [AppService, AppCustomSettingsService],
+  exports: [AppService, AppCustomSettingsService, AppRuntimeTriggerService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class AppModule {}

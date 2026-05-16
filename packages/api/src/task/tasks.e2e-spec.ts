@@ -930,7 +930,7 @@ describe('Task lifecycle', () => {
 
     if (firstTask.invocation.kind === 'schedule') {
       expect(firstTask.invocation.invokeContext).toEqual({
-        name: 'dummy_schedule',
+        triggerKey: 'dummy_schedule',
         config: {
           interval: 1,
           unit: 'hours',

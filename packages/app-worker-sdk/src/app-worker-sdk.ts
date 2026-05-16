@@ -123,6 +123,18 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['RESOLVE_APP_DOCKER_CONTAINER'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'RESOLVE_APP_DOCKER_CONTAINER'>>
+  registerAppTrigger: (
+    params: AppSocketMessageDataMap['REGISTER_APP_TRIGGER'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'REGISTER_APP_TRIGGER'>>
+  unregisterAppTrigger: (
+    params: AppSocketMessageDataMap['UNREGISTER_APP_TRIGGER'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'UNREGISTER_APP_TRIGGER'>>
+  listAppTriggers: (
+    params: AppSocketMessageDataMap['LIST_APP_TRIGGERS'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'LIST_APP_TRIGGERS'>>
 }
 
 interface PlatformApiExecuteOptions {
@@ -263,6 +275,15 @@ export const buildAppClient = (
     },
     resolveAppDockerContainer(params, options) {
       return emitWithAck('RESOLVE_APP_DOCKER_CONTAINER', params, options)
+    },
+    registerAppTrigger(params, options) {
+      return emitWithAck('REGISTER_APP_TRIGGER', params, options)
+    },
+    unregisterAppTrigger(params, options) {
+      return emitWithAck('UNREGISTER_APP_TRIGGER', params, options)
+    },
+    listAppTriggers(params, options) {
+      return emitWithAck('LIST_APP_TRIGGERS', params, options)
     },
   }
 }

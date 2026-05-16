@@ -19,6 +19,7 @@ import { z } from 'zod'
 
 import type { AppService } from './app.service'
 import type { AppCustomSettingsService } from './app-custom-settings.service'
+import type { AppRuntimeTriggerService } from './app-runtime-trigger.service'
 
 export type AppSocketMessageName = z.infer<typeof AppSocketMessage>
 
@@ -70,6 +71,45 @@ export function parseAppSocketRequest(
   }
 }
 
+function appExceptionToError(
+  error: unknown,
+  fallbackMessage: string,
+): {
+  code: number | string
+  message: string
+  details?: JsonSerializableObject
+} {
+  if (
+    error instanceof Error &&
+    'getResponse' in error &&
+    'getStatus' in error
+  ) {
+    const status = (error as { getStatus: () => number }).getStatus()
+    const response = (error as { getResponse: () => unknown }).getResponse()
+    // NestJS exceptions thrown with a structured body surface it via
+    // getResponse(); we preserve the app-facing string code in `details` and
+    // the HTTP status in `code` so existing SDK callers keep working.
+    if (
+      response &&
+      typeof response === 'object' &&
+      'code' in response &&
+      typeof (response as { code: unknown }).code === 'string'
+    ) {
+      const body = response as { code: string; message?: string }
+      return {
+        code: status,
+        message: body.message ?? error.message,
+        details: { code: body.code },
+      }
+    }
+    return { code: status, message: error.message }
+  }
+  return {
+    code: 500,
+    message: error instanceof Error ? error.message : fallbackMessage,
+  }
+}
+
 export async function handleAppSocketMessage(
   handlerInstanceId: string,
   requestingAppIdentifier: string,
@@ -82,6 +122,7 @@ export async function handleAppSocketMessage(
     folderService,
     appService,
     customSettingsService,
+    runtimeTriggerService,
   }: {
     eventService: EventService
     ormService: OrmService
@@ -90,6 +131,7 @@ export async function handleAppSocketMessage(
     taskService: TaskService
     appService: AppService
     customSettingsService: AppCustomSettingsService
+    runtimeTriggerService: AppRuntimeTriggerService
   },
 ): Promise<AppSocketResponse<AppSocketMessageName>> {
   const parsedRequest = parseAppSocketRequest(message)
@@ -537,6 +579,47 @@ export async function handleAppSocketMessage(
                 : 'Container resolution failed',
           },
         }
+      }
+    }
+    case 'REGISTER_APP_TRIGGER': {
+      try {
+        const result = await runtimeTriggerService.register(
+          requestingAppIdentifier,
+          parsedRequest.data.trigger,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: appExceptionToError(error, 'Failed to register trigger'),
+        }
+      }
+    }
+    case 'UNREGISTER_APP_TRIGGER': {
+      try {
+        const result = await runtimeTriggerService.unregister(
+          requestingAppIdentifier,
+          parsedRequest.data.triggerId,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: appExceptionToError(error, 'Failed to unregister trigger'),
+        }
+      }
+    }
+    case 'LIST_APP_TRIGGERS': {
+      try {
+        const triggers = await runtimeTriggerService.list(
+          requestingAppIdentifier,
+          {
+            ...(parsedRequest.data.kind
+              ? { kind: parsedRequest.data.kind }
+              : {}),
+          },
+        )
+        return { result: { triggers } }
+      } catch (error: unknown) {
+        return { error: appExceptionToError(error, 'Failed to list triggers') }
       }
     }
   }

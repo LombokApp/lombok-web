@@ -182,7 +182,12 @@ export const scheduleTaskTriggerConfigSchema = z
   .object({
     kind: z.literal('schedule'),
     config: scheduleConfigSchema,
-    name: z.string(),
+    // Stable, app-supplied handle for this trigger. Required on schedules so
+    // (a) the task handler can tell which schedule fired (carried into the
+    // invocation context), (b) the platform can dedupe per-bucket fires via
+    // the idempotency hash, and (c) the app gets durable identity across
+    // restarts without having to persist platform-generated UUIDs.
+    triggerKey: z.string(),
   })
   .extend(taskTriggerConfigBaseSchema.shape)
 
@@ -197,6 +202,10 @@ export const eventTaskTriggerConfigSchema = z
       corePrefixedEventIdentifierSchema,
     ),
     dataTemplate: jsonSerializableObjectSchema.optional(), // { "someKey": "{{event.data.someKey}}" }
+    // Optional on events — supply one to get the same idempotent-re-register
+    // and human-readable discriminator semantics that schedules get for free.
+    // When set, must be unique per app across all triggers (config + runtime).
+    triggerKey: z.string().optional(),
   })
   .extend(taskTriggerConfigBaseSchema.shape)
 
@@ -361,7 +370,13 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
       eventIdentifier: eventIdentifierSchema.or(
         corePrefixedEventIdentifierSchema,
       ),
-      eventTriggerConfigIndex: z.number().int(),
+      // Config-sourced triggers carry their array index; runtime-sourced
+      // triggers omit this and set runtimeTriggerId instead.
+      eventTriggerConfigIndex: z.number().int().optional(),
+      runtimeTriggerId: z.guid().optional(),
+      // Mirrors the trigger's optional `triggerKey` — handlers can use it as
+      // a stable human-readable discriminator instead of the runtime UUID.
+      triggerKey: z.string().optional(),
       dataTemplate: jsonSerializableObjectSchema.optional(),
       targetUserId: z.guid().optional(),
       targetLocation: targetLocationContextDTOSchema.optional(),
@@ -374,11 +389,12 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
     kind: z.literal('schedule'),
     invokeContext: z.object({
       timestampBucket: z.string(),
-      name: z.string(),
+      triggerKey: z.string(),
       config: z.object({
         interval: z.number().int().positive(),
         unit: z.enum(['minutes', 'hours', 'days']),
       }),
+      runtimeTriggerId: z.guid().optional(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),
     onProgress: z.array(taskOnProgressConfigSchema).optional(),
@@ -434,6 +450,17 @@ export const taskTriggerConfigSchema = z.discriminatedUnion('kind', [
   scheduleTaskTriggerConfigSchema,
   userActionTaskTriggerConfigSchema,
 ])
+
+// Subset of taskTriggerConfigSchema that an app may add/remove at runtime via
+// the worker socket. user_action triggers are config-only.
+export const registerableTriggerConfigSchema = z.discriminatedUnion('kind', [
+  eventTaskTriggerConfigSchema,
+  scheduleTaskTriggerConfigSchema,
+])
+
+export type RegisterableTriggerConfig = z.infer<
+  typeof registerableTriggerConfigSchema
+>
 
 export type TaskInvocation = z.infer<typeof taskInvocationSchema>
 

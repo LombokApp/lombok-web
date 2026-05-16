@@ -31,6 +31,7 @@ import {
   appFolderSettingsTable,
 } from '../app/entities/app-folder-settings.entity'
 import { appInstallSequencesTable } from '../app/entities/app-install-sequence.entity'
+import { appRuntimeTriggersTable } from '../app/entities/app-runtime-trigger.entity'
 import {
   appUserSettingsRelations,
   appUserSettingsTable,
@@ -88,6 +89,7 @@ export const dbSchema = {
   folderObjectsTable,
   appsTable,
   appInstallSequencesTable,
+  appRuntimeTriggersTable,
   appFolderSettingsTable,
   appFolderSettingsRelations,
   appUserSettingsTable,
