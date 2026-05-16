@@ -27,8 +27,19 @@
       "kind": "schedule",
       "triggerKey": "hourly_job",
       "config": {
+        "kind": "interval",
         "interval": 1,
         "unit": "hours"
+      },
+      "taskIdentifier": "demo_scheduled_worker_task"
+    },
+    {
+      "kind": "schedule",
+      "triggerKey": "weekday_morning_job",
+      "config": {
+        "kind": "cron",
+        "expression": "0 9 * * 1-5",
+        "timezone": "UTC"
       },
       "taskIdentifier": "demo_scheduled_worker_task"
     }

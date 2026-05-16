@@ -159,8 +159,18 @@ const testAppDefinitions: AppConfig[] = [
         kind: 'schedule',
         triggerKey: 'dummy_schedule',
         config: {
+          kind: 'interval',
           interval: 1,
           unit: 'hours',
+        },
+        taskIdentifier: 'lifecycle_schedule_task',
+      },
+      {
+        kind: 'schedule',
+        triggerKey: 'dummy_cron_schedule',
+        config: {
+          kind: 'cron',
+          expression: '* * * * *',
         },
         taskIdentifier: 'lifecycle_schedule_task',
       },

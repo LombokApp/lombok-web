@@ -10531,6 +10531,9 @@
                                 "$ref": "#/components/schemas/AppInstallResponse__schema0"
                               }
                             },
+                            "triggerKey": {
+                              "type": "string"
+                            },
                             "condition": {
                               "type": "string",
                               "minLength": 1
@@ -10590,28 +10593,56 @@
                               "const": "schedule"
                             },
                             "config": {
-                              "type": "object",
-                              "properties": {
-                                "interval": {
-                                  "type": "integer",
-                                  "exclusiveMinimum": 0,
-                                  "maximum": 9007199254740991
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "interval"
+                                    },
+                                    "interval": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "unit": {
+                                      "type": "string",
+                                      "enum": [
+                                        "minutes",
+                                        "hours",
+                                        "days"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "interval",
+                                    "unit"
+                                  ]
                                 },
-                                "unit": {
-                                  "type": "string",
-                                  "enum": [
-                                    "minutes",
-                                    "hours",
-                                    "days"
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "cron"
+                                    },
+                                    "expression": {
+                                      "type": "string"
+                                    },
+                                    "timezone": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "expression"
                                   ]
                                 }
-                              },
-                              "required": [
-                                "interval",
-                                "unit"
                               ]
                             },
-                            "name": {
+                            "triggerKey": {
                               "type": "string"
                             },
                             "condition": {
@@ -10662,7 +10693,7 @@
                           "required": [
                             "kind",
                             "config",
-                            "name",
+                            "triggerKey",
                             "taskIdentifier"
                           ]
                         },
@@ -13670,6 +13701,9 @@
                                   "$ref": "#/components/schemas/AppListResponse__schema0"
                                 }
                               },
+                              "triggerKey": {
+                                "type": "string"
+                              },
                               "condition": {
                                 "type": "string",
                                 "minLength": 1
@@ -13729,28 +13763,56 @@
                                 "const": "schedule"
                               },
                               "config": {
-                                "type": "object",
-                                "properties": {
-                                  "interval": {
-                                    "type": "integer",
-                                    "exclusiveMinimum": 0,
-                                    "maximum": 9007199254740991
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "interval"
+                                      },
+                                      "interval": {
+                                        "type": "integer",
+                                        "exclusiveMinimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "unit": {
+                                        "type": "string",
+                                        "enum": [
+                                          "minutes",
+                                          "hours",
+                                          "days"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "interval",
+                                      "unit"
+                                    ]
                                   },
-                                  "unit": {
-                                    "type": "string",
-                                    "enum": [
-                                      "minutes",
-                                      "hours",
-                                      "days"
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "cron"
+                                      },
+                                      "expression": {
+                                        "type": "string"
+                                      },
+                                      "timezone": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "expression"
                                     ]
                                   }
-                                },
-                                "required": [
-                                  "interval",
-                                  "unit"
                                 ]
                               },
-                              "name": {
+                              "triggerKey": {
                                 "type": "string"
                               },
                               "condition": {
@@ -13801,7 +13863,7 @@
                             "required": [
                               "kind",
                               "config",
-                              "name",
+                              "triggerKey",
                               "taskIdentifier"
                             ]
                           },
@@ -16809,6 +16871,9 @@
                                 "$ref": "#/components/schemas/AppGetResponse__schema0"
                               }
                             },
+                            "triggerKey": {
+                              "type": "string"
+                            },
                             "condition": {
                               "type": "string",
                               "minLength": 1
@@ -16868,28 +16933,56 @@
                               "const": "schedule"
                             },
                             "config": {
-                              "type": "object",
-                              "properties": {
-                                "interval": {
-                                  "type": "integer",
-                                  "exclusiveMinimum": 0,
-                                  "maximum": 9007199254740991
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "interval"
+                                    },
+                                    "interval": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "unit": {
+                                      "type": "string",
+                                      "enum": [
+                                        "minutes",
+                                        "hours",
+                                        "days"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "interval",
+                                    "unit"
+                                  ]
                                 },
-                                "unit": {
-                                  "type": "string",
-                                  "enum": [
-                                    "minutes",
-                                    "hours",
-                                    "days"
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "cron"
+                                    },
+                                    "expression": {
+                                      "type": "string"
+                                    },
+                                    "timezone": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "expression"
                                   ]
                                 }
-                              },
-                              "required": [
-                                "interval",
-                                "unit"
                               ]
                             },
-                            "name": {
+                            "triggerKey": {
                               "type": "string"
                             },
                             "condition": {
@@ -16940,7 +17033,7 @@
                           "required": [
                             "kind",
                             "config",
-                            "name",
+                            "triggerKey",
                             "taskIdentifier"
                           ]
                         },
@@ -19980,6 +20073,9 @@
                                   "$ref": "#/components/schemas/UserAppListResponse__schema0"
                                 }
                               },
+                              "triggerKey": {
+                                "type": "string"
+                              },
                               "condition": {
                                 "type": "string",
                                 "minLength": 1
@@ -20039,28 +20135,56 @@
                                 "const": "schedule"
                               },
                               "config": {
-                                "type": "object",
-                                "properties": {
-                                  "interval": {
-                                    "type": "integer",
-                                    "exclusiveMinimum": 0,
-                                    "maximum": 9007199254740991
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "interval"
+                                      },
+                                      "interval": {
+                                        "type": "integer",
+                                        "exclusiveMinimum": 0,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "unit": {
+                                        "type": "string",
+                                        "enum": [
+                                          "minutes",
+                                          "hours",
+                                          "days"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "interval",
+                                      "unit"
+                                    ]
                                   },
-                                  "unit": {
-                                    "type": "string",
-                                    "enum": [
-                                      "minutes",
-                                      "hours",
-                                      "days"
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "type": "string",
+                                        "const": "cron"
+                                      },
+                                      "expression": {
+                                        "type": "string"
+                                      },
+                                      "timezone": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "kind",
+                                      "expression"
                                     ]
                                   }
-                                },
-                                "required": [
-                                  "interval",
-                                  "unit"
                                 ]
                               },
-                              "name": {
+                              "triggerKey": {
                                 "type": "string"
                               },
                               "condition": {
@@ -20111,7 +20235,7 @@
                             "required": [
                               "kind",
                               "config",
-                              "name",
+                              "triggerKey",
                               "taskIdentifier"
                             ]
                           },
@@ -22994,6 +23118,9 @@
                                 "$ref": "#/components/schemas/UserAppGetResponse__schema0"
                               }
                             },
+                            "triggerKey": {
+                              "type": "string"
+                            },
                             "condition": {
                               "type": "string",
                               "minLength": 1
@@ -23053,28 +23180,56 @@
                               "const": "schedule"
                             },
                             "config": {
-                              "type": "object",
-                              "properties": {
-                                "interval": {
-                                  "type": "integer",
-                                  "exclusiveMinimum": 0,
-                                  "maximum": 9007199254740991
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "interval"
+                                    },
+                                    "interval": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "unit": {
+                                      "type": "string",
+                                      "enum": [
+                                        "minutes",
+                                        "hours",
+                                        "days"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "interval",
+                                    "unit"
+                                  ]
                                 },
-                                "unit": {
-                                  "type": "string",
-                                  "enum": [
-                                    "minutes",
-                                    "hours",
-                                    "days"
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "cron"
+                                    },
+                                    "expression": {
+                                      "type": "string"
+                                    },
+                                    "timezone": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "expression"
                                   ]
                                 }
-                              },
-                              "required": [
-                                "interval",
-                                "unit"
                               ]
                             },
-                            "name": {
+                            "triggerKey": {
                               "type": "string"
                             },
                             "condition": {
@@ -23125,7 +23280,7 @@
                           "required": [
                             "kind",
                             "config",
-                            "name",
+                            "triggerKey",
                             "taskIdentifier"
                           ]
                         },
@@ -30572,6 +30727,14 @@
                             "minimum": -9007199254740991,
                             "maximum": 9007199254740991
                           },
+                          "runtimeTriggerId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                          },
+                          "triggerKey": {
+                            "type": "string"
+                          },
                           "dataTemplate": {
                             "type": "object",
                             "propertyNames": {
@@ -30616,7 +30779,6 @@
                           "eventId",
                           "emitterId",
                           "eventIdentifier",
-                          "eventTriggerConfigIndex",
                           "eventData"
                         ]
                       },
@@ -30674,35 +30836,68 @@
                           "timestampBucket": {
                             "type": "string"
                           },
-                          "name": {
+                          "triggerKey": {
                             "type": "string"
                           },
                           "config": {
-                            "type": "object",
-                            "properties": {
-                              "interval": {
-                                "type": "integer",
-                                "exclusiveMinimum": 0,
-                                "maximum": 9007199254740991
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "interval"
+                                  },
+                                  "interval": {
+                                    "type": "integer",
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "unit": {
+                                    "type": "string",
+                                    "enum": [
+                                      "minutes",
+                                      "hours",
+                                      "days"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "interval",
+                                  "unit"
+                                ]
                               },
-                              "unit": {
-                                "type": "string",
-                                "enum": [
-                                  "minutes",
-                                  "hours",
-                                  "days"
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "const": "cron"
+                                  },
+                                  "expression": {
+                                    "type": "string"
+                                  },
+                                  "timezone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "kind",
+                                  "expression"
                                 ]
                               }
-                            },
-                            "required": [
-                              "interval",
-                              "unit"
                             ]
+                          },
+                          "runtimeTriggerId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                           }
                         },
                         "required": [
                           "timestampBucket",
-                          "name",
+                          "triggerKey",
                           "config"
                         ]
                       },
@@ -31772,6 +31967,14 @@
                               "minimum": -9007199254740991,
                               "maximum": 9007199254740991
                             },
+                            "runtimeTriggerId": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                            },
+                            "triggerKey": {
+                              "type": "string"
+                            },
                             "dataTemplate": {
                               "type": "object",
                               "propertyNames": {
@@ -31816,7 +32019,6 @@
                             "eventId",
                             "emitterId",
                             "eventIdentifier",
-                            "eventTriggerConfigIndex",
                             "eventData"
                           ]
                         },
@@ -31874,35 +32076,68 @@
                             "timestampBucket": {
                               "type": "string"
                             },
-                            "name": {
+                            "triggerKey": {
                               "type": "string"
                             },
                             "config": {
-                              "type": "object",
-                              "properties": {
-                                "interval": {
-                                  "type": "integer",
-                                  "exclusiveMinimum": 0,
-                                  "maximum": 9007199254740991
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "interval"
+                                    },
+                                    "interval": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "unit": {
+                                      "type": "string",
+                                      "enum": [
+                                        "minutes",
+                                        "hours",
+                                        "days"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "interval",
+                                    "unit"
+                                  ]
                                 },
-                                "unit": {
-                                  "type": "string",
-                                  "enum": [
-                                    "minutes",
-                                    "hours",
-                                    "days"
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "cron"
+                                    },
+                                    "expression": {
+                                      "type": "string"
+                                    },
+                                    "timezone": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "expression"
                                   ]
                                 }
-                              },
-                              "required": [
-                                "interval",
-                                "unit"
                               ]
+                            },
+                            "runtimeTriggerId": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                             }
                           },
                           "required": [
                             "timestampBucket",
-                            "name",
+                            "triggerKey",
                             "config"
                           ]
                         },

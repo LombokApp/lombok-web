@@ -6,6 +6,8 @@ type SafeParseReturnType<Input, Output> =
   | { success: false; error: z.ZodError<Input> }
 
 import {
+  scheduleConfigSchema,
+  scheduleTaskTriggerConfigSchema,
   storageAccessPolicySchema,
   taskConfigSchema,
   taskDataSchema,
@@ -471,6 +473,97 @@ describe('task.types', () => {
       }
       const result = taskConfigSchema.safeParse(invalidTask)
       expectZodFailure(result)
+    })
+  })
+
+  describe('scheduleConfigSchema', () => {
+    it('accepts interval kind', () => {
+      const result = scheduleConfigSchema.safeParse({
+        kind: 'interval',
+        interval: 30,
+        unit: 'minutes',
+      })
+      expectZodSuccess(result)
+    })
+
+    it('rejects flat (legacy) shape without kind', () => {
+      const result = scheduleConfigSchema.safeParse({
+        interval: 30,
+        unit: 'minutes',
+      })
+      expectZodFailure(result)
+    })
+
+    it('accepts cron kind without timezone', () => {
+      const result = scheduleConfigSchema.safeParse({
+        kind: 'cron',
+        expression: '0 9 * * 1-5',
+      })
+      expectZodSuccess(result)
+    })
+
+    it('accepts cron kind with valid IANA timezone', () => {
+      const result = scheduleConfigSchema.safeParse({
+        kind: 'cron',
+        expression: '*/15 * * * *',
+        timezone: 'America/New_York',
+      })
+      expectZodSuccess(result)
+    })
+
+    it('rejects cron with invalid expression', () => {
+      const result = scheduleConfigSchema.safeParse({
+        kind: 'cron',
+        expression: 'not a cron',
+      })
+      expectZodFailure(result)
+    })
+
+    it('rejects 6-field cron (sub-minute granularity not supported)', () => {
+      const result = scheduleConfigSchema.safeParse({
+        kind: 'cron',
+        expression: '0 0 9 * * 1-5',
+      })
+      expectZodFailure(result)
+    })
+
+    it('rejects cron with bogus timezone', () => {
+      const result = scheduleConfigSchema.safeParse({
+        kind: 'cron',
+        expression: '0 9 * * 1-5',
+        timezone: 'Mars/Olympus_Mons',
+      })
+      expectZodFailure(result)
+    })
+  })
+
+  describe('scheduleTaskTriggerConfigSchema', () => {
+    it('accepts a cron-form trigger', () => {
+      const result = scheduleTaskTriggerConfigSchema.safeParse({
+        kind: 'schedule',
+        triggerKey: 'weekday_digest',
+        taskIdentifier: 'send_digest',
+        config: {
+          kind: 'cron',
+          expression: '0 9 * * 1-5',
+          timezone: 'America/New_York',
+        },
+      })
+      expectZodSuccess(result)
+    })
+
+    it('accepts an interval-form trigger', () => {
+      const result = scheduleTaskTriggerConfigSchema.safeParse({
+        kind: 'schedule',
+        triggerKey: 'half_hourly',
+        taskIdentifier: 'poll_inbox',
+        config: {
+          kind: 'interval',
+          interval: 30,
+          unit: 'minutes',
+        },
+      })
+      expectZodSuccess(result)
     })
   })
 })

@@ -104,16 +104,6 @@ export class EventService {
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
 
-  private getScheduleIntervalMs(scheduleTrigger: ScheduleTaskTriggerConfig) {
-    if (scheduleTrigger.config.unit === 'minutes') {
-      return scheduleTrigger.config.interval * 60 * 1000
-    }
-    if (scheduleTrigger.config.unit === 'hours') {
-      return scheduleTrigger.config.interval * 60 * 60 * 1000
-    }
-    return scheduleTrigger.config.interval * 24 * 60 * 60 * 1000
-  }
-
   private resolveTaskHandler(taskDefinition: AppTaskConfig): {
     handlerType: NewTask['handlerType']
     handlerIdentifier?: NewTask['handlerIdentifier']
@@ -135,7 +125,6 @@ export class EventService {
     this.isProcessingScheduleTriggers = true
     try {
       const now = new Date()
-      const nowMs = now.getTime()
       const enabledApps = await this.ormService.db.query.appsTable.findMany({
         where: eq(appsTable.enabled, true),
         columns: {
@@ -154,8 +143,14 @@ export class EventService {
       }) => {
         const { appConfig, appIdentifier, scheduleTrigger, runtimeTriggerId } =
           input
-        const intervalMs = this.getScheduleIntervalMs(scheduleTrigger)
-        const earliestAllowed = new Date(nowMs - intervalMs)
+        const { bucketStart } = getUtcScheduleBucket(
+          scheduleTrigger.config,
+          now,
+        )
+        // bucketStart anchors both dedupe (idempotency key encodes it) and
+        // the createdAt floor — any task created at-or-after bucketStart with
+        // the same key means this bucket has already fired.
+        const earliestAllowed = bucketStart
 
         const taskDefinition = appConfig.tasks?.find(
           (task) => task.identifier === scheduleTrigger.taskIdentifier,
@@ -176,15 +171,9 @@ export class EventService {
           invocation: {
             kind: 'schedule',
             invokeContext: {
-              timestampBucket: getUtcScheduleBucket(
-                scheduleTrigger.config,
-                now,
-              ).bucketStart.toISOString(),
+              timestampBucket: bucketStart.toISOString(),
               triggerKey: scheduleTrigger.triggerKey,
-              config: {
-                interval: scheduleTrigger.config.interval,
-                unit: scheduleTrigger.config.unit,
-              },
+              config: scheduleTrigger.config,
               ...(runtimeTriggerId ? { runtimeTriggerId } : {}),
             },
           },

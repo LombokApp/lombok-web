@@ -89,7 +89,7 @@ describe('App Runtime Triggers', () => {
   }): RegisterableTriggerConfig => ({
     kind: 'schedule',
     triggerKey: overrides?.triggerKey ?? 'runtime-schedule-1',
-    config: { interval: 1, unit: 'minutes' },
+    config: { kind: 'interval', interval: 1, unit: 'minutes' },
     taskIdentifier: overrides?.taskIdentifier ?? 'socket_test_task',
   })
 

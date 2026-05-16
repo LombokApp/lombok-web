@@ -50,6 +50,7 @@
     "@nestjs/websockets": "11.1.13",
     "aws4": "1.13.2",
     "cron": "4.4.0",
+    "cron-parser": "catalog:",
     "dockerode": "catalog:",
     "drizzle-orm": "catalog:",
     "express": "5.2.1",
