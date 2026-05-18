@@ -52,9 +52,35 @@ const TEST_EXECUTOR_METADATA_PARTIAL = {
 const getTaskByIdentifier = async (
   testModuleRef: TestModule,
   identifier: string,
+  filter?: { invocationKind?: string; invocationTriggerKey?: string },
 ) => {
-  return testModuleRef.services.ormService.db.query.tasksTable.findFirst({
-    where: eq(tasksTable.taskIdentifier, identifier),
+  const all =
+    await testModuleRef.services.ormService.db.query.tasksTable.findMany({
+      where: eq(tasksTable.taskIdentifier, identifier),
+    })
+  if (!filter) {
+    return all[0]
+  }
+  return all.find((task) => {
+    if (
+      filter.invocationKind &&
+      task.invocation.kind !== filter.invocationKind
+    ) {
+      return false
+    }
+    if (filter.invocationTriggerKey) {
+      if (
+        task.invocation.kind !== 'schedule' &&
+        task.invocation.kind !== 'event'
+      ) {
+        return false
+      }
+      const ctx = task.invocation.invokeContext as { triggerKey?: string }
+      if (ctx.triggerKey !== filter.invocationTriggerKey) {
+        return false
+      }
+    }
+    return true
   })
 }
 
@@ -923,7 +949,10 @@ describe('Task lifecycle', () => {
 
     await testModule!.services.eventService.processScheduledTaskTriggers()
 
-    const firstTask = await getTaskByIdentifier(testModule!, SCHEDULE_TASK_ID)
+    const firstTask = await getTaskByIdentifier(testModule!, SCHEDULE_TASK_ID, {
+      invocationKind: 'schedule',
+      invocationTriggerKey: 'dummy_schedule',
+    })
     if (!firstTask) {
       throw new Error('Schedule task was not created.')
     }
@@ -932,6 +961,7 @@ describe('Task lifecycle', () => {
       expect(firstTask.invocation.invokeContext).toEqual({
         triggerKey: 'dummy_schedule',
         config: {
+          kind: 'interval',
           interval: 1,
           unit: 'hours',
         },
@@ -955,7 +985,55 @@ describe('Task lifecycle', () => {
         where: eq(tasksTable.taskIdentifier, SCHEDULE_TASK_ID),
       })
 
-    expect(existingTasks.length).toBe(1)
+    // Two distinct trigger keys (interval + cron `* * * * *`) -> one task each
+    // per poll, deduped on subsequent polls within the same bucket.
+    expect(existingTasks.length).toBe(2)
+  })
+
+  it('creates cron-triggered tasks with the prev fire as bucket and dedupes within bucket', async () => {
+    await testModule?.installLocalAppBundles([LIFECYCLE_APP_SLUG])
+
+    await testModule!.services.eventService.processScheduledTaskTriggers()
+
+    const cronTask = await getTaskByIdentifier(testModule!, SCHEDULE_TASK_ID, {
+      invocationKind: 'schedule',
+      invocationTriggerKey: 'dummy_cron_schedule',
+    })
+    if (!cronTask) {
+      throw new Error('Cron-triggered schedule task was not created.')
+    }
+
+    if (cronTask.invocation.kind !== 'schedule') {
+      throw new Error('Schedule task trigger was not schedule.')
+    }
+    expect(cronTask.invocation.invokeContext.config).toEqual({
+      kind: 'cron',
+      expression: '* * * * *',
+    })
+    expect(cronTask.invocation.invokeContext.triggerKey).toBe(
+      'dummy_cron_schedule',
+    )
+    // For `* * * * *`, the bucket is the most recent whole minute at-or-before
+    // the task's createdAt — i.e. createdAt truncated to seconds=0,ms=0.
+    const expectedBucket = new Date(cronTask.createdAt)
+    expectedBucket.setUTCSeconds(0, 0)
+    expect(cronTask.invocation.invokeContext.timestampBucket).toBe(
+      expectedBucket.toISOString(),
+    )
+
+    // Second poll within the same minute should not produce another cron task.
+    await testModule!.services.eventService.processScheduledTaskTriggers()
+
+    const cronTasks =
+      await testModule!.services.ormService.db.query.tasksTable.findMany({
+        where: eq(tasksTable.taskIdentifier, SCHEDULE_TASK_ID),
+      })
+    const cronOnly = cronTasks.filter(
+      (t) =>
+        t.invocation.kind === 'schedule' &&
+        t.invocation.invokeContext.triggerKey === 'dummy_cron_schedule',
+    )
+    expect(cronOnly.length).toBe(1)
   })
 
   it('creates a user_action task and tracks lifecycle fields', async () => {

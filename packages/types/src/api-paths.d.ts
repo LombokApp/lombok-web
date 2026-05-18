@@ -2100,6 +2100,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: components["schemas"]["AppInstallResponse__schema0"];
                         };
+                        triggerKey?: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
@@ -2114,11 +2115,18 @@ export interface components {
                         /** @constant */
                         kind: "schedule";
                         config: {
+                            /** @constant */
+                            kind: "interval";
                             interval: number;
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
+                        } | {
+                            /** @constant */
+                            kind: "cron";
+                            expression: string;
+                            timezone?: string;
                         };
-                        name: string;
+                        triggerKey: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
@@ -2800,6 +2808,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: components["schemas"]["AppListResponse__schema0"];
                         };
+                        triggerKey?: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
@@ -2814,11 +2823,18 @@ export interface components {
                         /** @constant */
                         kind: "schedule";
                         config: {
+                            /** @constant */
+                            kind: "interval";
                             interval: number;
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
+                        } | {
+                            /** @constant */
+                            kind: "cron";
+                            expression: string;
+                            timezone?: string;
                         };
-                        name: string;
+                        triggerKey: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppListResponse__schema1"][];
@@ -3500,6 +3516,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: components["schemas"]["AppGetResponse__schema0"];
                         };
+                        triggerKey?: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
@@ -3514,11 +3531,18 @@ export interface components {
                         /** @constant */
                         kind: "schedule";
                         config: {
+                            /** @constant */
+                            kind: "interval";
                             interval: number;
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
+                        } | {
+                            /** @constant */
+                            kind: "cron";
+                            expression: string;
+                            timezone?: string;
                         };
-                        name: string;
+                        triggerKey: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["AppGetResponse__schema1"][];
@@ -4209,6 +4233,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: components["schemas"]["UserAppListResponse__schema0"];
                         };
+                        triggerKey?: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
@@ -4223,11 +4248,18 @@ export interface components {
                         /** @constant */
                         kind: "schedule";
                         config: {
+                            /** @constant */
+                            kind: "interval";
                             interval: number;
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
+                        } | {
+                            /** @constant */
+                            kind: "cron";
+                            expression: string;
+                            timezone?: string;
                         };
-                        name: string;
+                        triggerKey: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
@@ -4881,6 +4913,7 @@ export interface components {
                         dataTemplate?: {
                             [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
                         };
+                        triggerKey?: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
@@ -4895,11 +4928,18 @@ export interface components {
                         /** @constant */
                         kind: "schedule";
                         config: {
+                            /** @constant */
+                            kind: "interval";
                             interval: number;
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
+                        } | {
+                            /** @constant */
+                            kind: "cron";
+                            expression: string;
+                            timezone?: string;
                         };
-                        name: string;
+                        triggerKey: string;
                         condition?: string;
                         taskIdentifier: string;
                         onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
@@ -6606,7 +6646,10 @@ export interface components {
                         eventId: string;
                         emitterId: string;
                         eventIdentifier: string;
-                        eventTriggerConfigIndex: number;
+                        eventTriggerConfigIndex?: number;
+                        /** Format: uuid */
+                        runtimeTriggerId?: string;
+                        triggerKey?: string;
                         dataTemplate?: {
                             [key: string]: components["schemas"]["TaskGetResponse__schema0"];
                         };
@@ -6634,12 +6677,21 @@ export interface components {
                     kind: "schedule";
                     invokeContext: {
                         timestampBucket: string;
-                        name: string;
+                        triggerKey: string;
                         config: {
+                            /** @constant */
+                            kind: "interval";
                             interval: number;
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
+                        } | {
+                            /** @constant */
+                            kind: "cron";
+                            expression: string;
+                            timezone?: string;
                         };
+                        /** Format: uuid */
+                        runtimeTriggerId?: string;
                     };
                     onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
                     onProgress?: {
@@ -6914,7 +6966,10 @@ export interface components {
                         eventId: string;
                         emitterId: string;
                         eventIdentifier: string;
-                        eventTriggerConfigIndex: number;
+                        eventTriggerConfigIndex?: number;
+                        /** Format: uuid */
+                        runtimeTriggerId?: string;
+                        triggerKey?: string;
                         dataTemplate?: {
                             [key: string]: components["schemas"]["TaskListResponse__schema0"];
                         };
@@ -6942,12 +6997,21 @@ export interface components {
                     kind: "schedule";
                     invokeContext: {
                         timestampBucket: string;
-                        name: string;
+                        triggerKey: string;
                         config: {
+                            /** @constant */
+                            kind: "interval";
                             interval: number;
                             /** @enum {string} */
                             unit: "minutes" | "hours" | "days";
+                        } | {
+                            /** @constant */
+                            kind: "cron";
+                            expression: string;
+                            timezone?: string;
                         };
+                        /** Format: uuid */
+                        runtimeTriggerId?: string;
                     };
                     onComplete?: components["schemas"]["TaskListResponse__schema1"][];
                     onProgress?: {

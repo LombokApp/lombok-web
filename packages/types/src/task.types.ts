@@ -9,6 +9,10 @@ import { targetLocationContextDTOSchema } from './folder.types'
 import { taskIdentifierSchema } from './identifiers.types'
 import type { JsonSerializableObject } from './json.types'
 import { jsonSerializableObjectSchema } from './json.types'
+import {
+  isValidCronExpression,
+  isValidIanaTimezone,
+} from './schedule-validation.util'
 import { SignedURLsRequestMethod } from './storage.types'
 
 export type TaskData = JsonSerializableObject
@@ -172,10 +176,39 @@ const taskTriggerConfigBaseSchema = z.object({
 
 export const scheduleUnitSchema = z.enum(['minutes', 'hours', 'days'])
 export type ScheduleUnit = z.infer<typeof scheduleUnitSchema>
-export const scheduleConfigSchema = z.object({
+
+export const scheduleIntervalConfigSchema = z.object({
+  kind: z.literal('interval'),
   interval: z.number().int().positive(),
   unit: scheduleUnitSchema,
 })
+export type ScheduleIntervalConfig = z.infer<
+  typeof scheduleIntervalConfigSchema
+>
+
+export const scheduleCronConfigSchema = z.object({
+  kind: z.literal('cron'),
+  // Standard 5-field cron (minute hour dom month dow). Sub-minute granularity
+  // is intentionally rejected — the platform's schedule poll cadence is 1m.
+  expression: z
+    .string()
+    .refine(
+      isValidCronExpression,
+      'invalid cron expression (5-field required)',
+    ),
+  // IANA timezone (e.g. "America/New_York"). Defaults to UTC at evaluation
+  // time when omitted.
+  timezone: z
+    .string()
+    .refine(isValidIanaTimezone, 'invalid IANA timezone')
+    .optional(),
+})
+export type ScheduleCronConfig = z.infer<typeof scheduleCronConfigSchema>
+
+export const scheduleConfigSchema = z.discriminatedUnion('kind', [
+  scheduleIntervalConfigSchema,
+  scheduleCronConfigSchema,
+])
 export type ScheduleConfig = z.infer<typeof scheduleConfigSchema>
 
 export const scheduleTaskTriggerConfigSchema = z
@@ -390,10 +423,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
     invokeContext: z.object({
       timestampBucket: z.string(),
       triggerKey: z.string(),
-      config: z.object({
-        interval: z.number().int().positive(),
-        unit: z.enum(['minutes', 'hours', 'days']),
-      }),
+      config: scheduleConfigSchema,
       runtimeTriggerId: z.guid().optional(),
     }),
     onComplete: taskOnCompleteConfigSchema.array().optional(),

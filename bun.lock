@@ -93,6 +93,7 @@
         "@nestjs/websockets": "11.1.13",
         "aws4": "1.13.2",
         "cron": "4.4.0",
+        "cron-parser": "catalog:",
         "dockerode": "catalog:",
         "drizzle-orm": "catalog:",
         "express": "5.2.1",
@@ -297,6 +298,7 @@
       "name": "@lombokapp/types",
       "version": "0.0.1",
       "dependencies": {
+        "cron-parser": "catalog:",
         "jexpr": "catalog:",
         "zod": "catalog:",
       },
@@ -558,6 +560,7 @@
     "@typescript-eslint/parser": "8.46.3",
     "@vitejs/plugin-react-swc": "4.2.3",
     "autoprefixer": "10.4.20",
+    "cron-parser": "5.5.0",
     "dockerode": "4.0.9",
     "drizzle-kit": "0.31.8",
     "drizzle-orm": "0.45.1",
@@ -1996,6 +1999,8 @@
     "cpu-features": ["cpu-features@0.0.10", "", { "dependencies": { "buildcheck": "~0.0.6", "nan": "^2.19.0" } }, "sha512-9IkYqtX3YHPCzoVg1Py+o9057a3i0fp7S530UWokCSaFVTc7CwXPRiOjRjBQQ18ZCNafx78YfnG+HALxtVmOGA=="],
 
     "cron": ["cron@4.4.0", "", { "dependencies": { "@types/luxon": "~3.7.0", "luxon": "~3.7.0" } }, "sha512-fkdfq+b+AHI4cKdhZlppHveI/mgz2qpiYxcm+t5E5TsxX7QrLS1VE0+7GENEk9z0EeGPcpSciGv6ez24duWhwQ=="],
+
+    "cron-parser": ["cron-parser@5.5.0", "", { "dependencies": { "luxon": "^3.7.1" } }, "sha512-oML4lKUXxizYswqmxuOCpgFS8BNUJpIu6k/2HVHyaL8Ynnf3wdf9tkns0yRdJLSIjkJ+b0DXHMZEHGpMwjnPww=="],
 
     "cross-spawn": ["cross-spawn@7.0.6", "", { "dependencies": { "path-key": "^3.1.0", "shebang-command": "^2.0.0", "which": "^2.0.1" } }, "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA=="],
 

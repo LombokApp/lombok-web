@@ -369,6 +369,7 @@ describe('apps.types', () => {
             kind: 'schedule',
             triggerKey: 'hourly_job',
             config: {
+              kind: 'interval',
               interval: 1,
               unit: 'hours',
             },
@@ -426,6 +427,7 @@ describe('apps.types', () => {
             kind: 'schedule',
             triggerKey: 'hourly_job',
             config: {
+              kind: 'interval',
               interval: 1,
               unit: 'hours',
             },

@@ -37,6 +37,7 @@
     "tsup": "catalog:"
   },
   "dependencies": {
+    "cron-parser": "catalog:",
     "jexpr": "catalog:",
     "zod": "catalog:"
   }

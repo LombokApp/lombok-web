@@ -7,15 +7,24 @@ type ConfigurableTrigger =
       kind: 'event'
       eventIdentifier: string
       taskIdentifier: string
+      triggerKey?: string
       dataTemplate?: Record<string, unknown>
       onComplete?: unknown[]
     }
   | {
       kind: 'schedule'
-      config: {
-        interval: number
-        unit: 'minutes' | 'hours' | 'days'
-      }
+      triggerKey: string
+      config:
+        | {
+            kind: 'interval'
+            interval: number
+            unit: 'minutes' | 'hours' | 'days'
+          }
+        | {
+            kind: 'cron'
+            expression: string
+            timezone?: string
+          }
       taskIdentifier: string
       onComplete?: unknown[]
     }
@@ -46,6 +55,10 @@ export function formatTriggerLabel(trigger: ConfigurableTrigger): string {
   }
 
   if (trigger.kind === 'schedule') {
+    if (trigger.config.kind === 'cron') {
+      const tz = trigger.config.timezone ? ` ${trigger.config.timezone}` : ''
+      return `schedule (cron: ${trigger.config.expression}${tz})`
+    }
     const { interval, unit } = trigger.config
     const unitLabel = interval === 1 ? unit.slice(0, -1) : unit
     return `schedule (every ${interval} ${unitLabel})`

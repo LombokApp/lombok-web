@@ -1,5 +1,6 @@
 export * from './apps.types'
 export * from './condition-validation.util'
+export * from './schedule-validation.util'
 export * from './content.types'
 export * from './folder.types'
 export * from './messages.types'
