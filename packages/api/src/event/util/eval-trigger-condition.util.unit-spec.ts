@@ -8,7 +8,7 @@ const event: Event = {
   aggregationKey: null,
   aggregationHandledAt: null,
   eventIdentifier: 'object_added',
-  emitterIdentifier: 'core',
+  emitterId: 'core',
   actorUserId: null,
   targetUserId: null,
   targetLocationFolderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
@@ -376,7 +376,7 @@ describe('evalTriggerHandlerCondition', () => {
     it('handles multiple property comparisons', () => {
       expect(
         evalTriggerHandlerCondition(
-          "event.eventIdentifier === 'object_added' && event.emitterIdentifier === 'core' && event.data.mediaType === 'IMAGE'",
+          "event.eventIdentifier === 'object_added' && event.emitterId === 'core' && event.data.mediaType === 'IMAGE'",
           event,
         ),
       ).toBe(true)

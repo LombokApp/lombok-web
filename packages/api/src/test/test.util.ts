@@ -3,13 +3,16 @@ import { SignedURLsRequestMethod } from '@lombokapp/types'
 import type { Type } from '@nestjs/common'
 import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import crypto from 'crypto'
 import type { SQL } from 'drizzle-orm'
 import { and, count, eq, gt, inArray, isNotNull, not, or } from 'drizzle-orm'
 import fs from 'fs'
 import type { Server } from 'http'
 import path from 'path'
 import { appsTable } from 'src/app/entities/app.entity'
+import { appInstallSequencesTable } from 'src/app/entities/app-install-sequence.entity'
 import { AppService } from 'src/app/services/app.service'
+import { deriveAppId } from 'src/app/utils/app-id.util'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { CoreModule } from 'src/core/core.module'
@@ -76,6 +79,14 @@ export async function buildTestModule({
   const dbName = `test_db_${testModuleKey}`
   const bucketPathsToRemove: string[] = []
   let httpServer: Server | undefined = undefined
+
+  // Stable, suite-unique starting position for app install sequences. Hashing
+  // the suite key keeps it deterministic across runs (so failures reproduce
+  // with the same ids) while giving each suite its own slice of the position
+  // space — see installLocalAppBundles for why we need this.
+  const suiteInstallSequenceOffset =
+    crypto.createHash('sha256').update(testModuleKey).digest().readUInt32BE(0) %
+    1_000_000_000
 
   const initTestModuleWithOverrides = (
     _overrides: { token: symbol | string | Type; value: unknown }[],
@@ -346,9 +357,71 @@ export async function buildTestModule({
         endpoint: MINIO_ENDPOINT,
         region: MINIO_REGION,
       }),
+    /**
+     * Compute the identifier (composed `<slug>-<id>` form) of the first app
+     * installed for `slug` in this test module. Pure: derived from the suite
+     * install-sequence offset, no DB round trip. Holds as long as the slug
+     * was first installed via `installLocalAppBundles` (which seeds the
+     * sequence with `suiteInstallSequenceOffset`).
+     */
+    getInstalledAppIdentifier: (slug: string): string =>
+      `${slug}-${deriveAppId(slug, suiteInstallSequenceOffset)}`,
+    getInstalledApp: async (slug: string) => {
+      const installedApp =
+        await services.ormService.db.query.appsTable.findFirst({
+          where: eq(appsTable.slug, slug),
+        })
+      if (!installedApp) {
+        throw new Error(`App not installed for slug: ${slug}`)
+      }
+      return installedApp
+    },
     installLocalAppBundles: async (limitTo: string[] | null = null) => {
       await setServerStorageLocation()
-      await services.appService.installLocalAppBundles(limitTo)
+      const appBundlesPath = process.env.APP_BUNDLES_PATH
+      if (!appBundlesPath) {
+        throw new Error(
+          'APP_BUNDLES_PATH is not set; test environment cannot install local bundles',
+        )
+      }
+      const zips = fs
+        .readdirSync(appBundlesPath)
+        .filter(
+          (filename) =>
+            !fs.lstatSync(path.join(appBundlesPath, filename)).isDirectory() &&
+            filename.endsWith('.zip') &&
+            (!limitTo ||
+              limitTo.includes(filename.slice(0, filename.length - 4))),
+        )
+        .map((filename) => path.join(appBundlesPath, filename))
+      // Seed per-slug install sequences with a suite-specific offset so that
+      // bundles installed by different test suites get distinct deterministic
+      // ids. Otherwise they all land on the same position-0 id, which collides
+      // on cluster-scoped resources like the per-app Postgres role and breaks
+      // role drops in any one suite while other suites still hold grants.
+      for (const appBundlePath of zips) {
+        const slug = path.basename(appBundlePath, '.zip')
+        await services.ormService.db
+          .insert(appInstallSequencesTable)
+          .values({ slug, nextPosition: suiteInstallSequenceOffset })
+          .onConflictDoNothing({ target: appInstallSequencesTable.slug })
+      }
+      for (const appBundlePath of zips) {
+        try {
+          await services.appService.handleAppInstall(
+            {
+              zipFileBuffer: fs.readFileSync(appBundlePath),
+              zipFilename: path.basename(appBundlePath),
+            },
+            { mode: 'install' },
+          )
+        } catch (error) {
+          // Match production behavior: log and continue so a malformed bundle
+          // doesn't abort the whole batch.
+          // eslint-disable-next-line no-console
+          console.warn(`APP INSTALL ERROR ('${appBundlePath}'):`, error)
+        }
+      }
     },
     getInstalledAppsCount: async () => {
       const apps = await services.ormService.db.query.appsTable.findMany({
@@ -413,11 +486,23 @@ export async function seedDockerHost(
     .onConflictDoNothing()
 
   for (const assignment of profileAssignments) {
+    // Accept either slug or composed identifier — tests historically passed
+    // the slug, which used to double as the identifier.
+    const app =
+      (await db.query.appsTable.findFirst({
+        where: eq(appsTable.identifier, assignment.appIdentifier),
+      })) ??
+      (await db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, assignment.appIdentifier),
+      }))
+    if (!app) {
+      throw new Error(`App not found: ${assignment.appIdentifier}`)
+    }
     await db
       .insert(dockerProfileResourceAssignmentsTable)
       .values({
         id: crypto.randomUUID(),
-        appIdentifier: assignment.appIdentifier,
+        appId: app.id,
         profileKey: assignment.profileKey,
         dockerHostId: TEST_DOCKER_HOST_ID,
         config: assignment.config,

@@ -123,37 +123,69 @@ fi
 
 echo "Login successful"
 
-# Step 5: Upload zip file to install endpoint
-echo "Step 5: Installing app from zip file..."
-INSTALL_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/v1/server/apps/install" \
+# Step 5: Check if app is already installed (by slug), then install or upgrade
+if ! command -v jq &> /dev/null; then
+  echo "Error: jq is required"
+  exit 1
+fi
+
+if [ ! -f "$APP_DIR/config.json" ]; then
+  echo "Error: $APP_DIR/config.json not found"
+  exit 1
+fi
+
+APP_SLUG=$(jq -r '.slug' "$APP_DIR/config.json")
+if [ -z "$APP_SLUG" ] || [ "$APP_SLUG" = "null" ]; then
+  echo "Error: Could not read .slug from $APP_DIR/config.json"
+  exit 1
+fi
+
+echo "Step 5a: Looking up existing install for slug '$APP_SLUG'..."
+LOOKUP_RESPONSE=$(curl -s -w "\n%{http_code}" -G "$API_URL/api/v1/server/apps" \
   -H "Authorization: Bearer $TOKEN" \
-  -F "file=@$APP_DIR/$ZIP_FILE")
+  --data-urlencode "search=$APP_SLUG")
+
+HTTP_CODE=$(echo "$LOOKUP_RESPONSE" | tail -n1)
+LOOKUP_BODY=$(echo "$LOOKUP_RESPONSE" | sed '$d')
+
+if [ "$HTTP_CODE" != "200" ]; then
+  echo "Error: App lookup failed with HTTP status $HTTP_CODE"
+  echo "Response: $LOOKUP_BODY"
+  exit 1
+fi
+
+EXISTING_IDENTIFIER=$(echo "$LOOKUP_BODY" | jq -r --arg slug "$APP_SLUG" '.result | map(select(.slug == $slug)) | .[0].identifier // empty')
+
+if [ -n "$EXISTING_IDENTIFIER" ]; then
+  echo "Step 5b: Upgrading existing app '$EXISTING_IDENTIFIER'..."
+  INSTALL_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/v1/server/apps/$EXISTING_IDENTIFIER/upgrade" \
+    -H "Authorization: Bearer $TOKEN" \
+    -F "file=@$APP_DIR/$ZIP_FILE")
+  ACTION="upgrade"
+else
+  echo "Step 5b: Installing app from zip file..."
+  INSTALL_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/api/v1/server/apps/install" \
+    -H "Authorization: Bearer $TOKEN" \
+    -F "file=@$APP_DIR/$ZIP_FILE")
+  ACTION="install"
+fi
 
 HTTP_CODE=$(echo "$INSTALL_RESPONSE" | tail -n1)
 INSTALL_BODY=$(echo "$INSTALL_RESPONSE" | sed '$d')
 
 if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "201" ]; then
-  echo "Error: App installation failed with HTTP status $HTTP_CODE"
+  echo "Error: App $ACTION failed with HTTP status $HTTP_CODE"
   echo "Response:"
-  if command -v jq &> /dev/null; then
-    echo "$INSTALL_BODY" | jq '.' || echo "$INSTALL_BODY"
-  else
-    echo "$INSTALL_BODY"
-  fi
+  echo "$INSTALL_BODY" | jq '.' || echo "$INSTALL_BODY"
   exit 1
 fi
 
-echo "App installed successfully!"
+echo "App ${ACTION}ed successfully!"
 echo "Response: $INSTALL_BODY"
 
 # Step 6: Enable app for all users
 echo "Step 6: Enabling app for all users..."
-if command -v jq &> /dev/null; then
-  APP_IDENTIFIER=$(echo "$INSTALL_BODY" | jq -r '.app.identifier')
-else
-  echo "Error: jq is required to extract app identifier from install response"
-  exit 1
-fi
+APP_IDENTIFIER=$(echo "$INSTALL_BODY" | jq -r '.app.identifier')
 
 if [ -z "$APP_IDENTIFIER" ] || [ "$APP_IDENTIFIER" = "null" ]; then
   echo "Warning: Could not extract app identifier from install response, skipping enable step"
@@ -200,4 +232,4 @@ echo "Cleaning up temporary zip file..."
 rm -f "$APP_DIR/$ZIP_FILE"
 
 echo ""
-echo "Dev install completed successfully for $APP_NAME!"
+echo "Dev $ACTION completed successfully for $APP_NAME!"

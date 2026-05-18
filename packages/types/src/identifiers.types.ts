@@ -18,10 +18,14 @@ export const appSlugSchema = z
     message: "App slug cannot be 'platform' or 'core'",
   })
 
+/**
+ * Composed app identifier: `<slug>-<id>` where slug is `[a-z0-9]+` (cosmetic,
+ * may be renamed) and id is `[a-f0-9]{8}` (canonical, immutable).
+ */
 export const appIdentifierSchema = z
   .string()
   .nonempty()
-  .regex(/^[a-z0-9_]+$/)
+  .regex(/^[a-z0-9]+-[a-f0-9]{8}$/)
 
 export const workerIdentifierSchema = z
   .string()

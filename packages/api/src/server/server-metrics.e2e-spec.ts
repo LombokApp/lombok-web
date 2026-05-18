@@ -114,7 +114,7 @@ describe('Server Metrics', () => {
         eventIdentifier: 'metricsevent',
         eventTriggerConfigIndex: 0,
         eventId: crypto.randomUUID(),
-        emitterIdentifier: 'metrics',
+        emitterId: 'metrics',
         eventData: {},
       },
     } as const
@@ -122,7 +122,7 @@ describe('Server Metrics', () => {
     await testModule!.services.ormService.db.insert(tasksTable).values([
       withTaskIdempotencyKey({
         id: crypto.randomUUID(),
-        ownerIdentifier: 'dummyapp',
+        ownerId: 'dummyapp',
         taskIdentifier: 'metrics_task_success',
         taskDescription: 'Successful metrics task',
         data: {},
@@ -136,7 +136,7 @@ describe('Server Metrics', () => {
       }),
       withTaskIdempotencyKey({
         id: crypto.randomUUID(),
-        ownerIdentifier: 'dummyapp',
+        ownerId: 'dummyapp',
         taskIdentifier: 'metrics_task_failure',
         taskDescription: 'Failing metrics task',
         data: {},
@@ -154,7 +154,7 @@ describe('Server Metrics', () => {
       {
         id: crypto.randomUUID(),
         eventIdentifier: 'metrics:server_event',
-        emitterIdentifier: 'metrics',
+        emitterId: 'metrics',
         targetUserId: null,
         targetLocationFolderId: null,
         targetLocationObjectKey: null,
@@ -164,7 +164,7 @@ describe('Server Metrics', () => {
       {
         id: crypto.randomUUID(),
         eventIdentifier: 'metrics:folder_event',
-        emitterIdentifier: 'metrics',
+        emitterId: 'metrics',
         targetUserId: null,
         targetLocationFolderId: crypto.randomUUID(),
         targetLocationObjectKey: null,

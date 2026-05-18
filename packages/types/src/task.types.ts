@@ -357,7 +357,7 @@ export const taskInvocationSchema = z.discriminatedUnion('kind', [
     kind: z.literal('event'),
     invokeContext: z.object({
       eventId: z.guid(),
-      emitterIdentifier: z.string(),
+      emitterId: z.string(),
       eventIdentifier: eventIdentifierSchema.or(
         corePrefixedEventIdentifierSchema,
       ),
@@ -452,7 +452,7 @@ export const taskConfigSchema = z
 export const taskDTOSchema = z.object({
   id: z.guid(),
   taskIdentifier: z.string(),
-  ownerIdentifier: z.string(),
+  ownerId: z.string(),
   invocation: taskInvocationSchema,
   success: z.boolean().optional(),
   handlerIdentifier: z.string().optional(),

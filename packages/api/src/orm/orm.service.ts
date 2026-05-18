@@ -30,6 +30,7 @@ import {
   appFolderSettingsRelations,
   appFolderSettingsTable,
 } from '../app/entities/app-folder-settings.entity'
+import { appInstallSequencesTable } from '../app/entities/app-install-sequence.entity'
 import {
   appUserSettingsRelations,
   appUserSettingsTable,
@@ -86,6 +87,7 @@ export const dbSchema = {
   folderSharesRelations,
   folderObjectsTable,
   appsTable,
+  appInstallSequencesTable,
   appFolderSettingsTable,
   appFolderSettingsRelations,
   appUserSettingsTable,
@@ -150,39 +152,51 @@ export class OrmService {
     return this._client
   }
 
-  private getAppSchemaName(appIdentifier: string): string {
-    return `app_${appIdentifier}`
+  /**
+   * Per-app Postgres schema name. Embeds slug + canonical id so the schema
+   * stays diagnosable when inspecting the cluster and unique across reinstalls
+   * (id changes on every fresh install).
+   */
+  private getAppSchemaName(app: App): string {
+    return `app_${app.slug}_${app.id}`
   }
 
-  private getAppRoleName(appIdentifier: string): string {
-    return `app_role_${appIdentifier}`
+  /**
+   * Per-app Postgres role name. `${slug}_${id}` keeps it diagnosable while
+   * id makes it unique across Lombok deployments sharing a PG cluster and
+   * across uninstall→reinstall cycles. Without it, `DROP ROLE` would fail
+   * if any other DB still grants permissions to the same name.
+   */
+  private getAppRoleName(app: App): string {
+    return `app_role_${app.slug}_${app.id}`
   }
 
-  private getAppRolePassword(appIdentifier: string): string | undefined {
-    return this.kvService.ops.get(`app_role_password_${appIdentifier}`) as
+  private getAppRolePasswordKvKey(app: App): string {
+    return `app_role_password_${app.slug}_${app.id}`
+  }
+
+  private getAppRolePassword(app: App): string | undefined {
+    return this.kvService.ops.get(this.getAppRolePasswordKvKey(app)) as
       | string
       | undefined
   }
 
   private async getOrGenerateAppRolePassword(
-    appIdentifier: string,
+    app: App,
     forceNew = false,
   ): Promise<{
     password: string
     isNew: boolean
   }> {
-    const roleName = this.getAppRoleName(appIdentifier)
+    const roleName = this.getAppRoleName(app)
     let isNew = false
     let currentPassword: string | undefined = forceNew
       ? undefined
-      : this.getAppRolePassword(appIdentifier)
+      : this.getAppRolePassword(app)
     if (!currentPassword) {
       isNew = true
       currentPassword = crypto.randomBytes(32).toString('hex')
-      this.kvService.ops.set(
-        `app_role_password_${appIdentifier}`,
-        currentPassword,
-      )
+      this.kvService.ops.set(this.getAppRolePasswordKvKey(app), currentPassword)
     }
     if (isNew) {
       await this.client.query(
@@ -201,10 +215,10 @@ export class OrmService {
   }
 
   async ensureAppDbConfig(app: App): Promise<void> {
-    await this.ensureAppSchemaAndRole(app.identifier)
-    await this.getOrGenerateAppRolePassword(app.identifier)
+    await this.ensureAppSchemaAndRole(app)
+    await this.getOrGenerateAppRolePassword(app)
     if (app.config.permissions?.core?.includes('READ_FOLDER_ACL')) {
-      await this.ensureAppFolderAclSchemaAccess(app.identifier)
+      await this.ensureAppFolderAclSchemaAccess(app)
     }
   }
 
@@ -224,11 +238,12 @@ export class OrmService {
     return Math.abs(hash) | 0x40000000
   }
 
-  private async ensureAppRole(appIdentifier: string): Promise<void> {
-    const appSchemaName = this.getAppSchemaName(appIdentifier)
-    const appRoleName = this.getAppRoleName(appIdentifier)
+  private async ensureAppRole(app: App): Promise<void> {
+    const appIdentifier = app.identifier
+    const appSchemaName = this.getAppSchemaName(app)
+    const appRoleName = this.getAppRoleName(app)
     const platformRole = this._ormConfig.dbUser
-    const lockId = this.getAdvisoryLockId(appIdentifier)
+    const lockId = this.getAdvisoryLockId(app.id)
 
     // Use a dedicated connection from the pool to ensure advisory locks work correctly
     // Advisory locks are session-scoped, so we need the same connection for lock/unlock
@@ -399,12 +414,21 @@ export class OrmService {
     ssl: boolean
     port: number
   }> {
-    await this.ensureAppSchemaAndRole(appIdentifier)
+    const app =
+      (await this.db.query.appsTable.findFirst({
+        where: eq(appsTable.identifier, appIdentifier),
+      })) ??
+      (await this.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, appIdentifier),
+      }))
+    if (!app) {
+      throw new Error(`App not found: ${appIdentifier}`)
+    }
+    await this.ensureAppSchemaAndRole(app)
     return {
       host: this._ormConfig.dbHost,
-      user: this.getAppRoleName(appIdentifier),
-      password: (await this.getOrGenerateAppRolePassword(appIdentifier))
-        .password,
+      user: this.getAppRoleName(app),
+      password: (await this.getOrGenerateAppRolePassword(app)).password,
       database: this._ormConfig.dbName,
       ssl:
         (await this._client
@@ -524,8 +548,8 @@ export class OrmService {
   /**
    * Ensure app schema exists
    */
-  async ensureAppSchemaAndRole(appIdentifier: string): Promise<void> {
-    const schemaName = this.getAppSchemaName(appIdentifier)
+  async ensureAppSchemaAndRole(app: App): Promise<void> {
+    const schemaName = this.getAppSchemaName(app)
 
     // Check if schema exists
     const schemaExists = await this.client.query<{ exists: number }>(
@@ -538,19 +562,47 @@ export class OrmService {
       await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`)
     }
 
-    await this.ensureAppRole(appIdentifier)
+    await this.ensureAppRole(app)
   }
 
   /**
    * Drop app schema (for cleanup/testing)
    */
-  async dropAppSchema(appIdentifier: string): Promise<void> {
-    const schemaName = this.getAppSchemaName(appIdentifier)
+  async dropAppSchema(app: App): Promise<void> {
+    const schemaName = this.getAppSchemaName(app)
     await this.client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
   }
 
-  async ensureAppFolderAclSchemaAccess(appIdentifier: string): Promise<void> {
-    const appRoleName = this.getAppRoleName(appIdentifier)
+  /**
+   * Drop the per-app Postgres role and forget its KV password. Schema must be
+   * dropped first (the role owns objects in it). DROP OWNED BY revokes every
+   * grant given to the role *in the current database* — roles are cluster-
+   * level in Postgres, so if the same role name is referenced from another
+   * database (rare in production but defensible), the role is left in place.
+   * Best-effort: a leaked role is harmless since the next install gets a
+   * fresh canonical id (and therefore a fresh role name).
+   */
+  async dropAppRole(app: App): Promise<void> {
+    const appRoleName = this.getAppRoleName(app)
+    const roleExists = await this.client.query<{ exists: number }>(
+      'SELECT 1 as exists FROM pg_roles WHERE rolname = $1',
+      [appRoleName],
+    )
+    if (roleExists.rows.length > 0) {
+      try {
+        await this.client.query(`DROP OWNED BY ${appRoleName}`)
+        await this.client.query(`DROP ROLE ${appRoleName}`)
+      } catch (error) {
+        this.logger.warn(
+          `Could not drop role ${appRoleName} (likely referenced from another database): ${String(error)}`,
+        )
+      }
+    }
+    this.kvService.ops.del(this.getAppRolePasswordKvKey(app))
+  }
+
+  async ensureAppFolderAclSchemaAccess(app: App): Promise<void> {
+    const appRoleName = this.getAppRoleName(app)
 
     await this.client.query(
       `GRANT USAGE ON SCHEMA ${SHARED_FOLDER_ACL_SCHEMA} TO ${appRoleName}`,
@@ -562,7 +614,7 @@ export class OrmService {
       `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA ${SHARED_FOLDER_ACL_SCHEMA} TO ${appRoleName}`,
     )
 
-    const appSchemaName = this.getAppSchemaName(appIdentifier)
+    const appSchemaName = this.getAppSchemaName(app)
 
     await this.client.query(
       `ALTER ROLE ${appRoleName} SET search_path = ${appSchemaName}, ${EXTENSIONS_SCHEMA}, ${SHARED_FOLDER_ACL_SCHEMA}`,
@@ -573,10 +625,10 @@ export class OrmService {
    * Run migrations for a specific app
    */
   async runAppMigrations(
-    appIdentifier: string,
+    app: App,
     migrationFiles: { filename: string; content: string }[],
   ): Promise<void> {
-    const schemaName = this.getAppSchemaName(appIdentifier)
+    const schemaName = this.getAppSchemaName(app)
 
     if (migrationFiles.length === 0) {
       return
@@ -606,7 +658,7 @@ export class OrmService {
     // Execute pending migrations in order
     for (const migrationFile of migrationFiles) {
       if (!executedFilenames.has(migrationFile.filename)) {
-        await this.executeAppMigration(appIdentifier, migrationFile)
+        await this.executeAppMigration(app, migrationFile)
       }
     }
   }
@@ -682,10 +734,10 @@ export class OrmService {
    * Uses transaction-scoped search path to avoid affecting other queries
    */
   private async executeAppMigration(
-    appIdentifier: string,
+    app: App,
     migrationFile: { filename: string; content: string },
   ): Promise<void> {
-    const schemaName = this.getAppSchemaName(appIdentifier)
+    const schemaName = this.getAppSchemaName(app)
 
     try {
       const migrationFileContent = this.removeSchemaReferencesFromMigration(
@@ -695,7 +747,7 @@ export class OrmService {
       const checksum = this.calculateChecksum(migrationFile.content)
 
       const client: PoolClient = await this.client.connect()
-      const appRoleName = this.getAppRoleName(appIdentifier)
+      const appRoleName = this.getAppRoleName(app)
       try {
         await client.query('BEGIN')
         await client.query(`SET LOCAL ROLE ${appRoleName}`)
@@ -704,7 +756,7 @@ export class OrmService {
           `SET LOCAL search_path = ${schemaName}, ${EXTENSIONS_SCHEMA}`,
         )
         await client.query(
-          `SET LOCAL application_name = 'lombok_migrations=${appIdentifier}'`,
+          `SET LOCAL application_name = 'lombok_migrations=${app.identifier}'`,
         )
         await client.query(migrationFileContent)
         await client.query(
@@ -724,11 +776,11 @@ export class OrmService {
       }
 
       this.logger.log(
-        `Executed migration ${migrationFile.filename} for app ${appIdentifier}`,
+        `Executed migration ${migrationFile.filename} for app ${app.identifier}`,
       )
     } catch (error) {
       this.logger.error(
-        `Failed to execute migration ${migrationFile.filename} for app ${appIdentifier}:`,
+        `Failed to execute migration ${migrationFile.filename} for app ${app.identifier}:`,
         error,
       )
       throw error
@@ -752,16 +804,11 @@ export class OrmService {
   /**
    * Get migration status for an app
    */
-  async getAppMigrationStatus(appIdentifier: string): Promise<{
+  async getAppMigrationStatus(app: App): Promise<{
     executed: string[]
     pending: string[]
   }> {
-    // Validate app identifier to prevent SQL injection
-    if (!/^[a-z_][a-z0-9_]*$/.test(appIdentifier)) {
-      throw new Error(`Invalid app identifier: ${appIdentifier}`)
-    }
-
-    const schemaName = this.getAppSchemaName(appIdentifier)
+    const schemaName = this.getAppSchemaName(app)
 
     try {
       // Get executed migrations

@@ -58,7 +58,7 @@ interface SessionToJSON {
   agent_ready: boolean
   public_id: string | null
   label: string
-  app_identifier: string | null
+  app_id: string | null
   client_count: number
   created_at: number
   last_activity_at: number
@@ -77,7 +77,7 @@ function sessionToJSON(session: TunnelSession): SessionToJSON {
     agent_ready: session.agentReady,
     public_id: session.publicId,
     label: session.label,
-    app_identifier: session.appIdentifier,
+    app_id: session.appId,
     client_count: session.clients.size,
     created_at: session.createdAt,
     last_activity_at: session.lastActivityAt,
@@ -215,7 +215,7 @@ async function handleRoute(
       protocol?: 'framed' | 'raw'
       tty?: boolean
       options?: {
-        app_identifier: string
+        app_id: string
         public?: boolean
       }
     }
@@ -236,7 +236,7 @@ async function handleRoute(
     if (!body.label) {
       return jsonResponse({ error: 'label is required' }, 400)
     }
-    if (body.options?.public === true && !body.options.app_identifier) {
+    if (body.options?.public === true && !body.options.app_id) {
       return jsonResponse(
         { error: 'app_id is required for public sessions' },
         400,
@@ -258,7 +258,7 @@ async function handleRoute(
       tty,
       body.options
         ? {
-            appIdentifier: body.options.app_identifier,
+            appId: body.options.app_id,
             public: body.options.public ?? false,
           }
         : null,
@@ -269,7 +269,8 @@ async function handleRoute(
   // GET /sessions
   if (method === 'GET' && path === '/sessions') {
     const containerId = url.searchParams.get('container_id') ?? undefined
-    const sessions = sessionManager.list({ containerId })
+    const appId = url.searchParams.get('app_id') ?? undefined
+    const sessions = sessionManager.list({ containerId, appId })
     return jsonResponse(sessions.map(sessionToJSON))
   }
 

@@ -23,8 +23,8 @@ export const appUserSettingsTable = pgTable(
     userId: uuid('user_id')
       .references(() => usersTable.id)
       .notNull(),
-    appIdentifier: text('app_identifier')
-      .references(() => appsTable.identifier)
+    appId: text('app_id')
+      .references(() => appsTable.id, { onDelete: 'cascade' })
       .notNull(),
     enabled: boolean('enabled'),
     folderScopeEnabledDefault: boolean('folder_scope_enabled_default'),
@@ -39,7 +39,7 @@ export const appUserSettingsTable = pgTable(
     index('app_user_settings_user_id_idx').on(table.userId),
     uniqueIndex('app_user_settings_user_app_unique').on(
       table.userId,
-      table.appIdentifier,
+      table.appId,
     ),
   ],
 )
@@ -52,8 +52,8 @@ export const appUserSettingsRelations = relations(
       references: [usersTable.id],
     }),
     app: one(appsTable, {
-      fields: [appUserSettingsTable.appIdentifier],
-      references: [appsTable.identifier],
+      fields: [appUserSettingsTable.appId],
+      references: [appsTable.id],
     }),
   }),
 )

@@ -9,6 +9,7 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const userAppDTOSchema = z.object({
+  id: z.string(),
   identifier: z.string(),
   label: z.string(),
   config: appConfigSchema,

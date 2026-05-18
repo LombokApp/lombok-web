@@ -53,7 +53,7 @@ export class LogEntryService {
 
     const logEntry: NewLogEntry = {
       id: uuidV4(),
-      emitterIdentifier,
+      emitterId: emitterIdentifier,
       level,
       targetLocationFolderId: targetLocation?.folderId,
       targetLocationObjectKey: targetLocation?.objectKey,
@@ -263,7 +263,7 @@ export class LogEntryService {
       conditions.push(
         or(
           ilike(logEntriesTable.message, `%${search}%`),
-          ilike(logEntriesTable.emitterIdentifier, `%${search}%`),
+          ilike(logEntriesTable.emitterId, `%${search}%`),
         ),
       )
     }

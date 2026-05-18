@@ -24,10 +24,11 @@ const TUNNEL_TOKEN_TTL_SECONDS = 86400 // 24 hours
 /**
  * Tunnel subdomain format: {label}--{publicId}--{appIdentifier}.{platformHost}
  * publicId is `tn-{hex}` — the embedded hyphen partitions tunnel hostnames
- * from the api-server--{worker}--{app} space (worker/app are [a-z0-9_]+).
+ * from the api-server--{worker}--{app} space. appIdentifier is the composed
+ * `<slug>-<id>` form, which contains a single hyphen but never `--`.
  */
 const TUNNEL_DOMAIN_REGEX =
-  /^([a-z0-9][a-z0-9-]{0,30}[a-z0-9])--(tn-[a-f0-9]+)--([a-z0-9_]+)\.(.+)$/
+  /^([a-z0-9][a-z0-9-]{0,30}[a-z0-9])--(tn-[a-f0-9]+)--([a-z0-9][a-z0-9_-]*)\.(.+)$/
 
 interface SessionTokenPayload {
   sub: string

@@ -10,6 +10,7 @@ import {
 import nestjsConfig from '@nestjs/config'
 import * as crypto from 'crypto'
 import { and, eq } from 'drizzle-orm'
+import { appsTable } from 'src/app/entities/app.entity'
 import { coreConfig } from 'src/core/config'
 import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
@@ -294,30 +295,47 @@ export class DockerHostManagementService {
 
   async listProfileAssignments(
     appIdentifier?: string,
-  ): Promise<DockerProfileResourceAssignment[]> {
+  ): Promise<
+    (DockerProfileResourceAssignment & { app: { identifier: string } })[]
+  > {
     if (appIdentifier) {
+      const app =
+        (await this.ormService.db.query.appsTable.findFirst({
+          where: eq(appsTable.identifier, appIdentifier),
+        })) ??
+        (await this.ormService.db.query.appsTable.findFirst({
+          where: eq(appsTable.slug, appIdentifier),
+        }))
+      if (!app) {
+        return []
+      }
       return this.ormService.db.query.dockerProfileResourceAssignmentsTable.findMany(
         {
-          where: eq(
-            dockerProfileResourceAssignmentsTable.appIdentifier,
-            appIdentifier,
-          ),
+          where: eq(dockerProfileResourceAssignmentsTable.appId, app.id),
           orderBy: (a, { asc }) => [asc(a.profileKey)],
+          with: { app: { columns: { identifier: true } } },
         },
       )
     }
     return this.ormService.db.query.dockerProfileResourceAssignmentsTable.findMany(
       {
-        orderBy: (a, { asc }) => [asc(a.appIdentifier), asc(a.profileKey)],
+        orderBy: (a, { asc }) => [asc(a.appId), asc(a.profileKey)],
+        with: { app: { columns: { identifier: true } } },
       },
     )
   }
 
   async getProfileAssignment(
     id: string,
-  ): Promise<DockerProfileResourceAssignment | undefined> {
+  ): Promise<
+    | (DockerProfileResourceAssignment & { app: { identifier: string } })
+    | undefined
+  > {
     return this.ormService.db.query.dockerProfileResourceAssignmentsTable.findFirst(
-      { where: eq(dockerProfileResourceAssignmentsTable.id, id) },
+      {
+        where: eq(dockerProfileResourceAssignmentsTable.id, id),
+        with: { app: { columns: { identifier: true } } },
+      },
     )
   }
 
@@ -326,17 +344,31 @@ export class DockerHostManagementService {
     profileKey: string
     dockerHostId: string
     config: DockerResourceConfig
-  }): Promise<DockerProfileResourceAssignment> {
+  }): Promise<
+    DockerProfileResourceAssignment & { app: { identifier: string } }
+  > {
     await this.getHostOrThrow(input.dockerHostId)
+
+    const app =
+      (await this.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.identifier, input.appIdentifier),
+      })) ??
+      (await this.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, input.appIdentifier),
+      }))
+    if (!app) {
+      throw new NotFoundException(`App not found: ${input.appIdentifier}`)
+    }
 
     const now = new Date()
     const configHashes = computeConfigHashes(input.config)
+    const newId = uuidV4()
 
-    const [created] = await this.ormService.db
+    await this.ormService.db
       .insert(dockerProfileResourceAssignmentsTable)
       .values({
-        id: uuidV4(),
-        appIdentifier: input.appIdentifier,
+        id: newId,
+        appId: app.id,
         profileKey: input.profileKey,
         dockerHostId: input.dockerHostId,
         config: input.config,
@@ -344,8 +376,8 @@ export class DockerHostManagementService {
         createdAt: now,
         updatedAt: now,
       })
-      .returning()
 
+    const created = await this.getProfileAssignment(newId)
     if (!created) {
       throw new InternalServerErrorException(
         'Failed to create profile assignment',
@@ -360,7 +392,9 @@ export class DockerHostManagementService {
       dockerHostId: string
       config: DockerResourceConfig
     }>,
-  ): Promise<DockerProfileResourceAssignment> {
+  ): Promise<
+    DockerProfileResourceAssignment & { app: { identifier: string } }
+  > {
     if (input.dockerHostId) {
       await this.getHostOrThrow(input.dockerHostId)
     }
@@ -374,12 +408,12 @@ export class DockerHostManagementService {
       updates.configHashes = computeConfigHashes(input.config)
     }
 
-    const [updated] = await this.ormService.db
+    await this.ormService.db
       .update(dockerProfileResourceAssignmentsTable)
       .set(updates)
       .where(eq(dockerProfileResourceAssignmentsTable.id, id))
-      .returning()
 
+    const updated = await this.getProfileAssignment(id)
     if (!updated) {
       throw new NotFoundException(`Profile assignment not found: ${id}`)
     }
@@ -639,19 +673,25 @@ export class DockerHostManagementService {
     host: DockerHost
     resourceConfig: DockerResourceConfig | null
   }> {
-    // 1. Exact match
-    const exact =
-      await this.ormService.db.query.dockerProfileResourceAssignmentsTable.findFirst(
-        {
-          where: and(
-            eq(
-              dockerProfileResourceAssignmentsTable.appIdentifier,
-              appIdentifier,
+    const app =
+      (await this.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.identifier, appIdentifier),
+      })) ??
+      (await this.ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, appIdentifier),
+      }))
+
+    // 1. Exact match (only if the app exists; otherwise fall through to global default)
+    const exact = app
+      ? await this.ormService.db.query.dockerProfileResourceAssignmentsTable.findFirst(
+          {
+            where: and(
+              eq(dockerProfileResourceAssignmentsTable.appId, app.id),
+              eq(dockerProfileResourceAssignmentsTable.profileKey, profileKey),
             ),
-            eq(dockerProfileResourceAssignmentsTable.profileKey, profileKey),
-          ),
-        },
-      )
+          },
+        )
+      : undefined
 
     if (exact) {
       const host = await this.getHostOrThrow(exact.dockerHostId)
@@ -663,18 +703,16 @@ export class DockerHostManagementService {
     }
 
     // 2. App-level default
-    const appDefault =
-      await this.ormService.db.query.dockerProfileResourceAssignmentsTable.findFirst(
-        {
-          where: and(
-            eq(
-              dockerProfileResourceAssignmentsTable.appIdentifier,
-              appIdentifier,
+    const appDefault = app
+      ? await this.ormService.db.query.dockerProfileResourceAssignmentsTable.findFirst(
+          {
+            where: and(
+              eq(dockerProfileResourceAssignmentsTable.appId, app.id),
+              eq(dockerProfileResourceAssignmentsTable.profileKey, '_default'),
             ),
-            eq(dockerProfileResourceAssignmentsTable.profileKey, '_default'),
-          ),
-        },
-      )
+          },
+        )
+      : undefined
 
     if (appDefault) {
       const host = await this.getHostOrThrow(appDefault.dockerHostId)

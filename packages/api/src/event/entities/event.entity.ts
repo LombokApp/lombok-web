@@ -15,7 +15,7 @@ export const eventsTable = pgTable(
   {
     id: uuid('id').primaryKey(),
     eventIdentifier: text('event_identifier').notNull(),
-    emitterIdentifier: text('emitter_identifier').notNull(),
+    emitterId: text('emitter_id').notNull(), // CORE_IDENTIFIER or app.id
     targetUserId: uuid('target_user_id'),
     actorUserId: uuid('actor_user_id'),
     targetLocationFolderId: uuid('target_location_folder_id'),
@@ -41,7 +41,7 @@ export const eventsTable = pgTable(
     index('events_actor_user_id_idx').on(table.actorUserId),
     index('events_target_user_id_idx').on(table.targetLocationFolderId),
     index('events_created_at_idx').on(table.createdAt),
-    index('events_emitter_identifier_idx').on(table.emitterIdentifier),
+    index('events_emitter_id_idx').on(table.emitterId),
     index('events_folder_created_at_idx').on(
       table.targetLocationFolderId,
       table.createdAt,

@@ -44,7 +44,7 @@ export function transformTaskToDTO(
 ): TaskDTO | TaskWithTargetLocationContextDTO {
   const baseDTO: TaskDTO = {
     id: task.id,
-    ownerIdentifier: task.ownerIdentifier,
+    ownerId: task.ownerId,
     invocation: task.invocation,
     systemLog: task.systemLog.map((log) => ({
       at: log.at.toISOString(),
@@ -112,7 +112,7 @@ export function transformTaskSummaryToDTO(
 ): TaskSummaryDTO | TaskSummaryWithTargetLocationContextDTO {
   const baseDTO: TaskSummaryDTO = {
     id: task.id,
-    ownerIdentifier: task.ownerIdentifier,
+    ownerId: task.ownerId,
     invocation: task.invocation,
     handlerIdentifier: task.handlerIdentifier ?? undefined,
     success: task.success ?? undefined,

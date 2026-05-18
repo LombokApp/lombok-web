@@ -115,6 +115,7 @@ Commands:
   unit <package>       Run unit tests for a package
   e2e api              Run API end-to-end tests
   e2e ui               Run UI end-to-end tests
+  e2e api "<glob>"     Run API end-to-end tests by glob
   up [-d]              Start the dev environment (-d for detached/daemon mode)
   down                 Stop the dev environment (docker compose down)
   kill                 Force-kill the dev environment (docker compose kill)
@@ -200,28 +201,32 @@ case "${1:-help}" in
     esac
     ;;
   db)
-    require_container
     case "${2:-}" in
+      migrate:new)
+        bun --cwd packages/api db:migrate:new
+        ;;
       seed)
+        require_container
         $DOCKER_EXEC bun --cwd packages/api db:seed && ./dx reload api
         ;;
       reset)
+        require_container
         $DOCKER_EXEC bun --cwd packages/api db:reset && ./dx reload api
         ;;
       reset:seed)
+        require_container
         $DOCKER_EXEC bun --cwd packages/api db:reset && ./dx db seed
         ;;
       purge)
+        require_container
         $DOCKER_EXEC bun --cwd packages/api db:clean
         ;;
       migrate)
-          $DOCKER_EXEC bun --cwd packages/api db:migrate
-        ;;
-      migrate:new)
-        $DOCKER_EXEC bun --cwd packages/api db:migrate:new
+        require_container
+        $DOCKER_EXEC bun --cwd packages/api db:migrate
         ;;
       *)
-        echo "Usage: ./dx db <seed|reset|migrate>" >&2
+        echo "Usage: ./dx db <seed|reset|migrate|migrate:new>" >&2
         exit 1
         ;;
     esac
@@ -250,7 +255,7 @@ case "${1:-help}" in
         bun --cwd packages/api e2e:api ${3:-}
         ;;
       ui)
-        bun --cwd packages/api e2e:ui
+        bun --cwd packages/api e2e:ui ${3:-}
         ;;
       core-worker)
         bun --cwd packages/core-worker e2e

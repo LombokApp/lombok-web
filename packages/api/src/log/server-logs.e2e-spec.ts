@@ -18,7 +18,7 @@ async function seedLogEntry(
   await testModule.services.ormService.db.insert(logEntriesTable).values({
     id,
     message: 'Test log message',
-    emitterIdentifier: 'core',
+    emitterId: 'core',
     level: LogEntryLevel.INFO,
     createdAt: now,
     ...overrides,

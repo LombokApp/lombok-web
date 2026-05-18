@@ -50,7 +50,9 @@ describe('Core Events', () => {
 
     expect(tasks.length).toBe(1)
     const task = tasks[0]
-    expect(task?.ownerIdentifier).toBe(DUMMY_APP_SLUG)
+    const dummyAppIdentifier =
+      testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
+    expect(task?.ownerId).toBe(dummyAppIdentifier)
     expect(task?.data).toEqual(data)
   })
 })

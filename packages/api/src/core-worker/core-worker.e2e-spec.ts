@@ -287,10 +287,13 @@ describe('Core Worker', () => {
 
     await testModule.setServerStorageLocation()
     const zipFileBuffer = fs.readFileSync(appBundleZipPath)
-    const installedApp = await testModule.services.appService.handleAppInstall({
-      zipFilename: `${appSlug}.zip`,
-      zipFileBuffer,
-    })
+    const installedApp = await testModule.services.appService.handleAppInstall(
+      {
+        zipFilename: `${appSlug}.zip`,
+        zipFileBuffer,
+      },
+      { mode: 'install' },
+    )
     installedAppIdentifier = installedApp.identifier
     await testModule.services.coreWorkerService.updateAppHashMapping()
   }
@@ -300,7 +303,7 @@ describe('Core Worker', () => {
     return {
       id: crypto.randomUUID(),
       taskIdentifier: 'test_task',
-      ownerIdentifier: installedAppIdentifier,
+      ownerId: installedAppIdentifier,
       invocation: {
         kind: 'app_action' as const,
         invokeContext: {
@@ -323,7 +326,7 @@ describe('Core Worker', () => {
     const coreTasks =
       await testModule.services.ormService.db.query.tasksTable.findMany({
         where: and(
-          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+          eq(tasksTable.ownerId, CORE_IDENTIFIER),
           eq(tasksTable.taskIdentifier, CoreTaskName.RunServerlessWorker),
         ),
         orderBy: [asc(tasksTable.createdAt)],
@@ -1052,7 +1055,7 @@ describe('Core Worker', () => {
       await testModule!.services.ormService.db.query.tasksTable.findFirst({
         where: and(
           eq(tasksTable.taskIdentifier, CoreTaskName.ReindexFolder),
-          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+          eq(tasksTable.ownerId, CORE_IDENTIFIER),
         ),
       })
 

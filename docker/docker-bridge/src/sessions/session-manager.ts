@@ -41,7 +41,7 @@ export class SessionManager {
     command: string[],
     label: string,
     options: {
-      appIdentifier: string | null
+      appId: string | null
       mode: SessionMode
       protocol: TunnelProtocol
       tty: boolean
@@ -74,7 +74,7 @@ export class SessionManager {
       agentReady: false,
       publicId,
       label,
-      appIdentifier: options.appIdentifier,
+      appId: options.appId,
     }
 
     this.sessions.set(session.id, session)
@@ -96,11 +96,20 @@ export class SessionManager {
     return this.sessions.get(sessionId)
   }
 
-  list(filter?: { containerId?: string }): Session[] {
+  list(filter?: {
+    containerId?: string
+    appId?: string
+  }): Session[] {
     let results = Array.from(this.sessions.values())
 
     if (filter?.containerId) {
       results = results.filter((s) => s.containerId === filter.containerId)
+    }
+
+    if (filter?.appId) {
+      results = results.filter(
+        (s) => s.appId === filter.appId,
+      )
     }
 
     return results

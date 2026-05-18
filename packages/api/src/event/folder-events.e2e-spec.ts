@@ -21,7 +21,7 @@ async function seedFolderEvent(
   await testModule.services.ormService.db.insert(eventsTable).values({
     id,
     eventIdentifier: 'object_added',
-    emitterIdentifier: 'core',
+    emitterId: 'core',
     targetLocationFolderId: folderId,
     createdAt: now,
     ...overrides,

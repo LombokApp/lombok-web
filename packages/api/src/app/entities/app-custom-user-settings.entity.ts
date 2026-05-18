@@ -18,8 +18,8 @@ export const appCustomUserSettingsTable = pgTable(
     userId: uuid('user_id')
       .references(() => usersTable.id, { onDelete: 'cascade' })
       .notNull(),
-    appIdentifier: text('app_identifier')
-      .references(() => appsTable.identifier, { onDelete: 'cascade' })
+    appId: text('app_id')
+      .references(() => appsTable.id, { onDelete: 'cascade' })
       .notNull(),
     key: text('key').notNull(),
     value: jsonb('value').$type<unknown>().notNull(),
@@ -28,11 +28,11 @@ export const appCustomUserSettingsTable = pgTable(
   },
   (table) => [
     primaryKey({
-      columns: [table.userId, table.appIdentifier, table.key],
+      columns: [table.userId, table.appId, table.key],
     }),
     index('app_custom_user_settings_user_app_idx').on(
       table.userId,
-      table.appIdentifier,
+      table.appId,
     ),
   ],
 )
@@ -45,8 +45,8 @@ export const appCustomUserSettingsRelations = relations(
       references: [usersTable.id],
     }),
     app: one(appsTable, {
-      fields: [appCustomUserSettingsTable.appIdentifier],
-      references: [appsTable.identifier],
+      fields: [appCustomUserSettingsTable.appId],
+      references: [appsTable.id],
     }),
   }),
 )

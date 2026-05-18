@@ -45,7 +45,7 @@ export class CreateEventNotificationsProcessor extends BaseCoreTaskProcessor<Cor
           aggregationKey,
           {
             eventIdentifier: unhandledEvent.eventIdentifier,
-            emitterIdentifier: unhandledEvent.emitterIdentifier,
+            emitterIdentifier: unhandledEvent.emitterId,
           },
         )
 
@@ -60,7 +60,7 @@ export class CreateEventNotificationsProcessor extends BaseCoreTaskProcessor<Cor
 
           const requeueTask: NewTask = withTaskIdempotencyKey({
             id: crypto.randomUUID(),
-            ownerIdentifier: CORE_IDENTIFIER,
+            ownerId: CORE_IDENTIFIER,
             taskIdentifier: CoreTaskName.CreateEventNotifications,
             invocation: {
               kind: 'user_action',
@@ -111,7 +111,7 @@ export class CreateEventNotificationsProcessor extends BaseCoreTaskProcessor<Cor
           .insert(notificationsTable)
           .values({
             eventIdentifier: firstEvent.eventIdentifier,
-            emitterIdentifier: firstEvent.emitterIdentifier,
+            emitterIdentifier: firstEvent.emitterId,
             aggregationKey,
             targetLocationFolderId: firstEvent.targetLocationFolderId,
             targetLocationObjectKey: firstEvent.targetLocationObjectKey,
@@ -159,7 +159,7 @@ export class CreateEventNotificationsProcessor extends BaseCoreTaskProcessor<Cor
 
         const deliveryTask: NewTask = withTaskIdempotencyKey({
           id: crypto.randomUUID(),
-          ownerIdentifier: CORE_IDENTIFIER,
+          ownerId: CORE_IDENTIFIER,
           taskIdentifier: CoreTaskName.BuildNotificationDeliveries,
           invocation: {
             kind: 'system_action',

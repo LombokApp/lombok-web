@@ -3,6 +3,17 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@lombokapp/ui-toolkit/components/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@lombokapp/ui-toolkit/components/alert-dialog'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   CardContent,
@@ -12,6 +23,8 @@ import {
 } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { formatBytes } from '@lombokapp/utils'
 import {
@@ -21,15 +34,18 @@ import {
   Menu,
   OctagonX,
   Settings,
+  Trash2,
+  Upload,
 } from 'lucide-react'
-import { Link } from 'react-router'
+import React from 'react'
+import { Link, useNavigate } from 'react-router'
 
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { DockerIcon } from '@/src/components/icons/docker-icon'
 import { JavaScriptIcon } from '@/src/components/icons/javascript-icon'
 import { TypeScriptIcon } from '@/src/components/icons/typescript-icon'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
-import { $api } from '@/src/services/api'
+import { $api, $apiClient } from '@/src/services/api'
 import { formatTriggerLabel } from '@/src/utils/trigger-utils'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
@@ -85,7 +101,12 @@ export function ServerAppDetailScreen({
   })
 
   const app = appQuery.data?.app
-  // Remove useState and useEffect for app
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const upgradeFileInputRef = React.useRef<HTMLInputElement>(null)
+  const [upgradeFile, setUpgradeFile] = React.useState<File | null>(null)
+  const [isUpgrading, setIsUpgrading] = React.useState(false)
+  const [isUninstalling, setIsUninstalling] = React.useState(false)
 
   // React Query mutation for saving env vars
   const setEnvironmentVariablesMutation = $api.useMutation(
@@ -95,6 +116,70 @@ export function ServerAppDetailScreen({
       onSuccess: () => appQuery.refetch(),
     },
   )
+
+  const handleUpgrade = React.useCallback(async () => {
+    if (!upgradeFile) {
+      return
+    }
+    setIsUpgrading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', upgradeFile)
+      const res = await $apiClient.POST(
+        '/api/v1/server/apps/{appIdentifier}/upgrade',
+        {
+          params: { path: { appIdentifier } },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          body: formData as any,
+        },
+      )
+      if (res.error) {
+        throw new Error(res.error.message || 'Upgrade failed')
+      }
+      toast({
+        title: 'App upgraded',
+        description: 'The new bundle has been installed.',
+      })
+      setUpgradeFile(null)
+      if (upgradeFileInputRef.current) {
+        upgradeFileInputRef.current.value = ''
+      }
+      await appQuery.refetch()
+    } catch (error) {
+      toast({
+        title: 'Failed to upgrade app',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUpgrading(false)
+    }
+  }, [upgradeFile, appIdentifier, toast, appQuery])
+
+  const handleUninstall = React.useCallback(async () => {
+    setIsUninstalling(true)
+    try {
+      const res = await $apiClient.DELETE(
+        '/api/v1/server/apps/{appIdentifier}',
+        { params: { path: { appIdentifier } } },
+      )
+      if (res.error) {
+        throw new Error(res.error.message || 'Uninstall failed')
+      }
+      toast({
+        title: 'App uninstalled',
+        description: `${appIdentifier} has been removed.`,
+      })
+      void navigate('/server/settings/apps')
+    } catch (error) {
+      toast({
+        title: 'Failed to uninstall app',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      })
+      setIsUninstalling(false)
+    }
+  }, [appIdentifier, navigate, toast])
 
   return (
     <div className={'flex size-full flex-col gap-8'}>
@@ -139,6 +224,93 @@ export function ServerAppDetailScreen({
                     <Settings className="size-4" />
                   </Link>
                 </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Upload className="mr-2 size-4" />
+                      Upgrade
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Upgrade {app.label}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Upload a new zip bundle for this app. The bundle's slug
+                        must match{' '}
+                        <span className="font-medium">{app.slug}</span>.
+                        Existing user data, settings, and per-app database
+                        contents are preserved.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2 py-2">
+                      <Input
+                        ref={upgradeFileInputRef}
+                        type="file"
+                        accept=".zip,application/zip,application/x-zip-compressed"
+                        onChange={(e) =>
+                          setUpgradeFile(e.target.files?.[0] ?? null)
+                        }
+                        disabled={isUpgrading}
+                      />
+                      {upgradeFile && (
+                        <p className="text-sm text-muted-foreground">
+                          Selected: {upgradeFile.name} (
+                          {(upgradeFile.size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      )}
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel
+                        onClick={() => {
+                          setUpgradeFile(null)
+                          if (upgradeFileInputRef.current) {
+                            upgradeFileInputRef.current.value = ''
+                          }
+                        }}
+                      >
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        disabled={!upgradeFile || isUpgrading}
+                        onClick={() => void handleUpgrade()}
+                      >
+                        {isUpgrading ? 'Upgrading...' : 'Upgrade'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="mr-2 size-4" />
+                      Uninstall
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Uninstall {app.label}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This permanently removes{' '}
+                        <span className="font-medium">{app.identifier}</span>:
+                        worker sockets are disconnected, containers and tunnel
+                        sessions are destroyed, per-user/folder settings and the
+                        per-app database schema are dropped, and the bundle is
+                        deleted from storage. Historical tasks, events, and logs
+                        are retained for audit. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={isUninstalling}
+                        onClick={() => void handleUninstall()}
+                      >
+                        {isUninstalling ? 'Uninstalling...' : 'Uninstall'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </div>

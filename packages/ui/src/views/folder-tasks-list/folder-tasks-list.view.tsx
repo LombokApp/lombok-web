@@ -48,9 +48,7 @@ const TaskCard = ({
                   {task.taskIdentifier}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  <div className="font-mono">
-                    {task.ownerIdentifier.toLowerCase()}
-                  </div>
+                  <div className="font-mono">{task.ownerId.toLowerCase()}</div>
                 </div>
               </div>
             </div>

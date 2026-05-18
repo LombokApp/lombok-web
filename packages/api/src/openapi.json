@@ -47,6 +47,61 @@
         ]
       }
     },
+    "/api/v1/server/apps/{appIdentifier}/upgrade": {
+      "post": {
+        "operationId": "Apps_upgradeApp",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppInstallResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/api/v1/server/apps": {
       "get": {
         "operationId": "Apps_listApps",
@@ -1025,6 +1080,28 @@
           }
         },
         "summary": "Get the public server settings object (no authentication required).",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/api/v1/public/build-id": {
+      "get": {
+        "operationId": "Public_getBuildId",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Build ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBuildIdGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the build ID identifying the running server.",
         "tags": [
           "Public"
         ]
@@ -10034,8 +10111,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "string"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "string"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "string"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -10071,8 +10165,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "number"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "number"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "number"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -10095,8 +10206,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "integer"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "integer"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "integer"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -10125,8 +10253,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "boolean"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "boolean"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "boolean"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -10270,6 +10415,9 @@
           "app": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "identifier": {
                 "type": "string"
               },
@@ -11148,8 +11296,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11185,8 +11350,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11209,8 +11391,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11239,8 +11438,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11431,8 +11647,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11468,8 +11701,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11492,8 +11742,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11522,8 +11789,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11734,8 +12018,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11771,8 +12072,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11795,8 +12113,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -11825,8 +12160,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -12017,8 +12369,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -12054,8 +12423,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -12078,8 +12464,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -12108,8 +12511,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -12373,7 +12793,7 @@
                     "appIdentifier": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-z0-9_]+$"
+                      "pattern": "^[a-z0-9]+-[a-f0-9]{8}$"
                     },
                     "workerId": {
                       "type": "string"
@@ -12721,6 +13141,7 @@
               }
             },
             "required": [
+              "id",
               "identifier",
               "slug",
               "label",
@@ -12816,8 +13237,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "string"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "string"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "string"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -12853,8 +13291,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "number"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "number"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "number"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -12877,8 +13332,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "integer"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "integer"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "integer"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -12907,8 +13379,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "boolean"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "boolean"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "boolean"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -13065,6 +13554,9 @@
             "items": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "string"
+                },
                 "identifier": {
                   "type": "string"
                 },
@@ -13943,8 +14435,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -13980,8 +14489,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14004,8 +14530,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14034,8 +14577,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14226,8 +14786,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14263,8 +14840,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14287,8 +14881,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14317,8 +14928,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14529,8 +15157,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14566,8 +15211,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14590,8 +15252,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14620,8 +15299,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14812,8 +15508,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14849,8 +15562,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14873,8 +15603,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -14903,8 +15650,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -15168,7 +15932,7 @@
                       "appIdentifier": {
                         "type": "string",
                         "minLength": 1,
-                        "pattern": "^[a-z0-9_]+$"
+                        "pattern": "^[a-z0-9]+-[a-f0-9]{8}$"
                       },
                       "workerId": {
                         "type": "string"
@@ -15516,6 +16280,7 @@
                 }
               },
               "required": [
+                "id",
                 "identifier",
                 "slug",
                 "label",
@@ -15624,8 +16389,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "string"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "string"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "string"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -15661,8 +16443,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "number"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "number"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "number"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -15685,8 +16484,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "integer"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "integer"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "integer"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -15715,8 +16531,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "boolean"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "boolean"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "boolean"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -15860,6 +16693,9 @@
           "app": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "identifier": {
                 "type": "string"
               },
@@ -16738,8 +17574,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -16775,8 +17628,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -16799,8 +17669,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -16829,8 +17716,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17021,8 +17925,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17058,8 +17979,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17082,8 +18020,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17112,8 +18067,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17324,8 +18296,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17361,8 +18350,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17385,8 +18391,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17415,8 +18438,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17607,8 +18647,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17644,8 +18701,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17668,8 +18742,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17698,8 +18789,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -17963,7 +19071,7 @@
                     "appIdentifier": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-z0-9_]+$"
+                      "pattern": "^[a-z0-9]+-[a-f0-9]{8}$"
                     },
                     "workerId": {
                       "type": "string"
@@ -18311,6 +19419,7 @@
               }
             },
             "required": [
+              "id",
               "identifier",
               "slug",
               "label",
@@ -18441,8 +19550,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "string"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "string"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "string"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -18478,8 +19604,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "number"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "number"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "number"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -18502,8 +19645,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "integer"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "integer"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "integer"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -18532,8 +19692,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "boolean"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "boolean"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "boolean"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -18690,6 +19867,9 @@
             "items": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "string"
+                },
                 "identifier": {
                   "type": "string"
                 },
@@ -19565,8 +20745,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -19602,8 +20799,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -19626,8 +20840,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -19656,8 +20887,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -19848,8 +21096,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -19885,8 +21150,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -19909,8 +21191,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -19939,8 +21238,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20151,8 +21467,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20188,8 +21521,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20212,8 +21562,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20242,8 +21609,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20434,8 +21818,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "string"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "string"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20471,8 +21872,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "number"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "number"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "number"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20495,8 +21913,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "integer"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "integer"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "integer"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -20525,8 +21960,25 @@
                                     "type": "object",
                                     "properties": {
                                       "type": {
-                                        "type": "string",
-                                        "const": "boolean"
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "prefixItems": [
+                                              {
+                                                "type": "string",
+                                                "const": "boolean"
+                                              },
+                                              {
+                                                "type": "string",
+                                                "const": "null"
+                                              }
+                                            ]
+                                          }
+                                        ]
                                       },
                                       "description": {
                                         "type": "string"
@@ -21032,6 +22484,7 @@
                 }
               },
               "required": [
+                "id",
                 "identifier",
                 "label",
                 "config",
@@ -21124,8 +22577,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "string"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "string"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "string"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -21161,8 +22631,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "number"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "number"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "number"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -21185,8 +22672,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "integer"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "integer"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "integer"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -21215,8 +22719,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "boolean"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "boolean"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "boolean"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -21360,6 +22881,9 @@
           "app": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "identifier": {
                 "type": "string"
               },
@@ -22235,8 +23759,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22272,8 +23813,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22296,8 +23854,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22326,8 +23901,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22518,8 +24110,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22555,8 +24164,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22579,8 +24205,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22609,8 +24252,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22821,8 +24481,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22858,8 +24535,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22882,8 +24576,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -22912,8 +24623,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -23104,8 +24832,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "string"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "string"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -23141,8 +24886,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "number"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "number"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "number"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -23165,8 +24927,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "integer"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "integer"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "integer"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -23195,8 +24974,25 @@
                                   "type": "object",
                                   "properties": {
                                     "type": {
-                                      "type": "string",
-                                      "const": "boolean"
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "const": "boolean"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "prefixItems": [
+                                            {
+                                              "type": "string",
+                                              "const": "boolean"
+                                            },
+                                            {
+                                              "type": "string",
+                                              "const": "null"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     },
                                     "description": {
                                       "type": "string"
@@ -23702,6 +25498,7 @@
               }
             },
             "required": [
+              "id",
               "identifier",
               "label",
               "config",
@@ -24062,8 +25859,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "string"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "string"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "string"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -24099,8 +25913,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "number"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "number"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "number"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -24123,8 +25954,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "integer"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "integer"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "integer"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -24153,8 +26001,25 @@
                 "type": "object",
                 "properties": {
                   "type": {
-                    "type": "string",
-                    "const": "boolean"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "boolean"
+                      },
+                      {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "const": "boolean"
+                          },
+                          {
+                            "type": "string",
+                            "const": "null"
+                          }
+                        ]
+                      }
+                    ]
                   },
                   "description": {
                     "type": "string"
@@ -24341,8 +26206,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "string"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24378,8 +26260,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "number"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "number"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24402,8 +26301,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "integer"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "integer"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24432,8 +26348,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "boolean"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "boolean"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24624,8 +26557,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "string"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "string"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24661,8 +26611,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "number"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "number"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "number"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24685,8 +26652,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "integer"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "integer"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "integer"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24715,8 +26699,25 @@
                           "type": "object",
                           "properties": {
                             "type": {
-                              "type": "string",
-                              "const": "boolean"
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "const": "boolean"
+                                },
+                                {
+                                  "type": "array",
+                                  "prefixItems": [
+                                    {
+                                      "type": "string",
+                                      "const": "boolean"
+                                    },
+                                    {
+                                      "type": "string",
+                                      "const": "null"
+                                    }
+                                  ]
+                                }
+                              ]
                             },
                             "description": {
                               "type": "string"
@@ -24994,6 +26995,17 @@
           "settings"
         ]
       },
+      "PublicBuildIdGetResponse": {
+        "type": "object",
+        "properties": {
+          "buildId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "buildId"
+        ]
+      },
       "SettingsGetResponse": {
         "type": "object",
         "properties": {
@@ -25257,7 +27269,7 @@
                       "identifier": {
                         "type": "string",
                         "minLength": 1,
-                        "pattern": "^[a-z0-9_]+$"
+                        "pattern": "^[a-z0-9]+-[a-f0-9]{8}$"
                       },
                       "workerIdentifier": {
                         "type": "string",
@@ -28456,7 +30468,7 @@
               "taskIdentifier": {
                 "type": "string"
               },
-              "ownerIdentifier": {
+              "ownerId": {
                 "type": "string"
               },
               "invocation": {
@@ -28538,7 +30550,7 @@
                             "format": "uuid",
                             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                           },
-                          "emitterIdentifier": {
+                          "emitterId": {
                             "type": "string"
                           },
                           "eventIdentifier": {
@@ -28602,7 +30614,7 @@
                         },
                         "required": [
                           "eventId",
-                          "emitterIdentifier",
+                          "emitterId",
                           "eventIdentifier",
                           "eventTriggerConfigIndex",
                           "eventData"
@@ -29552,7 +31564,7 @@
             "required": [
               "id",
               "taskIdentifier",
-              "ownerIdentifier",
+              "ownerId",
               "invocation",
               "taskDescription",
               "systemLog",
@@ -29656,7 +31668,7 @@
                 "taskIdentifier": {
                   "type": "string"
                 },
-                "ownerIdentifier": {
+                "ownerId": {
                   "type": "string"
                 },
                 "invocation": {
@@ -29738,7 +31750,7 @@
                               "format": "uuid",
                               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
                             },
-                            "emitterIdentifier": {
+                            "emitterId": {
                               "type": "string"
                             },
                             "eventIdentifier": {
@@ -29802,7 +31814,7 @@
                           },
                           "required": [
                             "eventId",
-                            "emitterIdentifier",
+                            "emitterId",
                             "eventIdentifier",
                             "eventTriggerConfigIndex",
                             "eventData"
@@ -30611,7 +32623,7 @@
               "required": [
                 "id",
                 "taskIdentifier",
-                "ownerIdentifier",
+                "ownerId",
                 "invocation",
                 "taskDescription",
                 "createdAt",
@@ -31593,8 +33605,7 @@
           "label": {
             "type": "string",
             "default": "admin-console",
-            "minLength": 1,
-            "maxLength": 63
+            "pattern": "^[a-z0-9][a-z0-9-]{0,30}[a-z0-9]$"
           }
         },
         "required": [
@@ -31671,8 +33682,7 @@
           },
           "label": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 63
+            "pattern": "^[a-z0-9][a-z0-9-]{0,30}[a-z0-9]$"
           },
           "mode": {
             "type": "string",

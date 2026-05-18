@@ -7,6 +7,7 @@ export function transformAppToDTO(
   connectedRuntimeWorkers: AdminAppDTO['connectedRuntimeWorkers'],
 ): AdminAppDTO {
   return {
+    id: app.id,
     identifier: app.identifier,
     slug: app.slug,
     label: app.label,

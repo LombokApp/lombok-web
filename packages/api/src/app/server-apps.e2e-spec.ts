@@ -79,7 +79,7 @@ describe('Server Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
     const getAppResponse = await apiClient(accessToken).GET(
       `/api/v1/server/apps/{appIdentifier}`,
       {
@@ -113,7 +113,7 @@ describe('Server Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
 
     // Enable app
     const enableResponse = await apiClient(accessToken).PUT(

@@ -640,7 +640,7 @@ describe('Server - Settings', () => {
           body: {
             value: {
               app: {
-                identifier: 'non_existent_app_12345',
+                identifier: 'nonexistent-12345678',
                 workerIdentifier: 'search_worker',
               },
             },

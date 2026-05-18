@@ -40,13 +40,13 @@ export function configureTasksTableColumns(
       cell: ({ row }) => (
         <div className="min-w-min shrink-0">
           <ActorFeedback
-            actorIdentifier={row.original.ownerIdentifier}
+            actorIdentifier={row.original.ownerId}
             title={row.original.taskIdentifier}
             showSubtitle={config.showOwnerSubtext}
             subtitle={`owned by ${
-              row.original.ownerIdentifier === CORE_IDENTIFIER
+              row.original.ownerId === CORE_IDENTIFIER
                 ? 'lombok:core'
-                : `app:${row.original.ownerIdentifier}`
+                : `app:${row.original.ownerId}`
             }`}
           />
         </div>

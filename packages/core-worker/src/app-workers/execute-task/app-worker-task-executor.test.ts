@@ -5,7 +5,7 @@ import type {
   LogEntryLevel,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
-import { CORE_IDENTIFIER, CoreEvent } from '@lombokapp/types'
+import { CoreEvent } from '@lombokapp/types'
 import {
   afterAll,
   beforeAll,
@@ -233,6 +233,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     // Mock run_serverless_worker task and the underlying worker script task
     const workerScriptTask = {
       id: uuidV4(),
+      ownerId: uuidV4(),
       ownerIdentifier: 'core-worker',
       invocation: {
         kind: 'event' as const,
@@ -240,7 +241,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
           eventIdentifier: CoreEvent.object_added,
           eventTriggerConfigIndex: 0,
           eventId: uuidV4(),
-          emitterIdentifier: CORE_IDENTIFIER,
+          emitterId: uuidV4(),
           eventData: {} as JsonSerializableObject,
         },
       },

@@ -63,7 +63,7 @@ export const tasksTable = pgTable(
   'tasks',
   {
     id: uuid('id').primaryKey(),
-    ownerIdentifier: text('owner_identifier').notNull(), // core, app:core, app:other, ...
+    ownerId: text('owner_id').notNull(), // CORE_IDENTIFIER or app.id
     taskIdentifier: text('task_identifier').notNull(),
     taskDescription: text('task_description').notNull(),
     data: jsonbBase64('data').notNull().$type<TaskData>(),
@@ -105,7 +105,7 @@ export const tasksTable = pgTable(
   (table) => [
     index('tasks_trigger_kind_idx').on(sql`(${table.invocation} ->> 'kind')`),
     index('tasks_idempotency_key_idx').on(
-      table.ownerIdentifier,
+      table.ownerId,
       table.taskIdentifier,
       table.idempotencyKey,
     ),
@@ -117,7 +117,7 @@ export const tasksTable = pgTable(
       table.targetLocationObjectKey,
     ),
     index('tasks_pending_core_idx')
-      .on(table.ownerIdentifier, table.startedAt)
+      .on(table.ownerId, table.startedAt)
       .where(sql`${table.startedAt} IS NULL`),
     index('tasks_created_at_idx').on(table.createdAt),
     index('tasks_completed_at_success_idx').on(

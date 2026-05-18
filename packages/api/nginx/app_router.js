@@ -9,7 +9,7 @@ try {
 }
 
 function getAppBackend(r) {
-  var appname = r.variables.appname.split('_')[0]
+  var appname = r.variables.appname.replace('-', '_')
   if (appname && backends[appname]) {
     return backends[appname]
   }

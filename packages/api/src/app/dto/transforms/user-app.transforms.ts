@@ -4,6 +4,7 @@ import type { UserAppDTO } from '../user-app.dto'
 
 export function transformAppToUserDTO(app: App): UserAppDTO {
   return {
+    id: app.id,
     identifier: app.identifier,
     label: app.label,
     config: app.config,

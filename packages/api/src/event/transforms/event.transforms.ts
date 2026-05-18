@@ -17,7 +17,7 @@ export function transformEventToDTO(
 ): EventDTO | EventWithTargetLocationContextDTO {
   const baseDTO: EventDTO = {
     id: event.id,
-    emitterIdentifier: event.emitterIdentifier,
+    emitterIdentifier: event.emitterId,
     eventIdentifier: event.eventIdentifier,
     data: event.data ?? {},
     targetLocation: event.targetLocationFolderId

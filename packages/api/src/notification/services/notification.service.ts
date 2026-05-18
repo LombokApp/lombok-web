@@ -32,7 +32,7 @@ export class NotificationService {
 
     const newNotification: NewNotification = {
       eventIdentifier: firstEvent.eventIdentifier,
-      emitterIdentifier: firstEvent.emitterIdentifier,
+      emitterIdentifier: firstEvent.emitterId,
       aggregationKey,
       targetLocationFolderId: firstEvent.targetLocationFolderId,
       targetLocationObjectKey: firstEvent.targetLocationObjectKey,

@@ -18,8 +18,8 @@ export const appCustomFolderSettingsTable = pgTable(
     folderId: uuid('folder_id')
       .references(() => foldersTable.id, { onDelete: 'cascade' })
       .notNull(),
-    appIdentifier: text('app_identifier')
-      .references(() => appsTable.identifier, { onDelete: 'cascade' })
+    appId: text('app_id')
+      .references(() => appsTable.id, { onDelete: 'cascade' })
       .notNull(),
     key: text('key').notNull(),
     value: jsonb('value').$type<unknown>().notNull(),
@@ -28,11 +28,11 @@ export const appCustomFolderSettingsTable = pgTable(
   },
   (table) => [
     primaryKey({
-      columns: [table.folderId, table.appIdentifier, table.key],
+      columns: [table.folderId, table.appId, table.key],
     }),
     index('app_custom_folder_settings_folder_app_idx').on(
       table.folderId,
-      table.appIdentifier,
+      table.appId,
     ),
   ],
 )
@@ -45,8 +45,8 @@ export const appCustomFolderSettingsRelations = relations(
       references: [foldersTable.id],
     }),
     app: one(appsTable, {
-      fields: [appCustomFolderSettingsTable.appIdentifier],
-      references: [appsTable.identifier],
+      fields: [appCustomFolderSettingsTable.appId],
+      references: [appsTable.id],
     }),
   }),
 )

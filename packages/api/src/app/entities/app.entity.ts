@@ -16,12 +16,21 @@ import {
   pgTable,
   text,
   timestamp,
-  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
 export const appsTable = pgTable(
   'apps',
   {
+    /**
+     * Canonical app id. 8-char hex, generated once at install time, immutable.
+     * All internal cross-references (FK columns, docker labels, IPC payloads,
+     * core-worker hash mapping, etc.) use this. Stable across slug renames.
+     */
+    id: text('id').notNull().unique(),
+    /**
+     * Display identifier: `${slug}-${id}`. Primary key for routing — URLs and
+     * external references use this composed form for diagnosability.
+     */
     identifier: text('identifier').primaryKey(),
     slug: text('slug').notNull(),
     label: text('label').notNull(),
@@ -66,10 +75,7 @@ export const appsTable = pgTable(
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },
-  (table) => [
-    uniqueIndex('apps_slug_unique').on(table.slug),
-    index('apps_enabled_idx').on(table.enabled),
-  ],
+  (table) => [index('apps_enabled_idx').on(table.enabled)],
 )
 
 export type App = typeof appsTable.$inferSelect

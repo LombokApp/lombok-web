@@ -801,7 +801,7 @@ describe('apps.types', () => {
   describe('appWorkerSocketConnectionSchema', () => {
     it('should validate app worker socket connection', () => {
       const validWorker = {
-        appIdentifier: 'testapp',
+        appIdentifier: 'testapp-12345678',
         workerId: 'worker1',
         socketClientId: 'client123',
         ip: '192.168.1.1',

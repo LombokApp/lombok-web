@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 import { randomUUID } from 'crypto'
 import { eq } from 'drizzle-orm'
 import type pg from 'pg'
+import { appsTable } from 'src/app/entities/app.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderSharesTable } from 'src/folders/entities/folder-share.entity'
 import {
@@ -309,7 +310,14 @@ describe('ORM Schema Isolation', () => {
 
     // Clean up
     await appClient.end()
-    await ormService.dropAppSchema(testAppId)
+    await (async () => {
+      const _a = await ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, testAppId),
+      })
+      if (_a) {
+        await ormService.dropAppSchema(_a)
+      }
+    })()
   })
 
   it('should handle batch operations with proper isolation', async () => {
@@ -375,10 +383,21 @@ describe('ORM Schema Isolation', () => {
 
     // Clean up
     await appClient.end()
-    await ormService.dropAppSchema(TEST_APP_SLUG)
+    await (async () => {
+      const _a = await ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, TEST_APP_SLUG),
+      })
+      if (_a) {
+        await ormService.dropAppSchema(_a)
+      }
+    })()
   })
 
   it('should handle multiple concurrent app schemas without interference', async () => {
+    await testModule!.installLocalAppBundles([
+      TEST_APP_SLUG,
+      SOCKET_TEST_APP_SLUG,
+    ])
     const ormService = testModule!.services.ormService
 
     // Create LombokAppPgClient instances for both apps
@@ -493,7 +512,14 @@ describe('ORM Schema Isolation', () => {
     ).rejects.toThrow(/permission denied/i)
 
     await appClient.end()
-    await ormService.dropAppSchema(appId)
+    await (async () => {
+      const _a = await ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, appId),
+      })
+      if (_a) {
+        await ormService.dropAppSchema(_a)
+      }
+    })()
     await ormService.client.query(
       `DROP TABLE IF EXISTS public.cross_schema_guard CASCADE`,
     )
@@ -597,6 +623,12 @@ describe('ORM Schema Isolation', () => {
     await testModule!.installLocalAppBundles([TEST_APP_SLUG])
     const ormService = testModule!.services.ormService
     const testAppId = TEST_APP_SLUG
+    const testApp = await ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.slug, testAppId),
+    })
+    if (!testApp) {
+      throw new Error(`Test app ${testAppId} not installed`)
+    }
 
     // Run app migrations
     const migrationFiles = [
@@ -623,18 +655,19 @@ describe('ORM Schema Isolation', () => {
       },
     ]
 
-    await ormService.runAppMigrations(testAppId, migrationFiles)
+    await ormService.runAppMigrations(testApp, migrationFiles)
 
     // Create a LombokAppPgClient for the app
     const appClient = createAppPgClient(ormService, testAppId)
 
+    const schemaName = `app_${testApp.slug}_${testApp.id}`
     // Verify migrations worked
     const usersResult = await appClient.query(
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = 'app_${testAppId}' AND table_name = 'users'`,
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'users'`,
     )
 
     const postsResult = await appClient.query(
-      `SELECT table_name FROM information_schema.tables WHERE table_schema = 'app_${testAppId}' AND table_name = 'posts'`,
+      `SELECT table_name FROM information_schema.tables WHERE table_schema = '${schemaName}' AND table_name = 'posts'`,
     )
 
     expect(usersResult.rows.length).toBe(1)
@@ -671,7 +704,14 @@ describe('ORM Schema Isolation', () => {
 
     // Clean up
     await appClient.end()
-    await ormService.dropAppSchema(testAppId)
+    await (async () => {
+      const _a = await ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, testAppId),
+      })
+      if (_a) {
+        await ormService.dropAppSchema(_a)
+      }
+    })()
   })
 
   it('should handle rowMode array format correctly', async () => {
@@ -764,15 +804,23 @@ describe('ORM Schema Isolation', () => {
 
     // Clean up
     await appClient.end()
-    await ormService.dropAppSchema(testAppId)
+    await (async () => {
+      const _a = await ormService.db.query.appsTable.findFirst({
+        where: eq(appsTable.slug, testAppId),
+      })
+      if (_a) {
+        await ormService.dropAppSchema(_a)
+      }
+    })()
   })
 
   describe('Database Access Restrictions', () => {
     it('should have database field set to false for app without database enabled', async () => {
       await testModule!.installLocalAppBundles([SOCKET_TEST_APP_NO_DB_SLUG])
-      const app = await testModule!.services.appService.getApp(
+      const appIdentifier = testModule!.getInstalledAppIdentifier(
         SOCKET_TEST_APP_NO_DB_SLUG,
       )
+      const app = await testModule!.services.appService.getApp(appIdentifier)
 
       expect(app).toBeDefined()
       if (!app) {
@@ -784,8 +832,9 @@ describe('ORM Schema Isolation', () => {
 
     it('should have database field set to true for app with database enabled', async () => {
       await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
-      const app =
-        await testModule!.services.appService.getApp(SOCKET_TEST_APP_SLUG)
+      const appIdentifier =
+        testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
+      const app = await testModule!.services.appService.getApp(appIdentifier)
 
       expect(app).toBeDefined()
       if (!app) {
@@ -797,7 +846,8 @@ describe('ORM Schema Isolation', () => {
 
     it('should allow ORM service methods for app with database enabled', async () => {
       await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
-      const appIdentifier = SOCKET_TEST_APP_SLUG
+      const appIdentifier =
+        testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
       const ormService = testModule!.services.ormService
 
       // Create a LombokAppPgClient for the app
@@ -835,6 +885,11 @@ describe('ORM Schema Isolation', () => {
         SOCKET_TEST_APP_NO_DB_SLUG,
         SOCKET_TEST_APP_SLUG,
       ])
+      const noDbIdentifier = testModule!.getInstalledAppIdentifier(
+        SOCKET_TEST_APP_NO_DB_SLUG,
+      )
+      const dbIdentifier =
+        testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
 
       const appService = testModule!.services.appService
 
@@ -854,16 +909,14 @@ describe('ORM Schema Isolation', () => {
       }
 
       // App without database enabled should be restricted
-      const checkWithoutDb = await checkDatabaseAccess(
-        SOCKET_TEST_APP_NO_DB_SLUG,
-      )
+      const checkWithoutDb = await checkDatabaseAccess(noDbIdentifier)
       expect(checkWithoutDb.allowed).toBe(false)
       expect(checkWithoutDb.reason).toBe(
         'Database is not enabled for this app.',
       )
 
       // App with database enabled should be allowed
-      const checkWithDb = await checkDatabaseAccess(SOCKET_TEST_APP_SLUG)
+      const checkWithDb = await checkDatabaseAccess(dbIdentifier)
       expect(checkWithDb.allowed).toBe(true)
     })
   })

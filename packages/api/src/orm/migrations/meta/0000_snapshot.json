@@ -1,5 +1,5 @@
 {
-  "id": "ef32e0d8-76aa-4bd7-b769-5409a66698c3",
+  "id": "7fa75fad-3a4d-4826-8cb4-8cfd10c4b3a0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -14,8 +14,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "app_identifier": {
-          "name": "app_identifier",
+        "app_id": {
+          "name": "app_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -56,7 +56,7 @@
               "nulls": "last"
             },
             {
-              "expression": "app_identifier",
+              "expression": "app_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -82,26 +82,26 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "app_custom_folder_settings_app_identifier_apps_identifier_fk": {
-          "name": "app_custom_folder_settings_app_identifier_apps_identifier_fk",
+        "app_custom_folder_settings_app_id_apps_id_fk": {
+          "name": "app_custom_folder_settings_app_id_apps_id_fk",
           "tableFrom": "app_custom_folder_settings",
           "tableTo": "apps",
           "columnsFrom": [
-            "app_identifier"
+            "app_id"
           ],
           "columnsTo": [
-            "identifier"
+            "id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "app_custom_folder_settings_folder_id_app_identifier_key_pk": {
-          "name": "app_custom_folder_settings_folder_id_app_identifier_key_pk",
+        "app_custom_folder_settings_folder_id_app_id_key_pk": {
+          "name": "app_custom_folder_settings_folder_id_app_id_key_pk",
           "columns": [
             "folder_id",
-            "app_identifier",
+            "app_id",
             "key"
           ]
         }
@@ -121,8 +121,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "app_identifier": {
-          "name": "app_identifier",
+        "app_id": {
+          "name": "app_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -163,7 +163,7 @@
               "nulls": "last"
             },
             {
-              "expression": "app_identifier",
+              "expression": "app_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -189,26 +189,26 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "app_custom_user_settings_app_identifier_apps_identifier_fk": {
-          "name": "app_custom_user_settings_app_identifier_apps_identifier_fk",
+        "app_custom_user_settings_app_id_apps_id_fk": {
+          "name": "app_custom_user_settings_app_id_apps_id_fk",
           "tableFrom": "app_custom_user_settings",
           "tableTo": "apps",
           "columnsFrom": [
-            "app_identifier"
+            "app_id"
           ],
           "columnsTo": [
-            "identifier"
+            "id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "app_custom_user_settings_user_id_app_identifier_key_pk": {
-          "name": "app_custom_user_settings_user_id_app_identifier_key_pk",
+        "app_custom_user_settings_user_id_app_id_key_pk": {
+          "name": "app_custom_user_settings_user_id_app_id_key_pk",
           "columns": [
             "user_id",
-            "app_identifier",
+            "app_id",
             "key"
           ]
         }
@@ -228,8 +228,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "app_identifier": {
-          "name": "app_identifier",
+        "app_id": {
+          "name": "app_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -285,7 +285,7 @@
               "nulls": "last"
             },
             {
-              "expression": "app_identifier",
+              "expression": "app_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -311,20 +311,45 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "app_folder_settings_app_identifier_apps_identifier_fk": {
-          "name": "app_folder_settings_app_identifier_apps_identifier_fk",
+        "app_folder_settings_app_id_apps_id_fk": {
+          "name": "app_folder_settings_app_id_apps_id_fk",
           "tableFrom": "app_folder_settings",
           "tableTo": "apps",
           "columnsFrom": [
-            "app_identifier"
+            "app_id"
           ],
           "columnsTo": [
-            "identifier"
+            "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.app_install_sequences": {
+      "name": "app_install_sequences",
+      "schema": "",
+      "columns": {
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "next_position": {
+          "name": "next_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -341,8 +366,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "app_identifier": {
-          "name": "app_identifier",
+        "app_id": {
+          "name": "app_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -410,7 +435,7 @@
               "nulls": "last"
             },
             {
-              "expression": "app_identifier",
+              "expression": "app_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -436,17 +461,17 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "app_user_settings_app_identifier_apps_identifier_fk": {
-          "name": "app_user_settings_app_identifier_apps_identifier_fk",
+        "app_user_settings_app_id_apps_id_fk": {
+          "name": "app_user_settings_app_id_apps_id_fk",
           "tableFrom": "app_user_settings",
           "tableTo": "apps",
           "columnsFrom": [
-            "app_identifier"
+            "app_id"
           ],
           "columnsTo": [
-            "identifier"
+            "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -460,6 +485,12 @@
       "name": "apps",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "identifier": {
           "name": "identifier",
           "type": "text",
@@ -582,21 +613,6 @@
         }
       },
       "indexes": {
-        "apps_slug_unique": {
-          "name": "apps_slug_unique",
-          "columns": [
-            {
-              "expression": "slug",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "apps_enabled_idx": {
           "name": "apps_enabled_idx",
           "columns": [
@@ -615,7 +631,15 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "apps_id_unique": {
+          "name": "apps_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1366,8 +1390,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "app_identifier": {
-          "name": "app_identifier",
+        "app_id": {
+          "name": "app_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1416,7 +1440,7 @@
           "name": "docker_profile_resource_assignments_app_profile_unique",
           "columns": [
             {
-              "expression": "app_identifier",
+              "expression": "app_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1433,11 +1457,11 @@
           "method": "btree",
           "with": {}
         },
-        "docker_profile_resource_assignments_app_identifier_idx": {
-          "name": "docker_profile_resource_assignments_app_identifier_idx",
+        "docker_profile_resource_assignments_app_id_idx": {
+          "name": "docker_profile_resource_assignments_app_id_idx",
           "columns": [
             {
-              "expression": "app_identifier",
+              "expression": "app_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1465,17 +1489,17 @@
         }
       },
       "foreignKeys": {
-        "docker_profile_resource_assignments_app_identifier_apps_identifier_fk": {
-          "name": "docker_profile_resource_assignments_app_identifier_apps_identifier_fk",
+        "docker_profile_resource_assignments_app_id_apps_id_fk": {
+          "name": "docker_profile_resource_assignments_app_id_apps_id_fk",
           "tableFrom": "docker_profile_resource_assignments",
           "tableTo": "apps",
           "columnsFrom": [
-            "app_identifier"
+            "app_id"
           ],
           "columnsTo": [
-            "identifier"
+            "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "docker_profile_resource_assignments_docker_host_id_docker_hosts_id_fk": {
@@ -1713,8 +1737,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "emitter_identifier": {
-          "name": "emitter_identifier",
+        "emitter_id": {
+          "name": "emitter_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1829,11 +1853,11 @@
           "method": "btree",
           "with": {}
         },
-        "events_emitter_identifier_idx": {
-          "name": "events_emitter_identifier_idx",
+        "events_emitter_id_idx": {
+          "name": "events_emitter_id_idx",
           "columns": [
             {
-              "expression": "emitter_identifier",
+              "expression": "emitter_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -2411,8 +2435,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "emitter_identifier": {
-          "name": "emitter_identifier",
+        "emitter_id": {
+          "name": "emitter_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -2479,11 +2503,11 @@
           "method": "btree",
           "with": {}
         },
-        "log_entries_emitter_identifier_idx": {
-          "name": "log_entries_emitter_identifier_idx",
+        "log_entries_emitter_id_idx": {
+          "name": "log_entries_emitter_id_idx",
           "columns": [
             {
-              "expression": "emitter_identifier",
+              "expression": "emitter_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -3519,8 +3543,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "owner_identifier": {
-          "name": "owner_identifier",
+        "owner_id": {
+          "name": "owner_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -3714,7 +3738,7 @@
           "name": "tasks_idempotency_key_idx",
           "columns": [
             {
-              "expression": "owner_identifier",
+              "expression": "owner_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -3777,7 +3801,7 @@
           "name": "tasks_pending_core_idx",
           "columns": [
             {
-              "expression": "owner_identifier",
+              "expression": "owner_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

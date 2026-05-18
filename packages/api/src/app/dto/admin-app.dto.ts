@@ -12,6 +12,7 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const adminAppDTOSchema = z.object({
+  id: z.string(),
   identifier: z.string(),
   slug: z.string(),
   label: z.string(),

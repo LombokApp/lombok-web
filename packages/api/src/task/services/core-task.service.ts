@@ -93,7 +93,7 @@ export class CoreTaskService {
               isNull(tasksTable.dontStartBefore),
               sql`${tasksTable.dontStartBefore} <= NOW()`,
             ),
-            eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+            eq(tasksTable.ownerId, CORE_IDENTIFIER),
           ),
         )
         .limit(taskExecutionLimit)
@@ -122,7 +122,7 @@ export class CoreTaskService {
             isNull(tasksTable.dontStartBefore),
             sql`${tasksTable.dontStartBefore} <= NOW()`,
           ),
-          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+          eq(tasksTable.ownerId, CORE_IDENTIFIER),
         ),
       )
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -140,7 +140,7 @@ export class CoreTaskService {
       this.logger.warn(
         'Core task already started during drain (should not happen)',
       )
-    } else if (task.ownerIdentifier !== CORE_IDENTIFIER) {
+    } else if (task.ownerId !== CORE_IDENTIFIER) {
       this.logger.warn(
         'Core task execution run for non-plaform task (should not happen)',
       )

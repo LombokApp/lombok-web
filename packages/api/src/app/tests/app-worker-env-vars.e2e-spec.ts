@@ -25,7 +25,7 @@ describe('App Worker Environment Variables', () => {
 
   async function setupApp(adminToken: string) {
     await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
-    appIdentifier = DUMMY_APP_SLUG
+    appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
 
     await apiClient(adminToken).PUT(
       '/api/v1/server/apps/{appIdentifier}/enabled',

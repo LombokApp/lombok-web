@@ -7,7 +7,7 @@ import { parseDataFromEventWithTrigger } from './event-template.util'
 const baseEvent: Event = {
   id: 'event-id',
   eventIdentifier: 'worker_task_enqueued',
-  emitterIdentifier: CORE_IDENTIFIER,
+  emitterId: CORE_IDENTIFIER,
   aggregationHandledAt: null,
   aggregationKey: null,
   targetUserId: null,

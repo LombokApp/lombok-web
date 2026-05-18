@@ -25,9 +25,7 @@ export function TasksListCard({ task }: { task: TaskDTO }) {
         </div>
         <div className="flex gap-1 opacity-50">
           <div className="opacity-60">owner:</div>
-          {task.ownerIdentifier === CORE_IDENTIFIER
-            ? CORE_IDENTIFIER
-            : task.ownerIdentifier}
+          {task.ownerId === CORE_IDENTIFIER ? CORE_IDENTIFIER : task.ownerId}
         </div>
       </div>
     </div>

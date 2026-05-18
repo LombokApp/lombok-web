@@ -22,9 +22,9 @@ export const dockerProfileResourceAssignmentsTable = pgTable(
   'docker_profile_resource_assignments',
   {
     id: uuid('id').primaryKey(),
-    appIdentifier: text('app_identifier')
+    appId: text('app_id')
       .notNull()
-      .references(() => appsTable.identifier),
+      .references(() => appsTable.id, { onDelete: 'cascade' }),
     profileKey: text('profile_key').notNull(),
     dockerHostId: uuid('docker_host_id')
       .notNull()
@@ -39,12 +39,10 @@ export const dockerProfileResourceAssignmentsTable = pgTable(
   },
   (table) => [
     uniqueIndex('docker_profile_resource_assignments_app_profile_unique').on(
-      table.appIdentifier,
+      table.appId,
       table.profileKey,
     ),
-    index('docker_profile_resource_assignments_app_identifier_idx').on(
-      table.appIdentifier,
-    ),
+    index('docker_profile_resource_assignments_app_id_idx').on(table.appId),
     index('docker_profile_resource_assignments_docker_host_id_idx').on(
       table.dockerHostId,
     ),
@@ -55,8 +53,8 @@ export const dockerProfileResourceAssignmentsRelations = relations(
   dockerProfileResourceAssignmentsTable,
   ({ one }) => ({
     app: one(appsTable, {
-      fields: [dockerProfileResourceAssignmentsTable.appIdentifier],
-      references: [appsTable.identifier],
+      fields: [dockerProfileResourceAssignmentsTable.appId],
+      references: [appsTable.id],
     }),
     dockerHost: one(dockerHostsTable, {
       fields: [dockerProfileResourceAssignmentsTable.dockerHostId],

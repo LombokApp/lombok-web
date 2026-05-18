@@ -17,7 +17,7 @@ export function transformLogEntryToDTO(
 ): LogEntryDTO | LogEntryWithTargetLocationContextDTO {
   const baseDTO: LogEntryDTO = {
     id: logEntry.id,
-    emitterIdentifier: logEntry.emitterIdentifier,
+    emitterIdentifier: logEntry.emitterId,
     message: logEntry.message,
     level: logEntry.level,
     targetLocation: logEntry.targetLocationFolderId

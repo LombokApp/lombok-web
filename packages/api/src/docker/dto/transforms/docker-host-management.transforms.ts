@@ -40,11 +40,11 @@ export function transformDockerRegistryCredentialToDTO(
 }
 
 export function transformDockerProfileAssignmentToDTO(
-  assignment: DockerProfileResourceAssignment,
+  assignment: DockerProfileResourceAssignment & { app: { identifier: string } },
 ): DockerProfileResourceAssignmentDTO {
   return {
     id: assignment.id,
-    appIdentifier: assignment.appIdentifier,
+    appIdentifier: assignment.app.identifier,
     profileKey: assignment.profileKey,
     dockerHostId: assignment.dockerHostId,
     config: assignment.config,
