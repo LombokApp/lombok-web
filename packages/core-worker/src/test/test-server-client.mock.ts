@@ -77,6 +77,15 @@ export function buildTestServerClient(
     resolveAppDockerContainer: () => {
       throw new Error('Not implemented in test mock')
     },
+    registerAppTrigger: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    unregisterAppTrigger: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    listAppTriggers: () => {
+      throw new Error('Not implemented in test mock')
+    },
   }
 
   return { ...base, ...overrides }

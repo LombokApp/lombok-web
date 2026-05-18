@@ -25,7 +25,7 @@
     },
     {
       "kind": "schedule",
-      "name": "hourly_job",
+      "triggerKey": "hourly_job",
       "config": {
         "interval": 1,
         "unit": "hours"

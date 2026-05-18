@@ -110,6 +110,7 @@ import {
   resolveUserAppSettings,
 } from '../utils/resolve-app-settings.utils'
 import { AppCustomSettingsService } from './app-custom-settings.service'
+import { AppRuntimeTriggerService } from './app-runtime-trigger.service'
 import { handleAppSocketMessage } from './app-socket-message.handler'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
@@ -162,6 +163,7 @@ export class AppService {
     @Inject(forwardRef(() => CoreWorkerService))
     _coreWorkerService,
     private readonly customSettingsService: AppCustomSettingsService,
+    private readonly runtimeTriggerService: AppRuntimeTriggerService,
     private readonly dockerClientService: DockerClientService,
   ) {
     this.coreTaskService = _coreTaskService as CoreTaskService
@@ -366,6 +368,7 @@ export class AppService {
         taskService: this.taskService,
         appService: this,
         customSettingsService: this.customSettingsService,
+        runtimeTriggerService: this.runtimeTriggerService,
       },
     )
   }

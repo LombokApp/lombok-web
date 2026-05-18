@@ -32,6 +32,14 @@ CREATE TABLE "app_install_sequences" (
 	"next_position" integer NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "app_runtime_triggers" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"app_id" text NOT NULL,
+	"definition" jsonb NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "app_user_settings" (
 	"user_id" uuid NOT NULL,
 	"app_id" text NOT NULL,
@@ -384,6 +392,7 @@ ALTER TABLE "app_custom_user_settings" ADD CONSTRAINT "app_custom_user_settings_
 ALTER TABLE "app_custom_user_settings" ADD CONSTRAINT "app_custom_user_settings_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_runtime_triggers" ADD CONSTRAINT "app_runtime_triggers_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_identities" ADD CONSTRAINT "user_identities_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -419,6 +428,9 @@ CREATE INDEX "app_custom_folder_settings_folder_app_idx" ON "app_custom_folder_s
 CREATE INDEX "app_custom_user_settings_user_app_idx" ON "app_custom_user_settings" USING btree ("user_id","app_id");--> statement-breakpoint
 CREATE INDEX "app_folder_settings_folder_id_idx" ON "app_folder_settings" USING btree ("folder_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folder_id","app_id");--> statement-breakpoint
+CREATE INDEX "app_runtime_triggers_app_id_idx" ON "app_runtime_triggers" USING btree ("app_id");--> statement-breakpoint
+CREATE INDEX "app_runtime_triggers_event_identifier_idx" ON "app_runtime_triggers" USING btree (("definition" ->> 'eventIdentifier')) WHERE ("app_runtime_triggers"."definition" ->> 'kind') = 'event';--> statement-breakpoint
+CREATE UNIQUE INDEX "app_runtime_triggers_app_trigger_key_unique" ON "app_runtime_triggers" USING btree ("app_id",("definition" ->> 'triggerKey')) WHERE ("app_runtime_triggers"."definition" ->> 'triggerKey') IS NOT NULL;--> statement-breakpoint
 CREATE INDEX "app_user_settings_user_id_idx" ON "app_user_settings" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "app_user_settings_user_app_unique" ON "app_user_settings" USING btree ("user_id","app_id");--> statement-breakpoint
 CREATE INDEX "apps_enabled_idx" ON "apps" USING btree ("enabled");--> statement-breakpoint

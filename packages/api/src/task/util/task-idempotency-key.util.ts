@@ -20,11 +20,17 @@ const buildTriggerIdempotencyData = (
         eventIdentifier: trigger.invokeContext.eventIdentifier,
         emitterId: trigger.invokeContext.emitterId,
         eventId: trigger.invokeContext.eventId,
-        eventTriggerConfigIndex: trigger.invokeContext.eventTriggerConfigIndex,
+        // Exactly one of these is set, depending on whether the trigger came
+        // from app.config.triggers (config-sourced) or app_runtime_triggers
+        // (runtime-sourced). Both flow into the idempotency hash so distinct
+        // triggers don't collide.
+        eventTriggerConfigIndex:
+          trigger.invokeContext.eventTriggerConfigIndex ?? null,
+        runtimeTriggerId: trigger.invokeContext.runtimeTriggerId ?? null,
       }
     case 'schedule':
       return {
-        name: trigger.invokeContext.name,
+        triggerKey: trigger.invokeContext.triggerKey,
         config: trigger.invokeContext.config,
         timestampBucket: trigger.invokeContext.timestampBucket,
       }

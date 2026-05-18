@@ -8,6 +8,7 @@ import { eventIdentifierSchema } from './events.types'
 import { jsonSerializableObjectSchema } from './json.types'
 import { SignedURLsRequestMethod } from './storage.types'
 import {
+  registerableTriggerConfigSchema,
   storageAccessPolicySchema,
   taskDTOSchema,
   taskOnCompleteConfigSchema,
@@ -216,6 +217,18 @@ export const resolveAppDockerContainerSchema = z.object({
   isolationKey: z.string(),
 })
 
+export const registerAppTriggerSchema = z.object({
+  trigger: registerableTriggerConfigSchema,
+})
+
+export const unregisterAppTriggerSchema = z.object({
+  triggerId: z.guid(),
+})
+
+export const listAppTriggersSchema = z.object({
+  kind: z.enum(['event', 'schedule']).optional(),
+})
+
 export const AppSocketMessageSchemaMap = {
   EMIT_EVENT: emitEventSchema,
   SAVE_LOG_ENTRY: logEntrySchema,
@@ -236,6 +249,9 @@ export const AppSocketMessageSchemaMap = {
   DELETE_BRIDGE_TUNNEL: deleteBridgeTunnelSchema,
   DESTROY_APP_DOCKER_CONTAINERS: destroyAppDockerContainersSchema,
   RESOLVE_APP_DOCKER_CONTAINER: resolveAppDockerContainerSchema,
+  REGISTER_APP_TRIGGER: registerAppTriggerSchema,
+  UNREGISTER_APP_TRIGGER: unregisterAppTriggerSchema,
+  LIST_APP_TRIGGERS: listAppTriggersSchema,
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
 export type AppSocketMessageDataMap = {
@@ -376,6 +392,23 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   RESOLVE_APP_DOCKER_CONTAINER: createResponseSchema(
     z.object({ hostId: z.string(), containerId: z.string() }).nullable(),
+  ),
+  REGISTER_APP_TRIGGER: createResponseSchema(
+    z.object({ triggerId: z.string() }),
+  ),
+  UNREGISTER_APP_TRIGGER: createResponseSchema(
+    z.object({ success: z.boolean() }),
+  ),
+  LIST_APP_TRIGGERS: createResponseSchema(
+    z.object({
+      triggers: z.array(
+        z.object({
+          id: z.string(),
+          kind: z.enum(['event', 'schedule']),
+          definition: registerableTriggerConfigSchema,
+        }),
+      ),
+    }),
   ),
 } as const satisfies Record<z.infer<typeof AppSocketMessage>, z.ZodType>
 
