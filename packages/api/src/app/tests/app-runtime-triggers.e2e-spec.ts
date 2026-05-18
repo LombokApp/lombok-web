@@ -165,6 +165,22 @@ describe('App Runtime Triggers', () => {
     )
   })
 
+  it('rejects a triggerKey containing a NUL character at the wire layer', async () => {
+    const client = buildAppClient(socket!, serverBaseUrl)
+    const resp = await client.registerAppTrigger({
+      trigger: scheduleTriggerOnce({
+        triggerKey: `legitimate-prefix${String.fromCharCode(0)}injected`,
+      }),
+    })
+    if (!('error' in resp)) {
+      throw new Error('expected validation error')
+    }
+    // Schema validation fails before the service is called, so this surfaces
+    // as the generic 400 "Invalid request" envelope rather than a structured
+    // app-facing error code.
+    expect(resp.error.code).toBe(400)
+  })
+
   it('rejects duplicate schedule names', async () => {
     const client = buildAppClient(socket!, serverBaseUrl)
     const first = await client.registerAppTrigger({
