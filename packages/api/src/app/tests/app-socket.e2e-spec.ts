@@ -48,9 +48,11 @@ describe('App Socket Interface', () => {
   const connectSocket = async (
     instanceId: string,
     handledTaskIdentifiers: string[] = [],
-    _appIdentifier?: string,
+    _appSlug?: string,
   ): Promise<Socket> => {
-    const appIdentifier = _appIdentifier ?? SOCKET_TEST_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(
+      _appSlug ?? SOCKET_TEST_APP_SLUG,
+    )
     const token = await createAppToken(appIdentifier)
     const socketUrl = `${serverBaseUrl}/apps`
 
@@ -178,7 +180,8 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'sockactoruser'),
       })
-    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const appIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     await testModule!
       .apiClient(userToken)
       .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
@@ -256,9 +259,11 @@ describe('App Socket Interface', () => {
       .from(eventsTable)
       .where(eq(eventsTable.eventIdentifier, 'sockettestappevent'))
 
+    const expectedAppIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     expect(events.length).toBeGreaterThan(0)
     expect(events[0]?.eventIdentifier).toBe('sockettestappevent')
-    expect(events[0]?.emitterIdentifier).toBe(SOCKET_TEST_APP_SLUG)
+    expect(events[0]?.emitterId).toBe(expectedAppIdentifier)
   })
 
   it('should return 409 for a app without db enabled', async () => {
@@ -310,7 +315,8 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'testuser'),
       })
-    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const appIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     // enable the app for the viewer
     const enableAppResponse = await testModule!
       .apiClient(userToken)
@@ -358,7 +364,8 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'extrauser'),
       })
-    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const appIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     const enableAppResponse = await testModule!
       .apiClient(userToken)
       .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
@@ -420,7 +427,8 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'gateallowuser'),
       })
-    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const appIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     await testModule!
       .apiClient(userToken)
       .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
@@ -471,7 +479,8 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'gatedenyuser'),
       })
-    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const appIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     await testModule!
       .apiClient(userToken)
       .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
@@ -514,7 +523,8 @@ describe('App Socket Interface', () => {
       await testModule!.services.ormService.db.query.usersTable.findFirst({
         where: eq(usersTable.username, 'reserveduser'),
       })
-    const appIdentifier = SOCKET_TEST_APP_SLUG
+    const appIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     const enableAppResponse = await testModule!
       .apiClient(userToken)
       .POST(`/api/v1/user/apps/{appIdentifier}/settings`, {
@@ -573,10 +583,12 @@ describe('App Socket Interface', () => {
     }
 
     // Verify the task was created
+    const taskOwnerAppIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
     const tasks = await testModule!.services.ormService.db
       .select()
       .from(tasksTable)
-      .where(eq(tasksTable.ownerIdentifier, SOCKET_TEST_APP_SLUG))
+      .where(eq(tasksTable.ownerId, taskOwnerAppIdentifier))
 
     const matchingTasks = tasks.filter(
       (task) => task.taskIdentifier === 'socket_test_task',
@@ -586,11 +598,13 @@ describe('App Socket Interface', () => {
 
   it('stamps runtime executorMetadata on REPORT_TASK_UPDATE based on the worker-daemon instanceId', async () => {
     await testModule!.installLocalAppBundles([SOCKET_TEST_APP_SLUG])
+    const seedAppIdentifier =
+      testModule!.getInstalledAppIdentifier(SOCKET_TEST_APP_SLUG)
 
     // Seed a task that's been started so the update is accepted.
     const task = await runWithThreadContext(crypto.randomUUID(), async () =>
       testModule!.services.taskService.triggerAppActionTask({
-        appIdentifier: SOCKET_TEST_APP_SLUG,
+        appIdentifier: seedAppIdentifier,
         taskIdentifier: 'socket_test_task',
         taskData: { seed: 'for-update' },
       }),

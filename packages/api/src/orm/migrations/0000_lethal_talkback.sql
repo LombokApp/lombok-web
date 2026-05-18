@@ -1,35 +1,40 @@
 CREATE TABLE "app_custom_folder_settings" (
 	"folder_id" uuid NOT NULL,
-	"app_identifier" text NOT NULL,
+	"app_id" text NOT NULL,
 	"key" text NOT NULL,
 	"value" jsonb NOT NULL,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL,
-	CONSTRAINT "app_custom_folder_settings_folder_id_app_identifier_key_pk" PRIMARY KEY("folder_id","app_identifier","key")
+	CONSTRAINT "app_custom_folder_settings_folder_id_app_id_key_pk" PRIMARY KEY("folder_id","app_id","key")
 );
 --> statement-breakpoint
 CREATE TABLE "app_custom_user_settings" (
 	"user_id" uuid NOT NULL,
-	"app_identifier" text NOT NULL,
+	"app_id" text NOT NULL,
 	"key" text NOT NULL,
 	"value" jsonb NOT NULL,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL,
-	CONSTRAINT "app_custom_user_settings_user_id_app_identifier_key_pk" PRIMARY KEY("user_id","app_identifier","key")
+	CONSTRAINT "app_custom_user_settings_user_id_app_id_key_pk" PRIMARY KEY("user_id","app_id","key")
 );
 --> statement-breakpoint
 CREATE TABLE "app_folder_settings" (
 	"folder_id" uuid NOT NULL,
-	"app_identifier" text NOT NULL,
+	"app_id" text NOT NULL,
 	"enabled" boolean,
 	"permissions" jsonb,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "app_install_sequences" (
+	"slug" text PRIMARY KEY NOT NULL,
+	"next_position" integer NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "app_user_settings" (
 	"user_id" uuid NOT NULL,
-	"app_identifier" text NOT NULL,
+	"app_id" text NOT NULL,
 	"enabled" boolean,
 	"folder_scope_enabled_default" boolean,
 	"folder_scope_permissions_default" jsonb,
@@ -39,6 +44,7 @@ CREATE TABLE "app_user_settings" (
 );
 --> statement-breakpoint
 CREATE TABLE "apps" (
+	"id" text NOT NULL,
 	"identifier" text PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
 	"label" text NOT NULL,
@@ -57,7 +63,8 @@ CREATE TABLE "apps" (
 	"container_profiles" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"enabled" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"updated_at" timestamp NOT NULL,
+	CONSTRAINT "apps_id_unique" UNIQUE("id")
 );
 --> statement-breakpoint
 CREATE TABLE "session" (
@@ -135,7 +142,7 @@ CREATE TABLE "docker_hosts" (
 --> statement-breakpoint
 CREATE TABLE "docker_profile_resource_assignments" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"app_identifier" text NOT NULL,
+	"app_id" text NOT NULL,
 	"profile_key" text NOT NULL,
 	"docker_host_id" uuid NOT NULL,
 	"config" jsonb DEFAULT '{}'::jsonb NOT NULL,
@@ -171,7 +178,7 @@ CREATE TABLE "docker_standalone_containers" (
 CREATE TABLE "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"event_identifier" text NOT NULL,
-	"emitter_identifier" text NOT NULL,
+	"emitter_id" text NOT NULL,
 	"target_user_id" uuid,
 	"actor_user_id" uuid,
 	"target_location_folder_id" uuid,
@@ -227,7 +234,7 @@ CREATE TABLE "folders" (
 CREATE TABLE "log_entries" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"message" text NOT NULL,
-	"emitter_identifier" text NOT NULL,
+	"emitter_id" text NOT NULL,
 	"target_location_folder_id" uuid,
 	"target_location_object_key" text,
 	"level" text NOT NULL,
@@ -325,7 +332,7 @@ CREATE TABLE "storage_locations" (
 --> statement-breakpoint
 CREATE TABLE "tasks" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"owner_identifier" text NOT NULL,
+	"owner_id" text NOT NULL,
 	"task_identifier" text NOT NULL,
 	"task_description" text NOT NULL,
 	"data" jsonb NOT NULL,
@@ -372,13 +379,13 @@ CREATE TABLE "users" (
 );
 --> statement-breakpoint
 ALTER TABLE "app_custom_folder_settings" ADD CONSTRAINT "app_custom_folder_settings_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "app_custom_folder_settings" ADD CONSTRAINT "app_custom_folder_settings_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_custom_folder_settings" ADD CONSTRAINT "app_custom_folder_settings_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_custom_user_settings" ADD CONSTRAINT "app_custom_user_settings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "app_custom_user_settings" ADD CONSTRAINT "app_custom_user_settings_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_custom_user_settings" ADD CONSTRAINT "app_custom_user_settings_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_folder_settings" ADD CONSTRAINT "app_folder_settings_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "app_user_settings" ADD CONSTRAINT "app_user_settings_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_identities" ADD CONSTRAINT "user_identities_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comment_mentions" ADD CONSTRAINT "comment_mentions_comment_id_comments_id_fk" FOREIGN KEY ("comment_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comment_mentions" ADD CONSTRAINT "comment_mentions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -389,7 +396,7 @@ ALTER TABLE "comments" ADD CONSTRAINT "comments_folder_object_id_folder_objects_
 ALTER TABLE "comments" ADD CONSTRAINT "comments_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_root_id_comments_id_fk" FOREIGN KEY ("root_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_quote_id_comments_id_fk" FOREIGN KEY ("quote_id") REFERENCES "public"."comments"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "docker_profile_resource_assignments" ADD CONSTRAINT "docker_profile_resource_assignments_app_identifier_apps_identifier_fk" FOREIGN KEY ("app_identifier") REFERENCES "public"."apps"("identifier") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "docker_profile_resource_assignments" ADD CONSTRAINT "docker_profile_resource_assignments_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "docker_profile_resource_assignments" ADD CONSTRAINT "docker_profile_resource_assignments_docker_host_id_docker_hosts_id_fk" FOREIGN KEY ("docker_host_id") REFERENCES "public"."docker_hosts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "docker_standalone_containers" ADD CONSTRAINT "docker_standalone_containers_docker_host_id_docker_hosts_id_fk" FOREIGN KEY ("docker_host_id") REFERENCES "public"."docker_hosts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_objects" ADD CONSTRAINT "folder_objects_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -408,13 +415,12 @@ ALTER TABLE "notification_settings" ADD CONSTRAINT "notification_settings_folder
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_target_location_folder_id_folders_id_fk" FOREIGN KEY ("target_location_folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_target_user_id_users_id_fk" FOREIGN KEY ("target_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "storage_locations" ADD CONSTRAINT "storage_locations_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "app_custom_folder_settings_folder_app_idx" ON "app_custom_folder_settings" USING btree ("folder_id","app_identifier");--> statement-breakpoint
-CREATE INDEX "app_custom_user_settings_user_app_idx" ON "app_custom_user_settings" USING btree ("user_id","app_identifier");--> statement-breakpoint
+CREATE INDEX "app_custom_folder_settings_folder_app_idx" ON "app_custom_folder_settings" USING btree ("folder_id","app_id");--> statement-breakpoint
+CREATE INDEX "app_custom_user_settings_user_app_idx" ON "app_custom_user_settings" USING btree ("user_id","app_id");--> statement-breakpoint
 CREATE INDEX "app_folder_settings_folder_id_idx" ON "app_folder_settings" USING btree ("folder_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folder_id","app_identifier");--> statement-breakpoint
+CREATE UNIQUE INDEX "app_folder_settings_folder_app_unique" ON "app_folder_settings" USING btree ("folder_id","app_id");--> statement-breakpoint
 CREATE INDEX "app_user_settings_user_id_idx" ON "app_user_settings" USING btree ("user_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "app_user_settings_user_app_unique" ON "app_user_settings" USING btree ("user_id","app_identifier");--> statement-breakpoint
-CREATE UNIQUE INDEX "apps_slug_unique" ON "apps" USING btree ("slug");--> statement-breakpoint
+CREATE UNIQUE INDEX "app_user_settings_user_app_unique" ON "app_user_settings" USING btree ("user_id","app_id");--> statement-breakpoint
 CREATE INDEX "apps_enabled_idx" ON "apps" USING btree ("enabled");--> statement-breakpoint
 CREATE INDEX "session_user_id_idx" ON "session" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "session_expires_at_idx" ON "session" USING btree ("expires_at");--> statement-breakpoint
@@ -426,8 +432,8 @@ CREATE INDEX "idx_comments_tombstone_lookup" ON "comments" USING btree ("id","de
 CREATE INDEX "idx_comments_folder_id" ON "comments" USING btree ("folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "docker_hosts_is_default_idx" ON "docker_hosts" USING btree ("is_default");--> statement-breakpoint
 CREATE INDEX "docker_hosts_enabled_idx" ON "docker_hosts" USING btree ("enabled");--> statement-breakpoint
-CREATE UNIQUE INDEX "docker_profile_resource_assignments_app_profile_unique" ON "docker_profile_resource_assignments" USING btree ("app_identifier","profile_key");--> statement-breakpoint
-CREATE INDEX "docker_profile_resource_assignments_app_identifier_idx" ON "docker_profile_resource_assignments" USING btree ("app_identifier");--> statement-breakpoint
+CREATE UNIQUE INDEX "docker_profile_resource_assignments_app_profile_unique" ON "docker_profile_resource_assignments" USING btree ("app_id","profile_key");--> statement-breakpoint
+CREATE INDEX "docker_profile_resource_assignments_app_id_idx" ON "docker_profile_resource_assignments" USING btree ("app_id");--> statement-breakpoint
 CREATE INDEX "docker_profile_resource_assignments_docker_host_id_idx" ON "docker_profile_resource_assignments" USING btree ("docker_host_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "docker_registry_credentials_registry_unique" ON "docker_registry_credentials" USING btree ("registry");--> statement-breakpoint
 CREATE INDEX "docker_standalone_containers_desired_status_idx" ON "docker_standalone_containers" USING btree ("desired_status");--> statement-breakpoint
@@ -436,7 +442,7 @@ CREATE INDEX "events_target_location_folder_id_idx" ON "events" USING btree ("ta
 CREATE INDEX "events_actor_user_id_idx" ON "events" USING btree ("actor_user_id");--> statement-breakpoint
 CREATE INDEX "events_target_user_id_idx" ON "events" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "events_created_at_idx" ON "events" USING btree ("created_at");--> statement-breakpoint
-CREATE INDEX "events_emitter_identifier_idx" ON "events" USING btree ("emitter_identifier");--> statement-breakpoint
+CREATE INDEX "events_emitter_id_idx" ON "events" USING btree ("emitter_id");--> statement-breakpoint
 CREATE INDEX "events_folder_created_at_idx" ON "events" USING btree ("target_location_folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "events_target_object_key_idx" ON "events" USING btree ("target_location_object_key");--> statement-breakpoint
 CREATE INDEX "events_aggregation_key_idx" ON "events" USING btree ("aggregation_key");--> statement-breakpoint
@@ -453,7 +459,7 @@ CREATE INDEX "folders_content_location_id_idx" ON "folders" USING btree ("conten
 CREATE INDEX "folders_metadata_location_id_idx" ON "folders" USING btree ("metadata_location_id");--> statement-breakpoint
 CREATE INDEX "log_entries_target_location_folder_id_idx" ON "log_entries" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "log_entries_created_at_idx" ON "log_entries" USING btree ("created_at");--> statement-breakpoint
-CREATE INDEX "log_entries_emitter_identifier_idx" ON "log_entries" USING btree ("emitter_identifier");--> statement-breakpoint
+CREATE INDEX "log_entries_emitter_id_idx" ON "log_entries" USING btree ("emitter_id");--> statement-breakpoint
 CREATE INDEX "log_entries_folder_created_at_idx" ON "log_entries" USING btree ("target_location_folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "log_entries_level_idx" ON "log_entries" USING btree ("level");--> statement-breakpoint
 CREATE INDEX "log_entries_target_object_key_idx" ON "log_entries" USING btree ("target_location_object_key");--> statement-breakpoint
@@ -475,10 +481,10 @@ CREATE INDEX "storage_locations_access_key_hash_id_idx" ON "storage_locations" U
 CREATE INDEX "storage_locations_provider_type_idx" ON "storage_locations" USING btree ("provider_type");--> statement-breakpoint
 CREATE INDEX "storage_locations_access_key_user_provider_idx" ON "storage_locations" USING btree ("access_key_hash_id","user_id","provider_type");--> statement-breakpoint
 CREATE INDEX "tasks_trigger_kind_idx" ON "tasks" USING btree (("invocation" ->> 'kind'));--> statement-breakpoint
-CREATE INDEX "tasks_idempotency_key_idx" ON "tasks" USING btree ("owner_identifier","task_identifier","idempotency_key");--> statement-breakpoint
+CREATE INDEX "tasks_idempotency_key_idx" ON "tasks" USING btree ("owner_id","task_identifier","idempotency_key");--> statement-breakpoint
 CREATE INDEX "tasks_target_location_folder_id_idx" ON "tasks" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "tasks_target_location_folder_id_object_key_idx" ON "tasks" USING btree ("target_location_folder_id","target_location_object_key");--> statement-breakpoint
-CREATE INDEX "tasks_pending_core_idx" ON "tasks" USING btree ("owner_identifier","started_at") WHERE "tasks"."started_at" IS NULL;--> statement-breakpoint
+CREATE INDEX "tasks_pending_core_idx" ON "tasks" USING btree ("owner_id","started_at") WHERE "tasks"."started_at" IS NULL;--> statement-breakpoint
 CREATE INDEX "tasks_created_at_idx" ON "tasks" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "tasks_completed_at_success_idx" ON "tasks" USING btree ("completed_at","success");--> statement-breakpoint
 CREATE INDEX "tasks_target_user_id_idx" ON "tasks" USING btree ("target_user_id");--> statement-breakpoint

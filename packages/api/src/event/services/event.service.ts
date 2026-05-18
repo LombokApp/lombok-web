@@ -189,7 +189,7 @@ export class EventService {
             taskIdentifier: taskDefinition.identifier,
             taskDescription: taskDefinition.description,
             data: {},
-            ownerIdentifier: app.identifier,
+            ownerId: app.identifier,
             createdAt: now,
             updatedAt: now,
             handlerType,
@@ -200,7 +200,7 @@ export class EventService {
             await this.ormService.db.query.tasksTable.findFirst({
               columns: { id: true, createdAt: true },
               where: and(
-                eq(tasksTable.ownerIdentifier, app.identifier),
+                eq(tasksTable.ownerId, app.identifier),
                 eq(tasksTable.taskIdentifier, newTask.taskIdentifier),
                 eq(tasksTable.idempotencyKey, newTask.idempotencyKey),
                 gte(tasksTable.createdAt, earliestAllowed),
@@ -350,7 +350,7 @@ export class EventService {
         {
           id: uuidV4(),
           eventIdentifier,
-          emitterIdentifier,
+          emitterId: emitterIdentifier,
           targetLocationFolderId: targetLocation?.folderId,
           targetLocationObjectKey: targetLocation?.objectKey,
           targetUserId,
@@ -463,7 +463,7 @@ export class EventService {
                         },
                       )
                     : {},
-                  ownerIdentifier: subscribedApp.identifier,
+                  ownerId: subscribedApp.identifier,
                   systemLog: [
                     {
                       at: new Date(),
@@ -553,7 +553,7 @@ export class EventService {
       const dontStartBefore = new Date(now.getTime() + delayMs + 500)
       const task: NewTask = withTaskIdempotencyKey({
         id: crypto.randomUUID(),
-        ownerIdentifier: CORE_IDENTIFIER,
+        ownerId: CORE_IDENTIFIER,
         taskIdentifier: CoreTaskName.CreateEventNotifications,
         invocation: {
           kind: 'system_action',
@@ -685,7 +685,7 @@ export class EventService {
     return {
       eventId: event.id,
       eventTriggerConfigIndex,
-      emitterIdentifier: event.emitterIdentifier,
+      emitterId: event.emitterId,
       eventIdentifier: event.eventIdentifier,
       targetUserId: event.targetUserId ?? undefined,
       targetLocation: event.targetLocationFolderId
@@ -699,7 +699,7 @@ export class EventService {
   }
 
   gatherCoreTasksForEvent(event: Event, timestamp: Date): NewTask[] {
-    if (event.emitterIdentifier !== CORE_IDENTIFIER) {
+    if (event.emitterId !== CORE_IDENTIFIER) {
       return []
     }
 
@@ -734,7 +734,7 @@ export class EventService {
             targetLocationObjectKey: targetLocation?.objectKey ?? null,
             taskDescription: CORE_TASKS[taskIdentifier].description,
             data: buildData(event),
-            ownerIdentifier: CORE_IDENTIFIER,
+            ownerId: CORE_IDENTIFIER,
             handlerType: CORE_IDENTIFIER,
             createdAt: timestamp,
             updatedAt: timestamp,
@@ -757,7 +757,7 @@ export class EventService {
       id: string
       handlerType: string
       handlerIdentifier?: string | null
-      ownerIdentifier: string
+      ownerId: string
       dontStartBefore?: Date | null
     },
     tx: OrmService['db'],
@@ -772,7 +772,7 @@ export class EventService {
         data: {
           dontStartBefore: task.dontStartBefore?.toISOString() ?? null,
           innerTaskId: task.id,
-          appIdentifier: task.ownerIdentifier,
+          appIdentifier: task.ownerId,
           ...(task.handlerType === 'runtime'
             ? {
                 workerIdentifier: task.handlerIdentifier ?? null,
@@ -952,7 +952,7 @@ export class EventService {
       conditions.push(
         or(
           ilike(eventsTable.eventIdentifier, `%${search}%`),
-          ilike(eventsTable.emitterIdentifier, `%${search}%`),
+          ilike(eventsTable.emitterId, `%${search}%`),
         ),
       )
     }

@@ -95,13 +95,13 @@ export class TaskUpdateBroadcasterService {
           targetLocationFolderId: task.targetLocationFolderId,
         },
       })
-      if (task.ownerIdentifier !== CORE_IDENTIFIER) {
+      if (task.ownerId !== CORE_IDENTIFIER) {
         this.appUserSocketService.emitUpdate({
           update: taskUpdateMessage,
           scope: {
             targetUserId: task.targetUserId,
             targetLocationFolderId: task.targetLocationFolderId,
-            targetAppIdentifier: task.ownerIdentifier,
+            targetAppIdentifier: task.ownerId,
           },
         })
       }

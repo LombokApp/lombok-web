@@ -1,13 +1,16 @@
-/**
- * Generates a random 6 character hexadecimal string to use as part of a unique app identifier.
- */
-export function generateAppIdentifierSuffix(): string {
-  // 3 bytes = 6 hex characters
-  const bytes = new Uint8Array(3)
-  crypto.getRandomValues(bytes)
+import crypto from 'crypto'
 
-  // Convert bytes to hex string
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
+/**
+ * Derives an 8-character hex app id from a slug and the app's position in
+ * the install sequence of apps sharing that slug (0-based). Deterministic:
+ * the first install of a given slug always produces the same id, the second
+ * a different stable id, and so on.
+ */
+export function deriveAppId(slug: string, position: number): string {
+  return crypto
+    .createHash('sha256')
+    .update(`${slug}:${position}`)
+    .digest()
+    .subarray(0, 4)
+    .toString('hex')
 }

@@ -32,8 +32,8 @@ import {
   NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common'
-import nestJsConfig from '@nestjs/config'
 import { spawn } from 'bun'
+import crypto from 'crypto'
 import { and, count, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
@@ -45,6 +45,7 @@ import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { CoreWorkerService } from 'src/core-worker/core-worker.service'
+import { dockerProfileResourceAssignmentsTable } from 'src/docker/entities/docker-profile-resource-assignment.entity'
 import { DockerClientService } from 'src/docker/services/client/docker-client.service'
 import { AppDockerJobResult } from 'src/docker/services/client/docker-client.types'
 import {
@@ -80,7 +81,6 @@ import { TaskService } from 'src/task/services/task.service'
 import { User, usersTable } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
-import { appConfig } from '../config'
 import { AppFolderSettingsUpdateInputDTO } from '../dto/app-folder-settings-update-input.dto'
 import { AppSort } from '../dto/apps-list-query-params.dto'
 import { AppFolderSettingsGetResponseDTO } from '../dto/responses/app-folder-settings-get-response.dto'
@@ -91,11 +91,11 @@ import {
   AppFolderSettings,
   appFolderSettingsTable,
 } from '../entities/app-folder-settings.entity'
+import { appInstallSequencesTable } from '../entities/app-install-sequence.entity'
 import {
   AppUserSettings,
   appUserSettingsTable,
 } from '../entities/app-user-settings.entity'
-import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
 import { AppBaseInstallException } from '../exceptions/app-install-base.exception'
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
 import { AppMaxFileSizeException } from '../exceptions/app-max-file-size.exception'
@@ -103,7 +103,7 @@ import { AppMaxSizeException } from '../exceptions/app-max-size.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
 import { appConfigSanitize } from '../utils/app-config-sanitize'
-import { generateAppIdentifierSuffix } from '../utils/app-id.util'
+import { deriveAppId } from '../utils/app-id.util'
 import { summariseZodError } from '../utils/format-zod-issues'
 import {
   resolveFolderAppSettings,
@@ -122,9 +122,18 @@ export type MetadataUploadUrlsResponse = {
 }[]
 
 export interface AppInstallBundle
-  extends Omit<NewApp, 'identifier' | 'createdAt' | 'updatedAt'> {
+  extends Omit<NewApp, 'id' | 'identifier' | 'createdAt' | 'updatedAt'> {
   migrationFiles: { filename: string; content: string }[]
 }
+
+/**
+ * Discriminated install mode. `install` always creates a new app row with a
+ * freshly-allocated deterministic id. `upgrade` updates the app at the given
+ * identifier in place (its id is preserved); the bundle's slug must match.
+ */
+export type AppInstallOptions =
+  | { mode: 'install' }
+  | { mode: 'upgrade'; appIdentifier: string }
 
 @Injectable()
 export class AppService {
@@ -137,8 +146,6 @@ export class AppService {
   private readonly dockerJobsService: DockerJobsService
   private readonly logger = new Logger(AppService.name)
   constructor(
-    @Inject(appConfig.KEY)
-    private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
     private readonly logEntryService: LogEntryService,
     private readonly jwtService: JWTService,
@@ -254,7 +261,7 @@ export class AppService {
     })
   }
 
-  getApp(
+  async getApp(
     appIdentifier: string,
     {
       enabled,
@@ -264,14 +271,17 @@ export class AppService {
       tx?: OrmService['db']
     } = {},
   ): Promise<App | undefined> {
-    const idCondition = eq(appsTable.identifier, appIdentifier)
     const db = tx ?? this.ormService.db
-    return db.query.appsTable.findFirst({
-      where:
-        typeof enabled === 'boolean'
-          ? and(idCondition, eq(appsTable.enabled, enabled))
-          : idCondition,
+    const enabledCondition =
+      typeof enabled === 'boolean' ? eq(appsTable.enabled, enabled) : undefined
+    const byIdentifier = await db.query.appsTable.findFirst({
+      where: enabledCondition
+        ? and(eq(appsTable.identifier, appIdentifier), enabledCondition)
+        : eq(appsTable.identifier, appIdentifier),
     })
+    if (byIdentifier) {
+      return byIdentifier
+    }
   }
 
   getAppAsUser(appIdentifier: string): Promise<App | undefined> {
@@ -809,75 +819,175 @@ export class AppService {
   }
 
   public async uninstallApp(app: App) {
-    const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorage()
-    const appRequiresStorage = Object.keys(app.manifest).filter(
-      (manifestItemPath) =>
-        manifestItemPath.startsWith('/ui') ||
-        manifestItemPath.startsWith('/workers'),
-    ).length
-
-    if (appRequiresStorage && serverStorageLocation) {
-      const prefix = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${app.identifier}/`
-      await this.s3Service.deleteAllWithPrefix({
-        ...serverStorageLocation,
-        prefix,
-      })
-    }
-
-    // Clear search config if this app is the search provider
+    // 1. Disable side-effects: disconnect live workers and clear the search
+    //    config if this app provides it. We don't write enabled=false to the
+    //    row — it's about to be deleted. Both calls are idempotent.
+    this.appSocketService.disconnectAllClientsByAppIdentifier(app.identifier)
     await this.clearSearchConfigIfNecessary(app.identifier)
 
-    // remove app db record
+    // 2. Destroy docker containers owned by this app. Each profile assignment
+    //    pins the app to a specific host; iterate the unique hosts and force-
+    //    remove every container tagged with the app's APP_ID label. Failures
+    //    per host are logged but don't abort — orphan containers can be reaped
+    //    out-of-band, and the row deletion below is what actually unblocks
+    //    reinstall.
+    const assignments =
+      await this.ormService.db.query.dockerProfileResourceAssignmentsTable.findMany(
+        {
+          where: eq(dockerProfileResourceAssignmentsTable.appId, app.id),
+        },
+      )
+    const uniqueHostIds = Array.from(
+      new Set(assignments.map((a) => a.dockerHostId)),
+    )
+    for (const hostId of uniqueHostIds) {
+      try {
+        const containers =
+          await this.dockerClientService.listContainersByLabels(hostId, {
+            [DOCKER_LABELS.APP_ID]: app.identifier,
+          })
+        for (const container of containers) {
+          try {
+            await this.dockerClientService.removeContainer(
+              hostId,
+              container.id,
+              { force: true },
+            )
+          } catch (error) {
+            this.logger.warn(
+              `Failed to remove container ${container.id} on host ${hostId} during uninstall of ${app.identifier}: ${String(error)}`,
+            )
+          }
+        }
+      } catch (error) {
+        this.logger.warn(
+          `Failed to list containers on host ${hostId} during uninstall of ${app.identifier}: ${String(error)}`,
+        )
+      }
+    }
+
+    // 3. Tear down bridge tunnel sessions for this app. The bridge tolerates
+    //    404 on individual deletes, so a race with session expiry is harmless.
+    try {
+      const sessions = await this.dockerClientService.listTunnelSessionsByApp(
+        app.identifier,
+      )
+      for (const { sessionId } of sessions) {
+        try {
+          await this.dockerClientService.deleteTunnelSession(
+            sessionId,
+            app.identifier,
+          )
+        } catch (error) {
+          this.logger.warn(
+            `Failed to delete tunnel session ${sessionId} for ${app.identifier}: ${String(error)}`,
+          )
+        }
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Failed to list tunnel sessions for ${app.identifier}: ${String(error)}`,
+      )
+    }
+
+    // 4. Delete the app row. ON DELETE CASCADE on app_user_settings,
+    //    app_folder_settings, app_custom_user_settings, app_custom_folder_settings,
+    //    and docker_profile_resource_assignments handles the relational cleanup
+    //    in a single statement.
     await this.ormService.db
       .delete(appsTable)
       .where(eq(appsTable.identifier, app.identifier))
-  }
 
-  private async generateUniqueAppIdentifier(appSlug: string): Promise<string> {
-    // Try using just the slug as the identifier first
-    const slugTaken = await this.ormService.db.query.appsTable.findFirst({
-      where: eq(appsTable.identifier, appSlug),
-    })
-    if (!slugTaken) {
-      return appSlug
-    }
-
-    // Slug is taken — append a random suffix
-    const MAX_ATTEMPTS = 10
-    let suffix = generateAppIdentifierSuffix()
-    const checkExists = async () => {
-      const found = await this.ormService.db.query.appsTable.findFirst({
-        where: eq(appsTable.identifier, `${appSlug}_${suffix}`),
-      })
-      return !!found
-    }
-    let attempts = 1
-    while (attempts < MAX_ATTEMPTS && (await checkExists())) {
-      attempts++
-      suffix = generateAppIdentifierSuffix()
-    }
-    if (attempts >= MAX_ATTEMPTS) {
-      throw new Error(
-        `Failed to generate a unique app identifier for app ${appSlug}`,
+    // 5. Drop the per-app Postgres schema, then the role, then forget the role
+    //    password. Order matters — the role owns objects in the schema, so the
+    //    schema must go first.
+    try {
+      await this.ormService.dropAppSchema(app)
+      await this.ormService.dropAppRole(app)
+    } catch (error) {
+      this.logger.error(
+        `Failed to drop Postgres schema/role for uninstalled app ${app.identifier}: ${String(error)}`,
       )
     }
-    return `${appSlug}_${suffix}`
+
+    // 6. Delete bundle objects from S3. Install writes to
+    //    `${prefix}/app-bundle-storage/<id>/{ui,workers}/...`, so the uninstall
+    //    prefix must match — the previous implementation used `${id}/` and
+    //    deleted nothing.
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorage()
+    if (serverStorageLocation) {
+      const basePrefix = serverStorageLocation.prefix
+        ? `${serverStorageLocation.prefix.replace(/\/+$/, '')}/`
+        : ''
+      const prefix = `${basePrefix}app-bundle-storage/${app.identifier}/`
+      try {
+        await this.s3Service.deleteAllWithPrefix({
+          ...serverStorageLocation,
+          prefix,
+        })
+      } catch (error) {
+        this.logger.error(
+          `Failed to delete S3 bundles for uninstalled app ${app.identifier}: ${String(error)}`,
+        )
+      }
+    }
+
+    // 7. Refresh core-worker hash mapping so the worker stops serving stale
+    //    bundles. Matches what install and enable/disable already do.
+    void this.coreWorkerService.updateAppHashMapping()
   }
 
   public async installApp(
     app: AppInstallBundle,
     localPath: string,
-    allowUpdate = false,
+    opts: AppInstallOptions = { mode: 'install' },
   ) {
     const now = new Date()
-    const installedApp = await this.getAppBySlug(app.slug)
-    if (installedApp && !allowUpdate) {
-      throw new AppAlreadyInstalledException()
+
+    let installedApp: App | undefined
+    if (opts.mode === 'upgrade') {
+      installedApp = await this.getApp(opts.appIdentifier)
+      if (!installedApp) {
+        throw new NotFoundException(`App not found: ${opts.appIdentifier}`)
+      }
+      if (installedApp.slug !== app.slug) {
+        throw new BadRequestException(
+          `Bundle slug "${app.slug}" does not match installed app slug "${installedApp.slug}"`,
+        )
+      }
     }
-    const appIdentifier =
-      installedApp?.identifier ??
-      (await this.generateUniqueAppIdentifier(app.slug))
+
+    let appId: string
+    let appIdentifier: string
+    if (installedApp) {
+      appId = installedApp.id
+      appIdentifier = installedApp.identifier
+    } else {
+      // Atomically consume the next install position for this slug, then
+      // derive a deterministic 8-char hex id from (slug, position). The
+      // counter survives uninstalls so a freshly installed app can never
+      // reuse the id of a long-uninstalled one that historical events,
+      // tasks, etc. still reference.
+      const [seq] = await this.ormService.db
+        .insert(appInstallSequencesTable)
+        .values({ slug: app.slug, nextPosition: 1 })
+        .onConflictDoUpdate({
+          target: appInstallSequencesTable.slug,
+          set: {
+            nextPosition: sql`${appInstallSequencesTable.nextPosition} + 1`,
+          },
+        })
+        .returning({ nextPosition: appInstallSequencesTable.nextPosition })
+      if (!seq) {
+        throw new Error(
+          `Failed to allocate install position for slug "${app.slug}"`,
+        )
+      }
+      const position = seq.nextPosition - 1
+      appId = deriveAppId(app.slug, position)
+      appIdentifier = `${app.slug}-${appId}`
+    }
     const assetManifestEntryPaths = Object.keys(app.manifest).filter(
       (manifestItemPath) =>
         manifestItemPath.startsWith('/ui') ||
@@ -1026,6 +1136,7 @@ export class AppService {
             .insert(appsTable)
             .values({
               ...app,
+              id: appId,
               identifier: appIdentifier,
               createdAt: now,
               updatedAt: now,
@@ -1050,7 +1161,7 @@ export class AppService {
           `Running ${app.migrationFiles.length} migrations for app ${appIdentifier}`,
         )
         await this.ormService.runAppMigrations(
-          appIdentifier,
+          newlyInstalledAppInstance,
           app.migrationFiles,
         )
         this.logger.log(
@@ -1071,50 +1182,11 @@ export class AppService {
     return newlyInstalledAppInstance
   }
 
-  public async installLocalAppBundles(limitTo?: string[] | null) {
-    // for each potential app, attempt to install it (or update it if it's already installed)
-    if (!this._appConfig.appBundlesPath) {
-      this.logger.warn(
-        'App bundles path is not set, skipping app bundle installation',
-      )
-      return
-    }
-    const appBundlesPath = this._appConfig.appBundlesPath
-    const allZips = fs
-      .readdirSync(this._appConfig.appBundlesPath)
-      .filter(
-        (potentialAppBundleFilename) =>
-          !fs
-            .lstatSync(path.join(appBundlesPath, potentialAppBundleFilename))
-            .isDirectory() &&
-          potentialAppBundleFilename.endsWith('.zip') &&
-          (!limitTo ||
-            limitTo.includes(
-              potentialAppBundleFilename.slice(
-                0,
-                potentialAppBundleFilename.length - 4,
-              ),
-            )),
-      )
-      .map((potentialAppBundleFilename) =>
-        path.join(appBundlesPath, potentialAppBundleFilename),
-      )
-    for (const appBundlePath of allZips) {
-      try {
-        await this.handleAppInstall({
-          zipFileBuffer: fs.readFileSync(appBundlePath),
-          zipFilename: path.basename(appBundlePath),
-        })
-      } catch (error) {
-        this.logger.warn(`APP INSTALL ERROR ('${appBundlePath}'):`, error)
-      }
-    }
-  }
-
   public async handleAppInstall(
     install:
       | { appRoot: string }
       | { zipFilename: string; zipFileBuffer: Buffer },
+    opts: AppInstallOptions = { mode: 'install' },
   ) {
     let appRoot = ''
     let appInstallIdentifier = `slug: n/a - (source: ${'appRoot' in install ? install.appRoot : install.zipFilename})`
@@ -1131,18 +1203,14 @@ export class AppService {
       }
 
       if (app.validation.value && app.definition) {
-        return await this.installApp(app.definition, appRoot, true)
+        return await this.installApp(app.definition, appRoot, opts)
       } else {
         throw new AppInvalidException(
           `App config is invalid (${appInstallIdentifier}): ${JSON.stringify(app.validation.error?.issues, null, 2)}`,
         )
       }
     } catch (error) {
-      if (error instanceof AppAlreadyInstalledException) {
-        this.logger.log(
-          `APP INSTALL SKIPPED ('${appInstallIdentifier}'): App is already installed.`,
-        )
-      } else if (error instanceof AppNotParsableException) {
+      if (error instanceof AppNotParsableException) {
         this.logger.warn(
           `APP INSTALL ERROR ('${appInstallIdentifier}'): App is not parsable or valid.`,
         )
@@ -1365,12 +1433,6 @@ export class AppService {
     return app
   }
 
-  /**
-   * Install or update an app from an uploaded zip file.
-   * @param zipFileBuffer - The zip file buffer
-   * @param allowUpdate - Whether to allow updating an existing app
-   * @returns The installed/updated app
-   */
   public async extractAppZipForInstall(zipFileBuffer: Buffer): Promise<string> {
     const tempDir = await fsPromises.mkdtemp(
       path.join(os.tmpdir(), 'app-install-'),
@@ -1641,7 +1703,7 @@ export class AppService {
       .from(tasksTable)
       .where(
         and(
-          eq(tasksTable.ownerIdentifier, appIdentifier),
+          eq(tasksTable.ownerId, appIdentifier),
           sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
         ),
       )
@@ -1657,7 +1719,7 @@ export class AppService {
       .from(logEntriesTable)
       .where(
         and(
-          eq(logEntriesTable.emitterIdentifier, appIdentifier),
+          eq(logEntriesTable.emitterId, appIdentifier),
           eq(logEntriesTable.level, LogEntryLevel.ERROR),
           sql`${logEntriesTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
         ),
@@ -1674,7 +1736,7 @@ export class AppService {
       .from(eventsTable)
       .where(
         and(
-          eq(eventsTable.emitterIdentifier, appIdentifier),
+          eq(eventsTable.emitterId, appIdentifier),
           sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
         ),
       )
@@ -1710,7 +1772,7 @@ export class AppService {
       await this.ormService.db.query.appUserSettingsTable.findFirst({
         where: and(
           eq(appUserSettingsTable.userId, actor.id),
-          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+          eq(appUserSettingsTable.appId, app.id),
         ),
       })
 
@@ -1740,7 +1802,7 @@ export class AppService {
 
     const where = and(
       eq(appUserSettingsTable.userId, actor.id),
-      eq(appUserSettingsTable.appIdentifier, appIdentifier),
+      eq(appUserSettingsTable.appId, app.id),
     )
 
     const existingSettings =
@@ -1766,7 +1828,7 @@ export class AppService {
     } else {
       await this.ormService.db.insert(appUserSettingsTable).values({
         userId: actor.id,
-        appIdentifier,
+        appId: app.id,
         enabled,
         folderScopePermissionsDefault,
         folderScopeEnabledDefault,
@@ -1796,7 +1858,7 @@ export class AppService {
       .where(
         and(
           eq(appUserSettingsTable.userId, actor.id),
-          eq(appUserSettingsTable.appIdentifier, appIdentifier),
+          eq(appUserSettingsTable.appId, app.id),
         ),
       )
       .execute()
@@ -1812,22 +1874,18 @@ export class AppService {
       where: eq(appsTable.enabled, true),
     })
 
-    const enabledAppIdentifiers = new Set(
-      enabledApps.map((app) => app.identifier),
-    )
+    const enabledAppIds = enabledApps.map((app) => app.id)
 
     const userSettings = await this.ormService.db.query.appUserSettingsTable
       .findMany({
         where: and(
           eq(appUserSettingsTable.userId, actor.id),
-          inArray(appUserSettingsTable.appIdentifier, [
-            ...enabledAppIdentifiers,
-          ]),
+          inArray(appUserSettingsTable.appId, enabledAppIds),
         ),
       })
       .then((result) =>
         result.reduce<Record<string, AppUserSettings>>((acc, setting) => {
-          acc[setting.appIdentifier] = setting
+          acc[setting.appId] = setting
           return acc
         }, {}),
       )
@@ -1836,14 +1894,12 @@ export class AppService {
       .findMany({
         where: and(
           eq(appFolderSettingsTable.folderId, folder.id),
-          inArray(appUserSettingsTable.appIdentifier, [
-            ...enabledAppIdentifiers,
-          ]),
+          inArray(appFolderSettingsTable.appId, enabledAppIds),
         ),
       })
       .then((result) =>
         result.reduce<Record<string, AppFolderSettings>>((acc, setting) => {
-          acc[setting.appIdentifier] = setting
+          acc[setting.appId] = setting
           return acc
         }, {}),
       )
@@ -1854,8 +1910,8 @@ export class AppService {
           ...acc,
           [enabledApp.identifier]: resolveFolderAppSettings(
             enabledApp,
-            userSettings[enabledApp.identifier],
-            folderSettings[enabledApp.identifier],
+            userSettings[enabledApp.id],
+            folderSettings[enabledApp.id],
           ),
         }
       },
@@ -1881,22 +1937,24 @@ export class AppService {
       (key) => updates[key] !== null,
     )
 
-    const appIdentifiersToUpdate = await this.ormService.db.query.appsTable
-      .findMany({
-        where: inArray(appsTable.identifier, allUpdatedAppIdentifiers),
-      })
-      .then((apps) => new Set(apps.map((app) => app.identifier)))
+    const appsToUpdate = await this.ormService.db.query.appsTable.findMany({
+      where: inArray(appsTable.identifier, allUpdatedAppIdentifiers),
+    })
+    const identifierToId = new Map(
+      appsToUpdate.map((app) => [app.identifier, app.id]),
+    )
 
-    if (appIdentifiersToUpdate.size !== allUpdatedAppIdentifiers.length) {
+    if (identifierToId.size !== allUpdatedAppIdentifiers.length) {
       throw new NotFoundException(
-        `Unknown app/s: ${allUpdatedAppIdentifiers.filter((identifier) => !appIdentifiersToUpdate.has(identifier)).join(', ')}`,
+        `Unknown app/s: ${allUpdatedAppIdentifiers.filter((identifier) => !identifierToId.has(identifier)).join(', ')}`,
       )
     }
 
     // Get all app identifiers that are being deleted
-    const deletedAppIdentifiers = Object.keys(updates).filter(
-      (key) => updates[key] === null,
-    )
+    const deletedAppIds = Object.keys(updates)
+      .filter((key) => updates[key] === null)
+      .map((identifier) => identifierToId.get(identifier))
+      .filter((id): id is string => !!id)
 
     const now = new Date()
 
@@ -1904,9 +1962,11 @@ export class AppService {
     await this.ormService.db.transaction(async (tx) => {
       for (const appIdentifier of upsertedAppIdentifiers) {
         const updatedSettings = updates[appIdentifier]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const appId = identifierToId.get(appIdentifier)!
         const where = and(
           eq(appFolderSettingsTable.folderId, folder.id),
-          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+          eq(appFolderSettingsTable.appId, appId),
         )
 
         if (updatedSettings === null) {
@@ -1939,7 +1999,7 @@ export class AppService {
           } else {
             await tx.insert(appFolderSettingsTable).values({
               folderId: folder.id,
-              appIdentifier,
+              appId,
               enabled:
                 'enabled' in notNullUpdatedSettings
                   ? notNullUpdatedSettings.enabled
@@ -1959,10 +2019,7 @@ export class AppService {
         .where(
           and(
             eq(appFolderSettingsTable.folderId, folder.id),
-            inArray(
-              appFolderSettingsTable.appIdentifier,
-              deletedAppIdentifiers,
-            ),
+            inArray(appFolderSettingsTable.appId, deletedAppIds),
           ),
         )
     })
@@ -2026,7 +2083,7 @@ export class AppService {
 
     const appUserSettings = await db.query.appUserSettingsTable.findFirst({
       where: and(
-        eq(appUserSettingsTable.appIdentifier, appIdentifier),
+        eq(appUserSettingsTable.appId, app.id),
         eq(appUserSettingsTable.userId, userId),
       ),
     })
@@ -2071,14 +2128,14 @@ export class AppService {
 
     const appUserSettings = await db.query.appUserSettingsTable.findFirst({
       where: and(
-        eq(appUserSettingsTable.appIdentifier, appIdentifier),
+        eq(appUserSettingsTable.appId, app.id),
         eq(appUserSettingsTable.userId, folder.ownerId),
       ),
     })
 
     const appFolderSettings = await db.query.appFolderSettingsTable.findFirst({
       where: and(
-        eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+        eq(appFolderSettingsTable.appId, app.id),
         eq(appFolderSettingsTable.folderId, folderId),
       ),
     })
@@ -2140,7 +2197,7 @@ export class AppService {
     const appUserSettings = relevantUserIds.size
       ? await this.ormService.db.query.appUserSettingsTable.findMany({
           where: and(
-            eq(appUserSettingsTable.appIdentifier, appIdentifier),
+            eq(appUserSettingsTable.appId, app.id),
             inArray(
               appUserSettingsTable.userId,
               Array.from(relevantUserIds.values()),
@@ -2156,7 +2213,7 @@ export class AppService {
     const folderSettings =
       await this.ormService.db.query.appFolderSettingsTable.findMany({
         where: and(
-          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+          eq(appFolderSettingsTable.appId, app.id),
           inArray(appFolderSettingsTable.folderId, uniqueFolderIds),
         ),
       })

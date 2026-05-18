@@ -29,6 +29,7 @@ const createMockApp = ({
   }
 }): App => {
   return {
+    id: 'testid00',
     slug,
     identifier: slug,
     label: 'Test App',
@@ -88,7 +89,7 @@ const createMockUserSettings = ({
 }): AppUserSettings => {
   return {
     userId,
-    appIdentifier,
+    appId: appIdentifier,
     enabled,
     folderScopeEnabledDefault,
     folderScopePermissionsDefault,
@@ -110,7 +111,7 @@ const createMockFolderSettings = ({
   permissions?: FolderScopeAppPermissions[] | null
 }): AppFolderSettings => {
   return {
-    appIdentifier,
+    appId: appIdentifier,
     folderId,
     enabled,
     permissions,

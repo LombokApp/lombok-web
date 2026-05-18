@@ -200,7 +200,7 @@ export class TaskService {
 
     const conditions: SQL[] = [
       eq(tasksTable.id, taskId),
-      eq(tasksTable.ownerIdentifier, appIdentifier),
+      eq(tasksTable.ownerId, appIdentifier),
     ]
     if (options?.targetUserId) {
       conditions.push(eq(tasksTable.targetUserId, options.targetUserId))
@@ -282,7 +282,7 @@ export class TaskService {
       .select({
         task: {
           id: tasksTable.id,
-          ownerIdentifier: tasksTable.ownerIdentifier,
+          ownerId: tasksTable.ownerId,
           taskIdentifier: tasksTable.taskIdentifier,
           taskDescription: tasksTable.taskDescription,
           invocation: tasksTable.invocation,
@@ -383,7 +383,7 @@ export class TaskService {
     const now = new Date()
     const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: CORE_IDENTIFIER,
+      ownerId: CORE_IDENTIFIER,
       taskIdentifier,
       invocation: {
         kind: 'user_action',
@@ -458,7 +458,7 @@ export class TaskService {
 
     const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: appIdentifier,
+      ownerId: appIdentifier,
       taskIdentifier,
       invocation: {
         kind: 'user_action',
@@ -562,7 +562,7 @@ export class TaskService {
     const now = new Date()
     const newTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: appIdentifier,
+      ownerId: appIdentifier,
       taskIdentifier,
       invocation: {
         kind: 'app_action',
@@ -640,13 +640,11 @@ export class TaskService {
     handlerIndex: number
     options: { tx?: OrmService['db'] }
   }) {
-    const app = await this.appService.getApp(parentTask.ownerIdentifier, {
+    const app = await this.appService.getApp(parentTask.ownerId, {
       enabled: true,
     })
     if (!app) {
-      throw new NotFoundException(
-        `App not found: ${parentTask.ownerIdentifier}`,
-      )
+      throw new NotFoundException(`App not found: ${parentTask.ownerId}`)
     }
     const taskDefinition = app.config.tasks?.find(
       (t) => t.identifier === taskIdentifier,
@@ -672,7 +670,7 @@ export class TaskService {
     const now = new Date()
     const childTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: parentTask.ownerIdentifier,
+      ownerId: parentTask.ownerId,
       taskIdentifier,
       correlationKey,
       invocation: {
@@ -721,7 +719,7 @@ export class TaskService {
             functions: {
               createPresignedUrl:
                 this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
-                  parentTask.ownerIdentifier,
+                  parentTask.ownerId,
                 ),
             },
           })
@@ -812,13 +810,11 @@ export class TaskService {
     handlerIndex: number
     options: { tx?: OrmService['db'] }
   }) {
-    const app = await this.appService.getApp(parentTask.ownerIdentifier, {
+    const app = await this.appService.getApp(parentTask.ownerId, {
       enabled: true,
     })
     if (!app) {
-      throw new NotFoundException(
-        `App not found: ${parentTask.ownerIdentifier}`,
-      )
+      throw new NotFoundException(`App not found: ${parentTask.ownerId}`)
     }
     const taskDefinition = app.config.tasks?.find(
       (t) => t.identifier === taskIdentifier,
@@ -833,7 +829,7 @@ export class TaskService {
 
     const childTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: parentTask.ownerIdentifier,
+      ownerId: parentTask.ownerId,
       taskIdentifier,
       correlationKey,
       invocation: {
@@ -871,7 +867,7 @@ export class TaskService {
             functions: {
               createPresignedUrl:
                 this.folderService.dataTemplateFunctions.buildCreatePresignedUrlFunction(
-                  parentTask.ownerIdentifier,
+                  parentTask.ownerId,
                 ),
             },
           })
@@ -1294,7 +1290,7 @@ export class TaskService {
           : undefined
         if (onCompleteHandler.condition && !conditionInput.success) {
           this.logger.debug('Task onComplete condition evaluation failed:', {
-            ownerIdentifier: updatedTask.ownerIdentifier,
+            ownerId: updatedTask.ownerId,
             taskIdentifier: onCompleteHandler.taskIdentifier,
             condition: onCompleteHandler.condition,
             input: conditionInput,

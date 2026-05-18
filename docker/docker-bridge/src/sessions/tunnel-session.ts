@@ -137,7 +137,7 @@ export class TunnelSessionHandler {
     protocol: TunnelProtocol,
     tty: boolean,
     options: {
-      appIdentifier: string
+      appId: string
       public?: boolean
     } | null,
   ): Promise<TunnelSession> {
@@ -150,7 +150,7 @@ export class TunnelSessionHandler {
         mode,
         protocol,
         tty,
-        appIdentifier: options?.appIdentifier ?? null,
+        appId: options?.appId ?? null,
         isPublic: options?.public ?? false,
       },
     )
@@ -166,7 +166,7 @@ export class TunnelSessionHandler {
       containerId,
       publicId: session.publicId,
       label,
-      appIdentifier: options?.appIdentifier ?? null,
+      appId: options?.appId ?? null,
       command: command.join(' '),
       mode,
       protocol,

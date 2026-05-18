@@ -25,7 +25,7 @@ describe('SessionManager', () => {
         'preview',
         {
           mode: 'persistent',
-          appIdentifier: 'coder',
+          appId: 'coder',
           protocol: 'framed',
           tty: false,
           isPublic: true,
@@ -44,7 +44,7 @@ describe('SessionManager', () => {
       ])
       expect(session.publicId).toMatch(/^tn-[a-f0-9]{10}$/)
       expect(session.label).toBe('preview')
-      expect(session.appIdentifier).toBe('coder')
+      expect(session.appId).toBe('coder')
       expect(session.agentReady).toBe(false)
     })
 
@@ -57,7 +57,7 @@ describe('SessionManager', () => {
         {
           mode: 'ephemeral',
           protocol: 'raw',
-          appIdentifier: 'coder',
+          appId: 'coder',
           tty: false,
           isPublic: true,
         },
@@ -81,7 +81,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'terminal',
         {
-          appIdentifier: 'coder',
+          appId: 'coder',
           mode: 'ephemeral',
           protocol: 'framed',
           tty: false,
@@ -99,7 +99,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appIdentifier: 'coder',
+          appId: 'coder',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -112,7 +112,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '5173'],
         'api',
         {
-          appIdentifier: 'coder',
+          appId: 'coder',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -133,7 +133,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appIdentifier: 'coder',
+          appId: 'coder',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -159,14 +159,14 @@ describe('SessionManager', () => {
       })
 
       small.create('local', 'c1', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,
         isPublic: true,
       })
       small.create('local', 'c2', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,
@@ -175,7 +175,7 @@ describe('SessionManager', () => {
 
       try {
         small.create('local', 'c3', ['/bin/sh'], 'term', {
-          appIdentifier: 'app',
+          appId: 'app',
           mode: 'ephemeral',
           protocol: 'raw',
           tty: false,
@@ -197,7 +197,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appIdentifier: 'coder',
+          appId: 'coder',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -224,7 +224,7 @@ describe('SessionManager', () => {
       })
 
       const session = small.create('local', 'c1', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,
@@ -243,7 +243,7 @@ describe('SessionManager', () => {
 
     it('removes unattached created sessions past 60s', async () => {
       const session = manager.create('local', 'c1', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,
@@ -266,14 +266,14 @@ describe('SessionManager', () => {
   describe('list', () => {
     it('filters by containerId', () => {
       manager.create('local', 'c1', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,
         isPublic: true,
       })
       manager.create('local', 'c2', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,
@@ -287,7 +287,7 @@ describe('SessionManager', () => {
 
     it('returns all sessions without filter', () => {
       manager.create('local', 'c1', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,
@@ -299,7 +299,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appIdentifier: 'coder',
+          appId: 'coder',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -315,7 +315,7 @@ describe('SessionManager', () => {
   describe('touch', () => {
     it('updates lastActivityAt', async () => {
       const session = manager.create('local', 'c1', ['/bin/sh'], 'term', {
-        appIdentifier: 'app',
+        appId: 'app',
         mode: 'ephemeral',
         protocol: 'raw',
         tty: false,

@@ -20,8 +20,8 @@ export const appFolderSettingsTable = pgTable(
     folderId: uuid('folder_id')
       .references(() => foldersTable.id)
       .notNull(),
-    appIdentifier: text('app_identifier')
-      .references(() => appsTable.identifier)
+    appId: text('app_id')
+      .references(() => appsTable.id, { onDelete: 'cascade' })
       .notNull(),
     enabled: boolean('enabled'),
     permissions: jsonb('permissions').$type<FolderScopeAppPermissions[]>(),
@@ -32,7 +32,7 @@ export const appFolderSettingsTable = pgTable(
     index('app_folder_settings_folder_id_idx').on(table.folderId),
     uniqueIndex('app_folder_settings_folder_app_unique').on(
       table.folderId,
-      table.appIdentifier,
+      table.appId,
     ),
   ],
 )
@@ -45,8 +45,8 @@ export const appFolderSettingsRelations = relations(
       references: [foldersTable.id],
     }),
     app: one(appsTable, {
-      fields: [appFolderSettingsTable.appIdentifier],
-      references: [appsTable.identifier],
+      fields: [appFolderSettingsTable.appId],
+      references: [appsTable.id],
     }),
   }),
 )

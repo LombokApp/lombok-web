@@ -141,7 +141,7 @@ export class AppCustomSettingsService {
   private async readScopeValues(
     scope: 'user' | 'folder',
     scopeId: string,
-    appIdentifier: string,
+    appId: string,
   ): Promise<Record<string, unknown>> {
     const rows =
       scope === 'user'
@@ -154,7 +154,7 @@ export class AppCustomSettingsService {
             .where(
               and(
                 eq(appCustomUserSettingsTable.userId, scopeId),
-                eq(appCustomUserSettingsTable.appIdentifier, appIdentifier),
+                eq(appCustomUserSettingsTable.appId, appId),
               ),
             )
         : await this.ormService.db
@@ -166,7 +166,7 @@ export class AppCustomSettingsService {
             .where(
               and(
                 eq(appCustomFolderSettingsTable.folderId, scopeId),
-                eq(appCustomFolderSettingsTable.appIdentifier, appIdentifier),
+                eq(appCustomFolderSettingsTable.appId, appId),
               ),
             )
 
@@ -195,11 +195,7 @@ export class AppCustomSettingsService {
       }
     }
 
-    const userValues = await this.readScopeValues(
-      'user',
-      userId,
-      app.identifier,
-    )
+    const userValues = await this.readScopeValues('user', userId, app.id)
     const resolved = resolveCustomSettings(schema, userValues, undefined)
 
     return {
@@ -224,11 +220,7 @@ export class AppCustomSettingsService {
       return { values: {} }
     }
 
-    const userValues = await this.readScopeValues(
-      'user',
-      userId,
-      app.identifier,
-    )
+    const userValues = await this.readScopeValues('user', userId, app.id)
     const resolved = resolveCustomSettings(schema, userValues, undefined)
     return { values: resolved.values }
   }
@@ -258,7 +250,7 @@ export class AppCustomSettingsService {
             .where(
               and(
                 eq(appCustomUserSettingsTable.userId, userId),
-                eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
+                eq(appCustomUserSettingsTable.appId, app.id),
                 eq(appCustomUserSettingsTable.key, key),
               ),
             )
@@ -267,7 +259,7 @@ export class AppCustomSettingsService {
             .insert(appCustomUserSettingsTable)
             .values({
               userId,
-              appIdentifier: app.identifier,
+              appId: app.id,
               key,
               value,
               createdAt: now,
@@ -276,7 +268,7 @@ export class AppCustomSettingsService {
             .onConflictDoUpdate({
               target: [
                 appCustomUserSettingsTable.userId,
-                appCustomUserSettingsTable.appIdentifier,
+                appCustomUserSettingsTable.appId,
                 appCustomUserSettingsTable.key,
               ],
               set: { value, updatedAt: now },
@@ -292,7 +284,7 @@ export class AppCustomSettingsService {
         .where(
           and(
             eq(appCustomUserSettingsTable.userId, userId),
-            eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
+            eq(appCustomUserSettingsTable.appId, app.id),
           ),
         )
       if (sizeRow && sizeRow.total > MAX_VALUES_SIZE) {
@@ -312,7 +304,7 @@ export class AppCustomSettingsService {
       .where(
         and(
           eq(appCustomUserSettingsTable.userId, userId),
-          eq(appCustomUserSettingsTable.appIdentifier, app.identifier),
+          eq(appCustomUserSettingsTable.appId, app.id),
         ),
       )
     this.broadcastUserSettingsChanged(userId, app)
@@ -338,8 +330,8 @@ export class AppCustomSettingsService {
     }
 
     const [userValues, folderValues] = await Promise.all([
-      this.readScopeValues('user', userId, app.identifier),
-      this.readScopeValues('folder', folderId, app.identifier),
+      this.readScopeValues('user', userId, app.id),
+      this.readScopeValues('folder', folderId, app.id),
     ])
 
     // For folder-level resolution, filter user values to only keys defined in
@@ -391,7 +383,7 @@ export class AppCustomSettingsService {
             .where(
               and(
                 eq(appCustomFolderSettingsTable.folderId, folderId),
-                eq(appCustomFolderSettingsTable.appIdentifier, app.identifier),
+                eq(appCustomFolderSettingsTable.appId, app.id),
                 eq(appCustomFolderSettingsTable.key, key),
               ),
             )
@@ -400,7 +392,7 @@ export class AppCustomSettingsService {
             .insert(appCustomFolderSettingsTable)
             .values({
               folderId,
-              appIdentifier: app.identifier,
+              appId: app.id,
               key,
               value,
               createdAt: now,
@@ -409,7 +401,7 @@ export class AppCustomSettingsService {
             .onConflictDoUpdate({
               target: [
                 appCustomFolderSettingsTable.folderId,
-                appCustomFolderSettingsTable.appIdentifier,
+                appCustomFolderSettingsTable.appId,
                 appCustomFolderSettingsTable.key,
               ],
               set: { value, updatedAt: now },
@@ -425,7 +417,7 @@ export class AppCustomSettingsService {
         .where(
           and(
             eq(appCustomFolderSettingsTable.folderId, folderId),
-            eq(appCustomFolderSettingsTable.appIdentifier, app.identifier),
+            eq(appCustomFolderSettingsTable.appId, app.id),
           ),
         )
       if (sizeRow && sizeRow.total > MAX_VALUES_SIZE) {
@@ -442,7 +434,7 @@ export class AppCustomSettingsService {
       .where(
         and(
           eq(appCustomFolderSettingsTable.folderId, folderId),
-          eq(appCustomFolderSettingsTable.appIdentifier, app.identifier),
+          eq(appCustomFolderSettingsTable.appId, app.id),
         ),
       )
   }

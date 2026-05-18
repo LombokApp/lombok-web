@@ -18,7 +18,7 @@ const buildTriggerIdempotencyData = (
     case 'event':
       return {
         eventIdentifier: trigger.invokeContext.eventIdentifier,
-        emitterIdentifier: trigger.invokeContext.emitterIdentifier,
+        emitterId: trigger.invokeContext.emitterId,
         eventId: trigger.invokeContext.eventId,
         eventTriggerConfigIndex: trigger.invokeContext.eventTriggerConfigIndex,
       }
@@ -58,7 +58,7 @@ export const buildTaskIdempotencyKey = (
   input: TaskIdempotencyKeyInput,
 ): string => {
   const payload = {
-    ownerIdentifier: input.ownerIdentifier,
+    ownerId: input.ownerId,
     taskIdentifier: input.taskIdentifier,
     triggerData: buildTriggerIdempotencyData(input.invocation),
   }

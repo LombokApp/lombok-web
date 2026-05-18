@@ -140,7 +140,7 @@ export class DockerWorkerHookService {
       await this.ormService.db.query.appFolderSettingsTable.findMany({
         where: and(
           inArray(appFolderSettingsTable.folderId, folderIds),
-          eq(appFolderSettingsTable.appIdentifier, appIdentifier),
+          eq(appFolderSettingsTable.appId, appIdentifier),
         ),
       })
 
@@ -364,7 +364,7 @@ export class DockerWorkerHookService {
       throw new NotFoundException(`Inner task not found: ${innerTask}`)
     }
 
-    const appIdentifier = innerTask.ownerIdentifier
+    const appIdentifier = innerTask.ownerId
 
     for (const file of files) {
       const isAllowed = claims.storageAccessPolicy.rules.some(

@@ -75,11 +75,63 @@ export class AppsController {
       throw new BadRequestException('File must be a zip file')
     }
 
-    // const app = await this.appService.installAppFromZip(file.buffer)
-    const app = await this.appService.handleAppInstall({
-      zipFilename: file.originalname ?? 'no filename provided',
-      zipFileBuffer: file.buffer,
-    })
+    const app = await this.appService.handleAppInstall(
+      {
+        zipFilename: file.originalname ?? 'no filename provided',
+        zipFileBuffer: file.buffer,
+      },
+      { mode: 'install' },
+    )
+    const connectedAppWorkers = this.appService.getWorkerConnections()
+
+    return {
+      app: transformAppToDTO(app, connectedAppWorkers[app.identifier] ?? []),
+    }
+  }
+
+  @Post('/apps/:appIdentifier/upgrade')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  async upgradeApp(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+    @UploadedFile()
+    file:
+      | { buffer?: Buffer; mimetype: string; originalname?: string }
+      | undefined,
+  ): Promise<AppInstallResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    if (!file) {
+      throw new BadRequestException('No file uploaded')
+    }
+
+    if (!file.buffer) {
+      throw new BadRequestException('File buffer is missing')
+    }
+
+    if (
+      file.mimetype !== 'application/zip' &&
+      file.mimetype !== 'application/x-zip-compressed' &&
+      !file.originalname?.endsWith('.zip')
+    ) {
+      throw new BadRequestException('File must be a zip file')
+    }
+
+    const existing = await this.appService.getApp(appIdentifier)
+    if (!existing) {
+      throw new NotFoundException()
+    }
+
+    const app = await this.appService.handleAppInstall(
+      {
+        zipFilename: file.originalname ?? 'no filename provided',
+        zipFileBuffer: file.buffer,
+      },
+      { mode: 'upgrade', appIdentifier },
+    )
     const connectedAppWorkers = this.appService.getWorkerConnections()
 
     return {

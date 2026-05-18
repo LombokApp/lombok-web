@@ -23,7 +23,7 @@ async function seedFolderLogEntry(
   await testModule.services.ormService.db.insert(logEntriesTable).values({
     id,
     message: 'Test folder log',
-    emitterIdentifier: 'core',
+    emitterId: 'core',
     level: LogEntryLevel.INFO,
     targetLocationFolderId: folderId,
     createdAt: now,

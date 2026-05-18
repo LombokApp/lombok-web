@@ -1057,7 +1057,7 @@ export class DockerClientService {
         mode,
         protocol,
         options: appIdentifier
-          ? { app_identifier: appIdentifier, public: isPublic }
+          ? { app_id: appIdentifier, public: isPublic }
           : undefined,
       }),
     })
@@ -1101,6 +1101,24 @@ export class DockerClientService {
         http: httpUrl,
       },
     }
+  }
+
+  /**
+   * List tunnel sessions belonging to an app. Returns session IDs only.
+   */
+  async listTunnelSessionsByApp(
+    appIdentifier: string,
+  ): Promise<{ sessionId: string }[]> {
+    const backendToken = this.dockerBridgeService.getSecret()
+    const url = `${BRIDGE_HTTP_URL}/sessions?app_id=${encodeURIComponent(appIdentifier)}`
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${backendToken}` },
+    })
+    if (!response.ok) {
+      throw new Error(`Bridge session list failed (${response.status})`)
+    }
+    const sessions = (await response.json()) as { id: string }[]
+    return sessions.map((s) => ({ sessionId: s.id }))
   }
 
   /**

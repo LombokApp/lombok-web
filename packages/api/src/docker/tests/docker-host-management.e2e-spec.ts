@@ -330,7 +330,9 @@ describe('Docker Host Management', () => {
     )
     expect(response.response.status).toBeLessThan(300)
     const assignment = response.data!.result
-    expect(assignment.appIdentifier).toBe(TEST_APP_SLUG)
+    expect(assignment.appIdentifier).toMatch(
+      new RegExp(`^${TEST_APP_SLUG}-[a-f0-9]{8}$`),
+    )
     expect(assignment.profileKey).toBe('dummy_profile')
     expect(assignment.dockerHostId).toBe(host.id)
     expect(assignment.configHashes.gpus).toBeDefined()
@@ -385,7 +387,9 @@ describe('Docker Host Management', () => {
       { params: { query: { appIdentifier: TEST_APP_SLUG } } },
     )
     expect(filtered.data?.result).toHaveLength(1)
-    expect(filtered.data?.result[0]?.appIdentifier).toBe(TEST_APP_SLUG)
+    expect(filtered.data?.result[0]?.appIdentifier).toMatch(
+      new RegExp(`^${TEST_APP_SLUG}-[a-f0-9]{8}$`),
+    )
 
     const all = await apiClient(adminToken).GET(
       '/api/v1/docker/profile-assignments',

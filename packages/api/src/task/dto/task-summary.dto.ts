@@ -10,7 +10,7 @@ import { z } from 'zod'
 export const taskSummaryDTOSchema = z.object({
   id: z.guid(),
   taskIdentifier: z.string(),
-  ownerIdentifier: z.string(),
+  ownerId: z.string(),
   invocation: taskInvocationSchema,
   success: z.boolean().optional(),
   handlerIdentifier: z.string().optional(),

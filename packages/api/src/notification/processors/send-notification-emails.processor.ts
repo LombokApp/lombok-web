@@ -193,7 +193,7 @@ export class SendNotificationEmailsProcessor extends BaseCoreTaskProcessor<CoreT
 
         const nextTask: NewTask = withTaskIdempotencyKey({
           id: crypto.randomUUID(),
-          ownerIdentifier: CORE_IDENTIFIER,
+          ownerId: CORE_IDENTIFIER,
           taskIdentifier: CoreTaskName.SendNotificationEmails,
           invocation: {
             kind: 'system_action',

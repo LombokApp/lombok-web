@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/apps/{appIdentifier}/upgrade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Apps_upgradeApp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/apps": {
         parameters: {
             query?: never;
@@ -219,6 +235,23 @@ export interface paths {
         };
         /** Get the public server settings object (no authentication required). */
         get: operations["Public_getPublicServerSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/build-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the build ID identifying the running server. */
+        get: operations["Public_getBuildId"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1976,8 +2009,10 @@ export interface components {
             onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
         };
         AppInstallResponse__schema2: ({
-            /** @constant */
-            type: "string";
+            type: "string" | [
+                "string",
+                "null"
+            ];
             description?: string;
             default?: string;
             enum?: string[];
@@ -1985,22 +2020,28 @@ export interface components {
             maxLength?: number;
             pattern?: string;
         } | {
-            /** @constant */
-            type: "number";
+            type: "number" | [
+                "number",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "integer";
+            type: "integer" | [
+                "integer",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "boolean";
+            type: "boolean" | [
+                "boolean",
+                "null"
+            ];
             description?: string;
             default?: boolean;
         }) | {
@@ -2037,6 +2078,7 @@ export interface components {
         };
         AppInstallResponse: {
             app: {
+                id: string;
                 identifier: string;
                 slug: string;
                 label: string;
@@ -2231,8 +2273,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -2240,22 +2284,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -2302,8 +2352,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -2311,22 +2363,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -2378,8 +2436,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -2387,22 +2447,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -2449,8 +2515,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -2458,22 +2526,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -2632,8 +2706,10 @@ export interface components {
             onComplete?: components["schemas"]["AppListResponse__schema1"][];
         };
         AppListResponse__schema2: ({
-            /** @constant */
-            type: "string";
+            type: "string" | [
+                "string",
+                "null"
+            ];
             description?: string;
             default?: string;
             enum?: string[];
@@ -2641,22 +2717,28 @@ export interface components {
             maxLength?: number;
             pattern?: string;
         } | {
-            /** @constant */
-            type: "number";
+            type: "number" | [
+                "number",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "integer";
+            type: "integer" | [
+                "integer",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "boolean";
+            type: "boolean" | [
+                "boolean",
+                "null"
+            ];
             description?: string;
             default?: boolean;
         }) | {
@@ -2696,6 +2778,7 @@ export interface components {
                 totalCount: number;
             };
             result: {
+                id: string;
                 identifier: string;
                 slug: string;
                 label: string;
@@ -2890,8 +2973,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -2899,22 +2984,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -2961,8 +3052,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -2970,22 +3063,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -3037,8 +3136,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -3046,22 +3147,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -3108,8 +3215,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -3117,22 +3226,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -3294,8 +3409,10 @@ export interface components {
             onComplete?: components["schemas"]["AppGetResponse__schema1"][];
         };
         AppGetResponse__schema2: ({
-            /** @constant */
-            type: "string";
+            type: "string" | [
+                "string",
+                "null"
+            ];
             description?: string;
             default?: string;
             enum?: string[];
@@ -3303,22 +3420,28 @@ export interface components {
             maxLength?: number;
             pattern?: string;
         } | {
-            /** @constant */
-            type: "number";
+            type: "number" | [
+                "number",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "integer";
+            type: "integer" | [
+                "integer",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "boolean";
+            type: "boolean" | [
+                "boolean",
+                "null"
+            ];
             description?: string;
             default?: boolean;
         }) | {
@@ -3355,6 +3478,7 @@ export interface components {
         };
         AppGetResponse: {
             app: {
+                id: string;
                 identifier: string;
                 slug: string;
                 label: string;
@@ -3549,8 +3673,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -3558,22 +3684,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -3620,8 +3752,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -3629,22 +3763,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -3696,8 +3836,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -3705,22 +3847,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -3767,8 +3915,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -3776,22 +3926,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -3960,8 +4116,10 @@ export interface components {
             onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
         };
         UserAppListResponse__schema2: ({
-            /** @constant */
-            type: "string";
+            type: "string" | [
+                "string",
+                "null"
+            ];
             description?: string;
             default?: string;
             enum?: string[];
@@ -3969,22 +4127,28 @@ export interface components {
             maxLength?: number;
             pattern?: string;
         } | {
-            /** @constant */
-            type: "number";
+            type: "number" | [
+                "number",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "integer";
+            type: "integer" | [
+                "integer",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "boolean";
+            type: "boolean" | [
+                "boolean",
+                "null"
+            ];
             description?: string;
             default?: boolean;
         }) | {
@@ -4024,6 +4188,7 @@ export interface components {
                 totalCount: number;
             };
             result: {
+                id: string;
                 identifier: string;
                 label: string;
                 config: {
@@ -4217,8 +4382,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -4226,22 +4393,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -4288,8 +4461,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -4297,22 +4472,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -4364,8 +4545,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -4373,22 +4556,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -4435,8 +4624,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -4444,22 +4635,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -4594,8 +4791,10 @@ export interface components {
             onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
         };
         UserAppGetResponse__schema2: ({
-            /** @constant */
-            type: "string";
+            type: "string" | [
+                "string",
+                "null"
+            ];
             description?: string;
             default?: string;
             enum?: string[];
@@ -4603,22 +4802,28 @@ export interface components {
             maxLength?: number;
             pattern?: string;
         } | {
-            /** @constant */
-            type: "number";
+            type: "number" | [
+                "number",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "integer";
+            type: "integer" | [
+                "integer",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "boolean";
+            type: "boolean" | [
+                "boolean",
+                "null"
+            ];
             description?: string;
             default?: boolean;
         }) | {
@@ -4655,6 +4860,7 @@ export interface components {
         };
         UserAppGetResponse: {
             app: {
+                id: string;
                 identifier: string;
                 label: string;
                 config: {
@@ -4848,8 +5054,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -4857,22 +5065,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -4919,8 +5133,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -4928,22 +5144,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -4995,8 +5217,10 @@ export interface components {
                             type: "object";
                             properties: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -5004,22 +5228,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -5066,8 +5296,10 @@ export interface components {
                             };
                             patternProperties?: {
                                 [key: string]: {
-                                    /** @constant */
-                                    type: "string";
+                                    type: "string" | [
+                                        "string",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: string;
                                     enum?: string[];
@@ -5075,22 +5307,28 @@ export interface components {
                                     maxLength?: number;
                                     pattern?: string;
                                 } | {
-                                    /** @constant */
-                                    type: "number";
+                                    type: "number" | [
+                                        "number",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "integer";
+                                    type: "integer" | [
+                                        "integer",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: number;
                                     minimum?: number;
                                     maximum?: number;
                                 } | {
-                                    /** @constant */
-                                    type: "boolean";
+                                    type: "boolean" | [
+                                        "boolean",
+                                        "null"
+                                    ];
                                     description?: string;
                                     default?: boolean;
                                 } | {
@@ -5273,8 +5511,10 @@ export interface components {
             permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
         };
         AppCustomSettingsGetResponseDTO__schema0: ({
-            /** @constant */
-            type: "string";
+            type: "string" | [
+                "string",
+                "null"
+            ];
             description?: string;
             default?: string;
             enum?: string[];
@@ -5282,22 +5522,28 @@ export interface components {
             maxLength?: number;
             pattern?: string;
         } | {
-            /** @constant */
-            type: "number";
+            type: "number" | [
+                "number",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "integer";
+            type: "integer" | [
+                "integer",
+                "null"
+            ];
             description?: string;
             default?: number;
             minimum?: number;
             maximum?: number;
         } | {
-            /** @constant */
-            type: "boolean";
+            type: "boolean" | [
+                "boolean",
+                "null"
+            ];
             description?: string;
             default?: boolean;
         }) | {
@@ -5345,8 +5591,10 @@ export interface components {
                     type: "object";
                     properties: {
                         [key: string]: {
-                            /** @constant */
-                            type: "string";
+                            type: "string" | [
+                                "string",
+                                "null"
+                            ];
                             description?: string;
                             default?: string;
                             enum?: string[];
@@ -5354,22 +5602,28 @@ export interface components {
                             maxLength?: number;
                             pattern?: string;
                         } | {
-                            /** @constant */
-                            type: "number";
+                            type: "number" | [
+                                "number",
+                                "null"
+                            ];
                             description?: string;
                             default?: number;
                             minimum?: number;
                             maximum?: number;
                         } | {
-                            /** @constant */
-                            type: "integer";
+                            type: "integer" | [
+                                "integer",
+                                "null"
+                            ];
                             description?: string;
                             default?: number;
                             minimum?: number;
                             maximum?: number;
                         } | {
-                            /** @constant */
-                            type: "boolean";
+                            type: "boolean" | [
+                                "boolean",
+                                "null"
+                            ];
                             description?: string;
                             default?: boolean;
                         } | {
@@ -5416,8 +5670,10 @@ export interface components {
                     };
                     patternProperties?: {
                         [key: string]: {
-                            /** @constant */
-                            type: "string";
+                            type: "string" | [
+                                "string",
+                                "null"
+                            ];
                             description?: string;
                             default?: string;
                             enum?: string[];
@@ -5425,22 +5681,28 @@ export interface components {
                             maxLength?: number;
                             pattern?: string;
                         } | {
-                            /** @constant */
-                            type: "number";
+                            type: "number" | [
+                                "number",
+                                "null"
+                            ];
                             description?: string;
                             default?: number;
                             minimum?: number;
                             maximum?: number;
                         } | {
-                            /** @constant */
-                            type: "integer";
+                            type: "integer" | [
+                                "integer",
+                                "null"
+                            ];
                             description?: string;
                             default?: number;
                             minimum?: number;
                             maximum?: number;
                         } | {
-                            /** @constant */
-                            type: "boolean";
+                            type: "boolean" | [
+                                "boolean",
+                                "null"
+                            ];
                             description?: string;
                             default?: boolean;
                         } | {
@@ -5503,6 +5765,9 @@ export interface components {
                 SIGNUP_ENABLED?: boolean;
                 GOOGLE_OAUTH_ENABLED?: boolean;
             };
+        };
+        PublicBuildIdGetResponse: {
+            buildId: string;
         };
         SettingsGetResponse: {
             settings: {
@@ -6316,7 +6581,7 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 taskIdentifier: string;
-                ownerIdentifier: string;
+                ownerId: string;
                 invocation: {
                     /** @constant */
                     kind: "system_action";
@@ -6339,7 +6604,7 @@ export interface components {
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
-                        emitterIdentifier: string;
+                        emitterId: string;
                         eventIdentifier: string;
                         eventTriggerConfigIndex: number;
                         dataTemplate?: {
@@ -6624,7 +6889,7 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 taskIdentifier: string;
-                ownerIdentifier: string;
+                ownerId: string;
                 invocation: {
                     /** @constant */
                     kind: "system_action";
@@ -6647,7 +6912,7 @@ export interface components {
                     invokeContext: {
                         /** Format: uuid */
                         eventId: string;
-                        emitterIdentifier: string;
+                        emitterId: string;
                         eventIdentifier: string;
                         eventTriggerConfigIndex: number;
                         dataTemplate?: {
@@ -8690,6 +8955,45 @@ export interface operations {
             };
         };
     };
+    Apps_upgradeApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppInstallResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
     Apps_listApps: {
         parameters: {
             query?: {
@@ -9345,6 +9649,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicSettingsGetResponse"];
+                };
+            };
+        };
+    };
+    Public_getBuildId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Build ID */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicBuildIdGetResponse"];
                 };
             };
         };

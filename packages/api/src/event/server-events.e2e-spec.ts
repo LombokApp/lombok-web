@@ -15,7 +15,7 @@ async function seedEvent(
   await testModule.services.ormService.db.insert(eventsTable).values({
     id,
     eventIdentifier: 'object_added',
-    emitterIdentifier: 'core',
+    emitterId: 'core',
     createdAt: new Date(),
     ...overrides,
   })

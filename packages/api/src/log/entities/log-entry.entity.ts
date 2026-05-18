@@ -7,7 +7,7 @@ export const logEntriesTable = pgTable(
   {
     id: uuid('id').primaryKey(),
     message: text('message').notNull(),
-    emitterIdentifier: text('emitter_identifier').notNull(),
+    emitterId: text('emitter_id').notNull(), // CORE_IDENTIFIER or app.id
     targetLocationFolderId: uuid('target_location_folder_id'),
     targetLocationObjectKey: text('target_location_object_key'),
     level: text('level').notNull().$type<LogEntryLevel>(),
@@ -19,7 +19,7 @@ export const logEntriesTable = pgTable(
       table.targetLocationFolderId,
     ),
     index('log_entries_created_at_idx').on(table.createdAt),
-    index('log_entries_emitter_identifier_idx').on(table.emitterIdentifier),
+    index('log_entries_emitter_id_idx').on(table.emitterId),
     index('log_entries_folder_created_at_idx').on(
       table.targetLocationFolderId,
       table.createdAt,

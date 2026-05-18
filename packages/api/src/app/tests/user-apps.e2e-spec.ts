@@ -38,7 +38,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
     const enableResponse = await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -97,7 +97,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -144,7 +144,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -199,7 +199,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -284,7 +284,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -395,7 +395,7 @@ describe('User Apps', () => {
       password: '123',
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
 
     // Ensure app is disabled at system level (default after install)
     const {
@@ -435,7 +435,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
     await apiClient(adminToken).PUT(
       `/api/v1/server/apps/{appIdentifier}/enabled`,
       {
@@ -486,7 +486,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
 
     // Enable app at system level but set userScopeEnabledDefault to false
     await apiClient(adminToken).PUT(
@@ -536,7 +536,7 @@ describe('User Apps', () => {
       admin: true,
     })
 
-    const appIdentifier = DUMMY_APP_SLUG
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
 
     // Enable app at system level but set userScopeEnabledDefault to false
     await apiClient(adminToken).PUT(

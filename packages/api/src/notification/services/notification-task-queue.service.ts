@@ -25,7 +25,7 @@ export class NotificationTaskQueueService {
 
     const task: NewTask = withTaskIdempotencyKey({
       id: crypto.randomUUID(),
-      ownerIdentifier: CORE_IDENTIFIER,
+      ownerId: CORE_IDENTIFIER,
       taskIdentifier: CoreTaskName.CreateEventNotifications,
       invocation: {
         kind: 'user_action',

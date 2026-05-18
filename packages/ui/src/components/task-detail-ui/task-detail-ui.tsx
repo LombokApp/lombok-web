@@ -1192,7 +1192,7 @@ export function TaskDetailUI({
                         Owner
                       </label>
                       <p className="mt-1 font-mono text-sm">
-                        {taskData.ownerIdentifier}
+                        {taskData.ownerId}
                       </p>
                     </div>
                     <div>

@@ -183,5 +183,6 @@ export const buildMockDockerClientService = (): MockDockerClientService => {
       httpUrl: 'http://mock-http-url',
     }),
     deleteTunnelSession: async () => undefined,
+    listTunnelSessionsByApp: async () => [],
   } as unknown as MockDockerClientService
 }

@@ -81,7 +81,10 @@ describe('Apps Installation via Zip', () => {
     expect(responseBody.app).toBeDefined()
     expect(responseBody.app.slug).toBe(appSlug)
     expect(responseBody.app.label).toBe(appLabel)
-    expect(responseBody.app.identifier).toBeDefined()
+    expect(responseBody.app.identifier).toMatch(
+      new RegExp(`^${appSlug}-[a-f0-9]{8}$`),
+    )
+    expect(responseBody.app.id).toMatch(/^[a-f0-9]{8}$/)
 
     // Verify the app is installed by fetching it
     const getAppResponse = await request(testModule!.app.getHttpServer() as App)
@@ -289,7 +292,7 @@ describe('Apps Installation via Zip', () => {
     expect(responseBody.message).toContain('NUL character')
   })
 
-  it('should update an existing app when installing the same app again', async () => {
+  it('should produce structurally-unique identifiers when installing a zip whose slug is already taken', async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -298,10 +301,9 @@ describe('Apps Installation via Zip', () => {
       admin: true,
     })
 
-    const appSlug = `testappupdate${Date.now()}`
-    const appLabel = 'Test App for Update'
+    const appSlug = `testappdupe${Date.now()}`
+    const appLabel = 'Test App for Duplicate Install'
 
-    // Install the app first time
     const zipBuffer = await buildAppZip({
       slug: appSlug,
       label: appLabel,
@@ -312,32 +314,121 @@ describe('Apps Installation via Zip', () => {
       .post('/api/v1/server/apps/install')
       .set('Authorization', `Bearer ${accessToken}`)
       .attach('file', zipBuffer, 'test-app.zip')
-
     expect(response1.status).toBe(201)
+    const first = (response1.body as AppInstallResponse).app
+    expect(first.identifier).toMatch(new RegExp(`^${appSlug}-[a-f0-9]{8}$`))
+    expect(first.slug).toBe(appSlug)
 
-    // Install the same app again (should update)
     const response2 = await request(testModule!.app.getHttpServer() as App)
       .post('/api/v1/server/apps/install')
       .set('Authorization', `Bearer ${accessToken}`)
       .attach('file', zipBuffer, 'test-app.zip')
-
-    const response1Body = response1.body as AppInstallResponse
-    const response2Body = response2.body as AppInstallResponse
-
     expect(response2.status).toBe(201)
-    expect({
-      ...response1Body.app,
-      updatedAt: undefined,
-    }).toEqual({
-      ...response2Body.app,
-      updatedAt: undefined,
-    })
-    expect(response1Body.app.updatedAt).toBeDefined()
-    expect(response2Body.app.updatedAt).toBeDefined()
+    const second = (response2.body as AppInstallResponse).app
+    expect(second.identifier).not.toBe(first.identifier)
+    expect(second.identifier).toMatch(new RegExp(`^${appSlug}-[a-f0-9]{8}$`))
+    expect(second.slug).toBe(appSlug)
+  })
 
-    expect(new Date(response2Body.app.updatedAt).getTime()).toBeGreaterThan(
-      new Date(response1Body.app.updatedAt).getTime(),
+  it('should upgrade an existing app via the upgrade endpoint', async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin5b',
+      password: '123',
+      admin: true,
+    })
+
+    const appSlug = `testappupgrade${Date.now()}`
+    const appLabel = 'Test App for Upgrade'
+
+    const zipBuffer = await buildAppZip({
+      slug: appSlug,
+      label: appLabel,
+      config: createTestAppConfig(appSlug, appLabel),
+    })
+
+    const installRes = await request(testModule!.app.getHttpServer() as App)
+      .post('/api/v1/server/apps/install')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', zipBuffer, 'test-app.zip')
+    expect(installRes.status).toBe(201)
+    const installed = (installRes.body as AppInstallResponse).app
+
+    const upgradeRes = await request(testModule!.app.getHttpServer() as App)
+      .post(`/api/v1/server/apps/${installed.identifier}/upgrade`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', zipBuffer, 'test-app.zip')
+    expect(upgradeRes.status).toBe(201)
+
+    const upgraded = (upgradeRes.body as AppInstallResponse).app
+    expect(upgraded.identifier).toBe(installed.identifier)
+    expect(upgraded.slug).toBe(installed.slug)
+    expect(new Date(upgraded.updatedAt).getTime()).toBeGreaterThan(
+      new Date(installed.updatedAt).getTime(),
     )
+  })
+
+  it('should reject upgrade when zip slug differs from installed app slug', async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin5c',
+      password: '123',
+      admin: true,
+    })
+
+    const slugA = `testupgradea${Date.now()}`
+    const slugB = `testupgradeb${Date.now()}`
+
+    const zipA = await buildAppZip({
+      slug: slugA,
+      label: 'A',
+      config: createTestAppConfig(slugA, 'A'),
+    })
+    const zipB = await buildAppZip({
+      slug: slugB,
+      label: 'B',
+      config: createTestAppConfig(slugB, 'B'),
+    })
+
+    const installA = await request(testModule!.app.getHttpServer() as App)
+      .post('/api/v1/server/apps/install')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', zipA, 'a.zip')
+    expect(installA.status).toBe(201)
+    const installedA = (installA.body as AppInstallResponse).app
+
+    const upgradeMismatch = await request(
+      testModule!.app.getHttpServer() as App,
+    )
+      .post(`/api/v1/server/apps/${installedA.identifier}/upgrade`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', zipB, 'b.zip')
+    expect(upgradeMismatch.status).toBe(400)
+  })
+
+  it('should return 404 when upgrading a non-existent app', async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin5d',
+      password: '123',
+      admin: true,
+    })
+
+    const slug = `testupgrade404${Date.now()}`
+    const zip = await buildAppZip({
+      slug,
+      label: 'X',
+      config: createTestAppConfig(slug, 'X'),
+    })
+
+    const res = await request(testModule!.app.getHttpServer() as App)
+      .post('/api/v1/server/apps/nonexistent-app/upgrade')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .attach('file', zip, 'x.zip')
+    expect(res.status).toBe(404)
   })
 
   it('should verify installed app contents match the zip', async () => {
