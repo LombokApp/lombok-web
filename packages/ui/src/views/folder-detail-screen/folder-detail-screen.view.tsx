@@ -592,7 +592,10 @@ export const FolderDetailScreen = () => {
                         />
                       ) : null}
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="flex rounded-md border p-2">
+                        <DropdownMenuTrigger
+                          className="flex rounded-md border p-2"
+                          data-testid="folder-actions-trigger"
+                        >
                           <Ellipsis className="size-5 shrink-0" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>

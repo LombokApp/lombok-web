@@ -98,11 +98,23 @@ describe('UI E2E - Error Handling', () => {
       sessionStorage.clear()
     })
 
-    // Try to navigate to a protected route (if any)
-    await page.reload({ waitUntil: 'load' })
-    await page.waitForTimeout(1000)
+    // Reload. The app's unauthenticated guard redirects to /login via a
+    // client-side router push, which detaches the in-flight reload's frame
+    // and surfaces as ERR_ABORTED. The redirect *is* the success signal, so
+    // swallow the detach error and let the subsequent waitForURL be the
+    // real assertion. Anchored to Playwright's `reload:` (or `page.reload:`,
+    // depending on version) prefix so we don't accidentally swallow
+    // unrelated errors that happen to contain the words "aborted" or
+    // "detached" further down their message.
+    await page.reload().catch((err: Error) => {
+      const expected =
+        /^(?:page\.)?reload:.*\b(net::ERR_ABORTED|frame was detached)\b/i
+      if (!expected.test(err.message)) {
+        throw err
+      }
+    })
     await page.waitForURL(`${testModule!.frontendBaseUrl}/login`, {
-      timeout: 1000,
+      timeout: 5000,
     })
 
     await testModule!.takeScreenshot(page, 'error-session-timeout')
