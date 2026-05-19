@@ -15,9 +15,6 @@ FROM base AS dev
 
 COPY . .
 
-# cp the dev entrypoint script to 1 dir above the root (to keep it out of the way of local volume mappings)
-COPY packages/api/cmd/dev-entrypoint.sh ../dev-entrypoint.sh
-
 RUN apk add --no-cache \
   curl \
   git \
@@ -45,7 +42,7 @@ RUN mkdir -p /var/lib/minio/data && \
 
 RUN chown -R bun:bun . && su-exec bun bun install --frozen-lockfile
 
-ENTRYPOINT ["sh", "../dev-entrypoint.sh"]
+ENTRYPOINT ["sh", "packages/api/cmd/dev-entrypoint.sh"]
 
 FROM dev AS test
 

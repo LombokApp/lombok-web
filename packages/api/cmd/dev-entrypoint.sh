@@ -4,9 +4,7 @@ APP_USER=bun
 PLATFORM_HOST="${PLATFORM_HOST:-lombok.localhost}"
 APP_UI_HOST="${APP_UI_HOST:-http://127.0.0.1:3001}"
 
-# Change to ./app relative to this script's location
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR/app" || { echo "Error: Cannot cd to $SCRIPT_DIR/app"; exit 1; }
+cd /usr/src/app || { echo "Error: Cannot cd to /usr/src/app"; exit 1; }
 
 # Clean up background processes on exit
 cleanup() {
