@@ -10,6 +10,7 @@ export interface ISdkContext {
   authState: AppBrowserSdk['authenticator']['state']
   navigateTo: AppBrowserSdk['handleNavigateTo']
   lombokApiBasePath: AppBrowserSdk['lombokApiBasePath']
+  appIdentifier: AppBrowserSdk['appIdentifier']
   currentPathAndQuery: string
   getAccessToken: AppBrowserSdk['authenticator']['getAccessToken']
   executeWorkerScriptUrl: AppBrowserSdk['executeWorkerScriptUrl']
