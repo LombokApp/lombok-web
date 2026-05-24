@@ -614,12 +614,21 @@ func ensureWorkerReady(payload *types.JobPayload) (*types.WorkerState, time.Dura
 			if err != nil {
 				return nil, 0, fmt.Errorf("timed out waiting for worker to start: %w", err)
 			}
-		} else if workerState == nil || workerState.Status == "unhealthy" || workerState.Status == "stopped" {
+		} else {
+			// nil/unhealthy/stopped — or a stale "ready" whose PID didn't survive `docker stop` — needs a fresh supervisor.
 			workerStartTime = time.Now()
 			startedWorker = true
+			staleStatus := "<missing>"
+			stalePID := 0
+			if workerState != nil {
+				staleStatus = workerState.Status
+				stalePID = workerState.PID
+			}
 			logs.WriteAgentLog(logs.LogLevelInfo, "Dispatcher triggering worker start", map[string]any{
-				"job_id":    payload.JobID,
-				"job_class": payload.JobClass,
+				"job_id":       payload.JobID,
+				"job_class":    payload.JobClass,
+				"stale_status": staleStatus,
+				"stale_pid":    stalePID,
 			})
 			if err := launchWorkerSupervisor(payload); err != nil {
 				return nil, 0, err

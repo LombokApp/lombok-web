@@ -581,6 +581,48 @@ export async function handleAppSocketMessage(
         }
       }
     }
+    case 'INSPECT_APP_DOCKER_CONTAINER': {
+      try {
+        const result = await appService.inspectAppDockerContainer(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Container inspection failed',
+          },
+        }
+      }
+    }
+    case 'START_APP_DOCKER_CONTAINER': {
+      try {
+        const result = await appService.startAppDockerContainer(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
+            message:
+              error instanceof Error ? error.message : 'Container start failed',
+          },
+        }
+      }
+    }
     case 'REGISTER_APP_TRIGGER': {
       try {
         const result = await runtimeTriggerService.register(

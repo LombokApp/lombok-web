@@ -89,6 +89,12 @@ function createMockAppPlatformService(
     resolveAppDockerContainer: () => {
       throw new Error('Not implemented in test mock')
     },
+    inspectAppDockerContainer: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    startAppDockerContainer: () => {
+      throw new Error('Not implemented in test mock')
+    },
     registerAppTrigger: () => {
       throw new Error('Not implemented in test mock')
     },

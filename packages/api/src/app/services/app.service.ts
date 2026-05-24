@@ -2417,6 +2417,75 @@ export class AppService {
     return found ? { hostId, containerId: found.containerId } : null
   }
 
+  /** Read-only state of an app-owned container, collapsed to a coarse union. */
+  async inspectAppDockerContainer(
+    appIdentifier: string,
+    params: {
+      profileIdentifier: string
+      hostId: string
+      containerId: string
+    },
+  ): Promise<{ state: 'running' | 'stopped' | 'missing' | 'unknown' }> {
+    const container = await this.dockerClientService.findContainerById(
+      params.hostId,
+      params.containerId,
+    )
+    if (!container) {
+      return { state: 'missing' }
+    }
+    if (container.labels[DOCKER_LABELS.APP_ID] !== appIdentifier) {
+      throw new BadRequestException('Container does not belong to this app')
+    }
+    switch (container.state) {
+      case 'running':
+        return { state: 'running' }
+      case 'exited':
+      case 'paused':
+      case 'created':
+        return { state: 'stopped' }
+      case 'unknown':
+        return { state: 'unknown' }
+      default:
+        return { state: 'unknown' }
+    }
+  }
+
+  /** Start an app-owned container if stopped; no-op if already running. */
+  async startAppDockerContainer(
+    appIdentifier: string,
+    params: {
+      profileIdentifier: string
+      hostId: string
+      containerId: string
+    },
+  ): Promise<{ state: 'running' | 'missing' | 'unknown'; started: boolean }> {
+    const existing = await this.dockerClientService.findContainerById(
+      params.hostId,
+      params.containerId,
+    )
+    if (!existing) {
+      return { state: 'missing', started: false }
+    }
+    if (existing.labels[DOCKER_LABELS.APP_ID] !== appIdentifier) {
+      throw new BadRequestException('Container does not belong to this app')
+    }
+    if (existing.state === 'running') {
+      return { state: 'running', started: false }
+    }
+    const started = await this.dockerClientService.findContainerById(
+      params.hostId,
+      params.containerId,
+      { start: true },
+    )
+    if (!started) {
+      return { state: 'missing', started: false }
+    }
+    return {
+      state: started.state === 'running' ? 'running' : 'unknown',
+      started: started.state === 'running',
+    }
+  }
+
   async destroyAppWorkerDockerContainers(
     appIdentifier: string,
     params:

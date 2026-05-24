@@ -217,6 +217,20 @@ export const resolveAppDockerContainerSchema = z.object({
   isolationKey: z.string(),
 })
 
+/** Read-only inspect of an app-owned container; reconciles cached status without side effects. */
+export const inspectAppDockerContainerSchema = z.object({
+  profileIdentifier: z.string(),
+  hostId: z.string(),
+  containerId: z.string(),
+})
+
+/** Start an app-owned stopped container; no-op if already running. */
+export const startAppDockerContainerSchema = z.object({
+  profileIdentifier: z.string(),
+  hostId: z.string(),
+  containerId: z.string(),
+})
+
 export const registerAppTriggerSchema = z.object({
   trigger: registerableTriggerConfigSchema,
 })
@@ -249,6 +263,8 @@ export const AppSocketMessageSchemaMap = {
   DELETE_BRIDGE_TUNNEL: deleteBridgeTunnelSchema,
   DESTROY_APP_DOCKER_CONTAINERS: destroyAppDockerContainersSchema,
   RESOLVE_APP_DOCKER_CONTAINER: resolveAppDockerContainerSchema,
+  INSPECT_APP_DOCKER_CONTAINER: inspectAppDockerContainerSchema,
+  START_APP_DOCKER_CONTAINER: startAppDockerContainerSchema,
   REGISTER_APP_TRIGGER: registerAppTriggerSchema,
   UNREGISTER_APP_TRIGGER: unregisterAppTriggerSchema,
   LIST_APP_TRIGGERS: listAppTriggersSchema,
@@ -392,6 +408,17 @@ export const AppSocketMessageResponseSchemaMap = {
   ),
   RESOLVE_APP_DOCKER_CONTAINER: createResponseSchema(
     z.object({ hostId: z.string(), containerId: z.string() }).nullable(),
+  ),
+  INSPECT_APP_DOCKER_CONTAINER: createResponseSchema(
+    z.object({
+      state: z.enum(['running', 'stopped', 'missing', 'unknown']),
+    }),
+  ),
+  START_APP_DOCKER_CONTAINER: createResponseSchema(
+    z.object({
+      state: z.enum(['running', 'missing', 'unknown']),
+      started: z.boolean(),
+    }),
   ),
   REGISTER_APP_TRIGGER: createResponseSchema(
     z.object({ triggerId: z.string() }),
