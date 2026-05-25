@@ -4,7 +4,7 @@ COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 COPY tsconfig.json ./
 COPY src/ src/
-RUN bun build src/index.ts --compile --outfile docker-bridge --external dockerode
+RUN bun run build:binary
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*

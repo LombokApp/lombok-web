@@ -81,20 +81,19 @@ export class DockerBridgeService {
       })
     })
 
-    // Resolve bridge directory by walking up from __dirname until we find it.
-    // In dev: __dirname = .../packages/api/src/docker/services
-    // In prod: __dirname = .../packages/api/dist/src/docker/services
-    const bridgeDir = this.findBridgeDir(__dirname)
-    const binaryPath = path.join(bridgeDir, 'docker-bridge')
+    // Walk up from cwd, not __dirname: Bun's bundler bakes __dirname in as the
+    // build-time source path, which doesn't exist in the standalone image.
+    const bridgeDir = this.findBridgeDir(process.cwd())
+    const bundlePath = path.join(bridgeDir, 'dist/index.js')
     const sourcePath = path.join(bridgeDir, 'src/index.ts')
 
     let cmd: string[]
-    if (fs.existsSync(binaryPath)) {
-      cmd = [binaryPath]
+    if (fs.existsSync(bundlePath)) {
+      cmd = ['bun', bundlePath]
     } else if (fs.existsSync(sourcePath)) {
       cmd = ['bun', 'run', sourcePath]
     } else {
-      this.logger.error('No bridge binary or source found')
+      this.logger.error('No bridge bundle or source found')
       return
     }
 
@@ -346,8 +345,7 @@ export class DockerBridgeService {
       }
       dir = parent
     }
-    // Fallback: try relative to cwd (covers edge cases)
-    return path.resolve(process.cwd(), 'docker/docker-bridge')
+    return path.resolve(startDir, 'docker/docker-bridge')
   }
 
   private loadOrCreateSecret(): string {

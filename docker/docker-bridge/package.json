@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun run src/index.ts",
-    "build": "bun build src/index.ts --compile --outfile docker-bridge",
+    "build": "bun build src/index.ts --outfile dist/index.js --target bun --format esm --external dockerode --minify-syntax --minify-whitespace",
+    "build:binary": "bun build src/index.ts --compile --outfile docker-bridge --external dockerode",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "lint:check": "eslint .",
