@@ -307,14 +307,19 @@ describe('TunnelSessionHandler — message handling', () => {
   })
 
   describe('handleAgentBinary', () => {
-    it('delivers binary to pending response expecting it', () => {
+    it('accumulates binary chunks and resolves at body_end', () => {
       const session = makeSession()
 
       const pendingMap = (
-        handler as unknown as { pendingHTTPResponses: Map<string, unknown> }
+        handler as unknown as {
+          pendingHTTPResponses: Map<
+            string,
+            { bodyChunks: Buffer[]; expectingBinary: boolean }
+          >
+        }
       ).pendingHTTPResponses
       let resolved: unknown = null
-      pendingMap.set('stream-bin', {
+      const pending = {
         resolve: (resp: unknown) => {
           resolved = resp
         },
@@ -326,17 +331,38 @@ describe('TunnelSessionHandler — message handling', () => {
           headers: { 'Content-Type': 'application/octet-stream' },
           body_follows: true,
         },
-        bodyChunks: [],
+        bodyChunks: [] as Buffer[],
         expectingBinary: true,
+      }
+      pendingMap.set('stream-bin', pending)
+
+      const setNextBinary = (id: string) => {
+        ;(
+          handler as unknown as { nextBinaryStreamId: string | null }
+        ).nextBinaryStreamId = id
+      }
+
+      // First chunk — drives the body_chunk → binary frame pair.
+      setNextBinary('stream-bin')
+      handler.handleAgentBinary(session, Buffer.from('hello '))
+
+      expect(resolved).toBeNull()
+      expect(pendingMap.has('stream-bin')).toBe(true)
+      expect(pending.bodyChunks.length).toBe(1)
+
+      // Second chunk — must also accumulate, not resolve early.
+      pending.expectingBinary = true
+      setNextBinary('stream-bin')
+      handler.handleAgentBinary(session, Buffer.from('binary'))
+
+      expect(resolved).toBeNull()
+      expect(pending.bodyChunks.length).toBe(2)
+
+      // body_end resolves with the full concatenated body.
+      handler.handleAgentMessage(session, {
+        type: 'body_end',
+        stream_id: 'stream-bin',
       })
-
-      // Set the stream ID that the next binary frame belongs to
-      // (normally set by forwardToClient when body_follows is true)
-      ;(
-        handler as unknown as { nextBinaryStreamId: string | null }
-      ).nextBinaryStreamId = 'stream-bin'
-
-      handler.handleAgentBinary(session, Buffer.from('hello binary'))
 
       expect(resolved).not.toBeNull()
       expect((resolved as { body: Buffer }).body.toString()).toBe(

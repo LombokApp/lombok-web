@@ -809,20 +809,6 @@ export class TunnelSessionHandler {
       if (pending?.expectingBinary) {
         pending.expectingBinary = false
         pending.bodyChunks.push(data)
-
-        // Single-body response (body_follows on http_response, not chunked) — resolve now
-        // Chunked responses resolve in handleBodyEnd
-        if (
-          pending.responseMeta?.body_follows &&
-          pending.bodyChunks.length === 1
-        ) {
-          this.pendingHTTPResponses.delete(streamId)
-          pending.resolve({
-            statusCode: pending.responseMeta.status_code,
-            headers: pending.responseMeta.headers,
-            body: Buffer.concat(pending.bodyChunks),
-          })
-        }
         return
       }
     }
