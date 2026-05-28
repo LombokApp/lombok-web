@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # Generic dev install script for demo apps
-# Usage: ./dev-install.sh [--install-deps] [--run-scripts] <app-name>
+# Usage: ./dev-install.sh [--install-deps] [--run-scripts] [--api-url <url>] <app-name>
 
 set -euo pipefail
 
 RUN_INSTALL=false
 RUN_SCRIPTS=false
+API_URL_OVERRIDE=""
 
 # Parse flags
 while [[ $# -gt 0 ]]; do
@@ -19,9 +20,21 @@ while [[ $# -gt 0 ]]; do
       RUN_SCRIPTS=true
       shift
       ;;
+    --api-url)
+      if [ $# -lt 2 ]; then
+        echo "Error: --api-url requires a value"
+        exit 1
+      fi
+      API_URL_OVERRIDE="$2"
+      shift 2
+      ;;
+    --api-url=*)
+      API_URL_OVERRIDE="${1#*=}"
+      shift
+      ;;
     -*)
       echo "Unknown flag: $1"
-      echo "Usage: $0 [--install-deps] [--run-scripts] <app-name>"
+      echo "Usage: $0 [--install-deps] [--run-scripts] [--api-url <url>] <app-name>"
       exit 1
       ;;
     *)
@@ -32,8 +45,9 @@ done
 
 # Check for app name argument
 if [ $# -eq 0 ]; then
-  echo "Usage: $0 [--install-deps] [--run-scripts] <app-name>"
+  echo "Usage: $0 [--install-deps] [--run-scripts] [--api-url <url>] <app-name>"
   echo "Example: $0 --install-deps --run-scripts simple-demo"
+  echo "Example: $0 --api-url https://lombok.example.com simple-demo"
   exit 1
 fi
 
@@ -53,7 +67,7 @@ if [ "$RUN_INSTALL" = true ]; then
   (cd "$APP_DIR" && bun install)
 fi
 
-API_URL="${API_URL:-http://localhost:3000}"
+API_URL_ENV="${API_URL:-}"
 CREDENTIALS_FILE="$SCRIPT_DIR/.lombok-credentials"
 ZIP_FILE="$APP_NAME.zip"
 
@@ -90,6 +104,11 @@ else
   USERNAME="Admin1"
   PASSWORD="123123123123"
 fi
+
+# Resolve API_URL precedence: --api-url flag > API_URL env > value sourced from credentials > default.
+# Re-applied after sourcing so the credentials file cannot override an explicit flag/env.
+API_URL="${API_URL_OVERRIDE:-${API_URL_ENV:-${API_URL:-http://localhost:3000}}}"
+echo "Using API URL: $API_URL"
 
 if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
   echo "Error: USERNAME and PASSWORD must be set in $CREDENTIALS_FILE" or remove the .lombok-credentials file
