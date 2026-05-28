@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 APP_USER="${APP_USER:-bun}"
 
@@ -84,11 +85,13 @@ if [ "$EMBEDDED_POSTGRES" = "true" ]; then
         # su-exec postgres createdb --username postgres --owner=${DB_USER} ${DB_NAME}
     fi
 
-    # Create extensions schema and vector extension as superuser
-    # This is required because extension creation typically needs superuser privileges
+    # Create the extensions schema + vector extension as superuser, then hand
+    # ownership to DB_USER so it can re-grant USAGE to the per-app roles the API
+    # creates later. A plain GRANT USAGE can't be re-granted onward, so app
+    # migrations would silently fail to resolve the vector type.
     su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c "CREATE SCHEMA IF NOT EXISTS extensions;"
-    su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c "GRANT USAGE ON SCHEMA extensions TO ${DB_USER};"
     su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c "CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA extensions;"
+    su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" -c "ALTER SCHEMA extensions OWNER TO ${DB_USER};"
 
     echo "Database setup complete."
 else
