@@ -123,6 +123,16 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['RESOLVE_APP_DOCKER_CONTAINER'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'RESOLVE_APP_DOCKER_CONTAINER'>>
+  /** Read-only state of an app-owned container, collapsed to a coarse union. */
+  inspectAppDockerContainer: (
+    params: AppSocketMessageDataMap['INSPECT_APP_DOCKER_CONTAINER'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'INSPECT_APP_DOCKER_CONTAINER'>>
+  /** Start an app-owned stopped container; no-op if already running. */
+  startAppDockerContainer: (
+    params: AppSocketMessageDataMap['START_APP_DOCKER_CONTAINER'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'START_APP_DOCKER_CONTAINER'>>
   registerAppTrigger: (
     params: AppSocketMessageDataMap['REGISTER_APP_TRIGGER'],
     options?: PlatformApiExecuteOptions,
@@ -275,6 +285,12 @@ export const buildAppClient = (
     },
     resolveAppDockerContainer(params, options) {
       return emitWithAck('RESOLVE_APP_DOCKER_CONTAINER', params, options)
+    },
+    inspectAppDockerContainer(params, options) {
+      return emitWithAck('INSPECT_APP_DOCKER_CONTAINER', params, options)
+    },
+    startAppDockerContainer(params, options) {
+      return emitWithAck('START_APP_DOCKER_CONTAINER', params, options)
     },
     registerAppTrigger(params, options) {
       return emitWithAck('REGISTER_APP_TRIGGER', params, options)

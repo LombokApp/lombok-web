@@ -71,15 +71,21 @@ export class BridgeSessionController {
   ) {
     await this.appService.validateAppUserAccess({ appIdentifier, userId })
 
+    // Inspect only (no `{ start: true }`): auto-starting on tunnel creation would re-wake stopped containers behind the user's back.
     const container = await this.dockerClientService.findContainerById(
       hostId,
       containerId,
-      { start: true },
     )
 
     if (!container) {
       throw new NotFoundException(
-        `No running container found for instance "${containerId}"`,
+        `No container found for instance "${containerId}"`,
+      )
+    }
+
+    if (container.state !== 'running') {
+      throw new NotFoundException(
+        `Container "${containerId}" is not running (state: ${container.state})`,
       )
     }
 
