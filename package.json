@@ -7,8 +7,8 @@
   ],
   "scripts": {
     "install:clean": "sh ./cmd/dev-clean-install.sh",
-    "build:standalone": "(cd ./deploy && sh ./build-standalone.sh)",
-    "build:separate-db": "(cd ./deploy && sh ./build-separate-db.sh)",
+    "build:standalone": "sh -c '(cd ./deploy && sh ./build-standalone.sh \"$(date -u +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)\" \"$@\")' --",
+    "build:separate-db": "sh -c '(cd ./deploy && sh ./build-separate-db.sh \"$(date -u +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)\" \"$@\")' --",
     "generate:openapi": "bun --cwd packages/api generate:openapi",
     "dx": "./dx"
   },

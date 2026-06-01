@@ -90,18 +90,15 @@ RUN cd /temp/dev && \
   bun --cwd ./packages/app-worker-sdk build && \
   bun --cwd ./packages/app-browser-sdk build && \
   bun --cwd ./packages/api build && \
+  bun --cwd ./docker/docker-bridge build && \
   (cd ./packages/ui && node node_modules/.bin/vite build --mode production) && mv ./packages/ui/dist ./frontend && \
   # copy the sql migration files over (which were ignored by the build... maybe fix that)
   mkdir ./packages/api/dist/src/migrations/ && cp ./packages/api/src/orm/migrations/*.sql ./packages/api/dist/src/migrations/ && \
   mkdir ./packages/api/dist/src/migrations/meta && cp -r ./packages/api/src/orm/migrations/meta ./packages/api/dist/src/migrations/ && \
-  # build docker-bridge binary (compiled Bun executable + dockerode runtime dep)
-  cd ./docker/docker-bridge && \
-  bun build src/index.ts --compile --outfile docker-bridge --external dockerode && \
-  rm -rf src tsconfig.json bun.lock eslint.config.ts && \
-  cd /temp/dev && \
+  rm -rf ./docker/docker-bridge/src ./docker/docker-bridge/tsconfig.json ./docker/docker-bridge/eslint.config.ts && \
   # remove all but production deps
   rm -rf ./node_modules && \
-  bun install --production --filter ./packages/api && \
+  bun install --production --filter ./packages/api --filter ./docker/docker-bridge && \
   # remove as much unnecessary stuff as possible
   rm -rf ./packages/ui && \
   rm -rf ./packages/ui-toolkit && \
