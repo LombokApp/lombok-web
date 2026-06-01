@@ -97,6 +97,7 @@ export const AppBrowserSdkContextProvider = ({
         theme: sdk.theme,
         authState,
         lombokApiBasePath: sdk.lombokApiBasePath,
+        appIdentifier: sdk.appIdentifier,
         getAccessToken,
         navigateTo: sdk.handleNavigateTo,
         currentPathAndQuery: sdk.initialData?.pathAndQuery ?? '',

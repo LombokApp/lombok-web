@@ -81,7 +81,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     return `${protocol}//${hostname}${port ? `:${port}` : ''}`
   })()
 
-  private readonly appIdentifier: string = (() => {
+  public readonly appIdentifier: string = (() => {
     const firstLabel = window.location.hostname.split('.')[0] ?? ''
     return firstLabel.startsWith('app-server--')
       ? firstLabel.slice('app-server--'.length)
