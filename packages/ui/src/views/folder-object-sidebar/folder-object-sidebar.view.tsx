@@ -24,7 +24,6 @@ import {
   FileJson,
   FileQuestion,
   FileTextIcon,
-  FolderIcon,
   Globe,
   HashIcon,
   Image,
@@ -36,6 +35,8 @@ import {
   VideoIcon,
 } from 'lucide-react'
 
+import { AppIcon } from '@/src/components/app-icon/app-icon'
+import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
 import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
@@ -121,7 +122,13 @@ export const FolderObjectSidebar = ({
                     <div className="flex w-full flex-none items-center gap-x-4">
                       <dt className="flex flex-none">
                         <span className="sr-only">Folder</span>
-                        <FolderIcon className="size-5" />
+                        <EntityAvatar
+                          kind="folder"
+                          name={folder.name}
+                          image={folder.icon}
+                          size="sm"
+                          className="size-5"
+                        />
                       </dt>
                       <dd className={cn('text-sm leading-6')}>{folder.name}</dd>
                     </div>
@@ -199,10 +206,11 @@ export const FolderObjectSidebar = ({
                     <CardHeader className="p-4 pt-3">
                       <TypographyH3>
                         <div className="flex items-center gap-2">
-                          <img
-                            src={`${protocol}//${embed.appIdentifier}.${API_HOST}${embed.iconPath ?? ''}`}
-                            alt={`${embed.appLabel} icon`}
-                            className="size-6"
+                          <AppIcon
+                            icon={embed.icon}
+                            appIdentifier={embed.appIdentifier}
+                            fallbackLabel={`${embed.appLabel} icon`}
+                            size={24}
                           />
                           {embed.label}
                         </div>

@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 
 import type { AppPathContribution } from '../../contexts/server'
 import { useStore } from '../../hooks/use-store'
+import { ServerLogo } from '../server-logo/server-logo'
 import { Menu } from './components/menu'
 import { SidebarToggle } from './components/sidebar-toggle'
 import { useSidebar } from './use-sidebar'
@@ -55,11 +56,9 @@ export function Sidebar({
             asChild
           >
             <Link to="/folders" className="flex gap-4 p-0">
-              <img
-                className="shrink-0 rounded-md border"
-                src="/logo.png"
-                width={24}
-                height={24}
+              <ServerLogo
+                size="sm"
+                className="size-6 shrink-0 rounded-md border"
                 alt="Lombok logo"
               />
               <span

@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod'
+import { imageUrlsDTOSchema } from 'src/shared/dto/image-urls.dto'
 import { z } from 'zod'
 
 export const userDTOSchema = z.object({
@@ -9,6 +10,7 @@ export const userDTOSchema = z.object({
   isAdmin: z.boolean(),
   username: z.string(),
   permissions: z.array(z.string()),
+  avatar: imageUrlsDTOSchema.optional(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 })

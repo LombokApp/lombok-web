@@ -8,6 +8,7 @@ import type {
   AppSearchResults,
   ExecuteAppDockerJobOptions,
   FolderScopeAppPermissions,
+  Icon,
   JsonSerializableObject,
   StorageAccessPolicy,
   UserScopeAppPermissions,
@@ -103,6 +104,7 @@ import { AppMaxSizeException } from '../exceptions/app-max-size.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
 import { appConfigSanitize } from '../utils/app-config-sanitize'
+import { validateAppIcons } from '../utils/app-icon-validate'
 import { deriveAppId } from '../utils/app-id.util'
 import { summariseZodError } from '../utils/format-zod-issues'
 import {
@@ -286,13 +288,29 @@ export class AppService {
     }
   }
 
-  getAppAsUser(appIdentifier: string): Promise<App | undefined> {
-    return this.ormService.db.query.appsTable.findFirst({
+  async getAppAsUser(
+    actor: User,
+    appIdentifier: string,
+  ): Promise<{ app: App; userEnabled: boolean | null }> {
+    const app = await this.ormService.db.query.appsTable.findFirst({
       where: and(
         eq(appsTable.identifier, appIdentifier),
         eq(appsTable.enabled, true),
       ),
     })
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    const userSettings =
+      await this.ormService.db.query.appUserSettingsTable.findFirst({
+        where: and(
+          eq(appUserSettingsTable.userId, actor.id),
+          eq(appUserSettingsTable.appId, app.id),
+        ),
+      })
+
+    return { app, userEnabled: userSettings?.enabled ?? null }
   }
 
   async mintAppUserToken({
@@ -799,25 +817,34 @@ export class AppService {
     }
   }
 
-  public async listEnabledAppsAsUser(): Promise<{
+  public async listEnabledAppsAsUser(actor: User): Promise<{
     meta: { totalCount: number }
-    result: App[]
+    result: { app: App; userEnabled: boolean | null }[]
   }> {
-    const apps = await this.ormService.db.query.appsTable.findMany({
-      where: eq(appsTable.enabled, true),
-      orderBy: [appsTable.label],
-    })
-
-    const appsCountResult = await this.ormService.db
+    // userId filter goes in the join condition, not WHERE, so apps with no
+    // settings row still appear with userEnabled = null.
+    const rows = await this.ormService.db
       .select({
-        count: count(),
+        app: appsTable,
+        userEnabled: appUserSettingsTable.enabled,
       })
       .from(appsTable)
+      .leftJoin(
+        appUserSettingsTable,
+        and(
+          eq(appUserSettingsTable.appId, appsTable.id),
+          eq(appUserSettingsTable.userId, actor.id),
+        ),
+      )
       .where(eq(appsTable.enabled, true))
+      .orderBy(appsTable.label)
 
     return {
-      result: apps,
-      meta: { totalCount: appsCountResult[0]?.count ?? 0 },
+      result: rows.map((row) => ({
+        app: row.app,
+        userEnabled: row.userEnabled,
+      })),
+      meta: { totalCount: rows.length },
     }
   }
 
@@ -1374,6 +1401,19 @@ export class AppService {
     const migrationFiles = this.discoverMigrationFiles(appRoot)
 
     const parseResult = appConfigWithManifestSchema(manifest).safeParse(config)
+
+    if (parseResult.success) {
+      const iconValidateResult = validateAppIcons(parseResult.data, appRoot)
+      if (iconValidateResult.errors.length > 0) {
+        const lines = iconValidateResult.errors.map(
+          (e) => `- ${e.path}: ${e.message}`,
+        )
+        throw new AppInvalidException(
+          `SVG icon assets failed validation:\n${lines.join('\n')}`,
+        )
+      }
+    }
+
     const runtimeWorkersBundleManifest = Object.keys(manifest)
       .filter((filePath) => filePath.startsWith(`/workers/`))
       .reduce<AppManifest>((acc, filePath) => {
@@ -1664,6 +1704,7 @@ export class AppService {
       {
         appLabel: string
         appIdentifier: string
+        icon?: Icon
         contributions: AppContributions
       }
     >
@@ -1680,12 +1721,14 @@ export class AppService {
         [nextApp.identifier]: {
           appLabel: nextApp.label,
           appIdentifier: nextApp.identifier,
+          icon: nextApp.config.icon,
           contributions: {
             sidebarMenuLinks: contributions?.sidebarMenuLinks ?? [],
             folderSidebarViews: contributions?.folderSidebarViews ?? [],
             objectSidebarViews: contributions?.objectSidebarViews ?? [],
             objectDetailViews: contributions?.objectDetailViews ?? [],
             folderDetailViews: contributions?.folderDetailViews ?? [],
+            mobile: contributions?.mobile,
           },
         },
       }

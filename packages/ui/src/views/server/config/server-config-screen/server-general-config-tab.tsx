@@ -21,6 +21,8 @@ import React from 'react'
 
 import { $api } from '@/src/services/api'
 
+import { ServerIconCard } from './server-icon-card'
+
 interface GoogleOAuthConfig {
   enabled: boolean
   clientId: string
@@ -179,6 +181,7 @@ export function ServerGeneralConfigTab({
 
   return (
     <div className="grid gap-6">
+      <ServerIconCard />
       <Card>
         <CardHeader>
           <CardTitle>Server Hostname</CardTitle>

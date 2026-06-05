@@ -7,8 +7,8 @@ export type JsonSerializableValue =
   | JsonSerializableValue[]
   | { [key: string]: JsonSerializableValue }
 
-export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
-  z.lazy(() =>
+export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> = z
+  .lazy(() =>
     z.union([
       z.string(),
       z.number(),
@@ -18,6 +18,7 @@ export const jsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
       z.record(z.string(), jsonSerializableValueSchema),
     ]),
   )
+  .meta({ id: 'JsonSerializableValue' })
 
 export const jsonSerializableObjectSchema = z.record(
   z.string(),
@@ -57,16 +58,18 @@ export const pgSafeStringSchema = z
  * dataTemplate where every nested string lands in jsonb verbatim.
  */
 export const pgSafeJsonSerializableValueSchema: z.ZodType<JsonSerializableValue> =
-  z.lazy(() =>
-    z.union([
-      pgSafeStringSchema,
-      z.number(),
-      z.boolean(),
-      z.null(),
-      z.array(pgSafeJsonSerializableValueSchema),
-      z.record(pgSafeStringSchema, pgSafeJsonSerializableValueSchema),
-    ]),
-  )
+  z
+    .lazy(() =>
+      z.union([
+        pgSafeStringSchema,
+        z.number(),
+        z.boolean(),
+        z.null(),
+        z.array(pgSafeJsonSerializableValueSchema),
+        z.record(pgSafeStringSchema, pgSafeJsonSerializableValueSchema),
+      ]),
+    )
+    .meta({ id: 'PgSafeJsonSerializableValue' })
 
 export const pgSafeJsonSerializableObjectSchema = z.record(
   pgSafeStringSchema,

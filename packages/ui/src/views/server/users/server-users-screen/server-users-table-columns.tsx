@@ -26,21 +26,29 @@ export const serverUsersTableColumns: HideableColumnDef<UserDTO>[] = [
     ),
     cell: ({ row: { original: user } }) => (
       <div className="flex items-start gap-4">
-        <div
-          className="flex size-8 items-center justify-center overflow-hidden rounded-full"
-          style={{
-            background: stringToColour(user.id),
-            color: invertColour(stringToColour(user.id)),
-          }}
-        >
-          <span className="uppercase">
-            {(user.name?.length ?? 0) > 0
-              ? user.name?.[0]
-              : user.username.length > 0
-                ? user.username[0]
-                : '?'}
-          </span>
-        </div>
+        {user.avatar ? (
+          <img
+            src={user.avatar.small}
+            alt=""
+            className="size-8 rounded-full object-cover"
+          />
+        ) : (
+          <div
+            className="flex size-8 items-center justify-center overflow-hidden rounded-full"
+            style={{
+              background: stringToColour(user.id),
+              color: invertColour(stringToColour(user.id)),
+            }}
+          >
+            <span className="uppercase">
+              {(user.name?.length ?? 0) > 0
+                ? user.name?.[0]
+                : user.username.length > 0
+                  ? user.username[0]
+                  : '?'}
+            </span>
+          </div>
+        )}
         <div className="flex flex-col">
           <div>
             {user.email ?? (

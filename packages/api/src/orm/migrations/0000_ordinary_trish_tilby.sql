@@ -235,6 +235,7 @@ CREATE TABLE "folders" (
 	"metadata_location_id" uuid NOT NULL,
 	"owner_id" uuid NOT NULL,
 	"access_error" jsonb,
+	"icon_updated_at" timestamp,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL
 );
@@ -382,6 +383,7 @@ CREATE TABLE "users" (
 	"permissions" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"password_hash" text,
 	"password_salt" text,
+	"avatar_updated_at" timestamp,
 	"created_at" timestamp NOT NULL,
 	"updated_at" timestamp NOT NULL
 );

@@ -23,6 +23,7 @@ import {
   Ellipsis,
   Folder,
   FolderSync,
+  ImagePlus,
   Settings,
   Share2,
   Trash,
@@ -33,6 +34,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router'
 import type { DeleteFolderModalData } from '@/src/components/delete-folder-modal/delete-folder-modal'
 import { DeleteFolderModal } from '@/src/components/delete-folder-modal/delete-folder-modal'
 import { EditableTitle } from '@/src/components/editable-title'
+import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
+import { FolderIconModal } from '@/src/components/folder-icon-modal/folder-icon-modal'
 import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
 import {
   ReindexFolderModal,
@@ -152,6 +155,7 @@ export const FolderDetailScreen = () => {
     React.useState<ReindexFolderModalData>({
       isOpen: false,
     })
+  const [iconModalOpen, setIconModalOpen] = React.useState(false)
   const [
     forgetFolderConfirmationModelData,
     setForgetFolderConfirmationModelData,
@@ -491,6 +495,13 @@ export const FolderDetailScreen = () => {
         setModalData={setReindexFolderModalData}
         onSubmit={handleReindexFolder}
       />
+      <FolderIconModal
+        open={iconModalOpen}
+        onOpenChange={setIconModalOpen}
+        folderId={folderContext.folderId}
+        folderName={folderContext.folder?.name ?? ''}
+        icon={folderContext.folder?.icon}
+      />
       <UploadModal
         modalData={uploadModalData}
         setModalData={setUploadModalData}
@@ -546,6 +557,13 @@ export const FolderDetailScreen = () => {
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between gap-6">
                     <div className="flex items-center justify-start gap-6">
+                      <EntityAvatar
+                        kind="folder"
+                        name={folderContext.folder?.name ?? ''}
+                        image={folderContext.folder?.icon}
+                        size="md"
+                        className="size-10"
+                      />
                       <EditableTitle
                         value={folderContext.folder?.name ?? ''}
                         onChange={async (name) => {
@@ -629,6 +647,17 @@ export const FolderDetailScreen = () => {
                             >
                               <FolderSync className="size-5" />
                               Reindex
+                            </DropdownMenuItem>
+                          )}
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.FOLDER_EDIT,
+                          ) && (
+                            <DropdownMenuItem
+                              onClick={() => setIconModalOpen(true)}
+                              className="gap-2"
+                            >
+                              <ImagePlus className="size-5" />
+                              Folder icon
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem

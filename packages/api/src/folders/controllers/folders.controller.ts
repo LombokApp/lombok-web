@@ -1,9 +1,11 @@
 import { FolderPermissionEnum } from '@lombokapp/types'
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -12,10 +14,18 @@ import {
   Query,
   Req,
   UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import { FileInterceptor } from '@nestjs/platform-express'
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiExtraModels,
+  ApiTags,
+} from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AppCustomSettingsPatchInputDTO } from 'src/app/dto/app-custom-settings-patch-input.dto'
@@ -31,6 +41,7 @@ import {
 } from 'src/auth/guards/auth.guard-config'
 import { normalizeSortParam } from 'src/core/utils/sort.util'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
+import { MAX_IMAGE_UPLOAD_BYTES } from 'src/shared/utils'
 
 import {
   ContentMetadataEntryDTO,
@@ -59,6 +70,7 @@ import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
 import { FolderOperationForbiddenException } from '../exceptions/folder-operation-forbidden.exception'
 import { FolderService } from '../services/folder.service'
+import { FolderIconService } from '../services/folder-icon.service'
 
 @Controller('/api/v1/folders')
 @ApiTags('Folders')
@@ -76,6 +88,7 @@ export class FoldersController {
     private readonly folderService: FolderService,
     private readonly appService: AppService,
     private readonly appCustomSettingsService: AppCustomSettingsService,
+    private readonly folderIconService: FolderIconService,
   ) {}
 
   /**
@@ -467,6 +480,56 @@ export class FoldersController {
     return {
       folder: transformFolderToDTO(folder),
     }
+  }
+
+  /**
+   * Upload (or replace) a folder icon image.
+   */
+  @Post('/:folderId/icon')
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
+  )
+  @ApiConsumes('multipart/form-data')
+  async setFolderIcon(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @UploadedFile()
+    file: { buffer?: Buffer; mimetype: string; size: number } | undefined,
+  ): Promise<FolderUpdateResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    if (!file?.buffer) {
+      throw new BadRequestException({
+        code: 'icon_upload_empty',
+        message: 'No file was uploaded',
+      })
+    }
+    await this.folderIconService.setIcon(req.user, folderId, {
+      mimetype: file.mimetype,
+      size: file.size,
+      buffer: file.buffer,
+    })
+    const { folder } = await this.folderService.getFolderAsUser(
+      req.user,
+      folderId,
+    )
+    return { folder: transformFolderToDTO(folder) }
+  }
+
+  /**
+   * Remove a folder icon.
+   */
+  @Delete('/:folderId/icon')
+  @HttpCode(204)
+  async deleteFolderIcon(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+  ): Promise<void> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    await this.folderIconService.deleteIcon(req.user, folderId)
   }
 
   /**

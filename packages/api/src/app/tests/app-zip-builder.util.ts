@@ -91,6 +91,7 @@ export function createTestAppConfig(
     slug,
     label,
     description: `Test app: ${label}`,
+    icon: { source: 'builtin', name: 'app' },
     requiresStorage: false,
     subscribedCoreEvents: [],
     permissions: {

@@ -170,6 +170,7 @@ describe('Core Worker', () => {
       slug: appSlug,
       label: 'Core Worker Test App',
       description: 'Core worker e2e app',
+      icon: { source: 'builtin', name: 'app' },
       requiresStorage: true,
       subscribedCoreEvents: [],
       permissions: {

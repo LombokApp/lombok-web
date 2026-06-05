@@ -31,6 +31,8 @@ import {
   execJobDefinitionSchema,
   folderScopeAppPermissionsSchema,
   httpJobDefinitionSchema,
+  iconSchema,
+  mobileContributionsSchema,
   paramConfigSchema,
   userScopeAppPermissionsSchema,
   workerEntrypointSchema,
@@ -54,6 +56,11 @@ const expectZodSuccess = (result: SafeParseReturnType<unknown, unknown>) => {
     }
     throw err
   }
+}
+
+const validIcon = {
+  source: 'builtin' as const,
+  name: 'app' as const,
 }
 
 const expectZodFailure = (result: SafeParseReturnType<unknown, unknown>) => {
@@ -131,6 +138,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
       }
       const result = appConfigSchema.safeParse(validApp)
       expectZodSuccess(result)
@@ -140,6 +148,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         tasks: [
           {
             identifier: 'task',
@@ -264,6 +273,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         subscribedCoreEvents: ['core:worker_task_enqueued'],
         runtimeWorkers: {
           worker1: {
@@ -305,6 +315,7 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
+        icon: validIcon,
         subscribedCoreEvents: ['core:object_added'],
         tasks: [
           {
@@ -387,6 +398,7 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
+        icon: validIcon,
         triggers: [
           {
             kind: 'event',
@@ -405,6 +417,7 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
+        icon: validIcon,
         runtimeWorkers: {
           myworker: {
             entrypoint: 'worker.js',
@@ -450,6 +463,7 @@ describe('apps.types', () => {
         slug: 'demo',
         label: 'Demo App',
         description: 'A demo application',
+        icon: validIcon,
         tasks: [
           {
             identifier: 'root_task',
@@ -698,6 +712,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         tasks: [
           {
             identifier: 'task_one',
@@ -734,6 +749,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         runtimeWorkers: {
           script1: {
             entrypoint: 'nonexistent.js',
@@ -763,10 +779,95 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
       }
 
       const result = appConfigWithManifestSchema(manifest).safeParse(validApp)
       expectZodSuccess(result)
+    })
+
+    it('validates a custom SVG icon whose path exists in the UI manifest', () => {
+      const manifest = {
+        '/ui/icons/logo.svg': {
+          hash: 'a',
+          size: 100,
+          mimeType: 'image/svg+xml',
+        },
+      }
+      const validApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        ui: { enabled: true },
+        icon: {
+          source: 'custom',
+          format: 'svg',
+          rendering: 'original',
+          assets: [{ path: 'icons/logo.svg' }],
+        },
+      }
+      const result = appConfigWithManifestSchema(manifest).safeParse(validApp)
+      expectZodSuccess(result)
+    })
+
+    it('rejects a custom icon whose asset path is missing from the UI manifest', () => {
+      const manifest = {
+        '/ui/index.html': {
+          hash: 'a',
+          size: 100,
+          mimeType: 'text/html',
+        },
+      }
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        ui: { enabled: true },
+        icon: {
+          source: 'custom',
+          format: 'svg',
+          rendering: 'original',
+          assets: [{ path: 'icons/missing.svg' }],
+        },
+      }
+      const result = appConfigWithManifestSchema(manifest).safeParse(invalidApp)
+      expectZodFailure(result)
+      if (!result.success) {
+        const issue = result.error.issues.find((i) =>
+          i.message.includes('does not exist in the app'),
+        )
+        expect(issue).toBeDefined()
+      }
+    })
+
+    it('rejects a custom icon whose path tries to traverse upwards', () => {
+      const manifest = {
+        '/ui/index.html': {
+          hash: 'a',
+          size: 100,
+          mimeType: 'text/html',
+        },
+      }
+      const invalidApp = {
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        ui: { enabled: true },
+        icon: {
+          source: 'custom',
+          format: 'svg',
+          rendering: 'original',
+          assets: [{ path: '../secret.svg' }],
+        },
+      }
+      const result = appConfigWithManifestSchema(manifest).safeParse(invalidApp)
+      expectZodFailure(result)
+      if (!result.success) {
+        const issue = result.error.issues.find((i) =>
+          i.message.includes('paths must be relative'),
+        )
+        expect(issue).toBeDefined()
+      }
     })
   })
 
@@ -828,7 +929,7 @@ describe('apps.types', () => {
     it('should validate menu item config', () => {
       const validMenuItem = {
         label: 'Test Menu',
-        iconPath: '/icons/test.svg',
+        icon: validIcon,
         path: '/',
       }
       const result = appUILinkSchema.safeParse(validMenuItem)
@@ -1016,6 +1117,812 @@ describe('apps.types', () => {
       )
       expectZodFailure(result)
     })
+
+    it('should accept an optional mobile contributions block', () => {
+      const validContributions = {
+        sidebarMenuLinks: [],
+        folderSidebarViews: [],
+        objectSidebarViews: [],
+        objectDetailViews: [],
+        folderDetailViews: [],
+        mobile: {
+          root: {
+            views: [
+              {
+                id: 'home',
+                navRoot: true,
+                components: [
+                  { id: 'root', component: 'Column', children: ['title'] },
+                  { id: 'title', component: 'Text', text: 'Hello' },
+                ],
+              },
+            ],
+          },
+        },
+      }
+      const result = appContributionsSchema.safeParse(validContributions)
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('mobileContributionsSchema', () => {
+    // Minimal valid nav-root (entry) view; overrides are merged on top.
+    const navRootView = (overrides: Record<string, unknown> = {}) => ({
+      id: 'home',
+      navRoot: true,
+      components: [
+        { id: 'root', component: 'Column', children: ['title'] },
+        { id: 'title', component: 'Text', text: 'Hello' },
+      ],
+      ...overrides,
+    })
+
+    // Minimal valid mobile root; overrides are merged on top.
+    const root = (overrides: Record<string, unknown> = {}) => ({
+      views: [navRootView()],
+      ...overrides,
+    })
+
+    it('validates a rich component view with queries, actions, and navigation', () => {
+      const valid = {
+        queries: {
+          'lombok.viewer': { source: 'lombok', path: '/viewer' },
+          'app.profile.self': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/profile/self',
+          },
+          'app.profile.metrics': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/profile/metrics',
+            method: 'GET',
+          },
+          'app.profile.notification': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/profile/notification',
+          },
+        },
+        root: {
+          views: [
+            {
+              id: 'dashboard',
+              navRoot: true,
+              components: [
+                {
+                  id: 'root',
+                  component: 'Column',
+                  children: ['avatar', 'name', 'metrics', 'go'],
+                },
+                {
+                  id: 'avatar',
+                  component: 'Avatar',
+                  imageUrl: { path: '/profile/self/avatarUrl' },
+                  initials: { path: '/profile/self/initials' },
+                  size: 56,
+                  accessibility: { label: { path: '/profile/self/name' } },
+                },
+                {
+                  id: 'name',
+                  component: 'Text',
+                  text: { path: '/profile/self/name' },
+                  variant: 'h3',
+                },
+                {
+                  id: 'metrics',
+                  component: 'List',
+                  children: {
+                    componentId: 'metric',
+                    path: '/profile/metrics/items',
+                  },
+                  direction: 'horizontal',
+                },
+                {
+                  id: 'metric',
+                  component: 'MetricCard',
+                  label: { path: 'label' },
+                  value: { path: 'value' },
+                  tint: 'blue',
+                },
+                {
+                  id: 'go',
+                  component: 'Button',
+                  child: 'go-label',
+                  variant: 'primary',
+                  action: {
+                    event: {
+                      name: 'navigate',
+                      context: { target: 'detail', id: 'x' },
+                    },
+                  },
+                },
+                { id: 'go-label', component: 'Text', text: 'Open' },
+              ],
+              initialDataModel: {
+                profile: { self: {}, metrics: { items: [] } },
+              },
+              initialQueries: [
+                {
+                  query: { name: 'app.profile.self' },
+                  targetPath: '/profile/self',
+                  loadingPath: '/profile/loading',
+                },
+                {
+                  query: { name: 'app.profile.metrics' },
+                  targetPath: '/profile/metrics',
+                },
+              ],
+              actionMap: {
+                refresh: [
+                  {
+                    query: { name: 'app.profile.self' },
+                    targetPath: '/profile/self',
+                  },
+                ],
+              },
+            },
+            {
+              id: 'detail',
+              components: [
+                { id: 'root', component: 'Column', children: ['back'] },
+                {
+                  id: 'back',
+                  component: 'Button',
+                  child: 'back-label',
+                  variant: 'secondary',
+                  action: { event: { name: 'navigateBack' } },
+                },
+                { id: 'back-label', component: 'Text', text: 'Back' },
+              ],
+              initialQueries: [
+                {
+                  query: {
+                    name: 'app.profile.notification',
+                    args: { id: { fromPath: '/inputs/id' } },
+                  },
+                  targetPath: '/notification',
+                },
+              ],
+            },
+          ],
+        },
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('accepts queries namespaced under both lombok. and app.', () => {
+      const valid = {
+        queries: {
+          'lombok.viewer': { source: 'lombok', path: '/viewer' },
+          'app.workspaces.list': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/workspaces',
+            method: 'GET',
+          },
+        },
+        root: {
+          views: [
+            navRootView({
+              initialQueries: [
+                { query: { name: 'lombok.viewer' }, targetPath: '/viewer' },
+                {
+                  query: { name: 'app.workspaces.list' },
+                  targetPath: '/workspaces',
+                },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('accepts a query key without a lombok./app. namespace prefix', () => {
+      const valid = {
+        queries: {
+          'profile.self': { source: 'lombok', path: '/profile/self' },
+        },
+        root: root(),
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('should reject an app source query that does not declare a worker', () => {
+      const invalid = {
+        queries: {
+          'app.workspaces.list': { source: 'app', path: '/workspaces' },
+        },
+        root: root(),
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a lombok source query that declares a worker', () => {
+      const invalid = {
+        queries: {
+          'lombok.viewer': {
+            source: 'lombok',
+            worker: 'api_worker',
+            path: '/viewer',
+          },
+        },
+        root: root(),
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a query definition whose path is not an absolute path', () => {
+      const invalid = {
+        queries: {
+          'app.workspaces.list': {
+            source: 'app',
+            worker: 'api_worker',
+            path: 'workspaces',
+          },
+        },
+        root: root(),
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('accepts a query with a transform exercising every operator', () => {
+      const valid = {
+        queries: {
+          'app.workspaces.list': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/workspaces',
+            transform: {
+              items: {
+                $map: '/data/items',
+                to: {
+                  id: { $ref: 'id' },
+                  label: {
+                    $if: { $exists: 'name' },
+                    then: { $ref: 'name' },
+                    else: 'untitled',
+                  },
+                  active: {
+                    $cond: [
+                      {
+                        if: {
+                          $and: [
+                            { $eq: [{ $ref: 'state' }, 'open'] },
+                            { $not: { $exists: 'archivedAt' } },
+                          ],
+                        },
+                        then: true,
+                      },
+                    ],
+                    else: false,
+                  },
+                  kind: { $call: 'lower', args: { value: { $ref: 'kind' } } },
+                  flagged: {
+                    $if: {
+                      $or: [
+                        { $in: [{ $ref: 'status' }, ['a', 'b', 'c']] },
+                        { $exists: 'pinned' },
+                      ],
+                    },
+                    then: true,
+                    else: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+        root: root(),
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('accepts an empty path as the current scope ($map "" over a root array)', () => {
+      const valid = {
+        queries: {
+          'app.workspaces.list': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/workspaces',
+            transform: {
+              items: {
+                $map: '',
+                to: { id: { $ref: 'id' }, self: { $ref: '' } },
+              },
+            },
+          },
+        },
+        root: root(),
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('should reject a transform plain object with a $-prefixed non-operator key', () => {
+      const invalid = {
+        queries: {
+          'lombok.viewer': {
+            source: 'lombok',
+            path: '/viewer',
+            transform: { $bogus: 'x' },
+          },
+        },
+        root: root(),
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a transform operator node with an unknown companion key', () => {
+      const invalid = {
+        queries: {
+          'lombok.viewer': {
+            source: 'lombok',
+            path: '/viewer',
+            transform: { $ref: '/a', extra: 'nope' },
+          },
+        },
+        root: root(),
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject an empty $cond clause list', () => {
+      const invalid = {
+        queries: {
+          'lombok.viewer': {
+            source: 'lombok',
+            path: '/viewer',
+            transform: { $cond: [], else: 'fallback' },
+          },
+        },
+        root: root(),
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a binding that references an undeclared query', () => {
+      const invalid = {
+        queries: {
+          'app.workspaces.list': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/workspaces',
+          },
+        },
+        root: {
+          views: [
+            navRootView({
+              initialQueries: [
+                {
+                  query: { name: 'app.workspaces.missing' },
+                  targetPath: '/workspaces',
+                },
+              ],
+            }),
+          ],
+        },
+      }
+      const result = mobileContributionsSchema.safeParse(invalid)
+      expectZodFailure(result)
+      if (!result.success) {
+        const issue = result.error.issues.find((i) =>
+          i.message.includes('Unknown query "app.workspaces.missing"'),
+        )
+        expect(issue).toBeDefined()
+      }
+    })
+
+    it('should reject an actionMap binding that references an undeclared query', () => {
+      const invalid = {
+        queries: {
+          'app.workspaces.list': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/workspaces',
+          },
+        },
+        root: {
+          views: [
+            navRootView({
+              actionMap: {
+                refresh: [
+                  { query: { name: 'app.nope' }, targetPath: '/workspaces' },
+                ],
+              },
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('accepts an unknown component tag with freeform properties', () => {
+      const valid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                { id: 'root', component: 'Column', children: ['w'] },
+                {
+                  id: 'w',
+                  component: 'CustomWidget',
+                  anything: { nested: [1, 2, 3] },
+                  flag: true,
+                },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('should reject unknown fields on a view', () => {
+      const invalid = { root: { views: [navRootView({ extra: 'nope' })] } }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid as unknown))
+    })
+
+    it('should reject an empty views array', () => {
+      const invalid = { root: { views: [] } }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject an empty components array', () => {
+      const invalid = {
+        root: { views: [navRootView({ components: [] })] },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a view without a root component', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              components: [{ id: 'main', component: 'Text', text: 'hi' }],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a dangling children reference', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                { id: 'root', component: 'Column', children: ['missing'] },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a dangling list template componentId', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                {
+                  id: 'root',
+                  component: 'List',
+                  children: { componentId: 'missing', path: '/items' },
+                  direction: 'vertical',
+                },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a dangling button child reference', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                { id: 'root', component: 'Column', children: ['btn'] },
+                {
+                  id: 'btn',
+                  component: 'Button',
+                  child: 'missing',
+                  variant: 'primary',
+                  action: { event: { name: 'tap' } },
+                },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject duplicate component ids within a view', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                { id: 'root', component: 'Column', children: ['title'] },
+                { id: 'title', component: 'Text', text: 'A' },
+                { id: 'title', component: 'Text', text: 'B' },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject duplicate view ids within the root', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({ id: 'dup' }),
+            {
+              id: 'dup',
+              components: [{ id: 'root', component: 'Text', text: 'x' }],
+            },
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject a navigate action targeting an unknown view', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                { id: 'root', component: 'Column', children: ['btn'] },
+                {
+                  id: 'btn',
+                  component: 'Button',
+                  child: 'lbl',
+                  variant: 'primary',
+                  action: {
+                    event: { name: 'navigate', context: { target: 'nope' } },
+                  },
+                },
+                { id: 'lbl', component: 'Text', text: 'x' },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('should reject accessibility with neither label nor description', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                { id: 'root', component: 'Column', children: ['title'] },
+                {
+                  id: 'title',
+                  component: 'Text',
+                  text: 'Hello',
+                  accessibility: {},
+                },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('accepts a rich root with queries, data model, and actions', () => {
+      const valid = {
+        queries: {
+          'app.workspaces.list': {
+            source: 'app',
+            worker: 'api_worker',
+            path: '/workspaces',
+          },
+        },
+        root: {
+          views: [
+            navRootView({
+              initialDataModel: { workspaces: { items: [] } },
+              initialQueries: [
+                {
+                  query: { name: 'app.workspaces.list' },
+                  targetPath: '/workspaces',
+                },
+              ],
+              actionMap: {
+                refresh: [
+                  {
+                    query: { name: 'app.workspaces.list' },
+                    targetPath: '/workspaces',
+                  },
+                ],
+              },
+            }),
+          ],
+        },
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('omits root entirely (optional)', () => {
+      expectZodSuccess(mobileContributionsSchema.safeParse({}))
+    })
+
+    it('accepts a nav-root view plus drill-down views', () => {
+      const valid = {
+        root: {
+          views: [
+            navRootView({
+              components: [
+                { id: 'root', component: 'Column', children: ['go'] },
+                {
+                  id: 'go',
+                  component: 'Button',
+                  child: 'go-label',
+                  variant: 'primary',
+                  action: {
+                    event: { name: 'navigate', context: { target: 'detail' } },
+                  },
+                },
+                { id: 'go-label', component: 'Text', text: 'Open' },
+              ],
+            }),
+            {
+              id: 'detail',
+              components: [{ id: 'root', component: 'Text', text: 'Detail' }],
+            },
+          ],
+        },
+      }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('rejects a root with no nav-root view', () => {
+      const invalid = { root: { views: [navRootView({ navRoot: false })] } }
+      const result = mobileContributionsSchema.safeParse(invalid)
+      expectZodFailure(result)
+      if (!result.success) {
+        const issue = result.error.issues.find((i) =>
+          i.message.includes('Exactly one mobile root view must be flagged'),
+        )
+        expect(issue).toBeDefined()
+      }
+    })
+
+    it('rejects a root with more than one nav-root view', () => {
+      const invalid = {
+        root: { views: [navRootView({ id: 'a' }), navRootView({ id: 'b' })] },
+      }
+      const result = mobileContributionsSchema.safeParse(invalid)
+      expectZodFailure(result)
+      if (!result.success) {
+        const issue = result.error.issues.find((i) =>
+          i.message.includes('Only one mobile root view may be flagged'),
+        )
+        expect(issue).toBeDefined()
+      }
+    })
+
+    it('rejects an unknown query referenced by a root binding', () => {
+      const invalid = {
+        root: {
+          views: [
+            navRootView({
+              initialQueries: [
+                { query: { name: 'app.nope' }, targetPath: '/x' },
+              ],
+            }),
+          ],
+        },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+
+    it('rejects unknown fields on root', () => {
+      const invalid = { root: { views: [navRootView()], extra: 'nope' } }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid as unknown))
+    })
+
+    it('accepts a refreshable flag on a root view', () => {
+      const valid = { root: { views: [navRootView({ refreshable: true })] } }
+      expectZodSuccess(mobileContributionsSchema.safeParse(valid))
+    })
+
+    it('omits refreshable on a view (optional)', () => {
+      expectZodSuccess(mobileContributionsSchema.safeParse({ root: root() }))
+    })
+
+    it('rejects a non-boolean refreshable on a view', () => {
+      const invalid = {
+        root: { views: [navRootView({ refreshable: 'yes' })] },
+      }
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
+    })
+  })
+
+  describe('appConfigSchema mobile query worker validation', () => {
+    const appWithMobileQueryWorker = (worker: string) => ({
+      slug: 'testapp',
+      label: 'Test App',
+      description: 'A test application',
+      icon: validIcon,
+      ui: { enabled: true },
+      runtimeWorkers: {
+        api_worker: {
+          entrypoint: 'api-worker.js',
+          description: 'API worker',
+        },
+      },
+      contributions: {
+        sidebarMenuLinks: [],
+        folderSidebarViews: [],
+        objectSidebarViews: [],
+        objectDetailViews: [],
+        folderDetailViews: [],
+        mobile: {
+          queries: {
+            'app.workspaces.list': {
+              source: 'app',
+              worker,
+              path: '/workspaces',
+            },
+          },
+          root: {
+            views: [
+              {
+                id: 'home',
+                navRoot: true,
+                components: [
+                  { id: 'root', component: 'Column', children: ['title'] },
+                  { id: 'title', component: 'Text', text: 'Hello' },
+                ],
+                initialQueries: [
+                  {
+                    query: { name: 'app.workspaces.list' },
+                    targetPath: '/workspaces',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    })
+
+    it('accepts an app.* query whose worker exists in runtimeWorkers', () => {
+      const result = appConfigSchema.safeParse(
+        appWithMobileQueryWorker('api_worker'),
+      )
+      expectZodSuccess(result)
+    })
+
+    it('rejects an app.* query whose worker is not a declared runtime worker', () => {
+      const result = appConfigSchema.safeParse(
+        appWithMobileQueryWorker('missing_worker'),
+      )
+      expectZodFailure(result)
+      if (!result.success) {
+        const issue = result.error.issues.find((i) =>
+          i.message.includes(
+            'Unknown worker "missing_worker" in mobile query "app.workspaces.list"',
+          ),
+        )
+        expect(issue).toBeDefined()
+      }
+    })
   })
 
   describe('containerProfileResourceHintsSchema', () => {
@@ -1087,6 +1994,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         runtimeWorkers: {
           search_worker: {
             entrypoint: 'search.js',
@@ -1106,6 +2014,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         runtimeWorkers: {
           other_worker: {
             entrypoint: 'other.js',
@@ -1138,6 +2047,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         systemRequestRuntimeWorkers: {
           performSearch: ['any_worker'],
         },
@@ -1154,6 +2064,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         runtimeWorkers: {
           search_worker: {
             entrypoint: 'search.js',
@@ -1170,6 +2081,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         runtimeWorkers: {
           search_worker: {
             entrypoint: 'search.js',
@@ -1308,6 +2220,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         containerProfiles: {
           default: {
             image: 'example-image',
@@ -1342,6 +2255,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         tasks: [
           {
             identifier: 'task',
@@ -1411,6 +2325,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         requiresStorage: true,
         permissions: {
           core: ['READ_FOLDER_ACL'],
@@ -1506,6 +2421,7 @@ describe('apps.types', () => {
         slug: 'testapp',
         label: 'Test App',
         description: 'A test application',
+        icon: validIcon,
         containerProfiles: {
           default: {
             image: 'example-image',
@@ -1695,6 +2611,7 @@ describe('apps.types', () => {
         description: 'The official Lombok AI app',
         slug: 'ai',
         label: 'Lombok AI',
+        icon: validIcon,
         requiresStorage: true,
         subscribedCoreEvents: ['core:object_added'],
         runtimeWorkers: {
@@ -1752,7 +2669,12 @@ describe('apps.types', () => {
           sidebarMenuLinks: [
             {
               label: 'Chat',
-              iconPath: '/assets/logo.png',
+              icon: {
+                source: 'custom',
+                format: 'png',
+                rendering: 'original',
+                assets: [{ path: 'assets/logo.png', scale: 2 }],
+              },
               path: '/chat/new',
             },
           ],
@@ -1801,6 +2723,181 @@ describe('apps.types', () => {
               gpu: true,
             },
           },
+        },
+      })
+      expectZodSuccess(result)
+    })
+  })
+
+  describe('iconSchema', () => {
+    it('validates a builtin icon', () => {
+      const result = iconSchema.safeParse({
+        source: 'builtin',
+        name: 'app',
+      })
+      expectZodSuccess(result)
+    })
+
+    it('rejects a builtin icon with an unknown name', () => {
+      const result = iconSchema.safeParse({
+        source: 'builtin',
+        name: 'made_up_name',
+      })
+      expectZodFailure(result)
+    })
+
+    it('rejects a builtin icon that carries a rendering field', () => {
+      const result = iconSchema.safeParse({
+        source: 'builtin',
+        name: 'app',
+        rendering: 'template',
+      })
+      expectZodFailure(result)
+    })
+
+    it('validates a custom SVG with a single any-appearance asset', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'svg',
+        rendering: 'original',
+        assets: [{ path: 'icons/logo.svg' }],
+      })
+      expectZodSuccess(result)
+    })
+
+    it('validates a custom SVG with separate light + dark variants', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'svg',
+        rendering: 'original',
+        assets: [
+          { path: 'icons/logo-light.svg', appearance: 'light' },
+          { path: 'icons/logo-dark.svg', appearance: 'dark' },
+        ],
+      })
+      expectZodSuccess(result)
+    })
+
+    it('rejects a custom SVG that mixes "any" with light/dark', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'svg',
+        rendering: 'original',
+        assets: [
+          { path: 'icons/logo.svg' },
+          { path: 'icons/logo-light.svg', appearance: 'light' },
+        ],
+      })
+      expectZodFailure(result)
+    })
+
+    it('rejects a PNG icon with template rendering (V1 ban)', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'png',
+        rendering: 'template',
+        assets: [{ path: 'icons/logo.png', scale: 2 }],
+      })
+      expectZodFailure(result)
+    })
+
+    it('rejects a PNG icon that only ships a 1x asset', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'png',
+        rendering: 'original',
+        assets: [{ path: 'icons/logo.png', scale: 1 }],
+      })
+      expectZodFailure(result)
+    })
+
+    it('rejects a PNG icon with duplicate (appearance, scale) pairs', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'png',
+        rendering: 'original',
+        assets: [
+          { path: 'a.png', scale: 2, appearance: 'light' },
+          { path: 'b.png', scale: 2, appearance: 'light' },
+        ],
+      })
+      expectZodFailure(result)
+    })
+
+    it('accepts a PNG icon with multiple scale variants and no appearance', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'png',
+        rendering: 'original',
+        assets: [
+          { path: 'assets/icon@1x.png', scale: 1 },
+          { path: 'assets/icon@2x.png', scale: 2 },
+          { path: 'assets/icon@3x.png', scale: 3 },
+        ],
+      })
+      expectZodSuccess(result)
+    })
+
+    it('accepts a PNG icon with multiple scales per light/dark appearance', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'png',
+        rendering: 'original',
+        assets: [
+          { path: 'assets/light@1x.png', scale: 1, appearance: 'light' },
+          { path: 'assets/light@2x.png', scale: 2, appearance: 'light' },
+          { path: 'assets/dark@1x.png', scale: 1, appearance: 'dark' },
+          { path: 'assets/dark@2x.png', scale: 2, appearance: 'dark' },
+        ],
+      })
+      expectZodSuccess(result)
+    })
+
+    it('rejects a PNG icon mixing "any" with light/dark', () => {
+      const result = iconSchema.safeParse({
+        source: 'custom',
+        format: 'png',
+        rendering: 'original',
+        assets: [
+          { path: 'assets/icon@2x.png', scale: 2 },
+          { path: 'assets/light@2x.png', scale: 2, appearance: 'light' },
+        ],
+      })
+      expectZodFailure(result)
+    })
+
+    it('rejects custom icons on an app without ui.enabled', () => {
+      const result = appConfigSchema.safeParse({
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        icon: {
+          source: 'custom',
+          format: 'svg',
+          rendering: 'original',
+          assets: [{ path: 'icons/logo.svg' }],
+        },
+      })
+      expectZodFailure(result)
+      if (!result.success) {
+        const issue = result.error.issues.find((i) =>
+          i.message.includes('Custom icons require `ui.enabled: true`'),
+        )
+        expect(issue).toBeDefined()
+      }
+    })
+
+    it('accepts custom icons when ui.enabled is set', () => {
+      const result = appConfigSchema.safeParse({
+        slug: 'testapp',
+        label: 'Test App',
+        description: 'A test application',
+        ui: { enabled: true },
+        icon: {
+          source: 'custom',
+          format: 'svg',
+          rendering: 'original',
+          assets: [{ path: 'icons/logo.svg' }],
         },
       })
       expectZodSuccess(result)

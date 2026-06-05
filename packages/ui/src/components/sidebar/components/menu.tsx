@@ -1,5 +1,6 @@
 import type { IAuthContext } from '@lombokapp/auth-utils'
 import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
+import type { LucideIcon } from 'lucide-react'
 import { LogOut } from 'lucide-react'
 import { useLocation } from 'react-router'
 
@@ -48,10 +49,17 @@ export function Menu({
                       href={href}
                     />
                   ) : (
-                    typeof icon !== 'string' && (
+                    // CollapseMenuButton only accepts LucideIcon (component
+                    // ref — forwardRef object or plain function). App
+                    // contributions never set submenus, so this only fires
+                    // for platform-defined menus.
+                    (typeof icon === 'function' ||
+                      (typeof icon === 'object' &&
+                        icon !== null &&
+                        '$$typeof' in icon)) && (
                       <CollapseMenuButton
                         key={_index}
-                        icon={icon}
+                        icon={icon as LucideIcon}
                         label={label}
                         active={
                           active === undefined

@@ -55,7 +55,12 @@ export enum ServerConfigKey {
   SEARCH_CONFIG = 'SEARCH_CONFIG',
   GOOGLE_OAUTH_CONFIG = 'GOOGLE_OAUTH_CONFIG',
   EMAIL_PROVIDER_CONFIG = 'EMAIL_PROVIDER_CONFIG',
+  SERVER_ICON = 'SERVER_ICON',
 }
+
+export const serverIconSettingSchema = z.object({
+  updatedAt: z.iso.datetime(),
+})
 
 export const STORAGE_PROVISIONS_CONFIG = defineServerSettingsEntry({
   key: ServerConfigKey.STORAGE_PROVISIONS,
@@ -201,6 +206,16 @@ export const EMAIL_PROVIDER_CONFIG = defineServerSettingsEntry({
   },
 })
 
+export const SERVER_ICON_CONFIG = defineServerSettingsEntry({
+  key: ServerConfigKey.SERVER_ICON,
+  private: true,
+  default: null,
+  dbSchema: serverIconSettingSchema,
+  inputSchema: z.never(),
+  responseSchema: serverIconSettingSchema,
+  transformForResponse: (value) => value,
+})
+
 export const CONFIGURATION_KEYS: ServerSettingsEntry<z.ZodType>[] = [
   STORAGE_PROVISIONS_CONFIG,
   SERVER_STORAGE_CONFIG,
@@ -210,6 +225,7 @@ export const CONFIGURATION_KEYS: ServerSettingsEntry<z.ZodType>[] = [
   GOOGLE_OAUTH_CONFIG,
   EMAIL_PROVIDER_CONFIG,
   SEARCH_CONFIG,
+  SERVER_ICON_CONFIG,
 ]
 
 export const CONFIGURATION_KEYS_MAP = CONFIGURATION_KEYS.reduce<

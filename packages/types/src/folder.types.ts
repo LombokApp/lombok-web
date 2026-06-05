@@ -100,13 +100,15 @@ export interface PresignedURLResult {
   method: SignedURLsRequestMethod
 }
 
-export const FolderPermissionZodEnum = z.enum([
-  'FOLDER_REINDEX',
-  'FOLDER_FORGET',
-  'FOLDER_EDIT',
-  'OBJECT_EDIT',
-  'OBJECT_MANAGE',
-])
+export const FolderPermissionZodEnum = z
+  .enum([
+    'FOLDER_REINDEX',
+    'FOLDER_FORGET',
+    'FOLDER_EDIT',
+    'OBJECT_EDIT',
+    'OBJECT_MANAGE',
+  ])
+  .meta({ id: 'FolderPermission' })
 export type FolderPermissionName = z.infer<typeof FolderPermissionZodEnum>
 export const FolderPermissionEnum = FolderPermissionZodEnum.enum
 

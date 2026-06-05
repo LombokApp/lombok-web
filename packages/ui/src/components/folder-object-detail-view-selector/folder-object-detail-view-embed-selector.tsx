@@ -14,7 +14,10 @@ import {
 } from '@lombokapp/ui-toolkit/components/tooltip'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
+import { AppIcon } from '@/src/components/app-icon/app-icon'
 import type { AppPathContribution } from '@/src/contexts/server'
+
+import { ServerLogo } from '../server-logo/server-logo'
 
 export function FolderObjectDetailViewEmbedSelector({
   options,
@@ -58,7 +61,7 @@ export function FolderObjectDetailViewEmbedSelector({
       <SelectContent>
         <SelectItem key="default" value="default">
           <div className="flex items-center gap-2">
-            <img src={`/logo.png`} alt="" className="size-4 object-contain" />
+            <ServerLogo size="sm" className="size-4 object-contain" alt="" />
             <span>Default</span>
           </div>
         </SelectItem>
@@ -68,13 +71,12 @@ export function FolderObjectDetailViewEmbedSelector({
             value={option.appIdentifier}
           >
             <div className="flex items-center gap-2">
-              {option.iconPath && (
-                <img
-                  src={`${window.location.protocol}//${option.appIdentifier}.${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}${option.iconPath ?? ''}`}
-                  alt=""
-                  className="size-4 object-contain"
-                />
-              )}
+              <AppIcon
+                icon={option.icon}
+                appIdentifier={option.appIdentifier}
+                fallbackLabel={option.label}
+                size={16}
+              />
               <span>{option.label}</span>
             </div>
           </SelectItem>

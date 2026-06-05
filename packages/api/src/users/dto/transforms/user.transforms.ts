@@ -1,3 +1,4 @@
+import { buildImageUrls } from 'src/shared/utils'
 import type { User } from 'src/users/entities/user.entity'
 
 import type { UserDTO } from '../user.dto'
@@ -10,6 +11,10 @@ export function transformUserToDTO(user: User): UserDTO {
     email: user.email ?? null,
     emailVerified: user.emailVerified,
     isAdmin: user.isAdmin,
+    avatar: buildImageUrls(
+      `/api/v1/users/${user.id}/avatar`,
+      user.avatarUpdatedAt,
+    ),
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
     permissions: user.permissions,

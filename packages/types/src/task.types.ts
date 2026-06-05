@@ -117,8 +117,8 @@ export interface TaskOnCompleteConfig {
   onComplete?: TaskOnCompleteConfig[] // refined below by inference
 }
 
-export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
-  z.lazy(() =>
+export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> = z
+  .lazy(() =>
     z.object({
       taskIdentifier: taskIdentifierSchema,
       condition: pgSafeStringSchema
@@ -137,23 +137,26 @@ export const taskOnCompleteConfigSchema: z.ZodType<TaskOnCompleteConfig> =
       onComplete: taskOnCompleteConfigSchema.array().optional(),
     }),
   )
+  .meta({ id: 'TaskOnCompleteConfig' })
 
-export const taskOnProgressConfigSchema = z.object({
-  taskIdentifier: taskIdentifierSchema,
-  condition: pgSafeStringSchema
-    .min(1)
-    .refine(
-      (value) => {
-        const validation = validateConditionExpression(value)
-        return validation.valid
-      },
-      {
-        message: 'Invalid condition expression',
-      },
-    )
-    .optional(), // e.g. "progressReport.code === 'session-started'"
-  dataTemplate: pgSafeJsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{progressReport.details.percent}}" }
-})
+export const taskOnProgressConfigSchema = z
+  .object({
+    taskIdentifier: taskIdentifierSchema,
+    condition: pgSafeStringSchema
+      .min(1)
+      .refine(
+        (value) => {
+          const validation = validateConditionExpression(value)
+          return validation.valid
+        },
+        {
+          message: 'Invalid condition expression',
+        },
+      )
+      .optional(), // e.g. "progressReport.code === 'session-started'"
+    dataTemplate: pgSafeJsonSerializableObjectSchema.optional(), // e.g. { someKey: "{{progressReport.details.percent}}" }
+  })
+  .meta({ id: 'TaskOnProgressConfig' })
 
 export type TaskOnProgressConfig = z.infer<typeof taskOnProgressConfigSchema>
 
@@ -206,10 +209,12 @@ export const scheduleCronConfigSchema = z.object({
 })
 export type ScheduleCronConfig = z.infer<typeof scheduleCronConfigSchema>
 
-export const scheduleConfigSchema = z.discriminatedUnion('kind', [
-  scheduleIntervalConfigSchema,
-  scheduleCronConfigSchema,
-])
+export const scheduleConfigSchema = z
+  .discriminatedUnion('kind', [
+    scheduleIntervalConfigSchema,
+    scheduleCronConfigSchema,
+  ])
+  .meta({ id: 'ScheduleConfig' })
 export type ScheduleConfig = z.infer<typeof scheduleConfigSchema>
 
 export const scheduleTaskTriggerConfigSchema = z
