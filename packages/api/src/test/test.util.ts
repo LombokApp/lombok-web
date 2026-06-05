@@ -115,6 +115,11 @@ export async function buildTestModule({
         token: coreConfig.KEY,
         value: { ...coreConfig(), disableCoreWorker: !startCoreWorker },
       },
+      // Point the core worker's loopback at the port this suite listens on,
+      // so its callbacks reach the test server rather than the prod default.
+      ...(typeof startServerOnPort === 'number'
+        ? [{ token: 'INTERNAL_API_PORT', value: startServerOnPort }]
+        : []),
     ]
 
   const logger = new NoPrefixConsoleLogger({
