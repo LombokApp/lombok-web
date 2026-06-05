@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { eq } from 'drizzle-orm'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
+import { usersTable } from 'src/users/entities/user.entity'
 
 const TEST_MODULE_KEY = 'auth_edge'
 
@@ -89,6 +91,63 @@ describe('Auth Edge Cases', () => {
     expect([200, 201]).toContain(res.response.status)
     expect(res.data?.session.accessToken).toBeTruthy()
     expect(res.data?.session.refreshToken).toBeTruthy()
+  })
+
+  it('should reject a valid token whose user no longer exists with 401', async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'ghosttoken',
+      password: 'pass123',
+    })
+
+    // Token is signature-valid; remove the user it refers to.
+    await testModule!.services.ormService.db
+      .delete(usersTable)
+      .where(eq(usersTable.username, 'ghosttoken'))
+
+    const res = await apiClient(accessToken).GET('/api/v1/folders')
+    expect(res.response.status).toBe(401)
+  })
+
+  it('should reject a valid app-user token whose user no longer exists with 401', async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'ghostappuser',
+      password: 'pass123',
+    })
+
+    const viewer = await apiClient(accessToken).GET('/api/v1/viewer')
+    const userId = viewer.data?.user.id
+    if (!userId) {
+      throw new Error('Failed to resolve user id')
+    }
+
+    // Mint a signature-valid app-user token with platform access for this user.
+    const appUserToken =
+      await testModule!.services.jwtService.createAppUserToken({
+        session: {
+          id: '11111111-1111-1111-1111-111111111111',
+          hash: 'hash',
+          userId,
+          type: 'app_user',
+          typeDetails: null,
+          expiresAt: new Date(Date.now() + 60_000),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        appIdentifier: 'auth-edge-app',
+        platformAccess: true,
+      })
+
+    // Remove the user the token refers to.
+    await testModule!.services.ormService.db
+      .delete(usersTable)
+      .where(eq(usersTable.id, userId))
+
+    const res = await apiClient(appUserToken).GET('/api/v1/viewer')
+    expect(res.response.status).toBe(401)
   })
 
   it('should not allow duplicate username signup', async () => {

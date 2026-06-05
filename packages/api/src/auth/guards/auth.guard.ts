@@ -36,7 +36,13 @@ export class AuthGuard implements CanActivate {
         ) {
           await this.jwtService.verifyUserJWT(token)
           const userId = subject.split(':')[1] ?? ''
-          request.user = await this.userService.getUserById({ id: userId })
+          const user = await this.userService
+            .getUserById({ id: userId })
+            .catch(() => null)
+          if (!user) {
+            throw new UnauthorizedException()
+          }
+          request.user = user
           return true
         } else if (
           subject.startsWith(APP_USER_JWT_SUB_PREFIX) &&
@@ -49,9 +55,13 @@ export class AuthGuard implements CanActivate {
           if (!claims.platformAccess) {
             throw new UnauthorizedException()
           }
-          request.user = await this.userService.getUserById({
-            id: claims.userId,
-          })
+          const user = await this.userService
+            .getUserById({ id: claims.userId })
+            .catch(() => null)
+          if (!user) {
+            throw new UnauthorizedException()
+          }
+          request.user = user
           return true
         }
         // Failed to verify that the subject passed the guard config
