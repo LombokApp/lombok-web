@@ -6,6 +6,7 @@ import createFetchClient from 'openapi-fetch'
 export class LombokSdk {
   public apiClient: ReturnType<typeof createFetchClient<paths>>
   public authenticator: Authenticator
+  private logoutInFlight: Promise<void> | undefined
   constructor({
     basePath,
     onTokensCreated,
@@ -47,8 +48,25 @@ export class LombokSdk {
         if (token) {
           headers.set('Authorization', `Bearer ${token}`)
         }
-        return fetch(new Request(request, { headers }))
+        const response = await fetch(new Request(request, { headers }))
+        if (response.status === 401) {
+          // Session rejected server-side despite a locally-valid token; log out.
+          void this.handleUnauthorized()
+        }
+        return response
       },
     })
+  }
+
+  // Dedupes concurrent 401s into one logout; swallows errors so local state
+  // still clears even if the backend logout call fails.
+  private handleUnauthorized(): Promise<void> {
+    this.logoutInFlight ??= this.authenticator
+      .logout()
+      .catch(() => undefined)
+      .finally(() => {
+        this.logoutInFlight = undefined
+      })
+    return this.logoutInFlight
   }
 }
