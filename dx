@@ -116,6 +116,9 @@ Commands:
   e2e api              Run API end-to-end tests
   e2e ui               Run UI end-to-end tests
   e2e api "<glob>"     Run API end-to-end tests by glob
+  e2e down             Stop the e2e environment (docker compose down)
+  e2e kill             Force-kill the e2e environment (docker compose kill)
+  e2e purge            Tear down and remove e2e containers, volumes, and images
   up [-d]              Start the dev environment (-d for detached/daemon mode)
   down                 Stop the dev environment (docker compose down)
   kill                 Force-kill the dev environment (docker compose kill)
@@ -268,6 +271,7 @@ case "${1:-help}" in
         ;;
       purge)
         docker compose -f docker-compose.test.yml down --volumes --rmi local --remove-orphans
+        docker image rm -f lomboke2e >/dev/null 2>&1 || true
         ;;
       *)
         echo "Usage: ./dx e2e <api|ui|down|kill|purge>" >&2
