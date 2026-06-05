@@ -1,0 +1,140 @@
+/*
+ * Lombok design tokens — the single source of truth for the toolkit's theme.
+ *
+ * CSS-first (Tailwind v4): semantic role variables live in :root / dark, and
+ * `@theme inline` maps each role onto a Tailwind color utility (bg-primary,
+ * text-muted-foreground, border-input, …). Light/dark is a pure variable swap,
+ * so every consumer — the platform UI and any app — gets the same components,
+ * the same look, and the same dark mode by importing just this file.
+ *
+ *   @import '…/ui-toolkit/styles/theme.css';
+ *
+ * Dark mode is keyed off BOTH `.dark` (apps) and `[data-mode="dark"]` (platform)
+ * so either host convention works unchanged.
+ */
+
+:root {
+  --background: rgb(255, 255, 255);
+  --foreground: rgb(10, 10, 10);
+  --card: rgb(255, 255, 255);
+  --card-foreground: rgb(10, 10, 10);
+  --popover: rgb(250, 250, 250);
+  --popover-foreground: rgb(10, 10, 10);
+  --primary: rgb(30, 30, 30);
+  --primary-foreground: rgb(250, 250, 250);
+  --secondary: rgb(245, 245, 245);
+  --secondary-foreground: rgb(23, 23, 23);
+  --muted: rgb(245, 245, 245);
+  --muted-foreground: rgb(115, 115, 115);
+  --accent: rgb(245, 245, 245);
+  --accent-foreground: rgb(10, 10, 10);
+  --destructive: rgb(239, 68, 68);
+  --destructive-foreground: rgb(254, 242, 242);
+  --border: rgb(229, 229, 229);
+  --input: rgb(212, 212, 212);
+  --ring: rgb(10, 10, 10);
+  --radius: 0.5rem;
+  --chart-1: rgb(255, 251, 235);
+  --chart-2: rgb(254, 243, 199);
+  --chart-3: rgb(253, 230, 138);
+  --chart-4: rgb(252, 211, 77);
+  --chart-5: rgb(251, 191, 36);
+}
+
+.dark,
+[data-mode='dark'] {
+  --background: rgb(23, 23, 23);
+  --foreground: rgb(250, 250, 250);
+  --card: rgb(30, 30, 30);
+  --card-foreground: rgb(250, 250, 250);
+  --popover: rgb(10, 10, 10);
+  --popover-foreground: rgb(250, 250, 250);
+  --primary: rgb(250, 250, 250);
+  --primary-foreground: rgb(10, 10, 10);
+  --secondary: rgb(212, 212, 212);
+  --secondary-foreground: rgb(10, 10, 10);
+  --muted: rgb(38, 38, 38);
+  --muted-foreground: rgb(163, 163, 163);
+  --accent: rgb(38, 38, 38);
+  --accent-foreground: rgb(250, 250, 250);
+  --destructive: rgb(185, 28, 28);
+  --destructive-foreground: rgb(254, 242, 242);
+  --border: rgb(51, 51, 51);
+  --input: rgb(51, 51, 51);
+  --ring: rgb(250, 250, 250);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@theme {
+  --text-caption: 0.65rem;
+  --text-footnote: 0.7rem;
+  --text-label: 0.75rem;
+  --text-compact: 0.8rem;
+  --text-body: 0.85rem;
+  --text-subhead: 0.9rem;
+  --text-title: 1rem;
+  --text-heading: 1.15rem;
+  --text-display: 1.4rem;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@layer base {
+  /* Components lean on the design-system border color for a bare `border`. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop {
+    border-color: var(--border);
+  }
+}
