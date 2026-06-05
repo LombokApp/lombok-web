@@ -23,9 +23,9 @@ export const usersTable = pgTable(
     permissions: jsonb('permissions').$type<string[]>().notNull().default([]),
     passwordHash: text('password_hash'),
     passwordSalt: text('password_salt'),
-    avatarUpdatedAt: timestamp('avatar_updated_at'),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    avatarUpdatedAt: timestamp('avatar_updated_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     // Case-insensitive unique index on username

@@ -25,8 +25,8 @@ export const appFolderSettingsTable = pgTable(
       .notNull(),
     enabled: boolean('enabled'),
     permissions: jsonb('permissions').$type<FolderScopeAppPermissions[]>(),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('app_folder_settings_folder_id_idx').on(table.folderId),

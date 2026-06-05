@@ -31,9 +31,9 @@ export const foldersTable = pgTable(
       message: string
       code: string
     }>(),
-    iconUpdatedAt: timestamp('icon_updated_at'),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    iconUpdatedAt: timestamp('icon_updated_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('folders_owner_id_idx').on(table.ownerId),

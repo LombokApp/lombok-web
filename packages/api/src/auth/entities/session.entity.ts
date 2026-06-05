@@ -16,9 +16,9 @@ export const sessionsTable = pgTable(
     userId: uuid('user_id').notNull(),
     type: text('type').notNull(),
     typeDetails: jsonb('type_details').$type<JsonSerializableObject>(),
-    expiresAt: timestamp('expires_at').notNull(),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('session_user_id_idx').on(table.userId),

@@ -30,9 +30,13 @@ export const commentsTable = pgTable(
       .references(() => usersTable.id),
     content: text('content').notNull(),
     anchor: jsonb('anchor').$type<CommentAnchor | null>(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
-    deletedAt: timestamp('deleted_at'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
     check('content_not_empty', sql`length(content) > 0`),

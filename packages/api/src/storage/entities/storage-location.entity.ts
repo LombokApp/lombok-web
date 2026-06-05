@@ -18,8 +18,8 @@ export const storageLocationsTable = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => usersTable.id),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('storage_locations_user_id_idx').on(table.userId),

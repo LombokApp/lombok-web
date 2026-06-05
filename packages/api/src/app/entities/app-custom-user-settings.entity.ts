@@ -23,8 +23,8 @@ export const appCustomUserSettingsTable = pgTable(
       .notNull(),
     key: text('key').notNull(),
     value: jsonb('value').$type<unknown>().notNull(),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     primaryKey({

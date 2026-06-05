@@ -36,8 +36,8 @@ export const dockerStandaloneContainersTable = pgTable(
       .$type<Record<string, string>>()
       .notNull()
       .default({}),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('docker_standalone_containers_desired_status_idx').on(

@@ -24,7 +24,7 @@ export class CreateEventNotificationsProcessor extends BaseCoreTaskProcessor<Cor
     private readonly notificationBatchingService: NotificationBatchingService,
   ) {
     super(CoreTaskName.CreateEventNotifications, async (task) => {
-      const { aggregationKey } = task.data
+      const { aggregationKey, requeueCount = 0 } = task.data
 
       // Get unhandled events for this aggregation key
       const [unhandledEvent] =
@@ -46,6 +46,7 @@ export class CreateEventNotificationsProcessor extends BaseCoreTaskProcessor<Cor
           {
             eventIdentifier: unhandledEvent.eventIdentifier,
             emitterIdentifier: unhandledEvent.emitterId,
+            requeueCount,
           },
         )
 
@@ -70,7 +71,7 @@ export class CreateEventNotificationsProcessor extends BaseCoreTaskProcessor<Cor
               },
             },
             taskDescription: 'Create event notifications',
-            data: { aggregationKey },
+            data: { aggregationKey, requeueCount: requeueCount + 1 },
             dontStartBefore,
             createdAt: now,
             updatedAt: now,

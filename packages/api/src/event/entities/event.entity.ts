@@ -22,8 +22,10 @@ export const eventsTable = pgTable(
     targetLocationObjectKey: text('target_location_object_key'),
     data: jsonbBase64('data').$type<JsonSerializableObject>(),
     aggregationKey: text('aggregation_key'),
-    aggregationHandledAt: timestamp('aggregation_handled_at'),
-    createdAt: timestamp('created_at').notNull(),
+    aggregationHandledAt: timestamp('aggregation_handled_at', {
+      withTimezone: true,
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     check(

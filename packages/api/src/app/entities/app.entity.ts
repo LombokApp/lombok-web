@@ -72,8 +72,8 @@ export const appsTable = pgTable(
       .notNull()
       .default({}),
     enabled: boolean('enabled').notNull().default(false),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [index('apps_enabled_idx').on(table.enabled)],
 )

@@ -35,8 +35,8 @@ export const appRuntimeTriggersTable = pgTable(
     definition: jsonb('definition')
       .$type<RegisterableTriggerConfig>()
       .notNull(),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('app_runtime_triggers_app_id_idx').on(table.appId),

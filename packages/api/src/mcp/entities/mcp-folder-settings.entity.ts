@@ -22,8 +22,8 @@ export const mcpFolderSettingsTable = pgTable(
     canWrite: boolean('can_write'),
     canDelete: boolean('can_delete'),
     canMove: boolean('can_move'),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     uniqueIndex('mcp_folder_settings_folder_user_unique').on(

@@ -34,8 +34,8 @@ export const dockerProfileResourceAssignmentsTable = pgTable(
       .$type<Record<string, string>>()
       .notNull()
       .default({}),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     uniqueIndex('docker_profile_resource_assignments_app_profile_unique').on(

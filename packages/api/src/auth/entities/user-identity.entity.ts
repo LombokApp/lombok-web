@@ -12,8 +12,8 @@ export const userIdentitiesTable = pgTable(
     providerUserId: text('provider_user_id').notNull(), // External provider's user ID
     providerEmail: text('provider_email'), // Email from provider (informational)
     providerName: text('provider_name'), // Name from provider (informational)
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     unique('unique_provider_user').on(table.provider, table.providerUserId),

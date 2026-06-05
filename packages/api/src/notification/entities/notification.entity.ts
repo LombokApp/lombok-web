@@ -22,7 +22,9 @@ export const notificationsTable = pgTable(
     body: text('body'),
     image: text('image'),
     path: text('path'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('notifications_user_id_created_at_idx').on(

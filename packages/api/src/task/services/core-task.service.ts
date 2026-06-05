@@ -5,7 +5,7 @@ import {
 } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
-import { and, count, eq, isNull, lt, or, sql } from 'drizzle-orm'
+import { and, count, eq, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { runWithThreadContext } from 'src/shared/thread-context'
@@ -75,6 +75,29 @@ export class CoreTaskService {
     }
   }
 
+  /**
+   * Predicate for core tasks that are eligible to start now.
+   *
+   * `dont_start_before` is compared against the Node clock (`new Date()`), NOT
+   * Postgres `NOW()`. Those columns are written from the Node clock, so the
+   * comparison must use the same clock — on hosts where the Postgres and Node
+   * clocks drift apart, `NOW()` lets tasks start before their
+   * `dont_start_before` delay. For self-requeuing batch tasks (e.g. event
+   * notifications) that turns the requeue delay into a no-op and the drain
+   * spins, producing dozens of redundant tasks per debounce window.
+   */
+  private startableCoreTaskWhere() {
+    return and(
+      isNull(tasksTable.startedAt),
+      lt(tasksTable.attemptCount, MAX_TASK_ATTEMPTS),
+      or(
+        isNull(tasksTable.dontStartBefore),
+        lte(tasksTable.dontStartBefore, new Date()),
+      ),
+      eq(tasksTable.ownerId, CORE_IDENTIFIER),
+    )
+  }
+
   private async _drainCoreTasks() {
     const taskExecutionLimit = Math.max(
       MAX_CONCURRENT_CORE_TASKS - this.runningTasksCount,
@@ -85,17 +108,7 @@ export class CoreTaskService {
       const coreTasksToExecute = await this.ormService.db
         .select({ taskId: tasksTable.id })
         .from(tasksTable)
-        .where(
-          and(
-            isNull(tasksTable.startedAt),
-            lt(tasksTable.attemptCount, MAX_TASK_ATTEMPTS),
-            or(
-              isNull(tasksTable.dontStartBefore),
-              sql`${tasksTable.dontStartBefore} <= NOW()`,
-            ),
-            eq(tasksTable.ownerId, CORE_IDENTIFIER),
-          ),
-        )
+        .where(this.startableCoreTaskWhere())
         .limit(taskExecutionLimit)
       for (const { taskId } of coreTasksToExecute) {
         await this.executeCoreTask(taskId)
@@ -114,17 +127,7 @@ export class CoreTaskService {
         count: count(),
       })
       .from(tasksTable)
-      .where(
-        and(
-          isNull(tasksTable.startedAt),
-          lt(tasksTable.attemptCount, MAX_TASK_ATTEMPTS),
-          or(
-            isNull(tasksTable.dontStartBefore),
-            sql`${tasksTable.dontStartBefore} <= NOW()`,
-          ),
-          eq(tasksTable.ownerId, CORE_IDENTIFIER),
-        ),
-      )
+      .where(this.startableCoreTaskWhere())
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return unstartedCoreTaskCountResult!.count
   }
