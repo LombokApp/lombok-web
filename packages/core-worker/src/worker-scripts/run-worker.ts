@@ -188,7 +188,15 @@ class SocketServer {
 
     // eslint-disable-next-line promise/param-names
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Connection timeout')), timeoutMs)
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              `Timed out after ${timeoutMs}ms waiting for worker daemon on ${this.socketPath}`,
+            ),
+          ),
+        timeoutMs,
+      )
     })
 
     return Promise.race([this.connectionPromise, timeoutPromise])
@@ -1396,7 +1404,8 @@ async function createWorkerProcess(
     stderr: 'inherit',
   })
 
-  // Wait for the worker daemon to connect to our socket server
+  // Wait for the worker daemon to connect, failing fast if the process exits
+  // first rather than waiting out the full connection timeout.
   if (LOMBOK_SOCKET_DEBUG) {
     // eslint-disable-next-line no-console
     console.log(
@@ -1405,7 +1414,31 @@ async function createWorkerProcess(
     )
   }
 
-  const clientSocket = await socketServer.waitForConnection(30000)
+  let daemonExitCode: number | null = null
+  const daemonExited = proc.exited.then((code) => {
+    daemonExitCode = code
+    return code
+  })
+
+  const clientSocket = await Promise.race<Socket | null>([
+    socketServer.waitForConnection(30000),
+    daemonExited.then(() => null).catch(() => null),
+  ])
+
+  if (clientSocket === null) {
+    shuttingDownWorkers.add(workerId)
+    try {
+      if (!proc.killed) {
+        proc.kill()
+      }
+    } catch {
+      // ignore
+    }
+    await socketServer.close().catch(() => undefined)
+    throw new Error(
+      `Worker daemon ${workerId} exited (code=${daemonExitCode}) before connecting on ${socketPath}`,
+    )
+  }
 
   if (LOMBOK_SOCKET_DEBUG) {
     // eslint-disable-next-line no-console

@@ -58,6 +58,8 @@ export class CoreWorkerService {
   constructor(
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
+    @Inject('INTERNAL_API_PORT')
+    private readonly internalApiPort: number,
     private readonly keyDerivationService: KeyDerivationService,
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppService))
@@ -95,9 +97,10 @@ export class CoreWorkerService {
   }
 
   private getServerBaseUrl() {
-    const port = this._coreConfig.platformPort ?? 3000
-    const protocol = this._coreConfig.platformHttps ? 'https' : 'http'
-    return `${protocol}://127.0.0.1:${port}`
+    // Loopback call back into our own HTTP server (plain http; TLS is
+    // terminated by the upstream proxy, not here). Port is injected so tests
+    // can override it to their own server's port.
+    return `http://127.0.0.1:${this.internalApiPort}`
   }
 
   isReady() {

@@ -20,6 +20,9 @@ import { RunServerlessWorkerTaskProcessor } from './processors/run-serverless-wo
     forwardRef(() => NotificationModule),
   ],
   providers: [
+    // Port the core worker calls back into our own HTTP server on (loopback).
+    // Prod always listens on 3000; tests override this to their server port.
+    { provide: 'INTERNAL_API_PORT', useValue: 3000 },
     CoreWorkerService,
     RunServerlessWorkerTaskProcessor,
     AnalyzeObjectProcessor,
