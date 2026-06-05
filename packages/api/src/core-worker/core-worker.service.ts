@@ -95,9 +95,9 @@ export class CoreWorkerService {
   }
 
   private getServerBaseUrl() {
-    const port = this._coreConfig.platformPort ?? 3000
-    const protocol = this._coreConfig.platformHttps ? 'https' : 'http'
-    return `${protocol}://127.0.0.1:${port}`
+    // Loopback call back into our own HTTP server, which always listens on
+    // plain http :3000. TLS is terminated by the upstream proxy, not here.
+    return 'http://127.0.0.1:3000'
   }
 
   isReady() {
