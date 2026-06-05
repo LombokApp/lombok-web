@@ -22,6 +22,20 @@ interface BridgeIpcResponse {
 const BRIDGE_SECRET_PATH = '/var/lib/lombok/bridge-secret'
 const TUNNEL_TOKEN_TTL_SECONDS = 86400 // 24 hours
 
+/** Bridge log entries retained in memory for the admin live-log view. */
+const LOG_RING_MAX = 2000
+
+/** One captured line of bridge process output. */
+export interface BridgeLogEntry {
+  seq: number // monotonic; lets the UI dedupe the backlog→live handoff
+  source: 'stdout' | 'stderr'
+  level: 'debug' | 'info' | 'warn' | 'error' | 'unknown'
+  ts: string
+  msg: string
+  fields?: Record<string, unknown> // remaining context keys (sessionId, hostId, …)
+  raw?: string // set only for non-JSON / stderr lines
+}
+
 @Injectable()
 export class DockerBridgeService {
   private readonly logger = new Logger(DockerBridgeService.name)
@@ -31,6 +45,9 @@ export class DockerBridgeService {
   private socketCleanup: (() => void) | undefined
   private ready = false
   private stopping = false
+  private readonly logRing: BridgeLogEntry[] = []
+  private logSeq = 0
+  private readonly logSubscribers = new Set<(entry: BridgeLogEntry) => void>()
   private readonly pendingRequests = new Map<
     string,
     {
@@ -52,6 +69,29 @@ export class DockerBridgeService {
 
   isReady(): boolean {
     return this.ready
+  }
+
+  /** Recent captured bridge log lines (most recent last), newest-capped at the ring size. */
+  getRecentLogs(opts?: { tail?: number; level?: string }): BridgeLogEntry[] {
+    const tail = Math.min(Math.max(1, opts?.tail ?? 500), LOG_RING_MAX)
+    const want = opts?.level?.toLowerCase()
+    const entries = want
+      ? this.logRing.filter((e) => e.level === want)
+      : this.logRing
+    return entries.slice(-tail)
+  }
+
+  /** Subscribe to live bridge log entries. Returns an idempotent unsubscribe. */
+  subscribeLogs(cb: (entry: BridgeLogEntry) => void): () => void {
+    this.logSubscribers.add(cb)
+    let active = true
+    return () => {
+      if (!active) {
+        return
+      }
+      active = false
+      this.logSubscribers.delete(cb)
+    }
   }
 
   async startBridge(): Promise<void> {
@@ -303,13 +343,17 @@ export class DockerBridgeService {
   private pipeOutput(child: ReturnType<typeof Bun.spawn>): void {
     const readStream = async (
       stream: ReturnType<typeof Bun.spawn>['stdout'],
-      prefix: string,
+      source: 'stdout' | 'stderr',
     ) => {
       if (!stream || typeof stream === 'number') {
         return
       }
       const reader = stream.getReader()
       const decoder = new TextDecoder()
+      // Per-child carry: a chunk may hold several newline-delimited JSON lines
+      // or a partial trailing line. Reset per invocation so a killed child's
+      // dangling bytes can't corrupt the next child's first line.
+      let carry = ''
       try {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         while (true) {
@@ -317,19 +361,95 @@ export class DockerBridgeService {
           if (done) {
             break
           }
-          this.logger.debug(
-            `[docker-bridge ${prefix}] ${decoder.decode(value)}`,
-          )
+          carry += decoder.decode(value, { stream: true })
+          let nl = carry.indexOf('\n')
+          while (nl !== -1) {
+            this.ingestLine(carry.slice(0, nl), source)
+            carry = carry.slice(nl + 1)
+            nl = carry.indexOf('\n')
+          }
         }
       } catch {
         // Stream closed
       } finally {
+        if (carry.length > 0) {
+          this.ingestLine(carry, source)
+        }
         reader.releaseLock()
       }
     }
 
     void readStream(child.stdout, 'stdout')
     void readStream(child.stderr, 'stderr')
+  }
+
+  /** Parse one bridge output line into the ring buffer and fan out to subscribers. */
+  private ingestLine(rawLine: string, source: 'stdout' | 'stderr'): void {
+    const line = rawLine.trimEnd()
+    if (line.trim().length === 0) {
+      return
+    }
+
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(line)
+    } catch {
+      parsed = undefined
+    }
+
+    let entry: BridgeLogEntry
+    if (
+      parsed !== null &&
+      typeof parsed === 'object' &&
+      typeof (parsed as { msg?: unknown }).msg === 'string'
+    ) {
+      const { level, ts, msg, ...fields } = parsed as Record<string, unknown>
+      entry = {
+        seq: ++this.logSeq,
+        source,
+        level: this.normalizeLevel(level, source),
+        ts: typeof ts === 'string' ? ts : new Date().toISOString(),
+        msg: msg as string,
+        fields: Object.keys(fields).length > 0 ? fields : undefined,
+      }
+    } else {
+      entry = {
+        seq: ++this.logSeq,
+        source,
+        level: source === 'stderr' ? 'error' : 'unknown',
+        ts: new Date().toISOString(),
+        msg: line,
+        raw: line,
+      }
+    }
+
+    this.logRing.push(entry)
+    if (this.logRing.length > LOG_RING_MAX) {
+      this.logRing.shift()
+    }
+
+    for (const sub of this.logSubscribers) {
+      try {
+        sub(entry)
+      } catch {
+        // A subscriber must never break ingestion or other subscribers.
+      }
+    }
+  }
+
+  private normalizeLevel(
+    level: unknown,
+    source: 'stdout' | 'stderr',
+  ): BridgeLogEntry['level'] {
+    if (
+      level === 'debug' ||
+      level === 'info' ||
+      level === 'warn' ||
+      level === 'error'
+    ) {
+      return level
+    }
+    return source === 'stderr' ? 'error' : 'unknown'
   }
 
   private findBridgeDir(startDir: string): string {

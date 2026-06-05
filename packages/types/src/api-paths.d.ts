@@ -1609,6 +1609,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/docker-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all docker bridge tunnel sessions (admin) */
+        get: operations["AdminBridgeLogs_listSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/bridge-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent docker bridge process log lines (admin) */
+        get: operations["AdminBridgeLogs_bridgeLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/docker/admin-bridge-sessions/tunnel": {
         parameters: {
             query?: never;
@@ -3319,6 +3353,42 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             }[];
+        };
+        DockerSession: {
+            id: string;
+            containerId: string;
+            hostId: string | null;
+            mode: string;
+            state: string;
+            protocol: string;
+            tty: boolean;
+            command: string[];
+            agentReady: boolean;
+            publicId: string | null;
+            label: string;
+            appId: string | null;
+            clientCount: number;
+            createdAt: number;
+            lastActivityAt: number;
+        };
+        DockerSessionListResponse: {
+            result: components["schemas"]["DockerSession"][];
+        };
+        BridgeLogEntry: {
+            seq: number;
+            /** @enum {string} */
+            source: "stdout" | "stderr";
+            /** @enum {string} */
+            level: "debug" | "info" | "warn" | "error" | "unknown";
+            ts: string;
+            msg: string;
+            fields?: {
+                [key: string]: unknown;
+            };
+            raw?: string;
+        };
+        BridgeLogListResponse: {
+            result: components["schemas"]["BridgeLogEntry"][];
         };
         CreateAdminBridgeTunnelSessionRequestDTO: {
             hostId: string;
@@ -8946,6 +9016,86 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    AdminBridgeLogs_listSessions: {
+        parameters: {
+            query?: {
+                appId?: string;
+                containerId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DockerSessionListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    AdminBridgeLogs_bridgeLogs: {
+        parameters: {
+            query?: {
+                tail?: number;
+                level?: "debug" | "info" | "warn" | "error" | "unknown";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BridgeLogListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
             };
         };
     };

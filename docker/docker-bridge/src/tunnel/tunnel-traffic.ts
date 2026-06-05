@@ -49,6 +49,8 @@ export interface TunnelWSData {
   forwardPath: string
   session: TunnelSession
   streamId: string
+  /** Requested WebSocket subprotocol(s), forwarded to the upstream dial. */
+  subprotocol?: string
 }
 
 /**
@@ -141,6 +143,7 @@ export async function handleTunnelTraffic(
         forwardPath: forwardPath + url.search,
         session,
         streamId,
+        subprotocol: req.headers.get('Sec-WebSocket-Protocol') ?? undefined,
       },
     }
   }

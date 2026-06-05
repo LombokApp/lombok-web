@@ -41,6 +41,11 @@ export function useDockerBreadcrumbs(serverPage: string[]): Breadcrumb[] {
       return crumbs
     }
 
+    if (hostId === 'bridge') {
+      crumbs.push({ label: 'Bridge' })
+      return crumbs
+    }
+
     const host = hostsQuery.data?.result.find((h) => h.id === hostId)
     const hostLabel = host?.label ?? hostId.slice(0, 8)
 

@@ -338,8 +338,8 @@ describe('TunnelSessionHandler — message handling', () => {
 
       const setNextBinary = (id: string) => {
         ;(
-          handler as unknown as { nextBinaryStreamId: string | null }
-        ).nextBinaryStreamId = id
+          handler as unknown as { nextBinaryStreamId: Map<string, string> }
+        ).nextBinaryStreamId.set(session.id, id)
       }
 
       // First chunk — drives the body_chunk → binary frame pair.
@@ -382,6 +382,104 @@ describe('TunnelSessionHandler — message handling', () => {
 
       // Should attempt to send to client (via serializer)
       // The actual send happens async through the write serializer
+    })
+
+    it('keeps next-binary targets isolated per session', () => {
+      const sessionA = makeSession({ id: 'sess_a' })
+      const sessionB = makeSession({ id: 'sess_b' })
+
+      const pendingMap = (
+        handler as unknown as {
+          pendingHTTPResponses: Map<
+            string,
+            { bodyChunks: Buffer[]; expectingBinary: boolean }
+          >
+        }
+      ).pendingHTTPResponses
+      const mkPending = () => ({
+        resolve: () => {},
+        reject: () => {},
+        responseMeta: null,
+        bodyChunks: [] as Buffer[],
+        expectingBinary: true,
+      })
+      pendingMap.set('a-stream', mkPending())
+      pendingMap.set('b-stream', mkPending())
+
+      // A's body_chunk arrives, then B's — B must not clobber A's target.
+      handler.handleAgentMessage(sessionA, {
+        type: 'body_chunk',
+        stream_id: 'a-stream',
+      })
+      handler.handleAgentMessage(sessionB, {
+        type: 'body_chunk',
+        stream_id: 'b-stream',
+      })
+
+      handler.handleAgentBinary(sessionA, Buffer.from('aaa'))
+      handler.handleAgentBinary(sessionB, Buffer.from('bbb'))
+
+      expect(
+        pendingMap.get('a-stream')!.bodyChunks.map((b) => b.toString()),
+      ).toEqual(['aaa'])
+      expect(
+        pendingMap.get('b-stream')!.bodyChunks.map((b) => b.toString()),
+      ).toEqual(['bbb'])
+    })
+
+    it('disconnects a streaming consumer when its backlog exceeds the cap', () => {
+      const writes: Buffer[] = []
+      const session = makeSession({
+        execStream: {
+          write: (frame: Buffer, cb: (err?: Error) => void) => {
+            writes.push(frame)
+            cb()
+            return true
+          },
+        } as unknown as TunnelSession['execStream'],
+      })
+
+      let controller!: ReadableStreamDefaultController<Uint8Array>
+      const stream = new ReadableStream<Uint8Array>(
+        { start: (c) => (controller = c) },
+        new ByteLengthQueuingStrategy({ highWaterMark: 64 * 1024 }),
+      )
+      // Never read `stream` — simulate a stalled consumer.
+      void stream
+
+      let released = false
+      const pendingMap = (
+        handler as unknown as { pendingHTTPResponses: Map<string, unknown> }
+      ).pendingHTTPResponses
+      pendingMap.set('sse', {
+        sessionId: session.id,
+        resolve: () => {},
+        reject: () => {},
+        responseMeta: null,
+        bodyChunks: [],
+        expectingBinary: true,
+        streaming: true,
+        controller,
+        release: () => {
+          released = true
+        },
+      })
+
+      const setNext = () =>
+        (
+          handler as unknown as { nextBinaryStreamId: Map<string, string> }
+        ).nextBinaryStreamId.set(session.id, 'sse')
+
+      // 20 × 1MB with no reads blows past the 16MB cap.
+      for (let i = 0; i < 20 && pendingMap.has('sse'); i++) {
+        setNext()
+        handler.handleAgentBinary(session, Buffer.alloc(1024 * 1024))
+      }
+
+      expect(pendingMap.has('sse')).toBe(false)
+      expect(released).toBe(true)
+      // A stream_close frame was written to the agent.
+      expect(writes.length).toBeGreaterThan(0)
     })
   })
 
@@ -663,11 +761,11 @@ describe('TunnelSessionHandler — message handling', () => {
       // Stream stays open for ws_data
       expect(streamMap.has('ws-data-1')).toBe(true)
 
-      // nextBinaryStreamId should be set so the following binary frame
-      // routes to this stream's WS client (not broadcast)
+      // nextBinaryStreamId should be set for this session so the following
+      // binary frame routes to this stream's WS client (not broadcast)
       const nextBinaryStreamId = (
-        handler as unknown as { nextBinaryStreamId: string | null }
-      ).nextBinaryStreamId
+        handler as unknown as { nextBinaryStreamId: Map<string, string> }
+      ).nextBinaryStreamId.get(session.id)
       expect(nextBinaryStreamId).toBe('ws-data-1')
     })
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"docker-bridge-tunnel-agent/internal/transport"
@@ -42,9 +43,10 @@ func (p *WSProxy) Handle(
 ) {
 	dialURL := fmt.Sprintf("ws://127.0.0.1:%d%s", p.port, msg.Path)
 
-	// Build dial options: forward relevant headers, strip hop-by-hop.
+	// Subprotocols go via DialOptions, not the (reserved) Sec-WebSocket-Protocol header.
 	dialOpts := &websocket.DialOptions{
-		HTTPHeader: buildWSDialHeaders(msg.Headers),
+		HTTPHeader:   buildWSDialHeaders(msg.Headers),
+		Subprotocols: extractSubprotocols(msg.Headers),
 	}
 
 	dialCtx, dialCancel := context.WithTimeout(ctx, 10*time.Second)
@@ -172,13 +174,29 @@ func (p *WSProxy) Handle(
 	}
 }
 
-// buildWSDialHeaders converts the message headers map into http.Header,
-// stripping hop-by-hop headers that must not be forwarded.
+// buildWSDialHeaders converts the message headers into http.Header, stripping
+// hop-by-hop headers and the Sec-WebSocket-* handshake headers the dialer owns.
 func buildWSDialHeaders(msgHeaders map[string]string) http.Header {
 	h := make(http.Header, len(msgHeaders))
 	for k, v := range msgHeaders {
 		h.Set(k, v)
 	}
 	stripHopByHop(h)
+	h.Del("Sec-Websocket-Protocol")
+	h.Del("Sec-Websocket-Key")
+	h.Del("Sec-Websocket-Version")
+	h.Del("Sec-Websocket-Extensions")
+	h.Del("Sec-Websocket-Accept")
 	return h
+}
+
+// extractSubprotocols returns the requested subprotocols from the forwarded
+// Sec-WebSocket-Protocol header.
+func extractSubprotocols(msgHeaders map[string]string) []string {
+	for k, v := range msgHeaders {
+		if strings.EqualFold(k, "Sec-WebSocket-Protocol") {
+			return splitCommaSeparated(v)
+		}
+	}
+	return nil
 }

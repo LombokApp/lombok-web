@@ -24,6 +24,7 @@ import {
   Container,
   Cpu,
   Link2,
+  Network,
   Play,
   Plus,
   RefreshCcw,
@@ -32,6 +33,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import React from 'react'
+import { useNavigate } from 'react-router'
 
 import { DockerIcon } from '@/src/components/icons/docker-icon'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
@@ -379,6 +381,7 @@ const createProfileColumns = (
 // ─── Main screen ───────────────────────────────────────────────────────────
 
 export function ServerDockerScreen() {
+  const navigate = useNavigate()
   const [createHostOpen, setCreateHostOpen] = React.useState(false)
   const [createContainerOpen, setCreateContainerOpen] = React.useState(false)
   const [editContainerId, setEditContainerId] = React.useState<string | null>(
@@ -570,6 +573,14 @@ export function ServerDockerScreen() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void navigate('/server/docker/bridge')}
+          >
+            <Network className="mr-2 size-4" />
+            Bridge
+          </Button>
           <Button
             variant="outline"
             size="sm"
