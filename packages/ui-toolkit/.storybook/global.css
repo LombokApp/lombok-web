@@ -1,21 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@config '../tailwind.config.ts';
+/* Shared design tokens (semantic roles + dark mode). */
+@import '../styles/theme.css';
 
 @source "../components/**/*.tsx";
-@source "../styles/**/*.ts";
 
 @custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
 
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop {
-    border-color: var(--border);
-  }
-
   button,
   [role='button'] {
     cursor: pointer;

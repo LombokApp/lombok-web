@@ -1,25 +1,23 @@
 @import 'tailwindcss' source(none);
 @import 'tw-animate-css';
 
-@config '../../tailwind.config.ts';
+/* Shared design tokens (semantic roles + dark mode) — owned by the toolkit. */
+@import '../../../ui-toolkit/styles/theme.css';
 
 @source "../**/*.{js,ts,jsx,tsx}";
 @source "../../../ui-toolkit/components/**/*.{js,ts,jsx,tsx}";
-@source "../../../ui-toolkit/styles/**/*.ts";
 
 @custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
 
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop {
-    border-color: var(--border);
-  }
-
   button,
   [role='button'] {
     cursor: pointer;
+  }
+
+  html {
+    color: var(--foreground);
+    background-color: var(--background);
   }
 
   html,
