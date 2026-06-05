@@ -6,6 +6,7 @@ import { coreConfig } from 'src/core/config'
 import { OrmModule } from 'src/orm/orm.module'
 import { OrmService } from 'src/orm/orm.service'
 
+import { AdminBridgeLogsController } from './controllers/admin-bridge-logs.controller'
 import { AdminBridgeSessionController } from './controllers/admin-bridge-session.controller'
 import { BridgeSessionController } from './controllers/bridge-session.controller'
 import {
@@ -32,6 +33,7 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     forwardRef(() => AppModule),
   ],
   controllers: [
+    AdminBridgeLogsController,
     AdminBridgeSessionController,
     BridgeSessionController,
     DockerWorkerHooksController,

@@ -15,6 +15,7 @@ import type { ContainerInspectInfo } from 'dockerode'
 import * as jose from 'jose'
 import { coreConfig } from 'src/core/config'
 
+import { DockerSessionDTO } from '../../dto/responses/bridge-observability-responses.dto'
 import { DockerBridgeService } from '../docker-bridge.service'
 import { DockerHostManagementService } from '../docker-host-management.service'
 import { DOCKER_CONTAINER_TYPES, DOCKER_LABELS } from '../docker-jobs.service'
@@ -72,6 +73,45 @@ function toBridgeContainerInfo(c: BridgeContainerInfo): ContainerInfo {
       : 'unknown') as ContainerInfo['state'],
     reusable: c.reusable,
     createdAt: c.createdAt,
+  }
+}
+
+/** Full bridge session payload as returned by GET /sessions (snake_case). */
+interface BridgeSessionFull {
+  id: string
+  container_id: string
+  host_id: string | null
+  mode: string
+  state: string
+  protocol: string
+  tty: boolean
+  command: string[]
+  agent_ready: boolean
+  public_id: string | null
+  label: string
+  app_id: string | null
+  client_count: number
+  created_at: number
+  last_activity_at: number
+}
+
+function toDockerSessionDTO(s: BridgeSessionFull): DockerSessionDTO {
+  return {
+    id: s.id,
+    containerId: s.container_id,
+    hostId: s.host_id,
+    mode: s.mode,
+    state: s.state,
+    protocol: s.protocol,
+    tty: s.tty,
+    command: s.command,
+    agentReady: s.agent_ready,
+    publicId: s.public_id,
+    label: s.label,
+    appId: s.app_id,
+    clientCount: s.client_count,
+    createdAt: s.created_at,
+    lastActivityAt: s.last_activity_at,
   }
 }
 
@@ -1081,6 +1121,7 @@ export class DockerClientService {
     const token = await this.mintSessionToken(session.id, backendToken, {
       publicId,
       mode,
+      protocol,
     })
 
     const { wsUrl, httpUrl } = this.buildBridgeUrls()
@@ -1101,6 +1142,30 @@ export class DockerClientService {
         http: httpUrl,
       },
     }
+  }
+
+  /**
+   * List all bridge tunnel sessions (admin observability), optionally filtered.
+   * Maps the bridge's snake_case payload to the camelCase DTO.
+   */
+  async listSessions(filter?: {
+    appId?: string
+    containerId?: string
+  }): Promise<DockerSessionDTO[]> {
+    const queryParams: Record<string, string> = {}
+    if (filter?.appId) {
+      queryParams.app_id = filter.appId
+    }
+    if (filter?.containerId) {
+      queryParams.container_id = filter.containerId
+    }
+    const sessions = await this.bridgeRequest<BridgeSessionFull[]>(
+      'GET',
+      '/sessions',
+      undefined,
+      queryParams,
+    )
+    return sessions.map(toDockerSessionDTO)
   }
 
   /**
@@ -1169,11 +1234,17 @@ export class DockerClientService {
     options?: {
       publicId?: string
       mode?: 'ephemeral' | 'persistent'
+      protocol?: 'framed' | 'raw'
     },
   ): Promise<string> {
-    const ttlSeconds = options?.publicId
-      ? PUBLIC_SESSION_TOKEN_TTL_SECONDS
-      : SESSION_TOKEN_TTL_SECONDS
+    // Framed sessions auth per-request over their active life (kept alive by
+    // touch() on a live SSE) and must outlive the 30-min idle window, so they
+    // get the long TTL — as do public sessions. Raw/PTY sessions auth once at
+    // attach and stay at the short TTL.
+    const ttlSeconds =
+      options?.publicId || options?.protocol === 'framed'
+        ? PUBLIC_SESSION_TOKEN_TTL_SECONDS
+        : SESSION_TOKEN_TTL_SECONDS
     return new jose.SignJWT({
       sid: sessionId,
       ...(options?.publicId ? { public_id: options.publicId } : {}),

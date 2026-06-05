@@ -29,6 +29,14 @@ import type { SessionManager } from './session-manager.js'
 /** Max body chunk size when streaming large request bodies (256KB) */
 const MAX_BODY_CHUNK = 256 * 1024
 
+/** Backpressure target for a streaming (SSE) response's buffer. */
+const SSE_UPSTREAM_HWM_BYTES = 64 * 1024
+
+/** Hard cap on bytes buffered for one streaming response before we disconnect
+ *  the consumer. The exec stream is shared (pausing it would stall heartbeats
+ *  and other streams), so a stuck consumer is dropped rather than buffered. */
+const SSE_MAX_BUFFERED_BYTES = 16 * 1024 * 1024
+
 /** Where the raw-exec wrapper records its container PID inside the target container. */
 function rawExecPidFilePath(sessionId: string): string {
   return `/tmp/.bridge-pids/${sessionId}`
@@ -74,6 +82,15 @@ export class TunnelSessionHandler {
       bodyChunks: Buffer[]
       /** True when the next binary frame should be captured by this pending response */
       expectingBinary: boolean
+      /** Streaming sink (SSE-style): frames are flushed as they arrive, not buffered. */
+      streaming?: boolean
+      controller?: ReadableStreamDefaultController<Uint8Array>
+      onMeta?: (meta: {
+        statusCode: number
+        headers: Record<string, string>
+      }) => void
+      /** Idempotent limiter release for streaming entries. */
+      release?: () => void
     }
   >()
 
@@ -102,11 +119,12 @@ export class TunnelSessionHandler {
   >()
 
   /**
-   * Stream ID of the next expected binary frame.
-   * Set by TEXT frame handlers that indicate body_follows, consumed by handleAgentBinary.
-   * Prevents iteration-order race when multiple streams expect binary data concurrently.
+   * sessionId -> stream ID of the next expected binary frame (set by the
+   * preceding body-carrying TEXT frame, consumed by handleAgentBinary).
+   * Per-session, not shared: a shared field lets one session's parser clobber
+   * another's target when a TEXT/BINARY pair splits across feed() calls.
    */
-  private nextBinaryStreamId: string | null = null
+  private readonly nextBinaryStreamId = new Map<string, string>()
 
   constructor(
     adapterPool: AdapterPool,
@@ -494,12 +512,211 @@ export class TunnelSessionHandler {
   }
 
   /**
+   * Proxy an HTTP request directly and stream the response back as frames
+   * arrive (no buffering). Suitable for long-lived SSE responses: there is a
+   * short timeout for the initial response headers only — once they arrive the
+   * body streams with no deadline. Only valid for framed protocol sessions.
+   */
+  async proxyHTTPStreaming(
+    session: TunnelSession,
+    method: string,
+    path: string,
+    headers: Record<string, string>,
+    body: Buffer | null,
+    onClose?: () => void,
+  ): Promise<{
+    statusCode: number
+    headers: Record<string, string>
+    stream: ReadableStream<Uint8Array>
+  }> {
+    if (session.protocol !== 'framed') {
+      throw new Error('proxyHTTPStreaming only supported for framed protocol')
+    }
+    if (!session.execStream || !session.agentReady) {
+      throw new Error('Tunnel agent not ready')
+    }
+
+    // Check concurrency limit
+    if (!this.limiter.acquire(session.id)) {
+      onClose?.()
+      return {
+        statusCode: 429,
+        headers: { 'Retry-After': '1' },
+        stream: new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.close()
+          },
+        }),
+      }
+    }
+
+    const streamId = crypto.randomUUID()
+    // Idempotent settle: every terminal event (body_end, teardown, cancel,
+    // backlog cap, header timeout) funnels here, firing onClose exactly once.
+    let released = false
+    const release = (): void => {
+      if (released) {
+        return
+      }
+      released = true
+      this.limiter.release(session.id)
+      onClose?.()
+    }
+
+    // Build the ReadableStream up front so the protocol handlers can flush into
+    // its controller. cancel() fires when the consumer (client) disconnects.
+    let controller!: ReadableStreamDefaultController<Uint8Array>
+    const stream = new ReadableStream<Uint8Array>(
+      {
+        start: (c) => {
+          controller = c
+        },
+        cancel: () => {
+          this.pendingHTTPResponses.delete(streamId)
+          release()
+          const execStream = session.execStream
+          if (execStream) {
+            const closeMsg: StreamCloseMsg = {
+              type: 'stream_close',
+              stream_id: streamId,
+              reason: 'client disconnect',
+            }
+            void writeFrame(
+              execStream,
+              FrameType.TEXT,
+              Buffer.from(JSON.stringify(closeMsg)),
+            ).catch(() => {
+              // Best effort — agent may already be gone
+            })
+          }
+        },
+      },
+      new ByteLengthQueuingStrategy({ highWaterMark: SSE_UPSTREAM_HWM_BYTES }),
+    )
+
+    const msg: HTTPRequestMsg = {
+      type: 'http_request',
+      stream_id: streamId,
+      method,
+      path,
+      headers,
+      body_follows: !!(body && body.length > 0),
+    }
+    if (body && body.length > 0) {
+      msg.body_len = body.length
+    }
+
+    return new Promise<{
+      statusCode: number
+      headers: Record<string, string>
+      stream: ReadableStream<Uint8Array>
+    }>((resolve, reject) => {
+      // Initial-headers timeout only — cleared on arrival; no body deadline.
+      const headersTimeout = setTimeout(() => {
+        this.pendingHTTPResponses.delete(streamId)
+        release()
+        const err = new Error('Tunnel proxy initial-headers timeout (30s)')
+        try {
+          controller.error(err)
+        } catch {
+          // Stream may not have any reader yet
+        }
+        reject(err)
+      }, 30_000)
+
+      this.pendingHTTPResponses.set(streamId, {
+        sessionId: session.id,
+        streaming: true,
+        controller,
+        release,
+        onMeta: (meta) => {
+          clearTimeout(headersTimeout)
+          resolve({
+            statusCode: meta.statusCode,
+            headers: meta.headers,
+            stream,
+          })
+        },
+        resolve: () => {
+          // Unused for streaming responses (resolution happens via onMeta)
+        },
+        reject: (err) => {
+          clearTimeout(headersTimeout)
+          release()
+          try {
+            controller.error(err)
+          } catch {
+            // Stream may already be closed/errored
+          }
+          reject(err)
+        },
+        responseMeta: null,
+        bodyChunks: [],
+        expectingBinary: false,
+      })
+
+      // Send request to agent
+      const execStream = session.execStream
+      const sendRequest = async (): Promise<void> => {
+        if (!execStream) {
+          return
+        }
+        await writeFrame(
+          execStream,
+          FrameType.TEXT,
+          Buffer.from(JSON.stringify(msg)),
+        )
+
+        if (body && body.length > 0) {
+          if (body.length <= MAX_BODY_CHUNK) {
+            await writeFrame(execStream, FrameType.BINARY, body)
+          } else {
+            let offset = 0
+            while (offset < body.length) {
+              const end = Math.min(offset + MAX_BODY_CHUNK, body.length)
+              const chunk = body.subarray(offset, end)
+              const isLast = end >= body.length
+              const chunkMsg: Envelope = {
+                type: isLast ? 'body_end' : 'body_chunk',
+                stream_id: streamId,
+              }
+              await writeFrame(
+                execStream,
+                FrameType.TEXT,
+                Buffer.from(JSON.stringify(chunkMsg)),
+              )
+              await writeFrame(execStream, FrameType.BINARY, chunk)
+              offset = end
+            }
+          }
+        }
+      }
+
+      sendRequest().catch((err: unknown) => {
+        const pending = this.pendingHTTPResponses.get(streamId)
+        if (pending) {
+          this.pendingHTTPResponses.delete(streamId)
+          pending.reject(err instanceof Error ? err : new Error(String(err)))
+        }
+      })
+
+      this.sessionManager.touch(session.id)
+    })
+  }
+
+  /**
    * Detach a WebSocket client from a tunnel session.
    * Persistent mode: does NOT tear down on last client disconnect.
    * Ephemeral mode: tears down after grace period when last client disconnects.
    */
   detach(session: TunnelSession, ws: unknown): void {
     session.clients.delete(ws)
+
+    // Already tearing down: teardown() owns stream/limiter cleanup, and
+    // re-arming the grace timer here would schedule a redundant teardown.
+    if (session.state === 'closing') {
+      return
+    }
 
     // Clean up any streams owned by this ws client (framed only)
     if (session.protocol === 'framed') {
@@ -652,7 +869,9 @@ export class TunnelSessionHandler {
         }
       }
 
-      // Reject all pending direct HTTP responses belonging to this session
+      // Reject all pending direct HTTP responses belonging to this session.
+      // For streaming pendings, reject() also errors the ReadableStream
+      // controller so any live SSE response ends cleanly.
       for (const [streamId, pending] of this.pendingHTTPResponses) {
         if (pending.sessionId === session.id) {
           this.pendingHTTPResponses.delete(streamId)
@@ -666,6 +885,7 @@ export class TunnelSessionHandler {
       this.sessionStreams.delete(session.id)
       this.readyWaiters.delete(session.id)
       this.lastHeartbeats.delete(session.id)
+      this.nextBinaryStreamId.delete(session.id)
 
       // Close all connected WebSocket clients
       for (const client of session.clients) {
@@ -792,20 +1012,77 @@ export class TunnelSessionHandler {
     }
   }
 
+  /** Tear down a live streaming pending: error its stream, release the slot,
+   *  and tell the agent to stop producing for it. */
+  private terminateStreamingPending(
+    session: TunnelSession,
+    streamId: string,
+    pending: {
+      controller?: ReadableStreamDefaultController<Uint8Array>
+      release?: () => void
+    },
+    reason: string,
+  ): void {
+    this.pendingHTTPResponses.delete(streamId)
+    try {
+      pending.controller?.error(new Error(reason))
+    } catch {
+      // Already closed/errored
+    }
+    pending.release?.()
+    const execStream = session.execStream
+    if (execStream) {
+      const closeMsg: StreamCloseMsg = {
+        type: 'stream_close',
+        stream_id: streamId,
+        reason,
+      }
+      void writeFrame(
+        execStream,
+        FrameType.TEXT,
+        Buffer.from(JSON.stringify(closeMsg)),
+      ).catch(() => {
+        // Best effort — agent may already be gone
+      })
+    }
+  }
+
   /**
    * Handle a binary payload from the agent (body data for a stream).
    * Routes to pending direct HTTP responses or to WS clients.
    *
-   * Uses `nextBinaryStreamId` set by the preceding TEXT frame handler
-   * to avoid iteration-order race conditions when multiple streams are
+   * Uses the per-session `nextBinaryStreamId` set by the preceding TEXT frame
+   * handler to avoid iteration-order race conditions when multiple streams are
    * concurrently expecting binary data.
    */
   handleAgentBinary(session: TunnelSession, data: Buffer): void {
-    const streamId = this.nextBinaryStreamId
-    this.nextBinaryStreamId = null
+    const streamId = this.nextBinaryStreamId.get(session.id) ?? null
+    this.nextBinaryStreamId.delete(session.id)
 
     if (streamId) {
       const pending = this.pendingHTTPResponses.get(streamId)
+      if (pending?.streaming) {
+        pending.expectingBinary = false
+        const ctrl = pending.controller
+        try {
+          ctrl?.enqueue(new Uint8Array(data))
+        } catch {
+          // Stream may already be cancelled/errored
+        }
+        // Stuck consumer: drop it once buffered bytes pass the cap.
+        const buffered = SSE_UPSTREAM_HWM_BYTES - (ctrl?.desiredSize ?? 0)
+        if (ctrl && buffered > SSE_MAX_BUFFERED_BYTES) {
+          this.terminateStreamingPending(
+            session,
+            streamId,
+            pending,
+            'consumer backlog exceeded',
+          )
+          return
+        }
+        this.sessionManager.touch(session.id)
+        return
+      }
       if (pending?.expectingBinary) {
         pending.expectingBinary = false
         pending.bodyChunks.push(data)
@@ -1145,10 +1422,30 @@ export class TunnelSessionHandler {
     const pending = this.pendingHTTPResponses.get(msg.stream_id)
     if (pending && msg.type === 'http_response') {
       const httpMsg = msg as HTTPResponseMsg
+      if (pending.streaming) {
+        pending.responseMeta = httpMsg
+        pending.onMeta?.({
+          statusCode: httpMsg.status_code,
+          headers: httpMsg.headers,
+        })
+        if (httpMsg.body_follows) {
+          pending.expectingBinary = true
+          this.nextBinaryStreamId.set(session.id, msg.stream_id)
+        } else {
+          this.pendingHTTPResponses.delete(msg.stream_id)
+          try {
+            pending.controller?.close()
+          } catch {
+            // Stream may already be closed
+          }
+          pending.release?.()
+        }
+        return
+      }
       if (httpMsg.body_follows) {
         pending.responseMeta = httpMsg
         pending.expectingBinary = true
-        this.nextBinaryStreamId = msg.stream_id
+        this.nextBinaryStreamId.set(session.id, msg.stream_id)
       } else {
         this.pendingHTTPResponses.delete(msg.stream_id)
         pending.resolve({
@@ -1163,7 +1460,7 @@ export class TunnelSessionHandler {
     // For ws_data with body_follows, set nextBinaryStreamId so the subsequent
     // binary frame is routed to the correct stream's client (not broadcast).
     if (msg.type === 'ws_data' && (msg as WSDataMsg).body_follows) {
-      this.nextBinaryStreamId = msg.stream_id
+      this.nextBinaryStreamId.set(session.id, msg.stream_id)
     }
 
     const streams = this.getStreamMap(session.id)
@@ -1224,7 +1521,7 @@ export class TunnelSessionHandler {
     const pending = this.pendingHTTPResponses.get(msg.stream_id)
     if (pending) {
       pending.expectingBinary = true
-      this.nextBinaryStreamId = msg.stream_id
+      this.nextBinaryStreamId.set(session.id, msg.stream_id)
       return
     }
 
@@ -1236,7 +1533,7 @@ export class TunnelSessionHandler {
       }
       // Set nextBinaryStreamId so the subsequent binary frame is routed to
       // this stream's client rather than broadcast to all clients.
-      this.nextBinaryStreamId = msg.stream_id
+      this.nextBinaryStreamId.set(session.id, msg.stream_id)
       this.sendToWSSerialized(session.id, entry.ws, JSON.stringify(msg))
     }
   }
@@ -1250,6 +1547,15 @@ export class TunnelSessionHandler {
     const pending = this.pendingHTTPResponses.get(msg.stream_id)
     if (pending) {
       this.pendingHTTPResponses.delete(msg.stream_id)
+      if (pending.streaming) {
+        try {
+          pending.controller?.close()
+        } catch {
+          // Stream may already be closed
+        }
+        pending.release?.()
+        return
+      }
       const body =
         pending.bodyChunks.length > 0 ? Buffer.concat(pending.bodyChunks) : null
       pending.resolve({

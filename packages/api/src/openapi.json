@@ -7728,6 +7728,143 @@
         ]
       }
     },
+    "/api/v1/server/docker-sessions": {
+      "get": {
+        "operationId": "AdminBridgeLogs_listSessions",
+        "parameters": [
+          {
+            "name": "appId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "containerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DockerSessionListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all docker bridge tunnel sessions (admin)",
+        "tags": [
+          "AdminBridgeObservability"
+        ]
+      }
+    },
+    "/api/v1/server/bridge-logs": {
+      "get": {
+        "operationId": "AdminBridgeLogs_bridgeLogs",
+        "parameters": [
+          {
+            "name": "tail",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 2000,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "level",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "debug",
+                "info",
+                "warn",
+                "error",
+                "unknown"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BridgeLogListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Recent docker bridge process log lines (admin)",
+        "tags": [
+          "AdminBridgeObservability"
+        ]
+      }
+    },
     "/api/v1/docker/admin-bridge-sessions/tunnel": {
       "post": {
         "description": "Creates an ephemeral raw PTY tunnel session on the Docker bridge for admin container exec. Returns session credentials for direct WebSocket access to the bridge.",
@@ -15590,6 +15727,161 @@
         },
         "required": [
           "meta",
+          "result"
+        ]
+      },
+      "DockerSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "containerId": {
+            "type": "string"
+          },
+          "hostId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "tty": {
+            "type": "boolean"
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "agentReady": {
+            "type": "boolean"
+          },
+          "publicId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "appId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clientCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "lastActivityAt": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "containerId",
+          "hostId",
+          "mode",
+          "state",
+          "protocol",
+          "tty",
+          "command",
+          "agentReady",
+          "publicId",
+          "label",
+          "appId",
+          "clientCount",
+          "createdAt",
+          "lastActivityAt"
+        ]
+      },
+      "DockerSessionListResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DockerSession"
+            }
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "BridgeLogEntry": {
+        "type": "object",
+        "properties": {
+          "seq": {
+            "type": "number"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "stdout",
+              "stderr"
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "debug",
+              "info",
+              "warn",
+              "error",
+              "unknown"
+            ]
+          },
+          "ts": {
+            "type": "string"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "raw": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "source",
+          "level",
+          "ts",
+          "msg"
+        ]
+      },
+      "BridgeLogListResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BridgeLogEntry"
+            }
+          }
+        },
+        "required": [
           "result"
         ]
       },

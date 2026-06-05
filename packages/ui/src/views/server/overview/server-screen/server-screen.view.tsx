@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
 import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
+import { ServerBridgeScreen } from '../../bridge/server-bridge-screen.view'
 import { ServerSettingsScreen } from '../../config/server-config-screen/server-config-screen'
 import { ServerDockerContainerDetailScreen } from '../../docker/server-docker-container-detail-screen.view'
 import { ServerDockerHostDetailScreen } from '../../docker/server-docker-host-detail-screen.view'
@@ -35,6 +36,8 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
   const isTasksScreen = serverPage[0] === 'tasks' && !serverPage[1]
   const isLogsScreen = serverPage[0] === 'logs' && !serverPage[1]
   const isDockerScreen = serverPage[0] === 'docker' && !serverPage[1]
+  const isBridgeScreen =
+    serverPage[0] === 'docker' && serverPage[1] === 'bridge' && !serverPage[2]
   const isOverviewScreen = serverPage[0] === 'overview' || !serverPage[0]
   const isSettingsScreen = serverPage[0] === 'settings'
   const shouldNotUseScrollContainer = [
@@ -69,6 +72,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                   {isAppsScreen && <ServerAppsScreen />}
                   {isTasksScreen && <ServerTasksScreen />}
                   {isDockerScreen && <ServerDockerScreen />}
+                  {isBridgeScreen && <ServerBridgeScreen />}
                   {isLogsScreen && <ServerLogsScreen />}
                   {isSettingsScreen && (
                     <ServerSettingsScreen
@@ -98,6 +102,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     )}
                   {serverPage[0] === 'docker' &&
                     !!serverPage[1] &&
+                    serverPage[1] !== 'bridge' &&
                     !serverPage[2] && (
                       <ServerDockerHostDetailScreen hostId={serverPage[1]} />
                     )}

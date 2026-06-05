@@ -139,10 +139,9 @@ func TestWSProxyDialSuccess(t *testing.T) {
 
 	tp := newTestTransportPair()
 	msg := WSUpgradeMsg{
-		Envelope:   Envelope{Type: MsgWSUpgrade, StreamID: "s1"},
-		Path:       path,
-		Headers:    map[string]string{},
-
+		Envelope: Envelope{Type: MsgWSUpgrade, StreamID: "s1"},
+		Path:     path,
+		Headers:  map[string]string{},
 	}
 	inbound := make(chan []byte, 10)
 	registry := &StreamRegistry{}
@@ -257,10 +256,9 @@ func TestWSProxyPlatformToLocal(t *testing.T) {
 
 	tp := newTestTransportPair()
 	msg := WSUpgradeMsg{
-		Envelope:   Envelope{Type: MsgWSUpgrade, StreamID: "s-p2l"},
-		Path:       path,
-		Headers:    map[string]string{},
-
+		Envelope: Envelope{Type: MsgWSUpgrade, StreamID: "s-p2l"},
+		Path:     path,
+		Headers:  map[string]string{},
 	}
 	inbound := make(chan []byte, 10)
 	registry := &StreamRegistry{}
@@ -341,10 +339,9 @@ func TestWSProxyLocalToPlatform(t *testing.T) {
 
 	tp := newTestTransportPair()
 	msg := WSUpgradeMsg{
-		Envelope:   Envelope{Type: MsgWSUpgrade, StreamID: "s-l2p"},
-		Path:       path,
-		Headers:    map[string]string{},
-
+		Envelope: Envelope{Type: MsgWSUpgrade, StreamID: "s-l2p"},
+		Path:     path,
+		Headers:  map[string]string{},
 	}
 	inbound := make(chan []byte, 10)
 	registry := &StreamRegistry{}
@@ -428,10 +425,9 @@ func TestWSProxyContextCancel(t *testing.T) {
 
 	tp := newTestTransportPair()
 	msg := WSUpgradeMsg{
-		Envelope:   Envelope{Type: MsgWSUpgrade, StreamID: "s-ctx"},
-		Path:       path,
-		Headers:    map[string]string{},
-
+		Envelope: Envelope{Type: MsgWSUpgrade, StreamID: "s-ctx"},
+		Path:     path,
+		Headers:  map[string]string{},
 	}
 	inbound := make(chan []byte, 10)
 	registry := &StreamRegistry{}
@@ -450,6 +446,75 @@ func TestWSProxyContextCancel(t *testing.T) {
 	}
 
 	// Drain remaining frames before cancel
+	tp.drain()
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("Handle() did not exit after context cancel")
+	}
+}
+
+// TestWSProxyForwardsSubprotocol verifies a requested Sec-WebSocket-Protocol is
+// offered to the upstream dial via DialOptions.Subprotocols.
+func TestWSProxyForwardsSubprotocol(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var gotProto string
+	var mu sync.Mutex
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		gotProto = r.Header.Get("Sec-WebSocket-Protocol")
+		mu.Unlock()
+		conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+			Subprotocols: []string{"vite-hmr"},
+		})
+		if err != nil {
+			return
+		}
+		defer conn.CloseNow()
+		<-r.Context().Done()
+	}))
+	defer srv.Close()
+
+	port, path := parseWSTestURL(t, "ws"+srv.URL[len("http"):]+"/")
+
+	tp := newTestTransportPair()
+	msg := WSUpgradeMsg{
+		Envelope: Envelope{Type: MsgWSUpgrade, StreamID: "s-proto"},
+		Path:     path,
+		Headers:  map[string]string{"Sec-WebSocket-Protocol": "vite-hmr"},
+	}
+	inbound := make(chan []byte, 10)
+	registry := &StreamRegistry{}
+	proxy := NewWSProxy(port)
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		proxy.Handle(ctx, msg, inbound, tp.agentTr, registry)
+	}()
+
+	var ack WSUpgradeAckMsg
+	_, data, err := tp.bridgeR.ReadFrame()
+	if err != nil {
+		t.Fatalf("read ack: %v", err)
+	}
+	if err := json.Unmarshal(data, &ack); err != nil {
+		t.Fatalf("unmarshal ack: %v", err)
+	}
+	if !ack.Success {
+		t.Fatalf("expected Success=true, got error=%q", ack.Error)
+	}
+
+	mu.Lock()
+	if gotProto != "vite-hmr" {
+		t.Errorf("upstream Sec-WebSocket-Protocol = %q, want %q", gotProto, "vite-hmr")
+	}
+	mu.Unlock()
+
 	tp.drain()
 	cancel()
 

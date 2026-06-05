@@ -27,6 +27,17 @@ const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
+const HOP_BY_HOP_HEADERS = new Set([
+  'connection',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailers',
+  'transfer-encoding',
+  'upgrade',
+])
+
 function jsonResponse(
   body: unknown,
   status = 200,
@@ -197,6 +208,161 @@ async function handleRoute(
       await tunnelHandler.teardown(session)
       return new Response(null, { status: 204, headers: CORS_HEADERS })
     }
+  }
+
+  // ─── Ephemeral session proxy — REST + SSE streaming ───────────────
+  // ALL /sessions/{sessionId}/proxy/{...rest} — authed by the session's own
+  // JWT (sid claim), then proxied verbatim into the container. Streams the
+  // response unbuffered with no deadline (suitable for long-lived SSE).
+  const proxyMatch = path.match(/^\/sessions\/([^/]+)\/proxy(\/.*)?$/)
+  if (proxyMatch) {
+    const targetSessionId = proxyMatch[1]
+    // Strip the auth token from the forwarded query so the session JWT never
+    // reaches the container (or its logs) and never lands in bridge logs.
+    const forwardParams = new URLSearchParams(url.search)
+    forwardParams.delete('token')
+    const forwardQuery = forwardParams.toString()
+    const forwardPath =
+      (proxyMatch[2] || '/') + (forwardQuery ? `?${forwardQuery}` : '')
+
+    // Resolve token: Authorization: Bearer → ?token= (the latter for browser
+    // WS-through-proxy, which can't set headers on the WebSocket handshake).
+    let token: string | null = null
+    const authHeader = req.headers.get('Authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.slice(7) || null
+    }
+    if (!token) {
+      token = url.searchParams.get('token')
+    }
+
+    const secret = config.bridgeApiSecret
+    const authResult =
+      token && secret
+        ? await authenticateSessionToken(token, targetSessionId, secret)
+        : ({ valid: false } as const)
+    if (!authResult.valid) {
+      return jsonResponse({ error: 'Unauthorized' }, 401)
+    }
+
+    const session = sessionManager.get(targetSessionId)
+    if (!session) {
+      return jsonResponse({ error: 'Session not found' }, 404)
+    }
+    if (session.protocol !== 'framed' || !session.agentReady) {
+      return jsonResponse(
+        { error: 'session_unavailable', message: 'No active framed session.' },
+        502,
+      )
+    }
+
+    // WebSocket upgrade — honor verbatim upgrades through the framed WS proxy.
+    if (req.headers.get('Upgrade')?.toLowerCase() === 'websocket') {
+      const streamId = crypto.randomUUID()
+      return {
+        type: 'ws-upgrade',
+        data: {
+          // publicId is only used for logging here; reuse session id.
+          publicId: session.id,
+          forwardPath,
+          session,
+          streamId,
+          subprotocol: req.headers.get('Sec-WebSocket-Protocol') ?? undefined,
+        },
+      }
+    }
+
+    // Filter request headers (hop-by-hop + x-tunnel-*)
+    const forwardHeaders: Record<string, string> = {}
+    req.headers.forEach((value, key) => {
+      const lower = key.toLowerCase()
+      if (HOP_BY_HOP_HEADERS.has(lower)) {
+        return
+      }
+      if (lower.startsWith('x-tunnel-')) {
+        return
+      }
+      forwardHeaders[key] = value
+    })
+
+    // Read request body for non-GET/HEAD
+    let body: Buffer | null = null
+    if (method !== 'GET' && method !== 'HEAD') {
+      const arrayBuf = await req.arrayBuffer()
+      if (arrayBuf.byteLength > 0) {
+        body = Buffer.from(arrayBuf)
+      }
+    }
+
+    // Sentinel client keeps session.clients.size > 0 for the request's life so
+    // the ephemeral teardown timer is held off until the stream ends.
+    const sentinel = {
+      close: () => {
+        // Session teardown ends the stream via its pending entry; nothing to do.
+      },
+    }
+    await tunnelHandler.attach(session, sentinel)
+
+    let detached = false
+    const detachOnce = (): void => {
+      if (detached) {
+        return
+      }
+      detached = true
+      tunnelHandler.detach(session, sentinel)
+    }
+
+    let upstream: {
+      statusCode: number
+      headers: Record<string, string>
+      stream: ReadableStream<Uint8Array>
+    }
+    try {
+      // onClose (detachOnce) fires on any stream termination so the ephemeral
+      // grace timer can arm. The stream is returned to the client verbatim
+      // (push-fed) so frames flush as they arrive.
+      upstream = await tunnelHandler.proxyHTTPStreaming(
+        session,
+        method,
+        forwardPath,
+        forwardHeaders,
+        body,
+        detachOnce,
+      )
+    } catch (err) {
+      detachOnce()
+      const msg = getErrorMessage(err)
+      logger.error('Session proxy stream error', {
+        sessionId: targetSessionId,
+        path: forwardPath,
+        error: msg,
+      })
+      return jsonResponse({ error: 'proxy_error', message: msg }, 502)
+    }
+
+    // Backstop: a client disconnect aborts req.signal even if the Response
+    // stream's cancel() never fires. Detaching arms the 5s grace teardown,
+    // which stops the agent (touch() on each frame defeats the idle sweep).
+    if (req.signal.aborted) {
+      detachOnce()
+    } else {
+      req.signal.addEventListener('abort', detachOnce, { once: true })
+    }
+
+    const responseHeaders = new Headers()
+    for (const [key, value] of Object.entries(upstream.headers)) {
+      if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
+        responseHeaders.set(key, value)
+      }
+    }
+    for (const [key, value] of Object.entries(CORS_HEADERS)) {
+      responseHeaders.set(key, value)
+    }
+
+    return new Response(upstream.stream, {
+      status: upstream.statusCode,
+      headers: responseHeaders,
+    })
   }
 
   // All other routes require full-scope static token auth
@@ -421,6 +587,9 @@ export function createHttpServer(
   const startedAt = Date.now()
   const server = Bun.serve<TunnelWSData>({
     port: config.httpPort,
+    // Long idle timeout (Bun's max, seconds) — proxied SSE streams sit quiet
+    // between sparse heartbeats; the 10s default would idle-close them.
+    idleTimeout: 255,
     fetch: async (req: Request, srv): Promise<Response | undefined> => {
       const start = performance.now()
       const url = new URL(req.url)
@@ -478,14 +647,15 @@ export function createHttpServer(
 
     websocket: {
       open(ws: ServerWebSocket<TunnelWSData>) {
-        const { publicId, forwardPath, session, streamId } = ws.data
+        const { publicId, forwardPath, session, streamId, subprotocol } =
+          ws.data
         const tunnelSession = session
 
         const upgradeMsg: WSUpgradeMsg = {
           type: 'ws_upgrade',
           stream_id: streamId,
           path: forwardPath,
-          headers: {},
+          headers: subprotocol ? { 'Sec-WebSocket-Protocol': subprotocol } : {},
         }
 
         tunnelHandler
