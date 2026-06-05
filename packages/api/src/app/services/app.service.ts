@@ -1750,7 +1750,7 @@ export class AppService {
       .where(
         and(
           eq(tasksTable.ownerId, appIdentifier),
-          sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+          sql`${tasksTable.completedAt} >= ${oneDayAgo.toISOString()}::timestamptz`,
         ),
       )
 
@@ -1759,7 +1759,7 @@ export class AppService {
       .select({
         total: count(logEntriesTable.id),
         last10Minutes: count(
-          sql`CASE WHEN ${logEntriesTable.createdAt} >= ${tenMinutesAgo.toISOString()}::timestamp THEN 1 END`,
+          sql`CASE WHEN ${logEntriesTable.createdAt} >= ${tenMinutesAgo.toISOString()}::timestamptz THEN 1 END`,
         ),
       })
       .from(logEntriesTable)
@@ -1767,7 +1767,7 @@ export class AppService {
         and(
           eq(logEntriesTable.emitterId, appIdentifier),
           eq(logEntriesTable.level, LogEntryLevel.ERROR),
-          sql`${logEntriesTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+          sql`${logEntriesTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamptz`,
         ),
       )
 
@@ -1776,14 +1776,14 @@ export class AppService {
       .select({
         total: count(eventsTable.id),
         last10Minutes: count(
-          sql`CASE WHEN ${eventsTable.createdAt} >= ${tenMinutesAgo.toISOString()}::timestamp THEN 1 END`,
+          sql`CASE WHEN ${eventsTable.createdAt} >= ${tenMinutesAgo.toISOString()}::timestamptz THEN 1 END`,
         ),
       })
       .from(eventsTable)
       .where(
         and(
           eq(eventsTable.emitterId, appIdentifier),
-          sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamp`,
+          sql`${eventsTable.createdAt} >= ${oneDayAgo.toISOString()}::timestamptz`,
         ),
       )
 

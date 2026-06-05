@@ -3,8 +3,8 @@ CREATE TABLE "app_custom_folder_settings" (
 	"app_id" text NOT NULL,
 	"key" text NOT NULL,
 	"value" jsonb NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL,
 	CONSTRAINT "app_custom_folder_settings_folder_id_app_id_key_pk" PRIMARY KEY("folder_id","app_id","key")
 );
 --> statement-breakpoint
@@ -13,8 +13,8 @@ CREATE TABLE "app_custom_user_settings" (
 	"app_id" text NOT NULL,
 	"key" text NOT NULL,
 	"value" jsonb NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL,
 	CONSTRAINT "app_custom_user_settings_user_id_app_id_key_pk" PRIMARY KEY("user_id","app_id","key")
 );
 --> statement-breakpoint
@@ -23,8 +23,8 @@ CREATE TABLE "app_folder_settings" (
 	"app_id" text NOT NULL,
 	"enabled" boolean,
 	"permissions" jsonb,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "app_install_sequences" (
@@ -36,8 +36,8 @@ CREATE TABLE "app_runtime_triggers" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"app_id" text NOT NULL,
 	"definition" jsonb NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "app_user_settings" (
@@ -47,8 +47,8 @@ CREATE TABLE "app_user_settings" (
 	"folder_scope_enabled_default" boolean,
 	"folder_scope_permissions_default" jsonb,
 	"permissions" jsonb,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "apps" (
@@ -70,8 +70,8 @@ CREATE TABLE "apps" (
 	"manifest" jsonb NOT NULL,
 	"container_profiles" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"enabled" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL,
 	CONSTRAINT "apps_id_unique" UNIQUE("id")
 );
 --> statement-breakpoint
@@ -81,9 +81,9 @@ CREATE TABLE "session" (
 	"user_id" uuid NOT NULL,
 	"type" text NOT NULL,
 	"type_details" jsonb,
-	"expires_at" timestamp NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "user_identities" (
@@ -93,8 +93,8 @@ CREATE TABLE "user_identities" (
 	"provider_user_id" text NOT NULL,
 	"provider_email" text,
 	"provider_name" text,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL,
 	CONSTRAINT "unique_provider_user" UNIQUE("provider","provider_user_id"),
 	CONSTRAINT "unique_user_provider" UNIQUE("user_id","provider")
 );
@@ -102,7 +102,7 @@ CREATE TABLE "user_identities" (
 CREATE TABLE "comment_mentions" (
 	"comment_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "comment_mentions_comment_id_user_id_pk" PRIMARY KEY("comment_id","user_id")
 );
 --> statement-breakpoint
@@ -110,7 +110,7 @@ CREATE TABLE "comment_reactions" (
 	"comment_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
 	"emoji" text NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "comment_reactions_comment_id_user_id_emoji_pk" PRIMARY KEY("comment_id","user_id","emoji")
 );
 --> statement-breakpoint
@@ -123,9 +123,9 @@ CREATE TABLE "comments" (
 	"author_id" uuid NOT NULL,
 	"content" text NOT NULL,
 	"anchor" jsonb,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	"deleted_at" timestamp,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
 	CONSTRAINT "content_not_empty" CHECK (length(content) > 0),
 	CONSTRAINT "anchor_only_on_root" CHECK (
       (root_id IS NOT NULL AND anchor IS NULL) OR
@@ -143,9 +143,9 @@ CREATE TABLE "docker_hosts" (
 	"is_default" boolean DEFAULT false NOT NULL,
 	"enabled" boolean DEFAULT true NOT NULL,
 	"health_status" text DEFAULT 'unknown' NOT NULL,
-	"last_health_check" timestamp,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"last_health_check" timestamp with time zone,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "docker_profile_resource_assignments" (
@@ -155,8 +155,8 @@ CREATE TABLE "docker_profile_resource_assignments" (
 	"docker_host_id" uuid NOT NULL,
 	"config" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"config_hashes" jsonb DEFAULT '{}'::jsonb NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "docker_registry_credentials" (
@@ -165,8 +165,8 @@ CREATE TABLE "docker_registry_credentials" (
 	"server_address" text NOT NULL,
 	"username" text NOT NULL,
 	"password" text NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "docker_standalone_containers" (
@@ -179,8 +179,8 @@ CREATE TABLE "docker_standalone_containers" (
 	"container_id" text NOT NULL,
 	"config" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"config_hashes" jsonb DEFAULT '{}'::jsonb NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "events" (
@@ -193,8 +193,8 @@ CREATE TABLE "events" (
 	"target_location_object_key" text,
 	"data" jsonb,
 	"aggregation_key" text,
-	"aggregation_handled_at" timestamp,
-	"created_at" timestamp NOT NULL,
+	"aggregation_handled_at" timestamp with time zone,
+	"created_at" timestamp with time zone NOT NULL,
 	CONSTRAINT "anchor_only_on_root" CHECK (
       (target_user_id IS NOT NULL AND target_location_folder_id IS NULL AND target_location_object_key IS NULL) OR
       (target_user_id IS NULL AND target_location_folder_id IS NULL AND target_location_object_key IS NULL) OR
@@ -216,16 +216,16 @@ CREATE TABLE "folder_objects" (
 	"mime_type" text NOT NULL,
 	"media_type" text NOT NULL,
 	"search_vector" "tsvector" GENERATED ALWAYS AS (setweight(to_tsvector('english', coalesce("folder_objects"."filename", '')), 'A') || setweight(to_tsvector('english', coalesce("folder_objects"."object_key", '')), 'B')) STORED,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "folder_shares" (
 	"folder_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
 	"permissions" text[] NOT NULL,
-	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL
+	"created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "folders" (
@@ -235,9 +235,9 @@ CREATE TABLE "folders" (
 	"metadata_location_id" uuid NOT NULL,
 	"owner_id" uuid NOT NULL,
 	"access_error" jsonb,
-	"icon_updated_at" timestamp,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"icon_updated_at" timestamp with time zone,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "log_entries" (
@@ -248,7 +248,7 @@ CREATE TABLE "log_entries" (
 	"target_location_object_key" text,
 	"level" text NOT NULL,
 	"data" jsonb,
-	"created_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "mcp_folder_settings" (
@@ -258,8 +258,8 @@ CREATE TABLE "mcp_folder_settings" (
 	"can_write" boolean,
 	"can_delete" boolean,
 	"can_move" boolean,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "mcp_user_settings" (
@@ -268,24 +268,24 @@ CREATE TABLE "mcp_user_settings" (
 	"can_write" boolean,
 	"can_delete" boolean,
 	"can_move" boolean,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "notification_deliveries" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"notification_id" uuid NOT NULL,
 	"user_id" uuid NOT NULL,
-	"read_at" timestamp,
+	"read_at" timestamp with time zone,
 	"email_status" text,
-	"email_sent_at" timestamp,
-	"email_failed_at" timestamp,
+	"email_sent_at" timestamp with time zone,
+	"email_failed_at" timestamp with time zone,
 	"email_error" jsonb,
 	"mobile_status" text,
-	"mobile_sent_at" timestamp,
-	"mobile_failed_at" timestamp,
+	"mobile_sent_at" timestamp with time zone,
+	"mobile_failed_at" timestamp with time zone,
 	"mobile_error" jsonb,
-	"created_at" timestamp DEFAULT now() NOT NULL
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "notification_settings" (
@@ -295,8 +295,8 @@ CREATE TABLE "notification_settings" (
 	"channel" text NOT NULL,
 	"enabled" boolean NOT NULL,
 	"folder_id" uuid,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "notifications" (
@@ -312,14 +312,14 @@ CREATE TABLE "notifications" (
 	"body" text,
 	"image" text,
 	"path" text,
-	"created_at" timestamp DEFAULT now() NOT NULL
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "server_settings" (
 	"key" text PRIMARY KEY NOT NULL,
 	"value" jsonb,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "storage_locations" (
@@ -335,8 +335,8 @@ CREATE TABLE "storage_locations" (
 	"bucket" text NOT NULL,
 	"prefix" text NOT NULL,
 	"user_id" uuid NOT NULL,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "tasks" (
@@ -350,20 +350,20 @@ CREATE TABLE "tasks" (
 	"target_user_id" uuid,
 	"target_location_folder_id" uuid,
 	"target_location_object_key" text,
-	"started_at" timestamp,
-	"completed_at" timestamp,
+	"started_at" timestamp with time zone,
+	"completed_at" timestamp with time zone,
 	"attempt_count" integer DEFAULT 0 NOT NULL,
 	"failure_count" integer DEFAULT 0 NOT NULL,
-	"dont_start_before" timestamp,
+	"dont_start_before" timestamp with time zone,
 	"system_log" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"task_log" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"storage_access_policy" jsonb,
 	"success" boolean,
 	"user_visible" boolean DEFAULT true,
 	"error" jsonb,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL,
-	"latest_heartbeat_at" timestamp,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL,
+	"latest_heartbeat_at" timestamp with time zone,
 	"handler_type" text NOT NULL,
 	"handler_identifier" text,
 	"progress_reports" jsonb DEFAULT '[]'::jsonb NOT NULL,
@@ -383,9 +383,9 @@ CREATE TABLE "users" (
 	"permissions" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"password_hash" text,
 	"password_salt" text,
-	"avatar_updated_at" timestamp,
-	"created_at" timestamp NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"avatar_updated_at" timestamp with time zone,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "app_custom_folder_settings" ADD CONSTRAINT "app_custom_folder_settings_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

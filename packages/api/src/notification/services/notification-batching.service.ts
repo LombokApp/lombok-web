@@ -1,5 +1,5 @@
 import { CORE_IDENTIFIER, CoreEvent } from '@lombokapp/types'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { and, eq, isNull } from 'drizzle-orm'
 import { type Event, eventsTable } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
@@ -11,8 +11,17 @@ export interface BatchingDecision {
   requeueDelayMs?: number
 }
 
+/**
+ * Hard ceiling on requeues when an event type has no maxIntervalSeconds. Under
+ * a sane clock the debounce/maxInterval logic flushes long before this; it only
+ * exists so a misbehaving clock can't requeue forever.
+ */
+const ABSOLUTE_MAX_REQUEUES = 100
+
 @Injectable()
 export class NotificationBatchingService {
+  private readonly logger = new Logger(NotificationBatchingService.name)
+
   constructor(private readonly ormService: OrmService) {}
 
   /**
@@ -24,9 +33,11 @@ export class NotificationBatchingService {
     {
       emitterIdentifier,
       eventIdentifier,
+      requeueCount = 0,
     }: {
       eventIdentifier: string
       emitterIdentifier: string
+      requeueCount?: number
     },
   ): Promise<BatchingDecision> {
     const config =
@@ -66,11 +77,35 @@ export class NotificationBatchingService {
       return { shouldFlush: true }
     }
 
+    // Guard against clock anomalies (e.g. an NTP step correcting a drifted
+    // container clock). If an event's createdAt is at or ahead of `now`, the
+    // wall-clock debounce below would compute a negative quietFor, never
+    // satisfy the debounce, and requeue indefinitely. Treat that as "quiet"
+    // and flush rather than spin.
+    if (lastUnhandledAt.getTime() >= now.getTime()) {
+      return { shouldFlush: true }
+    }
+
     // Check debounce: quietFor = now - lastUnhandledAt
     const quietForMs = now.getTime() - lastUnhandledAt.getTime()
     const debounceMs = config.debounceSeconds * 1000
 
     if (quietForMs < debounceMs) {
+      // Backstop: under a sane clock the debounce settles (and maxInterval
+      // force-flushes) within a bounded number of requeues. If we blow past
+      // that ceiling something is wrong with timekeeping — flush rather than
+      // requeue forever. The ceiling tracks maxIntervalSeconds (worst case one
+      // requeue per second until that window elapses) with headroom.
+      const maxRequeues = config.maxIntervalSeconds
+        ? config.maxIntervalSeconds + 10
+        : ABSOLUTE_MAX_REQUEUES
+      if (requeueCount >= maxRequeues) {
+        this.logger.warn(
+          `Forcing notification flush for aggregationKey "${aggregationKey}" after ${requeueCount} requeues (debounce never settled — check for clock drift)`,
+        )
+        return { shouldFlush: true }
+      }
+
       // Not quiet long enough, requeue
       const requeueDelayMs = debounceMs - quietForMs
       return {

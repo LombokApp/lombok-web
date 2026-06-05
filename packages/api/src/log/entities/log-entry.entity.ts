@@ -12,7 +12,7 @@ export const logEntriesTable = pgTable(
     targetLocationObjectKey: text('target_location_object_key'),
     level: text('level').notNull().$type<LogEntryLevel>(),
     data: jsonbBase64('data').$type<JsonSerializableObject>(),
-    createdAt: timestamp('created_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('log_entries_target_location_folder_id_idx').on(

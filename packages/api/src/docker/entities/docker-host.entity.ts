@@ -30,9 +30,9 @@ export const dockerHostsTable = pgTable(
       .notNull()
       .$type<'healthy' | 'unhealthy' | 'unknown'>()
       .default('unknown'),
-    lastHealthCheck: timestamp('last_health_check'),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    lastHealthCheck: timestamp('last_health_check', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('docker_hosts_is_default_idx').on(table.isDefault),

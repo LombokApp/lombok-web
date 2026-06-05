@@ -24,8 +24,12 @@ export const notificationSettingsTable = pgTable(
     folderId: uuid('folder_id').references(() => foldersTable.id, {
       onDelete: 'cascade',
     }),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('notification_settings_user_id_emitter_identifier_idx').on(

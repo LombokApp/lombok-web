@@ -14,8 +14,8 @@ export const dockerRegistryCredentialsTable = pgTable(
     serverAddress: text('server_address').notNull(),
     username: text('username').notNull(),
     password: text('password').notNull(),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     uniqueIndex('docker_registry_credentials_registry_unique').on(

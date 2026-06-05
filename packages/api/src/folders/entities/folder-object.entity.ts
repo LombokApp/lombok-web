@@ -43,8 +43,8 @@ export const folderObjectsTable = pgTable(
       (): SQL =>
         sql`setweight(to_tsvector('english', coalesce(${folderObjectsTable.filename}, '')), 'A') || setweight(to_tsvector('english', coalesce(${folderObjectsTable.objectKey}, '')), 'B')`,
     ),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('folder_objects_folder_id_media_type_size_bytes_idx').on(

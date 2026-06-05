@@ -18,8 +18,8 @@ export const mcpUserSettingsTable = pgTable(
     canWrite: boolean('can_write'),
     canDelete: boolean('can_delete'),
     canMove: boolean('can_move'),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [uniqueIndex('mcp_user_settings_user_id_unique').on(table.userId)],
 )

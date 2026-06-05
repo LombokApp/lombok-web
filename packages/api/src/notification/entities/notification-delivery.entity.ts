@@ -29,24 +29,26 @@ export const notificationDeliveriesTable = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
-    readAt: timestamp('read_at'),
+    readAt: timestamp('read_at', { withTimezone: true }),
     // Email channel (null status = not requested)
     emailStatus: text('email_status').$type<
       'pending' | 'sent' | 'failed' | null
     >(),
-    emailSentAt: timestamp('email_sent_at'),
-    emailFailedAt: timestamp('email_failed_at'),
+    emailSentAt: timestamp('email_sent_at', { withTimezone: true }),
+    emailFailedAt: timestamp('email_failed_at', { withTimezone: true }),
     emailError:
       jsonbBase64('email_error').$type<NotificationDeliveryChannelError>(),
     // Mobile channel (null status = not requested)
     mobileStatus: text('mobile_status').$type<
       'pending' | 'sent' | 'failed' | null
     >(),
-    mobileSentAt: timestamp('mobile_sent_at'),
-    mobileFailedAt: timestamp('mobile_failed_at'),
+    mobileSentAt: timestamp('mobile_sent_at', { withTimezone: true }),
+    mobileFailedAt: timestamp('mobile_failed_at', { withTimezone: true }),
     mobileError:
       jsonbBase64('mobile_error').$type<NotificationDeliveryChannelError>(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('notification_deliveries_notification_id_idx').on(

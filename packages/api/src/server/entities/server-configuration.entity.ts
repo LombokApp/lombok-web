@@ -4,8 +4,8 @@ import { jsonbBase64 } from 'src/orm/util/json-base64-type'
 export const serverSettingsTable = pgTable('server_settings', {
   key: text('key').primaryKey(),
   value: jsonbBase64('value').$type<unknown>(),
-  createdAt: timestamp('created_at').notNull(),
-  updatedAt: timestamp('updated_at').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
 })
 
 export type ServerSetting = typeof serverSettingsTable.$inferSelect

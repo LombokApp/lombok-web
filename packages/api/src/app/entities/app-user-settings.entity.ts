@@ -32,8 +32,8 @@ export const appUserSettingsTable = pgTable(
       'folder_scope_permissions_default',
     ).$type<FolderScopeAppPermissions[]>(),
     permissions: jsonb('permissions').$type<UserScopeAppPermissions[]>(),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
   },
   (table) => [
     index('app_user_settings_user_id_idx').on(table.userId),

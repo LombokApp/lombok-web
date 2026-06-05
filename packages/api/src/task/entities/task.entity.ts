@@ -72,11 +72,11 @@ export const tasksTable = pgTable(
     targetUserId: uuid('target_user_id'),
     targetLocationFolderId: uuid('target_location_folder_id'),
     targetLocationObjectKey: text('target_location_object_key'),
-    startedAt: timestamp('started_at'),
-    completedAt: timestamp('completed_at'),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
     attemptCount: integer('attempt_count').notNull().default(0),
     failureCount: integer('failure_count').notNull().default(0),
-    dontStartBefore: timestamp('dont_start_before'),
+    dontStartBefore: timestamp('dont_start_before', { withTimezone: true }),
     systemLog: logJsonb<SystemLogEntry>('system_log').notNull().default([]),
     taskLog: logJsonb<TaskLogEntry>('task_log').notNull().default([]),
     storageAccessPolicy: jsonbBase64(
@@ -90,9 +90,9 @@ export const tasksTable = pgTable(
       message: string
       details?: JsonSerializableObject
     }>(),
-    createdAt: timestamp('created_at').notNull(),
-    updatedAt: timestamp('updated_at').notNull(),
-    latestHeartbeatAt: timestamp('latest_heartbeat_at'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+    latestHeartbeatAt: timestamp('latest_heartbeat_at', { withTimezone: true }),
     handlerType: text('handler_type').notNull(),
     handlerIdentifier: text('handler_identifier'),
     progressReports: jsonb('progress_reports')

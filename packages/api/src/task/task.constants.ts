@@ -36,6 +36,7 @@ export interface CoreTaskData {
   }
   [CoreTaskName.CreateEventNotifications]: {
     aggregationKey: string
+    requeueCount?: number
   }
   [CoreTaskName.BuildNotificationDeliveries]: {
     notificationId: string
