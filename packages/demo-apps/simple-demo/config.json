@@ -2,6 +2,23 @@
   "description": "The demo app.",
   "slug": "demo",
   "label": "Demo App",
+  "icon": {
+    "source": "custom",
+    "format": "png",
+    "rendering": "original",
+    "assets": [
+      {
+        "path": "assets/logo-light@2x.png",
+        "scale": 2,
+        "appearance": "light"
+      },
+      {
+        "path": "assets/logo-dark@2x.png",
+        "scale": 2,
+        "appearance": "dark"
+      }
+    ]
+  },
   "subscribedCoreEvents": [
     "core:object_added",
     "core:object_removed",
@@ -157,51 +174,680 @@
       }
     }
   },
-  "containerProfiles": {
-    "demo_container_profile": {
-      "image": "docker.io/library/nginx:latest",
-      "workers": [
-        {
-          "kind": "exec",
-          "command": [
-            "nginx",
-            "-g",
-            "daemon off;"
-          ],
-          "jobIdentifier": "demo_nginx_job"
-        }
-      ]
-    }
-  },
   "contributions": {
     "sidebarMenuLinks": [
       {
         "path": "/",
         "label": "Landing Page",
-        "iconPath": "/assets/logo.png"
+        "icon": {
+          "source": "custom",
+          "format": "png",
+          "rendering": "original",
+          "assets": [
+            {
+              "path": "assets/logo-light@2x.png",
+              "scale": 2,
+              "appearance": "light"
+            },
+            {
+              "path": "assets/logo-dark@2x.png",
+              "scale": 2,
+              "appearance": "dark"
+            }
+          ]
+        }
       }
     ],
     "folderSidebarViews": [
       {
         "path": "/folders/folder-sidebar",
-        "label": "Demo Folder Sidebar View",
-        "iconPath": "/assets/logo.png"
+        "label": "Demo Folder Sidebar View"
       }
     ],
     "objectSidebarViews": [
       {
         "path": "/folders/object-sidebar",
-        "label": "Demo Object Sidebar View",
-        "iconPath": "/assets/logo.png"
+        "label": "Demo Object Sidebar View"
       }
     ],
     "objectDetailViews": [
       {
         "path": "/folders/object-detail",
-        "label": "Demo Object View",
-        "iconPath": "/assets/logo.png"
+        "label": "Demo Object View"
       }
     ],
-    "folderDetailViews": []
+    "folderDetailViews": [],
+    "mobile": {
+      "queries": {
+        "lombok.viewer": {
+          "source": "lombok",
+          "path": "/viewer"
+        },
+        "app.demo.greeting": {
+          "source": "app",
+          "worker": "demo_api_request_worker",
+          "path": "/",
+          "method": "GET"
+        }
+      },
+      "root": {
+        "views": [
+          {
+            "id": "home",
+            "navRoot": true,
+            "components": [
+              {
+                "id": "root",
+                "component": "Column",
+                "children": [
+                  "title",
+                  "subtitle",
+                  "demos-section",
+                  "greeting-from-lombok",
+                  "greeting-from-app",
+                  "loading-text"
+                ]
+              },
+              {
+                "id": "title",
+                "component": "Text",
+                "text": "Simple Demo",
+                "variant": "h3"
+              },
+              {
+                "id": "subtitle",
+                "component": "Text",
+                "text": "This screen is rendered from a JSON spec declared in the app's config.json.",
+                "variant": "caption"
+              },
+              {
+                "id": "greeting-from-lombok",
+                "component": "Text",
+                "text": {
+                  "path": "/viewer/user/username"
+                },
+                "variant": "h5"
+              },
+              {
+                "id": "greeting-from-app",
+                "component": "Text",
+                "text": {
+                  "path": "/greeting/message"
+                },
+                "variant": "body"
+              },
+              {
+                "id": "loading-text",
+                "component": "Text",
+                "text": {
+                  "path": "/loading"
+                },
+                "variant": "caption"
+              },
+              {
+                "id": "demos-section",
+                "component": "Section",
+                "title": "Demonstrations",
+                "dividers": true,
+                "children": [
+                  "demo-catalog-tile"
+                ]
+              },
+              {
+                "id": "demo-catalog-tile",
+                "component": "LombokListRow",
+                "title": "Component Catalog",
+                "subtitle": "Browse every built-in component",
+                "background": "plain",
+                "icon": {
+                  "builtin": "app",
+                  "tint": "purple",
+                  "style": "soft"
+                },
+                "action": {
+                  "event": {
+                    "name": "navigate",
+                    "context": {
+                      "target": "catalog",
+                      "navTitle": "Component Catalog"
+                    }
+                  }
+                }
+              }
+            ],
+            "initialDataModel": {
+              "viewer": {
+                "user": {
+                  "username": ""
+                }
+              },
+              "greeting": {
+                "message": ""
+              },
+              "loading": ""
+            },
+            "initialQueries": [
+              {
+                "query": {
+                  "name": "lombok.viewer"
+                },
+                "targetPath": "/viewer",
+                "loadingPath": "/loading"
+              },
+              {
+                "query": {
+                  "name": "app.demo.greeting"
+                },
+                "targetPath": "/greeting"
+              }
+            ],
+            "actionMap": {
+              "refresh": [
+                {
+                  "query": {
+                    "name": "lombok.viewer"
+                  },
+                  "targetPath": "/viewer",
+                  "loadingPath": "/loading"
+                },
+                {
+                  "query": {
+                    "name": "app.demo.greeting"
+                  },
+                  "targetPath": "/greeting"
+                }
+              ]
+            },
+            "refreshable": true
+          },
+          {
+            "id": "catalog",
+            "components": [
+              {
+                "id": "root",
+                "component": "Stack",
+                "spacing": 20,
+                "padding": 20,
+                "children": [
+                  "h-Heading",
+                  "c-Heading",
+                  "h-Subtitle",
+                  "c-Subtitle",
+                  "h-BodyText",
+                  "c-BodyText",
+                  "h-Caption",
+                  "c-Caption",
+                  "h-Section",
+                  "c-Section",
+                  "h-SectionHeader",
+                  "c-SectionHeader",
+                  "h-MeasuredColumn",
+                  "c-MeasuredColumn",
+                  "h-Avatar",
+                  "c-Avatar",
+                  "h-Badge",
+                  "c-Badge",
+                  "h-HexTint",
+                  "c-HexTint",
+                  "h-StatusBadge",
+                  "c-StatusBadge",
+                  "h-MetricCard",
+                  "c-MetricCard",
+                  "h-Callout",
+                  "c-Callout",
+                  "h-Sparkline",
+                  "c-Sparkline",
+                  "h-ListRow",
+                  "c-ListRow",
+                  "h-NavTile",
+                  "c-NavTile",
+                  "h-HeaderCard",
+                  "c-HeaderCard",
+                  "h-KeyValueRow",
+                  "c-KeyValueRow",
+                  "h-EmptyState",
+                  "c-EmptyState",
+                  "h-LombokListRow",
+                  "c-LombokListRow",
+                  "c-LombokListRow2",
+                  "c-LombokListRow3"
+                ]
+              },
+              {
+                "id": "h-Heading",
+                "component": "Heading",
+                "text": "Heading",
+                "level": 3
+              },
+              {
+                "id": "c-Heading",
+                "component": "Heading",
+                "text": "The quick brown fox",
+                "level": 1
+              },
+              {
+                "id": "h-Subtitle",
+                "component": "Heading",
+                "text": "Subtitle",
+                "level": 3
+              },
+              {
+                "id": "c-Subtitle",
+                "component": "Subtitle",
+                "text": "A dimmed subheadline"
+              },
+              {
+                "id": "h-BodyText",
+                "component": "Heading",
+                "text": "BodyText",
+                "level": 3
+              },
+              {
+                "id": "c-BodyText",
+                "component": "BodyText",
+                "text": "Body copy paragraph, selectable and full-width."
+              },
+              {
+                "id": "h-Caption",
+                "component": "Heading",
+                "text": "Caption",
+                "level": 3
+              },
+              {
+                "id": "c-Caption",
+                "component": "Caption",
+                "text": "A dimmed caption — collapses when its text is empty."
+              },
+              {
+                "id": "h-Section",
+                "component": "Heading",
+                "text": "Section",
+                "level": 3
+              },
+              {
+                "id": "c-Section",
+                "component": "Section",
+                "title": "Grouped content",
+                "children": [
+                  "sec-kv1",
+                  "sec-kv2"
+                ]
+              },
+              {
+                "id": "sec-kv1",
+                "component": "KeyValueRow",
+                "label": "Status",
+                "value": "Operational",
+                "tint": "green"
+              },
+              {
+                "id": "sec-kv2",
+                "component": "KeyValueRow",
+                "label": "Region",
+                "value": "us-east-1",
+                "tint": "blue"
+              },
+              {
+                "id": "h-SectionHeader",
+                "component": "Heading",
+                "text": "SectionHeader",
+                "level": 3
+              },
+              {
+                "id": "c-SectionHeader",
+                "component": "SectionHeader",
+                "title": "SECTION HEADER",
+                "caption": "12 items"
+              },
+              {
+                "id": "h-MeasuredColumn",
+                "component": "Heading",
+                "text": "MeasuredColumn",
+                "level": 3
+              },
+              {
+                "id": "c-MeasuredColumn",
+                "component": "MeasuredColumn",
+                "children": [
+                  "mc-body",
+                  "mc-badge"
+                ]
+              },
+              {
+                "id": "mc-body",
+                "component": "BodyText",
+                "text": "Measured column content."
+              },
+              {
+                "id": "mc-badge",
+                "component": "Badge",
+                "label": "Measured",
+                "tint": "blue"
+              },
+              {
+                "id": "h-Avatar",
+                "component": "Heading",
+                "text": "Avatar",
+                "level": 3
+              },
+              {
+                "id": "c-Avatar",
+                "component": "Avatar",
+                "size": 56,
+                "icon": {
+                  "imageUrl": "https://i.pravatar.cc/150?img=12",
+                  "initials": "LB",
+                  "tint": "blue",
+                  "statusDot": {
+                    "tint": "green",
+                    "placement": "bottomTrailing"
+                  },
+                  "miniIcon": {
+                    "iconName": "checkmark.seal.fill",
+                    "tint": "blue",
+                    "placement": "topTrailing"
+                  }
+                }
+              },
+              {
+                "id": "h-Badge",
+                "component": "Heading",
+                "text": "Badge",
+                "level": 3
+              },
+              {
+                "id": "c-Badge",
+                "component": "Badge",
+                "label": "New",
+                "tint": "amber"
+              },
+              {
+                "id": "h-HexTint",
+                "component": "Heading",
+                "text": "Hex tint (#RRGGBB)",
+                "level": 3
+              },
+              {
+                "id": "c-HexTint",
+                "component": "ListRow",
+                "title": "Custom hex tint",
+                "subtitle": "Any tint field accepts #RRGGBB",
+                "badge": "#F08A5D",
+                "icon": {
+                  "iconName": "paintpalette.fill",
+                  "tint": "#F08A5D"
+                }
+              },
+              {
+                "id": "h-StatusBadge",
+                "component": "Heading",
+                "text": "StatusBadge",
+                "level": 3
+              },
+              {
+                "id": "c-StatusBadge",
+                "component": "StatusBadge",
+                "label": "Active",
+                "status": "active"
+              },
+              {
+                "id": "h-MetricCard",
+                "component": "Heading",
+                "text": "MetricCard",
+                "level": 3
+              },
+              {
+                "id": "c-MetricCard",
+                "component": "MetricCard",
+                "label": "Revenue",
+                "value": "$42K",
+                "deltaValue": "+12%",
+                "deltaDirection": "up",
+                "tint": "green"
+              },
+              {
+                "id": "h-Callout",
+                "component": "Heading",
+                "text": "Callout",
+                "level": 3
+              },
+              {
+                "id": "c-Callout",
+                "component": "Callout",
+                "level": "warning",
+                "title": "Heads up",
+                "body": "This action cannot be undone."
+              },
+              {
+                "id": "h-Sparkline",
+                "component": "Heading",
+                "text": "Sparkline",
+                "level": 3
+              },
+              {
+                "id": "c-Sparkline",
+                "component": "Sparkline",
+                "label": "Trend",
+                "series": [
+                  10,
+                  14,
+                  9,
+                  18,
+                  22,
+                  17,
+                  25
+                ],
+                "tint": "blue"
+              },
+              {
+                "id": "h-ListRow",
+                "component": "Heading",
+                "text": "ListRow",
+                "level": 3
+              },
+              {
+                "id": "c-ListRow",
+                "component": "ListRow",
+                "title": "Settings",
+                "subtitle": "Configure your profile",
+                "badge": "3",
+                "icon": {
+                  "iconName": "gearshape.fill",
+                  "tint": "blue",
+                  "statusDot": {
+                    "tint": "amber",
+                    "placement": "bottomTrailing"
+                  }
+                }
+              },
+              {
+                "id": "h-NavTile",
+                "component": "Heading",
+                "text": "NavTile",
+                "level": 3
+              },
+              {
+                "id": "c-NavTile",
+                "component": "NavTile",
+                "title": "Dashboard",
+                "subtitle": "View overview",
+                "icon": {
+                  "iconName": "chart.bar.fill",
+                  "tint": "purple",
+                  "miniIcon": {
+                    "iconName": "sparkles",
+                    "tint": "amber",
+                    "placement": "topTrailing"
+                  }
+                },
+                "action": {
+                  "event": {
+                    "name": "navigate",
+                    "context": {
+                      "target": "detail",
+                      "navTitle": "Dashboard"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "h-HeaderCard",
+                "component": "Heading",
+                "text": "HeaderCard",
+                "level": 3
+              },
+              {
+                "id": "c-HeaderCard",
+                "component": "HeaderCard",
+                "title": "Jane Doe",
+                "subtitle": "Premium member",
+                "statusLabel": "Active",
+                "statusTint": "green",
+                "icon": {
+                  "imageUrl": "https://i.pravatar.cc/150?img=5",
+                  "tint": "blue",
+                  "statusDot": {
+                    "tint": "green",
+                    "placement": "bottomTrailing"
+                  }
+                }
+              },
+              {
+                "id": "h-KeyValueRow",
+                "component": "Heading",
+                "text": "KeyValueRow",
+                "level": 3
+              },
+              {
+                "id": "c-KeyValueRow",
+                "component": "KeyValueRow",
+                "label": "Status",
+                "value": "Operational",
+                "tint": "green"
+              },
+              {
+                "id": "h-EmptyState",
+                "component": "Heading",
+                "text": "EmptyState",
+                "level": 3
+              },
+              {
+                "id": "c-EmptyState",
+                "component": "EmptyState",
+                "iconName": "tray",
+                "title": "Nothing here yet",
+                "message": "Add an item to get started."
+              },
+              {
+                "id": "h-LombokListRow",
+                "component": "Heading",
+                "text": "LombokListRow",
+                "level": 3
+              },
+              {
+                "id": "c-LombokListRow",
+                "component": "LombokListRow",
+                "title": "Project Files",
+                "subtitle": "128 items · updated today",
+                "icon": {
+                  "builtin": "folder",
+                  "tint": "blue",
+                  "style": "soft",
+                  "statusDot": {
+                    "tint": "green",
+                    "placement": "bottomTrailing"
+                  }
+                },
+                "action": {
+                  "event": {
+                    "name": "navigate",
+                    "context": {
+                      "target": "detail",
+                      "navTitle": "Project Files"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "c-LombokListRow2",
+                "component": "LombokListRow",
+                "title": "Build Pipeline",
+                "subtitle": "Running · 3 stages",
+                "icon": {
+                  "builtin": "terminal",
+                  "tint": "purple",
+                  "style": "soft",
+                  "miniIcon": {
+                    "iconName": "bolt.fill",
+                    "tint": "amber",
+                    "placement": "topTrailing"
+                  }
+                }
+              },
+              {
+                "id": "c-LombokListRow3",
+                "component": "LombokListRow",
+                "title": "API Service",
+                "subtitle": "Remote image (needs network)",
+                "icon": {
+                  "imageUrl": "https://i.pravatar.cc/150?img=33",
+                  "tint": "teal"
+                }
+              }
+            ]
+          },
+          {
+            "id": "detail",
+            "components": [
+              {
+                "id": "root",
+                "component": "Stack",
+                "spacing": 16,
+                "padding": 20,
+                "children": [
+                  "d-heading",
+                  "d-body",
+                  "d-section"
+                ]
+              },
+              {
+                "id": "d-heading",
+                "component": "Heading",
+                "text": "Dashboard",
+                "level": 1
+              },
+              {
+                "id": "d-body",
+                "component": "BodyText",
+                "text": "You drilled in from the catalog's NavTile. The breadcrumb bar above shows the path back to the app root — tap an ancestor crumb to jump up."
+              },
+              {
+                "id": "d-section",
+                "component": "Section",
+                "title": "Drill-down details",
+                "children": [
+                  "d-kv1",
+                  "d-kv2"
+                ]
+              },
+              {
+                "id": "d-kv1",
+                "component": "KeyValueRow",
+                "label": "Reached via",
+                "value": "NavTile navigate",
+                "tint": "blue"
+              },
+              {
+                "id": "d-kv2",
+                "component": "KeyValueRow",
+                "label": "Crumb name",
+                "value": "navTitle context key",
+                "tint": "green"
+              }
+            ]
+          }
+        ]
+      }
+    }
   }
 }

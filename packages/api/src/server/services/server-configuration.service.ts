@@ -19,6 +19,7 @@ import { SearchAppDisabledException } from 'src/search/exceptions/search-app-dis
 import { SearchAppNotFoundException } from 'src/search/exceptions/search-app-not-found.exception'
 import { SearchWorkerNotFoundException } from 'src/search/exceptions/search-worker-not-found.exception'
 import { SearchWorkerUnauthorizedException } from 'src/search/exceptions/search-worker-unauthorized.exception'
+import { buildImageUrls } from 'src/shared/utils'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
@@ -30,6 +31,7 @@ import {
   GOOGLE_OAUTH_CONFIG,
   googleOAuthConfigSchema,
   SEARCH_CONFIG,
+  SERVER_ICON_CONFIG,
   SERVER_STORAGE_CONFIG,
   type ServerSettingsEntry,
   SIGNUP_ENABLED_CONFIG,
@@ -58,6 +60,7 @@ export class ServerConfigurationService {
         where: inArray(serverSettingsTable.key, [
           GOOGLE_OAUTH_CONFIG.key,
           SIGNUP_ENABLED_CONFIG.key,
+          SERVER_ICON_CONFIG.key,
         ]),
       },
     )
@@ -70,6 +73,14 @@ export class ServerConfigurationService {
       (result) => result.key === SIGNUP_ENABLED_CONFIG.key,
     )?.value as boolean | undefined
 
+    const serverIconConfig = results.find(
+      (result) => result.key === SERVER_ICON_CONFIG.key,
+    )?.value as { updatedAt?: string } | undefined
+
+    const serverIconUpdatedAt = serverIconConfig?.updatedAt
+      ? new Date(serverIconConfig.updatedAt)
+      : null
+
     return {
       SIGNUP_ENABLED:
         signupEnabledConfig ?? SIGNUP_ENABLED_CONFIG.default ?? false,
@@ -77,6 +88,7 @@ export class ServerConfigurationService {
         googleOAuthConfig?.enabled ??
         GOOGLE_OAUTH_CONFIG.default?.enabled ??
         false,
+      serverIcon: buildImageUrls('/api/v1/server/icon', serverIconUpdatedAt),
     }
   }
 

@@ -9,6 +9,7 @@ import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { formatBytes } from '@lombokapp/utils'
 import { Calculator, Globe, KeyRound, Search } from 'lucide-react'
 
+import { AppIcon } from '@/src/components/app-icon/app-icon'
 import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
 import { AppUI } from '@/src/views/app-ui/app-ui.view'
@@ -163,10 +164,11 @@ export function FolderSidebar({
                       <CardHeader className="p-4 pt-3">
                         <TypographyH3>
                           <div className="flex items-center gap-2">
-                            <img
-                              src={`${protocol}//${view.appIdentifier}.${API_HOST}${view.iconPath ?? ''}`}
-                              alt={`${view.appLabel} icon`}
-                              className="size-6"
+                            <AppIcon
+                              icon={view.icon}
+                              appIdentifier={view.appIdentifier}
+                              fallbackLabel={`${view.appLabel} icon`}
+                              size={24}
                             />
                             {view.label}
                           </div>

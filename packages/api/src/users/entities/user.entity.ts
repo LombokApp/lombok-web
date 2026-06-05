@@ -23,6 +23,7 @@ export const usersTable = pgTable(
     permissions: jsonb('permissions').$type<string[]>().notNull().default([]),
     passwordHash: text('password_hash'),
     passwordSalt: text('password_salt'),
+    avatarUpdatedAt: timestamp('avatar_updated_at'),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },

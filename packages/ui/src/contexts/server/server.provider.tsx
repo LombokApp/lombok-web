@@ -19,7 +19,7 @@ function formatContributionLinks(
   allContributions: AppContributionsResponse,
   key: Exclude<
     keyof AppContributionsResponse[string]['contributions'],
-    'routes'
+    'routes' | 'mobile'
   >,
 ) {
   return Object.keys(allContributions).reduce<{
@@ -206,11 +206,18 @@ export const ServerContextProvider = ({
     socket?.offAny(handler)
   }
 
+  const getAppIcon = React.useCallback(
+    (appIdentifier: string) =>
+      appContributionsResult?.[appIdentifier]?.icon ?? undefined,
+    [appContributionsResult],
+  )
+
   const contextValue: IServerContext = {
     refreshApps: appsContributionsQuery.refetch,
     appsLoaded,
     refreshSettings: refetchSettings,
     socketConnected: socket?.connected ?? false,
+    getAppIcon,
     appContributions: formattedContributions,
     settings: serverSettings,
     subscribeToMessages,

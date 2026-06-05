@@ -546,6 +546,7 @@ export class FolderService {
         metadataLocationId: foldersTable.metadataLocationId,
         ownerId: foldersTable.ownerId,
         accessError: foldersTable.accessError,
+        iconUpdatedAt: foldersTable.iconUpdatedAt,
         createdAt: foldersTable.createdAt,
         updatedAt: foldersTable.updatedAt,
         contentLocation: contentLocationTable,

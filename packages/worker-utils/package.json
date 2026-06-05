@@ -45,7 +45,7 @@
     "@lombokapp/utils": "workspace:*",
     "fluent-ffmpeg": "2.1.3",
     "zod": "catalog:",
-    "sharp": "0.34.5",
+    "sharp": "catalog:",
     "uuid": "catalog:"
   }
 }

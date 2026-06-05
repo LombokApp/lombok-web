@@ -72,6 +72,8 @@ describe('User Apps', () => {
     expect(app.identifier).toBeDefined()
     expect(app.label).toBeDefined()
     expect(app.enabled).toBe(true)
+    // No explicit override yet -> null
+    expect(app.userEnabled).toBeNull()
     // Should not have admin-only fields
     expect('publicKey' in app).toBe(false)
     expect('connectedRuntimeWorkers' in app).toBe(false)
@@ -175,10 +177,82 @@ describe('User Apps', () => {
     }
     expect(getAppResponse.data.app.identifier).toBe(appIdentifier)
     expect(getAppResponse.data.app.enabled).toBe(true)
+    // No explicit override yet -> null
+    expect(getAppResponse.data.app.userEnabled).toBeNull()
     // Should not have admin-only fields
     expect('publicKey' in getAppResponse.data.app).toBe(false)
     expect('connectedRuntimeWorkers' in getAppResponse.data.app).toBe(false)
     expect('metrics' in getAppResponse.data.app).toBe(false)
+  })
+
+  it(`should surface the user's explicit enable override in list and get endpoints`, async () => {
+    await testModule!.installLocalAppBundles([DUMMY_APP_SLUG])
+
+    const {
+      session: { accessToken: adminToken },
+    } = await createTestUser(testModule!, {
+      username: 'admin_user_enabled_ctx',
+      password: '123',
+      admin: true,
+    })
+
+    const appIdentifier = testModule!.getInstalledAppIdentifier(DUMMY_APP_SLUG)
+    await apiClient(adminToken).PUT(
+      `/api/v1/server/apps/{appIdentifier}/enabled`,
+      {
+        params: { path: { appIdentifier } },
+        body: { enabled: true },
+      },
+    )
+
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'testuser_user_enabled_ctx',
+      password: '123',
+    })
+
+    const userEnabledInList = async () => {
+      const response = await apiClient(accessToken).GET('/api/v1/user/apps')
+      const listed = response.data?.result.find(
+        (a) => a.identifier === appIdentifier,
+      )
+      return listed?.userEnabled
+    }
+
+    const userEnabledFromGet = async () => {
+      const response = await apiClient(accessToken).GET(
+        '/api/v1/user/apps/{appIdentifier}',
+        { params: { path: { appIdentifier } } },
+      )
+      return response.data?.app.userEnabled
+    }
+
+    const setOverride = (enabled: boolean | null) =>
+      apiClient(accessToken).POST(
+        `/api/v1/user/apps/{appIdentifier}/settings`,
+        {
+          params: { path: { appIdentifier } },
+          body: {
+            enabled,
+            folderScopeEnabledDefault: null,
+            folderScopePermissionsDefault: null,
+            permissions: null,
+          },
+        },
+      )
+
+    // No override yet -> null
+    expect(await userEnabledInList()).toBeNull()
+    expect(await userEnabledFromGet()).toBeNull()
+
+    await setOverride(false)
+    expect(await userEnabledInList()).toBe(false)
+    expect(await userEnabledFromGet()).toBe(false)
+
+    await setOverride(true)
+    expect(await userEnabledInList()).toBe(true)
+    expect(await userEnabledFromGet()).toBe(true)
   })
 
   it(`should return 404 for disabled app`, async () => {

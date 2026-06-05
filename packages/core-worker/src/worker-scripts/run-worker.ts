@@ -867,6 +867,7 @@ const STATIC_NODE_MODULES_TO_LINK = [
   'pg',
   'drizzle-orm',
   'drizzle-kit',
+  'sharp',
 ] as const
 
 async function ensureLinkedNodeModulesMirror(): Promise<string> {

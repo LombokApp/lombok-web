@@ -8,6 +8,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router'
 
 import { useBreakPoints } from '../../utils/hooks'
 import { ModeToggle } from '../mode-toggle/mode-toggle'
+import { ServerLogo } from '../server-logo/server-logo'
 
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
@@ -38,11 +39,9 @@ export const Header = () => {
       <div className="flex shrink-0 items-center p-1">
         <NavLink to={'/'}>
           <div className="flex items-center gap-4">
-            <img
-              className="rounded-full"
-              src="/logo.png"
-              width={24}
-              height={24}
+            <ServerLogo
+              size="sm"
+              className="size-6 rounded-full"
               alt="Lombok Logo"
             />
             <div

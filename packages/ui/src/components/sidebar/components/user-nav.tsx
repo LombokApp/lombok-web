@@ -1,9 +1,4 @@
 import type { UserDTO } from '@lombokapp/types'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@lombokapp/ui-toolkit/components/avatar'
 import { Button } from '@lombokapp/ui-toolkit/components/button/button'
 import {
   DropdownMenu,
@@ -22,6 +17,8 @@ import {
 import { LayoutGrid, LogOut, UserIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
+
 export function UserNav({
   onSignout,
   viewer,
@@ -37,18 +34,15 @@ export function UserNav({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="relative size-8 rounded-full"
+                className="relative size-8 rounded-full p-0"
               >
-                <Avatar className="size-8">
-                  <AvatarImage src="#" alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">
-                    {(viewer.name?.length ?? 0) > 0
-                      ? viewer.name?.[0]
-                      : viewer.username.length > 0
-                        ? viewer.username[0]
-                        : '?'}
-                  </AvatarFallback>
-                </Avatar>
+                <EntityAvatar
+                  kind="user"
+                  name={viewer.name ?? viewer.username}
+                  image={viewer.avatar}
+                  size="sm"
+                  className="size-8"
+                />
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>

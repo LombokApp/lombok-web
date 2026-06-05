@@ -2,6 +2,7 @@ import { CardContent } from '@lombokapp/ui-toolkit/components/card'
 import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { Link } from 'react-router'
 
+import { AppIcon, iconRendersAsGlyph } from '@/src/components/app-icon/app-icon'
 import { $api } from '@/src/services/api'
 
 export function UserAppsSettingsTab() {
@@ -56,14 +57,37 @@ export function UserAppsSettingsTab() {
             to={`/account/settings/apps/${app.identifier}`}
             className="rounded-lg border bg-background p-4 transition-colors hover:bg-accent"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold">{app.label || app.identifier}</h3>
-                {app.config.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {app.config.description}
-                  </p>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {iconRendersAsGlyph(app.config.icon) ? (
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-md border bg-foreground/[0.02]">
+                    <AppIcon
+                      icon={app.config.icon}
+                      appIdentifier={app.identifier}
+                      fallbackLabel={app.label || app.identifier}
+                      size={24}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex size-10 shrink-0 items-center justify-center">
+                    <AppIcon
+                      icon={app.config.icon}
+                      appIdentifier={app.identifier}
+                      fallbackLabel={app.label || app.identifier}
+                      size={40}
+                    />
+                  </div>
                 )}
+                <div>
+                  <h3 className="font-semibold">
+                    {app.label || app.identifier}
+                  </h3>
+                  {app.config.description && (
+                    <p className="text-sm text-muted-foreground">
+                      {app.config.description}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </Link>

@@ -21,6 +21,7 @@ const testAppDefinitions: AppConfig[] = [
     description: 'A dummy app.',
     slug: DUMMY_APP_SLUG,
     label: 'Dummy',
+    icon: { source: 'builtin', name: 'app' },
     requiresStorage: false,
     settings: {
       secretKeyPattern: '^api_',
@@ -80,6 +81,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'A dummy app for testing docker workers.',
+    icon: { source: 'builtin', name: 'app' },
     slug: 'testapp',
     label: 'Test App',
     requiresStorage: false,
@@ -145,6 +147,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'Test app for task lifecycle flows.',
+    icon: { source: 'builtin', name: 'app' },
     slug: 'tasklifecycle',
     label: 'Task Lifecycle App',
     requiresStorage: false,
@@ -293,6 +296,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'Test app for app socket interface testing.',
+    icon: { source: 'builtin', name: 'app' },
     slug: 'sockettestapp',
     label: 'Socket Test App',
     requiresStorage: false,
@@ -326,6 +330,7 @@ const testAppDefinitions: AppConfig[] = [
   {
     description:
       'Test app for app socket interface testing without db enabled.',
+    icon: { source: 'builtin', name: 'app' },
     slug: 'sockettestappnodb',
     label: 'Socket Test App',
     requiresStorage: false,
@@ -355,6 +360,7 @@ const testAppDefinitions: AppConfig[] = [
   },
   {
     description: 'Test app for with data template.',
+    icon: { source: 'builtin', name: 'app' },
     slug: 'sockettestappdatatemplate',
     label: 'Socket Test App',
     requiresStorage: false,

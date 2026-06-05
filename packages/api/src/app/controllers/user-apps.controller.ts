@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -50,8 +49,12 @@ export class UserAppsController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const { result: apps, meta } = await this.appService.listEnabledAppsAsUser()
-    const result = apps.map((app) => transformAppToUserDTO(app))
+    const { result: apps, meta } = await this.appService.listEnabledAppsAsUser(
+      req.user,
+    )
+    const result = apps.map(({ app, userEnabled }) =>
+      transformAppToUserDTO(app, userEnabled),
+    )
     return {
       result,
       meta,
@@ -69,13 +72,10 @@ export class UserAppsController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const app = await this.appService.getAppAsUser(appIdentifier)
-    if (!app) {
-      throw new NotFoundException()
-    }
+    const result = await this.appService.getAppAsUser(req.user, appIdentifier)
 
     return {
-      app: transformAppToUserDTO(app),
+      app: transformAppToUserDTO(result.app, result.userEnabled),
     }
   }
 

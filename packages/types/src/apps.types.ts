@@ -9,8 +9,14 @@ import {
   appSlugSchema,
   workerIdentifierSchema,
 } from './identifiers.types'
-import type { JsonSerializableObject } from './json.types'
-import { jsonSerializableObjectSchema } from './json.types'
+import type {
+  JsonSerializableObject,
+  JsonSerializableValue,
+} from './json.types'
+import {
+  jsonSerializableObjectSchema,
+  jsonSerializableValueSchema,
+} from './json.types'
 import type { TaskOnCompleteConfig } from './task.types'
 import { taskConfigSchema, taskTriggerConfigSchema } from './task.types'
 
@@ -78,17 +84,192 @@ export const paramConfigSchema = z.object({
   default: z.union([z.string(), z.number(), z.boolean()]).optional().nullable(),
 })
 
+/**
+ * Catalog version implemented by the platform. Apps may pin this value
+ * (via {@link appConfigSchema.catalogVersion}) to validate against a known
+ * snapshot. Removals from the catalog require a major bump.
+ */
+export const ICON_CATALOG_VERSION = '1' as const
+
+/**
+ * V1 builtin icon names — the platform's published catalog. Each rendering
+ * client (web, iOS, Android) implements its own mapping from these names to
+ * concrete icon assets. Membership is enforced at install time but the wire
+ * representation is a plain string so adding a name doesn't churn every
+ * generated client type.
+ */
+export const BUILTIN_ICON_NAMES = [
+  'app',
+  'box',
+  'code',
+  'file',
+  'folder',
+  'settings',
+  'sparkles',
+  'terminal',
+] as const
+
+export type BuiltinIconName = (typeof BUILTIN_ICON_NAMES)[number]
+
+const BUILTIN_ICON_NAMES_SET: Set<string> = new Set<string>(BUILTIN_ICON_NAMES)
+
+export const builtinIconNameSchema = z
+  .string()
+  .nonempty()
+  .refine((name) => BUILTIN_ICON_NAMES_SET.has(name), {
+    message: `Unknown builtin icon. Must be one of: ${BUILTIN_ICON_NAMES.join(', ')}`,
+  })
+
+const iconAppearanceSchema = z.enum(['light', 'dark', 'any'])
+const pngScaleSchema = z.union([z.literal(1), z.literal(2), z.literal(3)])
+
+const iconSvgAssetSchema = z
+  .object({
+    path: z.string().nonempty(),
+    appearance: iconAppearanceSchema.optional(),
+  })
+  .strict()
+
+const iconPngAssetSchema = z
+  .object({
+    path: z.string().nonempty(),
+    scale: pngScaleSchema,
+    appearance: iconAppearanceSchema.optional(),
+  })
+  .strict()
+
+const builtinIconSchema = z
+  .object({
+    source: z.literal('builtin'),
+    label: z.string().nonempty().optional(),
+    name: builtinIconNameSchema,
+  })
+  .strict()
+
+const customSvgIconSchema = z
+  .object({
+    source: z.literal('custom'),
+    label: z.string().nonempty().optional(),
+    format: z.literal('svg'),
+    rendering: z.enum(['template', 'original']),
+    assets: z.array(iconSvgAssetSchema).min(1),
+  })
+  .strict()
+
+const customPngIconSchema = z
+  .object({
+    source: z.literal('custom'),
+    label: z.string().nonempty().optional(),
+    format: z.literal('png'),
+    // PNG + template is intentionally banned in V1 — use SVG for tintable icons.
+    rendering: z.literal('original'),
+    assets: z.array(iconPngAssetSchema).min(1),
+  })
+  .strict()
+
+const validateAppearanceCombinations = (
+  assets: { appearance?: 'light' | 'dark' | 'any' }[],
+  ctx: z.RefinementCtx,
+  // SVG has no scale dimension, so at most one asset per appearance. PNG allows
+  // multiple scale variants per appearance — uniqueness is enforced on
+  // (appearance, scale) separately — so only the mixing rule applies here.
+  enforceSingleAny: boolean,
+  pathPrefix: (string | number)[] = ['assets'],
+) => {
+  const present = new Set(assets.map((asset) => asset.appearance ?? 'any'))
+  if (present.has('any') && (present.has('light') || present.has('dark'))) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'Icon assets cannot mix appearance "any" with "light" or "dark" — supply either an "any" asset, or up to one "light" and one "dark".',
+      path: pathPrefix,
+    })
+  }
+  if (enforceSingleAny) {
+    const anyCount = assets.filter(
+      (asset) => (asset.appearance ?? 'any') === 'any',
+    ).length
+    if (anyCount > 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'At most one icon asset may have appearance "any" (or no appearance set).',
+        path: pathPrefix,
+      })
+    }
+  }
+}
+
+const customIconSchema = z.discriminatedUnion('format', [
+  customSvgIconSchema,
+  customPngIconSchema,
+])
+
+export const iconSchema = z
+  .discriminatedUnion('source', [builtinIconSchema, customIconSchema])
+  .superRefine((icon, ctx) => {
+    if (icon.source !== 'custom') {
+      return
+    }
+    if (icon.format === 'svg') {
+      validateAppearanceCombinations(icon.assets, ctx, true)
+      return
+    }
+    // PNG: enforce (appearance, scale) uniqueness, mixing rules per appearance,
+    // and require at least one asset with scale >= 2.
+    const perAppearance = new Map<
+      'light' | 'dark' | 'any',
+      Map<number, number>
+    >()
+    icon.assets.forEach((asset, index) => {
+      const appearance = asset.appearance ?? 'any'
+      let scales = perAppearance.get(appearance)
+      if (!scales) {
+        scales = new Map()
+        perAppearance.set(appearance, scales)
+      }
+      const seenAt = scales.get(asset.scale)
+      if (seenAt !== undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Duplicate PNG asset for appearance "${appearance}" at scale ${asset.scale} (also at index ${seenAt}).`,
+          path: ['assets', index],
+        })
+      } else {
+        scales.set(asset.scale, index)
+      }
+    })
+
+    validateAppearanceCombinations(icon.assets, ctx, false)
+
+    const hasHighDensity = icon.assets.some(
+      (asset) => asset.scale === 2 || asset.scale === 3,
+    )
+    if (!hasHighDensity) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'PNG icons require at least one asset at scale 2 or 3 — a lone 1x asset will look soft on high-density displays.',
+        path: ['assets'],
+      })
+    }
+  })
+
+export type Icon = z.infer<typeof iconSchema>
+
 export const appUILinkSchema = z.object({
   label: z.string(),
-  iconPath: z.string().optional(),
+  icon: iconSchema.optional(),
   path: z.string(),
 })
 
-export const appManifestEntrySchema = z.object({
-  hash: z.string(),
-  size: z.number(),
-  mimeType: z.string(),
-})
+export const appManifestEntrySchema = z
+  .object({
+    hash: z.string(),
+    size: z.number(),
+    mimeType: z.string(),
+  })
+  .meta({ id: 'AppManifestEntry' })
 
 export const appManifestSchema = z.record(z.string(), appManifestEntrySchema)
 
@@ -143,42 +324,553 @@ export const appContributionEmbedLinkSchema = z
       message: 'Path must start with a forwardslash',
     }),
     label: z.string().nonempty(),
-    iconPath: z.string().optional(),
+    icon: iconSchema.optional(),
   })
   .strict()
+  .meta({ id: 'AppContributedView' })
+
+export const appContributedViewsSchema = z
+  .array(appContributionEmbedLinkSchema)
+  .meta({ id: 'AppContributedViews' })
+
+// A dynamic string is either a literal or a pointer into the view's data model.
+export const mobileDynamicStringSchema = z
+  .union([z.string(), z.object({ path: z.string().nonempty() }).strict()])
+  .meta({ id: 'MobileDynamicString' })
+
+export const mobileAccessibilitySchema = z
+  .object({
+    label: mobileDynamicStringSchema.optional(),
+    description: mobileDynamicStringSchema.optional(),
+  })
+  .strict()
+  .refine((a) => a.label !== undefined || a.description !== undefined, {
+    message: 'accessibility requires at least one of label or description',
+  })
+  .meta({ id: 'MobileAccessibility' })
+
+export const mobileEventSchema = z
+  .object({
+    name: z.string().nonempty(),
+    context: jsonSerializableObjectSchema.optional(),
+  })
+  .strict()
+  .meta({ id: 'MobileEvent' })
+
+export const mobileActionSchema = z
+  .object({ event: mobileEventSchema })
+  .strict()
+  .meta({ id: 'MobileAction' })
+
+// Components are a generic envelope: a few typed anchor keys plus freeform,
+// component-specific properties. New component types need no schema change.
+export const mobileComponentSchema = z
+  .object({
+    id: z.string().nonempty(),
+    component: z.string().nonempty(),
+    weight: z.number().optional(),
+    accessibility: mobileAccessibilitySchema.optional(),
+    action: mobileActionSchema.optional(),
+  })
+  .catchall(jsonSerializableValueSchema)
+  .meta({ id: 'MobileComponent' })
+
+const mobileQueryArgSchema = z.union([
+  z.object({ fromPath: z.string().nonempty() }).strict(),
+  jsonSerializableValueSchema,
+])
+
+// A reference to a named query (a key in `mobile.queries`). `args` are passed
+// to the query when it runs — each value is either a literal or a `{ fromPath }`
+// pointer resolved against the view's data model.
+export const mobileQueryRefSchema = z
+  .object({
+    name: z.string().nonempty(),
+    args: z.record(z.string(), mobileQueryArgSchema).optional(),
+  })
+  .strict()
+  .meta({ id: 'MobileQueryRef' })
+
+// A binding resolves a query reference and writes its result into the view's
+// data model at `targetPath` (and toggles `loadingPath` while in flight).
+export const mobileQueryBindingSchema = z
+  .object({
+    query: mobileQueryRefSchema,
+    targetPath: z.string().nonempty(),
+    loadingPath: z.string().nonempty().optional(),
+  })
+  .strict()
+  .meta({ id: 'MobileQueryBinding' })
+
+// Collects the component ids referenced by another component's child wiring.
+// Child references live in freeform props, so we read them defensively:
+// `children` is either a string-array (Column/Row) or a List template
+// `{ componentId, path }`; `child` is a single id (Button).
+const collectChildReferences = (
+  component: Record<string, unknown>,
+): string[] => {
+  const refs: string[] = []
+  const { children, child } = component
+  if (Array.isArray(children)) {
+    for (const entry of children) {
+      if (typeof entry === 'string') {
+        refs.push(entry)
+      }
+    }
+  } else if (
+    children !== null &&
+    typeof children === 'object' &&
+    'componentId' in children &&
+    typeof children.componentId === 'string'
+  ) {
+    refs.push(children.componentId)
+  }
+  if (typeof child === 'string') {
+    refs.push(child)
+  }
+  return refs
+}
+
+// Structural checks shared by views and the mobile root: component ids are
+// unique, a "root" component exists, and every child reference resolves.
+const refineComponentTree = (
+  components: z.infer<typeof mobileComponentSchema>[],
+  ctx: z.RefinementCtx,
+): void => {
+  const ids = new Set<string>()
+  components.forEach((component, index) => {
+    if (ids.has(component.id)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Duplicate component id "${component.id}"`,
+        path: ['components', index, 'id'],
+      })
+    } else {
+      ids.add(component.id)
+    }
+  })
+  if (!ids.has('root')) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'A component tree must contain a component with id "root"',
+      path: ['components'],
+    })
+  }
+  components.forEach((component, index) => {
+    for (const ref of collectChildReferences(component)) {
+      if (!ids.has(ref)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Component "${component.id}" references unknown component id "${ref}"`,
+          path: ['components', index],
+        })
+      }
+    }
+  })
+}
+
+export const mobileViewSchema = z
+  .object({
+    id: z.string().nonempty(),
+    // Marks this view as the app's nav-root (entry) surface — the one embedded
+    // at the app's root. Exactly one view in `mobile.root.views` must set it.
+    navRoot: z.boolean().optional(),
+    refreshable: z.boolean().optional(),
+    components: z.array(mobileComponentSchema).min(1),
+    initialDataModel: jsonSerializableObjectSchema.optional(),
+    initialQueries: z.array(mobileQueryBindingSchema).optional(),
+    actionMap: z
+      .record(z.string(), z.array(mobileQueryBindingSchema))
+      .optional(),
+  })
+  .strict()
+  .superRefine((view, ctx) => {
+    refineComponentTree(view.components, ctx)
+  })
+  .meta({ id: 'MobileView' })
+
+export const MOBILE_HTTP_METHODS = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+] as const
+
+/**
+ * A query's `source` decides where it resolves — the platform API or an app
+ * worker — not its key. Keys are dot/underscore-separated lowercase segments;
+ * prefixing by data source (e.g. `lombok.viewer`, `app.workspaces.list`) is a
+ * convention, not a requirement.
+ */
+export const MOBILE_QUERY_KEY_REGEX = /^[a-z0-9]+(?:[._][a-z0-9]+)*$/
+
+export const mobileQueryKeySchema = z.string().regex(MOBILE_QUERY_KEY_REGEX, {
+  message:
+    'Mobile query keys must be dot/underscore-separated lowercase segments (e.g. "lombok.viewer", "app.workspaces.list")',
+})
+
+const mobileQueryPathSchema = z.string().nonempty().startsWith('/', {
+  message: 'Query path must be an absolute path starting with "/"',
+})
+
+// A transform reshapes a query's raw response before it lands in the view's
+// data model — a recursive walk over literals and operator nodes (an object
+// with exactly one `$`-prefixed operator key: $ref, $if/$cond, $map, $call).
+// Conditions ($eq/$exists/$in/$and/$or/$not) are a separate closed predicate
+// set, valid only where a condition is expected ($if, each $cond clause's `if`,
+// and inside $and/$or/$not). An $eq/$in operand is a value (path, literal, or
+// value operator) — i.e. a transform, never a condition.
+//
+// The recursion is routed through interfaces (not bare union aliases) so the
+// mutual Transform ⇄ Condition reference doesn't trip TS's circular-alias check.
+interface MobileQueryTransformRef {
+  $ref: string
+}
+interface MobileQueryTransformIf {
+  $if: MobileQueryTransformCondition
+  then: MobileQueryTransform
+  else?: MobileQueryTransform
+}
+interface MobileQueryTransformCondClause {
+  if: MobileQueryTransformCondition
+  then: MobileQueryTransform
+}
+interface MobileQueryTransformCond {
+  $cond: MobileQueryTransformCondClause[]
+  else?: MobileQueryTransform
+}
+interface MobileQueryTransformMap {
+  $map: string
+  to: MobileQueryTransform
+}
+interface MobileQueryTransformCall {
+  $call: string
+  args?: Record<string, MobileQueryTransform>
+}
+
+export type MobileQueryTransform =
+  | MobileQueryTransformRef
+  | MobileQueryTransformIf
+  | MobileQueryTransformCond
+  | MobileQueryTransformMap
+  | MobileQueryTransformCall
+  | string
+  | number
+  | boolean
+  | null
+  | MobileQueryTransform[]
+  // Index signature (not Record<>) so the self-reference defers — otherwise TS
+  // flags the alias as circular. The eslint indexed-object-style rule has a
+  // circular-reference exception that leaves this form alone.
+  | { [key: string]: MobileQueryTransform }
+
+interface MobileQueryTransformEq {
+  $eq: [MobileQueryTransform, MobileQueryTransform]
+}
+interface MobileQueryTransformExists {
+  $exists: string
+}
+interface MobileQueryTransformIn {
+  $in: [MobileQueryTransform, JsonSerializableValue[]]
+}
+interface MobileQueryTransformAnd {
+  $and: MobileQueryTransformCondition[]
+}
+interface MobileQueryTransformOr {
+  $or: MobileQueryTransformCondition[]
+}
+interface MobileQueryTransformNot {
+  $not: MobileQueryTransformCondition
+}
+
+export type MobileQueryTransformCondition =
+  | MobileQueryTransformEq
+  | MobileQueryTransformExists
+  | MobileQueryTransformIn
+  | MobileQueryTransformAnd
+  | MobileQueryTransformOr
+  | MobileQueryTransformNot
+
+// JSON Pointer path: "/abs/path" (absolute), "rel/path" (scope-relative), or
+// "" for the current scope itself — e.g. `$map: ""` over a root array, or
+// `$ref: ""` for the item the enclosing `$map` is iterating.
+const mobileQueryTransformPathSchema = z.string()
+
+// The mapping is defined before the condition schema so that the $eq/$in tuple
+// operands below reference an already-typed schema (a forward reference would
+// widen the tuple's element type to `any`).
+/* eslint-disable @typescript-eslint/no-use-before-define, no-use-before-define -- mutually recursive with mobileQueryTransformConditionSchema (defined below) */
+export const mobileQueryTransformSchema: z.ZodType<MobileQueryTransform> = z
+  .lazy(() =>
+    z.union([
+      // operator nodes — companion keys are part of the operator, not output
+      z.object({ $ref: mobileQueryTransformPathSchema }).strict(),
+      z
+        .object({
+          $if: mobileQueryTransformConditionSchema,
+          then: mobileQueryTransformSchema,
+          else: mobileQueryTransformSchema.optional(),
+        })
+        .strict(),
+      z
+        .object({
+          $cond: z
+            .array(
+              z
+                .object({
+                  if: mobileQueryTransformConditionSchema,
+                  then: mobileQueryTransformSchema,
+                })
+                .strict(),
+            )
+            .min(1),
+          else: mobileQueryTransformSchema.optional(),
+        })
+        .strict(),
+      z
+        .object({
+          $map: mobileQueryTransformPathSchema,
+          to: mobileQueryTransformSchema,
+        })
+        .strict(),
+      z
+        .object({
+          $call: z.string().min(1),
+          args: z.record(z.string(), mobileQueryTransformSchema).optional(),
+        })
+        .strict(),
+      // plain literals (evaluate to themselves)
+      z.string(),
+      z.number(),
+      z.boolean(),
+      z.null(),
+      z.array(mobileQueryTransformSchema),
+      // plain object: every value is itself a transform, keys copied verbatim.
+      // Reject any $-prefixed key so a malformed operator node fails instead of
+      // silently passing as a plain object.
+      z
+        .record(z.string(), mobileQueryTransformSchema)
+        .refine((o) => !Object.keys(o).some((k) => k.startsWith('$')), {
+          message: 'object with a $-prefixed key must be a valid operator node',
+        }),
+    ]),
+  )
+  .meta({ id: 'MobileQueryTransform' })
+/* eslint-enable @typescript-eslint/no-use-before-define, no-use-before-define */
+
+export const mobileQueryTransformConditionSchema: z.ZodType<MobileQueryTransformCondition> =
+  z
+    .lazy(() =>
+      z.union([
+        // strict, non-coercing equality; operands are paths/literals/value-ops
+        z
+          .object({
+            $eq: z.tuple([
+              mobileQueryTransformSchema,
+              mobileQueryTransformSchema,
+            ]),
+          })
+          .strict(),
+        z.object({ $exists: mobileQueryTransformPathSchema }).strict(),
+        z
+          .object({
+            $in: z.tuple([
+              mobileQueryTransformSchema,
+              z.array(jsonSerializableValueSchema),
+            ]),
+          })
+          .strict(),
+        z
+          .object({ $and: z.array(mobileQueryTransformConditionSchema) })
+          .strict(), // empty ⇒ true
+        z
+          .object({ $or: z.array(mobileQueryTransformConditionSchema) })
+          .strict(), // empty ⇒ false
+        z.object({ $not: mobileQueryTransformConditionSchema }).strict(),
+      ]),
+    )
+    .meta({ id: 'MobileQueryTransformCondition' })
+
+// `source` discriminates resolution: `lombok` needs only a path (platform API);
+// `app` also requires the named `worker` that serves it. An optional `transform`
+// reshapes the response before it lands in the view's data model.
+export const mobileQueryDefinitionSchema = z
+  .discriminatedUnion('source', [
+    z
+      .object({
+        source: z.literal('lombok'),
+        path: mobileQueryPathSchema,
+        method: z.enum(MOBILE_HTTP_METHODS).optional(),
+        transform: mobileQueryTransformSchema.optional(),
+      })
+      .strict(),
+    z
+      .object({
+        source: z.literal('app'),
+        path: mobileQueryPathSchema,
+        method: z.enum(MOBILE_HTTP_METHODS).optional(),
+        worker: workerIdentifierSchema,
+        transform: mobileQueryTransformSchema.optional(),
+      })
+      .strict(),
+  ])
+  .meta({ id: 'MobileQueryDefinition' })
+
+export const mobileQueriesSchema = z.record(
+  mobileQueryKeySchema,
+  mobileQueryDefinitionSchema,
+)
+
+// The mobile root is the app's home content — the set of views rendered at the
+// app's root. Exactly one view is flagged `navRoot: true` (the entry surface
+// embedded at the root); the rest are its in-app `navigate` drill-down targets.
+export const mobileRootSchema = z
+  .object({
+    views: z.array(mobileViewSchema).min(1),
+  })
+  .strict()
+  .superRefine((root, ctx) => {
+    const viewIds = new Set<string>()
+    root.views.forEach((view, index) => {
+      if (viewIds.has(view.id)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Duplicate view id "${view.id}"`,
+          path: ['views', index, 'id'],
+        })
+      } else {
+        viewIds.add(view.id)
+      }
+    })
+
+    // Exactly one view is the nav-root (entry) surface.
+    const navRootCount = root.views.filter((view) => view.navRoot).length
+    if (navRootCount !== 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          navRootCount === 0
+            ? 'Exactly one mobile root view must be flagged `navRoot: true`'
+            : 'Only one mobile root view may be flagged `navRoot: true`',
+        path: ['views'],
+      })
+    }
+
+    // `navigate` actions must target a view that exists within the root.
+    root.views.forEach((view, viewIndex) => {
+      view.components.forEach((component, componentIndex) => {
+        const event = component.action?.event
+        if (event?.name !== 'navigate') {
+          return
+        }
+        const target = event.context?.target
+        if (typeof target === 'string' && !viewIds.has(target)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `navigate action targets unknown view id "${target}"`,
+            path: [
+              'views',
+              viewIndex,
+              'components',
+              componentIndex,
+              'action',
+              'event',
+              'context',
+              'target',
+            ],
+          })
+        }
+      })
+    })
+  })
+  .meta({ id: 'MobileRoot' })
+
+export const mobileContributionsSchema = z
+  .object({
+    queries: mobileQueriesSchema.optional(),
+    root: mobileRootSchema.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    // Every query binding must reference a query declared in `queries`.
+    const queryKeys = new Set(Object.keys(value.queries ?? {}))
+    const checkBindings = (
+      bindings: { query: { name: string } }[] | undefined,
+      path: (string | number)[],
+    ) => {
+      bindings?.forEach((binding, bindingIndex) => {
+        if (!queryKeys.has(binding.query.name)) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Unknown query "${binding.query.name}". Must be one of: ${
+              queryKeys.size > 0 ? [...queryKeys].join(', ') : '(none)'
+            }`,
+            path: [...path, bindingIndex, 'query', 'name'],
+          })
+        }
+      })
+    }
+    value.root?.views.forEach((view, viewIndex) => {
+      checkBindings(view.initialQueries, [
+        'root',
+        'views',
+        viewIndex,
+        'initialQueries',
+      ])
+      if (view.actionMap) {
+        Object.entries(view.actionMap).forEach(([action, bindings]) => {
+          checkBindings(bindings, [
+            'root',
+            'views',
+            viewIndex,
+            'actionMap',
+            action,
+          ])
+        })
+      }
+    })
+  })
 
 export const appContributionsSchema = z
   .object({
-    sidebarMenuLinks: z.array(appContributionEmbedLinkSchema),
-    folderSidebarViews: z.array(appContributionEmbedLinkSchema),
-    objectSidebarViews: z.array(appContributionEmbedLinkSchema),
-    objectDetailViews: z.array(appContributionEmbedLinkSchema),
-    folderDetailViews: z.array(appContributionEmbedLinkSchema),
+    sidebarMenuLinks: appContributedViewsSchema,
+    folderSidebarViews: appContributedViewsSchema,
+    objectSidebarViews: appContributedViewsSchema,
+    objectDetailViews: appContributedViewsSchema,
+    folderDetailViews: appContributedViewsSchema,
+    mobile: mobileContributionsSchema.optional(),
   })
   .strict()
 
 // Permissions that can be granted to an app for the core
-export const coreScopeAppPermissionsSchema = z.enum([
-  'READ_FOLDER_ACL', // Read the user <-> folder ACL context
-])
+export const coreScopeAppPermissionsSchema = z
+  .enum([
+    'READ_FOLDER_ACL', // Read the user <-> folder ACL context
+  ])
+  .meta({ id: 'CoreScopeAppPermission' })
 
 // Permissions that can be granted to an app for a specific user
-export const userScopeAppPermissionsSchema = z.enum([
-  'CREATE_FOLDERS', // create a new folder
-  'READ_FOLDERS', // get/list folders
-  'UPDATE_FOLDERS', // update a folder (name)
-  'DELETE_FOLDERS', // delete a folder
-  'READ_USER', // get user details
-])
+export const userScopeAppPermissionsSchema = z
+  .enum([
+    'CREATE_FOLDERS', // create a new folder
+    'READ_FOLDERS', // get/list folders
+    'UPDATE_FOLDERS', // update a folder (name)
+    'DELETE_FOLDERS', // delete a folder
+    'READ_USER', // get user details
+  ])
+  .meta({ id: 'UserScopeAppPermission' })
 
 // Permissions that can be granted to an app for a specific folder
-export const folderScopeAppPermissionsSchema = z.enum([
-  'READ_OBJECTS', // get/list objects and their metadata
-  'WRITE_OBJECTS', // create/update/delete objects
-  'WRITE_OBJECTS_METADATA', // create/update/delete object metadata
-  'WRITE_FOLDER_METADATA', // create/update/delete folder metadata
-  'REINDEX_FOLDER',
-])
+export const folderScopeAppPermissionsSchema = z
+  .enum([
+    'READ_OBJECTS', // get/list objects and their metadata
+    'WRITE_OBJECTS', // create/update/delete objects
+    'WRITE_OBJECTS_METADATA', // create/update/delete object metadata
+    'WRITE_FOLDER_METADATA', // create/update/delete folder metadata
+    'REINDEX_FOLDER',
+  ])
+  .meta({ id: 'FolderScopeAppPermission' })
 
 export type CoreScopeAppPermissions = z.infer<
   typeof coreScopeAppPermissionsSchema
@@ -289,37 +981,45 @@ const nullableType = <T extends 'string' | 'number' | 'integer' | 'boolean'>(
   t: T,
 ) => z.union([z.literal(t), z.tuple([z.literal(t), z.literal('null')])])
 
-const jsonSchema07StringPropertySchema = z.object({
-  type: nullableType('string'),
-  description: z.string().optional(),
-  default: z.string().optional(),
-  enum: z.array(z.string()).optional(),
-  minLength: z.number().int().min(0).optional(),
-  maxLength: z.number().int().min(0).optional(),
-  pattern: z.string().optional(),
-})
+const jsonSchema07StringPropertySchema = z
+  .object({
+    type: nullableType('string'),
+    description: z.string().optional(),
+    default: z.string().optional(),
+    enum: z.array(z.string()).optional(),
+    minLength: z.number().int().min(0).optional(),
+    maxLength: z.number().int().min(0).optional(),
+    pattern: z.string().optional(),
+  })
+  .meta({ id: 'JsonSchema07StringProperty' })
 
-const jsonSchema07NumberPropertySchema = z.object({
-  type: nullableType('number'),
-  description: z.string().optional(),
-  default: z.number().optional(),
-  minimum: z.number().optional(),
-  maximum: z.number().optional(),
-})
+const jsonSchema07NumberPropertySchema = z
+  .object({
+    type: nullableType('number'),
+    description: z.string().optional(),
+    default: z.number().optional(),
+    minimum: z.number().optional(),
+    maximum: z.number().optional(),
+  })
+  .meta({ id: 'JsonSchema07NumberProperty' })
 
-const jsonSchema07IntegerPropertySchema = z.object({
-  type: nullableType('integer'),
-  description: z.string().optional(),
-  default: z.number().int().optional(),
-  minimum: z.number().int().optional(),
-  maximum: z.number().int().optional(),
-})
+const jsonSchema07IntegerPropertySchema = z
+  .object({
+    type: nullableType('integer'),
+    description: z.string().optional(),
+    default: z.number().int().optional(),
+    minimum: z.number().int().optional(),
+    maximum: z.number().int().optional(),
+  })
+  .meta({ id: 'JsonSchema07IntegerProperty' })
 
-const jsonSchema07BooleanPropertySchema = z.object({
-  type: nullableType('boolean'),
-  description: z.string().optional(),
-  default: z.boolean().optional(),
-})
+const jsonSchema07BooleanPropertySchema = z
+  .object({
+    type: nullableType('boolean'),
+    description: z.string().optional(),
+    default: z.boolean().optional(),
+  })
+  .meta({ id: 'JsonSchema07BooleanProperty' })
 
 /**
  * Primitive-only property schema — used for top-level settings
@@ -367,60 +1067,80 @@ export type JsonSchema07ObjectItemProperty =
       required?: string[]
     }
 
+// Element type for primitive-typed arrays, e.g. `items: { type: 'string' }`.
+const jsonSchema07ArrayItemPrimitiveSchema = z
+  .object({
+    type: z.enum(['string', 'number', 'integer', 'boolean']),
+  })
+  .meta({ id: 'JsonSchema07ArrayItemPrimitive' })
+
+// The nested-object variant of an object-item property (carries description /
+// default and recurses through the object-item-property union). Shared by both
+// the object-item-property union and the top-level property union.
+const jsonSchema07NestedObjectItemPropertySchema: z.ZodType<
+  Extract<JsonSchema07ObjectItemProperty, { type: 'object' }>
+> = z
+  .object({
+    type: z.literal('object'),
+    description: z.string().optional(),
+    default: z.record(z.string(), z.unknown()).optional(),
+    properties: z
+      .record(
+        z.string(),
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define, no-use-before-define
+        z.lazy(() => jsonSchema07ObjectItemPropertySchema),
+      )
+      .optional(),
+    additionalProperties: z
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define, no-use-before-define
+      .lazy(() => jsonSchema07ObjectItemPropertySchema)
+      .optional(),
+    required: z.array(z.string()).optional(),
+  })
+  .meta({ id: 'JsonSchema07NestedObjectItemProperty' })
+
 export const jsonSchema07ObjectItemPropertySchema: z.ZodType<JsonSchema07ObjectItemProperty> =
-  z.union([
-    jsonSchema07PrimitivePropertySchema,
-    z.object({
-      type: z.literal('array'),
-      description: z.string().optional(),
-      default: z.array(z.unknown()).optional(),
-      items: z.union([
-        z.object({
-          type: z.enum(['string', 'number', 'integer', 'boolean']),
-        }),
-        z.object({
-          type: z.literal('object'),
-          properties: z
-            .record(
-              z.string(),
-              z.lazy(() => jsonSchema07ObjectItemPropertySchema),
-            )
-            .optional(),
-          additionalProperties: z
-            .lazy(() => jsonSchema07ObjectItemPropertySchema)
-            .optional(),
-          required: z.array(z.string()).optional(),
-        }),
-      ]),
-      minItems: z.number().int().min(0).optional(),
-      maxItems: z.number().int().min(0).optional(),
-    }),
-    z.object({
-      type: z.literal('object'),
-      description: z.string().optional(),
-      default: z.record(z.string(), z.unknown()).optional(),
-      properties: z
-        .record(
-          z.string(),
-          z.lazy(() => jsonSchema07ObjectItemPropertySchema),
-        )
-        .optional(),
-      additionalProperties: z
-        .lazy(() => jsonSchema07ObjectItemPropertySchema)
-        .optional(),
-      required: z.array(z.string()).optional(),
-    }),
-  ])
+  z
+    .union([
+      jsonSchema07PrimitivePropertySchema,
+      z.object({
+        type: z.literal('array'),
+        description: z.string().optional(),
+        default: z.array(z.unknown()).optional(),
+        items: z.union([
+          jsonSchema07ArrayItemPrimitiveSchema,
+          z.object({
+            type: z.literal('object'),
+            properties: z
+              .record(
+                z.string(),
+                z.lazy(() => jsonSchema07ObjectItemPropertySchema),
+              )
+              .optional(),
+            additionalProperties: z
+              .lazy(() => jsonSchema07ObjectItemPropertySchema)
+              .optional(),
+            required: z.array(z.string()).optional(),
+          }),
+        ]),
+        minItems: z.number().int().min(0).optional(),
+        maxItems: z.number().int().min(0).optional(),
+      }),
+      jsonSchema07NestedObjectItemPropertySchema,
+    ])
+    .meta({ id: 'JsonSchema07ObjectItemProperty' })
 
 /**
  * Schema for object items within arrays.
  * Properties support primitive types and primitive-typed arrays.
  */
-export const jsonSchema07ObjectItemSchema = z.object({
-  type: z.literal('object'),
-  properties: z.record(z.string(), jsonSchema07ObjectItemPropertySchema),
-  required: z.array(z.string()).optional(),
-})
+export const jsonSchema07ObjectItemSchema = z
+  .object({
+    type: z.literal('object'),
+    properties: z.record(z.string(), jsonSchema07ObjectItemPropertySchema),
+    required: z.array(z.string()).optional(),
+  })
+  .meta({ id: 'JsonSchema07ObjectItem' })
 
 export type JsonSchema07ObjectItem = z.infer<
   typeof jsonSchema07ObjectItemSchema
@@ -440,36 +1160,27 @@ export type JsonSchema07DiscriminatedObjectItem = z.infer<
   typeof jsonSchema07DiscriminatedObjectItemSchema
 >
 
-export const jsonSchema07PropertySchema = z.union([
-  jsonSchema07StringPropertySchema,
-  jsonSchema07NumberPropertySchema,
-  jsonSchema07IntegerPropertySchema,
-  jsonSchema07BooleanPropertySchema,
-  z.object({
-    type: z.literal('array'),
-    description: z.string().optional(),
-    default: z.array(z.unknown()).optional(),
-    items: z.union([
-      z.object({
-        type: z.enum(['string', 'number', 'integer', 'boolean']),
-      }),
-      jsonSchema07ObjectItemSchema,
-      jsonSchema07DiscriminatedObjectItemSchema,
-    ]),
-    minItems: z.number().int().min(0).optional(),
-    maxItems: z.number().int().min(0).optional(),
-  }),
-  z.object({
-    type: z.literal('object'),
-    description: z.string().optional(),
-    default: z.record(z.string(), z.unknown()).optional(),
-    properties: z
-      .record(z.string(), jsonSchema07ObjectItemPropertySchema)
-      .optional(),
-    additionalProperties: jsonSchema07ObjectItemPropertySchema.optional(),
-    required: z.array(z.string()).optional(),
-  }),
-])
+export const jsonSchema07PropertySchema = z
+  .union([
+    jsonSchema07StringPropertySchema,
+    jsonSchema07NumberPropertySchema,
+    jsonSchema07IntegerPropertySchema,
+    jsonSchema07BooleanPropertySchema,
+    z.object({
+      type: z.literal('array'),
+      description: z.string().optional(),
+      default: z.array(z.unknown()).optional(),
+      items: z.union([
+        jsonSchema07ArrayItemPrimitiveSchema,
+        jsonSchema07ObjectItemSchema,
+        jsonSchema07DiscriminatedObjectItemSchema,
+      ]),
+      minItems: z.number().int().min(0).optional(),
+      maxItems: z.number().int().min(0).optional(),
+    }),
+    jsonSchema07NestedObjectItemPropertySchema,
+  ])
+  .meta({ id: 'JsonSchema07Property' })
 
 /**
  * Valid app settings key format: lowercase letters, digits, and underscores,
@@ -500,14 +1211,16 @@ const settingsPatternPropertyKeySchema = z
     'patternProperties keys must be a literal lowercase prefix regex ending with _, e.g. `^provider_`',
   )
 
-export const jsonSchema07ObjectSchema = z.object({
-  type: z.literal('object'),
-  properties: z.record(settingsKeySchema, jsonSchema07PropertySchema),
-  patternProperties: z
-    .record(settingsPatternPropertyKeySchema, jsonSchema07PropertySchema)
-    .optional(),
-  required: z.array(settingsKeySchema).optional(),
-})
+export const jsonSchema07ObjectSchema = z
+  .object({
+    type: z.literal('object'),
+    properties: z.record(settingsKeySchema, jsonSchema07PropertySchema),
+    patternProperties: z
+      .record(settingsPatternPropertyKeySchema, jsonSchema07PropertySchema)
+      .optional(),
+    required: z.array(settingsKeySchema).optional(),
+  })
+  .meta({ id: 'JsonSchema07Object' })
 
 export const appSettingsConfigSchema = z
   .object({
@@ -537,6 +1250,7 @@ export const appConfigSchema = z
     slug: appSlugSchema,
     label: z.string().nonempty().min(1).max(128),
     description: z.string().nonempty().min(1).max(1024),
+    icon: iconSchema,
     subscribedCoreEvents: z.array(corePrefixedEventIdentifierSchema).optional(),
     triggers: z.array(taskTriggerConfigSchema).optional(),
     tasks: z.array(taskConfigSchema.strict()).optional(),
@@ -566,9 +1280,67 @@ export const appConfigSchema = z
     settings: appSettingsConfigSchema.optional(),
   })
   .strict()
+  .meta({ id: 'AppConfig' })
   .superRefine((value, ctx) => {
+    // Custom icons require ui.enabled — they're served from the UI bundle.
+    const checkCustomIconRequiresUi = (
+      icon: Icon | undefined,
+      path: (string | number)[],
+    ) => {
+      if (icon?.source !== 'custom') {
+        return
+      }
+      if (!value.ui?.enabled) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            "Custom icons require `ui.enabled: true` — they are resolved against the app's UI bundle.",
+          path,
+        })
+      }
+    }
+
+    checkCustomIconRequiresUi(value.icon, ['icon'])
+    const contributions = value.contributions
+    if (contributions) {
+      const linkKeys = [
+        'sidebarMenuLinks',
+        'folderSidebarViews',
+        'objectSidebarViews',
+        'objectDetailViews',
+        'folderDetailViews',
+      ] as const
+      for (const key of linkKeys) {
+        contributions[key].forEach((link, index) => {
+          checkCustomIconRequiresUi(link.icon, [
+            'contributions',
+            key,
+            index,
+            'icon',
+          ])
+        })
+      }
+    }
+
     const workerIdentifiersArray = Object.keys(value.runtimeWorkers ?? {})
     const workerIdentifiers = new Set(workerIdentifiersArray)
+
+    // `app`-source mobile queries route to a named app runtime worker — verify it exists.
+    Object.entries(value.contributions?.mobile?.queries ?? {}).forEach(
+      ([queryKey, definition]) => {
+        if (
+          definition.source === 'app' &&
+          !workerIdentifiers.has(definition.worker)
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            message: `Unknown worker "${definition.worker}" in mobile query "${queryKey}". Must be one of: ${workerIdentifiersArray.length > 0 ? workerIdentifiersArray.join(', ') : '(none)'}`,
+            path: ['contributions', 'mobile', 'queries', queryKey, 'worker'],
+          })
+        }
+      },
+    )
+
     const taskIdentifiersArray = value.tasks?.map((t) => t.identifier) ?? []
     const taskIdentifiers = new Set(taskIdentifiersArray)
     const containerProfilesKeys = Object.keys(value.containerProfiles ?? {})
@@ -757,6 +1529,38 @@ export const appConfigSchema = z
   })
 
 // Schema that includes manifest validation for worker entrypoints
+const ICON_PATH_BAD_CHARS = /[\\]|\.\.|^\/|^\s|\s$/
+
+const validateIconAssetPaths = (
+  icon: Icon | undefined,
+  manifest: Record<string, unknown>,
+  ctx: z.RefinementCtx,
+  zodPath: (string | number)[],
+) => {
+  if (icon?.source !== 'custom') {
+    return
+  }
+  icon.assets.forEach((asset, index) => {
+    const assetPath = asset.path
+    if (ICON_PATH_BAD_CHARS.test(assetPath)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Icon asset path "${assetPath}" is invalid — paths must be relative, forward-slash separated, and must not contain ".." or leading/trailing whitespace.`,
+        path: [...zodPath, 'assets', index, 'path'],
+      })
+      return
+    }
+    const manifestKey = `/ui/${assetPath}`
+    if (!manifest[manifestKey]) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Icon asset "${assetPath}" does not exist in the app's UI bundle (expected at "${manifestKey}").`,
+        path: [...zodPath, 'assets', index, 'path'],
+      })
+    }
+  })
+}
+
 export const appConfigWithManifestSchema = (
   manifest: Record<string, unknown>,
 ) =>
@@ -773,6 +1577,28 @@ export const appConfigWithManifestSchema = (
           }
         },
       )
+    }
+
+    validateIconAssetPaths(value.icon, manifest, ctx, ['icon'])
+    const contributions = value.contributions
+    if (contributions) {
+      const linkKeys = [
+        'sidebarMenuLinks',
+        'folderSidebarViews',
+        'objectSidebarViews',
+        'objectDetailViews',
+        'folderDetailViews',
+      ] as const
+      for (const key of linkKeys) {
+        contributions[key].forEach((link, index) => {
+          validateIconAssetPaths(link.icon, manifest, ctx, [
+            'contributions',
+            key,
+            index,
+            'icon',
+          ])
+        })
+      }
     }
   })
 
@@ -878,6 +1704,30 @@ export type AppRuntimeWorkersMap = z.infer<typeof appRuntimeWorkersMapSchema>
 export type AppManifest = z.infer<typeof appManifestSchema>
 
 export type AppContributions = z.infer<typeof appContributionsSchema>
+
+export type MobileDynamicString = z.infer<typeof mobileDynamicStringSchema>
+
+export type MobileAccessibility = z.infer<typeof mobileAccessibilitySchema>
+
+export type MobileEvent = z.infer<typeof mobileEventSchema>
+
+export type MobileAction = z.infer<typeof mobileActionSchema>
+
+export type MobileComponent = z.infer<typeof mobileComponentSchema>
+
+export type MobileQueryDefinition = z.infer<typeof mobileQueryDefinitionSchema>
+
+export type MobileQueries = z.infer<typeof mobileQueriesSchema>
+
+export type MobileQueryRef = z.infer<typeof mobileQueryRefSchema>
+
+export type MobileQueryBinding = z.infer<typeof mobileQueryBindingSchema>
+
+export type MobileView = z.infer<typeof mobileViewSchema>
+
+export type MobileRoot = z.infer<typeof mobileRootSchema>
+
+export type MobileContributions = z.infer<typeof mobileContributionsSchema>
 
 export type AppMetrics = z.infer<typeof appMetricsSchema>
 

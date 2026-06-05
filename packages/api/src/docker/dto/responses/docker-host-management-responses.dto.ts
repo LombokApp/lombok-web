@@ -11,25 +11,27 @@ const successResponseSchema = z.object({
 
 // ─── Docker Host ───────────────────────────────────────────────────────────
 
-export const dockerHostDTOSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  type: z.enum(['docker_endpoint']),
-  host: z.string(),
-  tlsConfig: z
-    .object({
-      ca: z.string().optional(),
-      cert: z.string().optional(),
-      key: z.string().optional(),
-    })
-    .nullable(),
-  isDefault: z.boolean(),
-  enabled: z.boolean(),
-  healthStatus: z.enum(['healthy', 'unhealthy', 'unknown']),
-  lastHealthCheck: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
+export const dockerHostDTOSchema = z
+  .object({
+    id: z.string(),
+    label: z.string(),
+    type: z.enum(['docker_endpoint']),
+    host: z.string(),
+    tlsConfig: z
+      .object({
+        ca: z.string().optional(),
+        cert: z.string().optional(),
+        key: z.string().optional(),
+      })
+      .nullable(),
+    isDefault: z.boolean(),
+    enabled: z.boolean(),
+    healthStatus: z.enum(['healthy', 'unhealthy', 'unknown']),
+    lastHealthCheck: z.string().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .meta({ id: 'DockerHost' })
 
 export type DockerHostDTO = z.infer<typeof dockerHostDTOSchema>
 
@@ -47,15 +49,17 @@ export class DockerHostDeleteResponse extends createZodDto(
 
 // ─── Registry Credential ──────────────────────────────────────────────────
 
-export const dockerRegistryCredentialDTOSchema = z.object({
-  id: z.string(),
-  registry: z.string(),
-  serverAddress: z.string(),
-  username: z.string(),
-  password: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
+export const dockerRegistryCredentialDTOSchema = z
+  .object({
+    id: z.string(),
+    registry: z.string(),
+    serverAddress: z.string(),
+    username: z.string(),
+    password: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .meta({ id: 'DockerRegistryCredential' })
 
 export type DockerRegistryCredentialDTO = z.infer<
   typeof dockerRegistryCredentialDTOSchema
@@ -75,16 +79,18 @@ export class DockerRegistryCredentialDeleteResponse extends createZodDto(
 
 // ─── Profile Resource Assignment ──────────────────────────────────────────
 
-export const dockerProfileResourceAssignmentDTOSchema = z.object({
-  id: z.string(),
-  appIdentifier: z.string(),
-  profileKey: z.string(),
-  dockerHostId: z.string(),
-  config: dockerResourceConfigDataSchema,
-  configHashes: z.record(z.string(), z.string()),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
+export const dockerProfileResourceAssignmentDTOSchema = z
+  .object({
+    id: z.string(),
+    appIdentifier: z.string(),
+    profileKey: z.string(),
+    dockerHostId: z.string(),
+    config: dockerResourceConfigDataSchema,
+    configHashes: z.record(z.string(), z.string()),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .meta({ id: 'DockerProfileResourceAssignment' })
 
 export type DockerProfileResourceAssignmentDTO = z.infer<
   typeof dockerProfileResourceAssignmentDTOSchema
@@ -115,19 +121,21 @@ export class DockerProfileResolveResponse extends createZodDto(
 
 // ─── Standalone Container ─────────────────────────────────────────────────
 
-export const dockerStandaloneContainerDTOSchema = z.object({
-  id: z.string(),
-  dockerHostId: z.string(),
-  label: z.string(),
-  image: z.string(),
-  tag: z.string(),
-  desiredStatus: z.enum(['running', 'stopped']),
-  containerId: z.string(),
-  config: dockerResourceConfigDataSchema,
-  configHashes: z.record(z.string(), z.string()),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
+export const dockerStandaloneContainerDTOSchema = z
+  .object({
+    id: z.string(),
+    dockerHostId: z.string(),
+    label: z.string(),
+    image: z.string(),
+    tag: z.string(),
+    desiredStatus: z.enum(['running', 'stopped']),
+    containerId: z.string(),
+    config: dockerResourceConfigDataSchema,
+    configHashes: z.record(z.string(), z.string()),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .meta({ id: 'DockerStandaloneContainer' })
 
 export type DockerStandaloneContainerDTO = z.infer<
   typeof dockerStandaloneContainerDTOSchema

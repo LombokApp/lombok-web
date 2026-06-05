@@ -12,8 +12,7 @@ import { Link } from 'react-router'
 
 interface SidebarItemProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
-  icon: LucideIcon | string
-  iconAlt?: string
+  icon: LucideIcon | React.ReactNode
   label: string
   isOpen: boolean | undefined
   active?: boolean
@@ -22,14 +21,31 @@ interface SidebarItemProps
   asChild?: boolean
 }
 
+// lucide-react icons are forwardRef components (objects with $$typeof+render),
+// not plain functions — so we detect "renderable element" vs "component to
+// instantiate" via React.isValidElement.
+const renderIcon = (icon: LucideIcon | React.ReactNode): React.ReactNode => {
+  if (React.isValidElement(icon)) {
+    return icon
+  }
+  if (
+    typeof icon === 'function' ||
+    (typeof icon === 'object' &&
+      icon !== null &&
+      '$$typeof' in (icon as object))
+  ) {
+    return React.createElement(icon as LucideIcon, { className: 'size-4' })
+  }
+  return icon
+}
+
 export const SidebarItem = React.forwardRef<
   HTMLButtonElement,
   SidebarItemProps
 >(
   (
     {
-      icon: Icon,
-      iconAlt,
+      icon,
       label,
       isOpen,
       active,
@@ -45,11 +61,7 @@ export const SidebarItem = React.forwardRef<
 
     const iconElement = (
       <span className="relative shrink-0">
-        {typeof Icon === 'string' ? (
-          <img src={Icon} alt={iconAlt ?? label} className="size-4" />
-        ) : (
-          <Icon className="size-4" />
-        )}
+        {renderIcon(icon)}
         {badge && (
           <span
             className="absolute -right-1 -top-1 size-2 rounded-full bg-destructive"

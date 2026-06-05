@@ -22,6 +22,8 @@ import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { ServerLogo } from '../server-logo/server-logo'
+
 const formSchema = z.object({
   username: z
     .string()
@@ -75,7 +77,11 @@ export function UsernameSelectionComponent({
       <Card className="min-w-[30rem]">
         <CardContent className="px-6 py-12 lg:px-8">
           <div className="mb-6 flex flex-col items-center gap-6">
-            <img className="mx-auto h-24 w-auto" src="/logo.png" alt="Lombok" />
+            <ServerLogo
+              size="md"
+              className="mx-auto h-24 w-auto"
+              alt="Lombok"
+            />
             <TypographyH2>Choose Your Username</TypographyH2>
             <TypographyH3>Complete your {providerName} signup</TypographyH3>
           </div>

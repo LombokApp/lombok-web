@@ -312,6 +312,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/icon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload (or replace) the server icon shown across the platform. */
+        post: operations["Server_setServerIcon"];
+        /** Remove the server icon. */
+        delete: operations["Server_deleteServerIcon"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/icon/{size}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ServerIcon_getServerIcon"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/storage-provisions": {
         parameters: {
             query?: never;
@@ -935,6 +969,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/folders/{folderId}/icon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload (or replace) a folder icon image. */
+        post: operations["Folders_setFolderIcon"];
+        /** Remove a folder icon. */
+        delete: operations["Folders_deleteFolderIcon"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}/app-settings": {
         parameters: {
             query?: never;
@@ -974,6 +1026,22 @@ export interface paths {
          *     key, so concurrent patches on disjoint keys do not race.
          */
         patch: operations["Folders_patchFolderCustomSettings"];
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/icon/{size}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FolderIcons_getFolderIcon"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/access-keys": {
@@ -1456,6 +1524,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/viewer/avatar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Viewer_setViewerAvatar"];
+        delete: operations["Viewer_deleteViewerAvatar"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/users": {
         parameters: {
             query?: never;
@@ -1501,6 +1585,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["Users_listActiveUserSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{userId}/avatar/{size}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["UserAvatar_getUserAvatar"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1997,18 +2097,232 @@ export interface components {
             code: string;
             message: string;
         };
-        AppInstallResponse__schema0: (string | null) | number | boolean | components["schemas"]["AppInstallResponse__schema0"][] | {
-            [key: string]: components["schemas"]["AppInstallResponse__schema0"];
+        AdminApp: {
+            id: string;
+            identifier: string;
+            slug: string;
+            label: string;
+            config: components["schemas"]["AppConfig"];
+            requiresStorage: boolean;
+            enabled: boolean;
+            userScopeEnabledDefault: boolean;
+            folderScopeEnabledDefault: boolean;
+            manifest: {
+                [key: string]: components["schemas"]["AppManifestEntry"];
+            };
+            systemRequestRuntimeWorkers: {
+                performSearch: string[];
+            };
+            connectedRuntimeWorkers: {
+                appIdentifier: string;
+                workerId: string;
+                socketClientId: string;
+                ip: string;
+            }[];
+            runtimeWorkers: components["schemas"]["RuntimeWorkers"];
+            ui: components["schemas"]["Ui"];
+            contributions: components["schemas"]["Contributions"];
+            metrics: {
+                tasksExecutedLast24Hours: {
+                    completed: number;
+                    failed: number;
+                };
+                errorsLast24Hours: components["schemas"]["ErrorsLast24Hours"];
+                eventsEmittedLast24Hours: components["schemas"]["ErrorsLast24Hours"];
+            } | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
-        AppInstallResponse__schema1: {
+        /** @enum {string} */
+        CoreScopeAppPermission: "READ_FOLDER_ACL";
+        /** @enum {string} */
+        UserScopeAppPermission: "CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER";
+        /** @enum {string} */
+        FolderScopeAppPermission: "READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER";
+        PgSafeJsonSerializableValue: (string | null) | number | boolean | components["schemas"]["PgSafeJsonSerializableValue"][] | {
+            [key: string]: components["schemas"]["PgSafeJsonSerializableValue"];
+        };
+        TaskOnCompleteConfig: {
             taskIdentifier: string;
             condition?: string;
             dataTemplate?: {
-                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
+                [key: string]: components["schemas"]["PgSafeJsonSerializableValue"];
             };
-            onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
         };
-        AppInstallResponse__schema2: ({
+        TaskOnProgressConfig: {
+            taskIdentifier: string;
+            condition?: string;
+            dataTemplate?: {
+                [key: string]: components["schemas"]["PgSafeJsonSerializableValue"];
+            };
+        };
+        ScheduleConfig: {
+            /** @constant */
+            kind: "interval";
+            interval: number;
+            /** @enum {string} */
+            unit: "minutes" | "hours" | "days";
+        } | {
+            /** @constant */
+            kind: "cron";
+            expression: string;
+            timezone?: string;
+        };
+        AppContributedViews: components["schemas"]["AppContributedView"][];
+        AppContributedView: {
+            path: string;
+            label: string;
+            icon?: components["schemas"]["Icon"];
+        };
+        MobileQueryDefinition: {
+            /** @constant */
+            source: "lombok";
+            path: string;
+            /** @enum {string} */
+            method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+            transform?: components["schemas"]["MobileQueryTransform"];
+        } | {
+            /** @constant */
+            source: "app";
+            path: string;
+            /** @enum {string} */
+            method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+            worker: string;
+            transform?: components["schemas"]["MobileQueryTransform"];
+        };
+        MobileQueryTransform: ({
+            $ref: string;
+        } | null) | {
+            $if: components["schemas"]["MobileQueryTransformCondition"];
+            then: components["schemas"]["MobileQueryTransform"];
+            else?: components["schemas"]["MobileQueryTransform"];
+        } | {
+            $cond: {
+                if: components["schemas"]["MobileQueryTransformCondition"];
+                then: components["schemas"]["MobileQueryTransform"];
+            }[];
+            else?: components["schemas"]["MobileQueryTransform"];
+        } | {
+            $map: string;
+            to: components["schemas"]["MobileQueryTransform"];
+        } | {
+            $call: string;
+            args?: {
+                [key: string]: components["schemas"]["MobileQueryTransform"];
+            };
+        } | string | number | boolean | components["schemas"]["MobileQueryTransform"][] | {
+            [key: string]: components["schemas"]["MobileQueryTransform"];
+        };
+        MobileQueryTransformCondition: {
+            $eq: [
+                components["schemas"]["MobileQueryTransform"],
+                components["schemas"]["MobileQueryTransform"]
+            ];
+        } | {
+            $exists: string;
+        } | {
+            $in: [
+                components["schemas"]["MobileQueryTransform"],
+                components["schemas"]["JsonSerializableValue"][]
+            ];
+        } | {
+            $and: components["schemas"]["MobileQueryTransformCondition"][];
+        } | {
+            $or: components["schemas"]["MobileQueryTransformCondition"][];
+        } | {
+            $not: components["schemas"]["MobileQueryTransformCondition"];
+        };
+        JsonSerializableValue: (string | null) | number | boolean | components["schemas"]["JsonSerializableValue"][] | {
+            [key: string]: components["schemas"]["JsonSerializableValue"];
+        };
+        MobileView: {
+            id: string;
+            refreshable?: boolean;
+            components: components["schemas"]["MobileComponent"][];
+            initialDataModel?: {
+                [key: string]: components["schemas"]["JsonSerializableValue"];
+            };
+            initialQueries?: components["schemas"]["MobileQueryBinding"][];
+            actionMap?: {
+                [key: string]: components["schemas"]["MobileQueryBinding"][];
+            };
+        };
+        MobileComponent: {
+            id: string;
+            component: string;
+            weight?: number;
+            accessibility?: components["schemas"]["MobileAccessibility"];
+            action?: components["schemas"]["MobileAction"];
+        } & {
+            [key: string]: components["schemas"]["JsonSerializableValue"];
+        };
+        MobileAccessibility: {
+            label?: components["schemas"]["MobileDynamicString"];
+            description?: components["schemas"]["MobileDynamicString"];
+        };
+        MobileDynamicString: string | {
+            path: string;
+        };
+        MobileAction: {
+            event: components["schemas"]["MobileEvent"];
+        };
+        MobileEvent: {
+            name: string;
+            context?: {
+                [key: string]: components["schemas"]["JsonSerializableValue"];
+            };
+        };
+        MobileQueryBinding: {
+            query: components["schemas"]["MobileQueryRef"];
+            targetPath: string;
+            loadingPath?: string;
+        };
+        MobileQueryRef: {
+            name: string;
+            args?: {
+                [key: string]: {
+                    fromPath: string;
+                } | components["schemas"]["JsonSerializableValue"];
+            };
+        };
+        MobileRoot: {
+            refreshable?: boolean;
+            components: components["schemas"]["MobileComponent"][];
+            initialDataModel?: {
+                [key: string]: components["schemas"]["JsonSerializableValue"];
+            };
+            initialQueries?: components["schemas"]["MobileQueryBinding"][];
+            actionMap?: {
+                [key: string]: components["schemas"]["MobileQueryBinding"][];
+            };
+        };
+        JsonSchema07Object: {
+            /** @constant */
+            type: "object";
+            properties: {
+                [key: string]: components["schemas"]["JsonSchema07Property"];
+            };
+            patternProperties?: {
+                [key: string]: components["schemas"]["JsonSchema07Property"];
+            };
+            required?: string[];
+        };
+        JsonSchema07Property: components["schemas"]["JsonSchema07StringProperty"] | components["schemas"]["JsonSchema07NumberProperty"] | components["schemas"]["JsonSchema07IntegerProperty"] | components["schemas"]["JsonSchema07BooleanProperty"] | {
+            /** @constant */
+            type: "array";
+            description?: string;
+            default?: unknown[];
+            items: components["schemas"]["JsonSchema07ArrayItemPrimitive"] | components["schemas"]["JsonSchema07ObjectItem"] | {
+                discriminator: string;
+                oneOf: components["schemas"]["JsonSchema07ObjectItem"][];
+            };
+            minItems?: number;
+            maxItems?: number;
+        } | components["schemas"]["JsonSchema07NestedObjectItemProperty"];
+        JsonSchema07StringProperty: {
             type: "string" | [
                 "string",
                 "null"
@@ -2019,7 +2333,8 @@ export interface components {
             minLength?: number;
             maxLength?: number;
             pattern?: string;
-        } | {
+        };
+        JsonSchema07NumberProperty: {
             type: "number" | [
                 "number",
                 "null"
@@ -2028,7 +2343,8 @@ export interface components {
             default?: number;
             minimum?: number;
             maximum?: number;
-        } | {
+        };
+        JsonSchema07IntegerProperty: {
             type: "integer" | [
                 "integer",
                 "null"
@@ -2037,33 +2353,45 @@ export interface components {
             default?: number;
             minimum?: number;
             maximum?: number;
-        } | {
+        };
+        JsonSchema07BooleanProperty: {
             type: "boolean" | [
                 "boolean",
                 "null"
             ];
             description?: string;
             default?: boolean;
-        }) | {
+        };
+        JsonSchema07ArrayItemPrimitive: {
+            /** @enum {string} */
+            type: "string" | "number" | "integer" | "boolean";
+        };
+        JsonSchema07ObjectItem: {
+            /** @constant */
+            type: "object";
+            properties: {
+                [key: string]: components["schemas"]["JsonSchema07ObjectItemProperty"];
+            };
+            required?: string[];
+        };
+        JsonSchema07ObjectItemProperty: (components["schemas"]["JsonSchema07StringProperty"] | components["schemas"]["JsonSchema07NumberProperty"] | components["schemas"]["JsonSchema07IntegerProperty"] | components["schemas"]["JsonSchema07BooleanProperty"]) | {
             /** @constant */
             type: "array";
             description?: string;
             default?: unknown[];
-            items: {
-                /** @enum {string} */
-                type: "string" | "number" | "integer" | "boolean";
-            } | {
+            items: components["schemas"]["JsonSchema07ArrayItemPrimitive"] | {
                 /** @constant */
                 type: "object";
                 properties?: {
-                    [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+                    [key: string]: components["schemas"]["JsonSchema07ObjectItemProperty"];
                 };
-                additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+                additionalProperties?: components["schemas"]["JsonSchema07ObjectItemProperty"];
                 required?: string[];
             };
             minItems?: number;
             maxItems?: number;
-        } | {
+        } | components["schemas"]["JsonSchema07NestedObjectItemProperty"];
+        JsonSchema07NestedObjectItemProperty: {
             /** @constant */
             type: "object";
             description?: string;
@@ -2071,2052 +2399,142 @@ export interface components {
                 [key: string]: unknown;
             };
             properties?: {
-                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
+                [key: string]: components["schemas"]["JsonSchema07ObjectItemProperty"];
             };
-            additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
+            additionalProperties?: components["schemas"]["JsonSchema07ObjectItemProperty"];
             required?: string[];
+        };
+        AppConfig: {
+            requiresStorage?: boolean;
+            permissions?: {
+                core?: components["schemas"]["CoreScopeAppPermission"][];
+                user?: components["schemas"]["UserScopeAppPermission"][];
+                folder?: components["schemas"]["FolderScopeAppPermission"][];
+            };
+            slug: string;
+            label: string;
+            description: string;
+            icon: components["schemas"]["Icon"];
+            subscribedCoreEvents?: string[];
+            triggers?: ({
+                /** @constant */
+                kind: "event";
+                eventIdentifier: components["schemas"]["EventIdentifier"];
+                dataTemplate?: {
+                    [key: string]: components["schemas"]["PgSafeJsonSerializableValue"];
+                };
+                triggerKey?: string;
+                condition?: string;
+                taskIdentifier: string;
+                onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+                onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+            } | {
+                /** @constant */
+                kind: "schedule";
+                config: components["schemas"]["ScheduleConfig"];
+                triggerKey: string;
+                condition?: string;
+                taskIdentifier: string;
+                onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+                onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+            } | {
+                /** @constant */
+                kind: "user_action";
+                scope?: {
+                    user?: {
+                        permissions: string;
+                    };
+                    folder?: {
+                        /** Format: uuid */
+                        folderId: string;
+                    };
+                };
+                condition?: string;
+                taskIdentifier: string;
+                onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+                onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+            })[];
+            tasks?: {
+                identifier: string;
+                label: string;
+                description: string;
+                handler: {
+                    /** @enum {string} */
+                    type: "runtime" | "docker";
+                    identifier: string;
+                };
+            }[];
+            containerProfiles?: {
+                [key: string]: {
+                    image: string;
+                    resources?: {
+                        gpu?: boolean;
+                        memoryMB?: number;
+                        cpuCores?: number;
+                    };
+                    workers: ({
+                        /** @constant */
+                        kind: "exec";
+                        command: string[];
+                        jobIdentifier: string;
+                        containerTarget?: components["schemas"]["ContainerTarget"] | null;
+                    } | {
+                        /** @constant */
+                        kind: "http";
+                        command: string[];
+                        port: number;
+                        jobs: {
+                            containerTarget?: components["schemas"]["ContainerTarget"] | null;
+                            identifier: string;
+                        }[];
+                    })[];
+                    containerTarget?: components["schemas"]["ContainerTarget"];
+                };
+            };
+            runtimeWorkers?: {
+                [key: string]: {
+                    label?: string;
+                    description: string;
+                    environmentVariables?: components["schemas"]["StringMapDTO"];
+                    entrypoint: string;
+                };
+            };
+            systemRequestRuntimeWorkers?: {
+                performSearch?: string[];
+            };
+            ui?: {
+                /** @constant */
+                enabled: true;
+                csp?: string;
+            };
+            database?: {
+                /** @constant */
+                enabled: true;
+            };
+            contributions?: components["schemas"]["Contributions"];
+            settings?: {
+                secretKeyPattern?: string;
+                user?: components["schemas"]["JsonSchema07Object"];
+                folder?: components["schemas"]["JsonSchema07Object"];
+            };
+        };
+        AppManifestEntry: {
+            hash: string;
+            size: number;
+            mimeType: string;
         };
         AppInstallResponse: {
-            app: {
-                id: string;
-                identifier: string;
-                slug: string;
-                label: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @constant */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["AppInstallResponse__schema0"];
-                        };
-                        triggerKey?: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "schedule";
-                        config: {
-                            /** @constant */
-                            kind: "interval";
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        } | {
-                            /** @constant */
-                            kind: "cron";
-                            expression: string;
-                            timezone?: string;
-                        };
-                        triggerKey: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppInstallResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppInstallResponse__schema0"];
-                            };
-                        }[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "runtime" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @constant */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                containerTarget?: ({
-                                    /** @constant */
-                                    type: "instance";
-                                    containerIdTemplate: string;
-                                    userIsolation?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "class";
-                                    isolationKeyTemplate?: string;
-                                    userIsolation?: boolean;
-                                }) | null;
-                            } | {
-                                /** @constant */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    containerTarget?: ({
-                                        /** @constant */
-                                        type: "instance";
-                                        containerIdTemplate: string;
-                                        userIsolation?: boolean;
-                                    } | {
-                                        /** @constant */
-                                        type: "class";
-                                        isolationKeyTemplate?: string;
-                                        userIsolation?: boolean;
-                                    }) | null;
-                                    identifier: string;
-                                }[];
-                            })[];
-                            containerTarget?: {
-                                /** @constant */
-                                type: "instance";
-                                containerIdTemplate: string;
-                                userIsolation?: boolean;
-                            } | {
-                                /** @constant */
-                                type: "class";
-                                isolationKeyTemplate?: string;
-                                userIsolation?: boolean;
-                            };
-                        };
-                    };
-                    runtimeWorkers?: {
-                        [key: string]: {
-                            label?: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                    systemRequestRuntimeWorkers?: {
-                        performSearch?: string[];
-                    };
-                    ui?: {
-                        /** @constant */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @constant */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                    settings?: {
-                        secretKeyPattern?: string;
-                        user?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                        folder?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppInstallResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppInstallResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                    };
-                };
-                requiresStorage: boolean;
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                systemRequestRuntimeWorkers: {
-                    performSearch: string[];
-                };
-                connectedRuntimeWorkers: {
-                    appIdentifier: string;
-                    workerId: string;
-                    socketClientId: string;
-                    ip: string;
-                }[];
-                runtimeWorkers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            label: string;
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                metrics: {
-                    tasksExecutedLast24Hours: {
-                        completed: number;
-                        failed: number;
-                    };
-                    errorsLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                    eventsEmittedLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-        };
-        AppListResponse__schema0: (string | null) | number | boolean | components["schemas"]["AppListResponse__schema0"][] | {
-            [key: string]: components["schemas"]["AppListResponse__schema0"];
-        };
-        AppListResponse__schema1: {
-            taskIdentifier: string;
-            condition?: string;
-            dataTemplate?: {
-                [key: string]: components["schemas"]["AppListResponse__schema0"];
-            };
-            onComplete?: components["schemas"]["AppListResponse__schema1"][];
-        };
-        AppListResponse__schema2: ({
-            type: "string" | [
-                "string",
-                "null"
-            ];
-            description?: string;
-            default?: string;
-            enum?: string[];
-            minLength?: number;
-            maxLength?: number;
-            pattern?: string;
-        } | {
-            type: "number" | [
-                "number",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "integer" | [
-                "integer",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "boolean" | [
-                "boolean",
-                "null"
-            ];
-            description?: string;
-            default?: boolean;
-        }) | {
-            /** @constant */
-            type: "array";
-            description?: string;
-            default?: unknown[];
-            items: {
-                /** @enum {string} */
-                type: "string" | "number" | "integer" | "boolean";
-            } | {
-                /** @constant */
-                type: "object";
-                properties?: {
-                    [key: string]: components["schemas"]["AppListResponse__schema2"];
-                };
-                additionalProperties?: components["schemas"]["AppListResponse__schema2"];
-                required?: string[];
-            };
-            minItems?: number;
-            maxItems?: number;
-        } | {
-            /** @constant */
-            type: "object";
-            description?: string;
-            default?: {
-                [key: string]: unknown;
-            };
-            properties?: {
-                [key: string]: components["schemas"]["AppListResponse__schema2"];
-            };
-            additionalProperties?: components["schemas"]["AppListResponse__schema2"];
-            required?: string[];
+            app: components["schemas"]["AdminApp"];
         };
         AppListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                id: string;
-                identifier: string;
-                slug: string;
-                label: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @constant */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["AppListResponse__schema0"];
-                        };
-                        triggerKey?: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppListResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppListResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "schedule";
-                        config: {
-                            /** @constant */
-                            kind: "interval";
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        } | {
-                            /** @constant */
-                            kind: "cron";
-                            expression: string;
-                            timezone?: string;
-                        };
-                        triggerKey: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppListResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppListResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppListResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppListResponse__schema0"];
-                            };
-                        }[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "runtime" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @constant */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                containerTarget?: ({
-                                    /** @constant */
-                                    type: "instance";
-                                    containerIdTemplate: string;
-                                    userIsolation?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "class";
-                                    isolationKeyTemplate?: string;
-                                    userIsolation?: boolean;
-                                }) | null;
-                            } | {
-                                /** @constant */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    containerTarget?: ({
-                                        /** @constant */
-                                        type: "instance";
-                                        containerIdTemplate: string;
-                                        userIsolation?: boolean;
-                                    } | {
-                                        /** @constant */
-                                        type: "class";
-                                        isolationKeyTemplate?: string;
-                                        userIsolation?: boolean;
-                                    }) | null;
-                                    identifier: string;
-                                }[];
-                            })[];
-                            containerTarget?: {
-                                /** @constant */
-                                type: "instance";
-                                containerIdTemplate: string;
-                                userIsolation?: boolean;
-                            } | {
-                                /** @constant */
-                                type: "class";
-                                isolationKeyTemplate?: string;
-                                userIsolation?: boolean;
-                            };
-                        };
-                    };
-                    runtimeWorkers?: {
-                        [key: string]: {
-                            label?: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                    systemRequestRuntimeWorkers?: {
-                        performSearch?: string[];
-                    };
-                    ui?: {
-                        /** @constant */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @constant */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                    settings?: {
-                        secretKeyPattern?: string;
-                        user?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                        folder?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                    };
-                };
-                requiresStorage: boolean;
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                systemRequestRuntimeWorkers: {
-                    performSearch: string[];
-                };
-                connectedRuntimeWorkers: {
-                    appIdentifier: string;
-                    workerId: string;
-                    socketClientId: string;
-                    ip: string;
-                }[];
-                runtimeWorkers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            label: string;
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                metrics: {
-                    tasksExecutedLast24Hours: {
-                        completed: number;
-                        failed: number;
-                    };
-                    errorsLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                    eventsEmittedLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
+            meta: components["schemas"]["Meta"];
+            result: components["schemas"]["AdminApp"][];
         };
         SetAppEnabledInputDTO: {
             enabled: boolean;
         };
-        AppGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["AppGetResponse__schema0"][] | {
-            [key: string]: components["schemas"]["AppGetResponse__schema0"];
-        };
-        AppGetResponse__schema1: {
-            taskIdentifier: string;
-            condition?: string;
-            dataTemplate?: {
-                [key: string]: components["schemas"]["AppGetResponse__schema0"];
-            };
-            onComplete?: components["schemas"]["AppGetResponse__schema1"][];
-        };
-        AppGetResponse__schema2: ({
-            type: "string" | [
-                "string",
-                "null"
-            ];
-            description?: string;
-            default?: string;
-            enum?: string[];
-            minLength?: number;
-            maxLength?: number;
-            pattern?: string;
-        } | {
-            type: "number" | [
-                "number",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "integer" | [
-                "integer",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "boolean" | [
-                "boolean",
-                "null"
-            ];
-            description?: string;
-            default?: boolean;
-        }) | {
-            /** @constant */
-            type: "array";
-            description?: string;
-            default?: unknown[];
-            items: {
-                /** @enum {string} */
-                type: "string" | "number" | "integer" | "boolean";
-            } | {
-                /** @constant */
-                type: "object";
-                properties?: {
-                    [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                };
-                additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
-                required?: string[];
-            };
-            minItems?: number;
-            maxItems?: number;
-        } | {
-            /** @constant */
-            type: "object";
-            description?: string;
-            default?: {
-                [key: string]: unknown;
-            };
-            properties?: {
-                [key: string]: components["schemas"]["AppGetResponse__schema2"];
-            };
-            additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
-            required?: string[];
-        };
         AppGetResponse: {
-            app: {
-                id: string;
-                identifier: string;
-                slug: string;
-                label: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @constant */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["AppGetResponse__schema0"];
-                        };
-                        triggerKey?: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppGetResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppGetResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "schedule";
-                        config: {
-                            /** @constant */
-                            kind: "interval";
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        } | {
-                            /** @constant */
-                            kind: "cron";
-                            expression: string;
-                            timezone?: string;
-                        };
-                        triggerKey: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppGetResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppGetResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["AppGetResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["AppGetResponse__schema0"];
-                            };
-                        }[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "runtime" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @constant */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                containerTarget?: ({
-                                    /** @constant */
-                                    type: "instance";
-                                    containerIdTemplate: string;
-                                    userIsolation?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "class";
-                                    isolationKeyTemplate?: string;
-                                    userIsolation?: boolean;
-                                }) | null;
-                            } | {
-                                /** @constant */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    containerTarget?: ({
-                                        /** @constant */
-                                        type: "instance";
-                                        containerIdTemplate: string;
-                                        userIsolation?: boolean;
-                                    } | {
-                                        /** @constant */
-                                        type: "class";
-                                        isolationKeyTemplate?: string;
-                                        userIsolation?: boolean;
-                                    }) | null;
-                                    identifier: string;
-                                }[];
-                            })[];
-                            containerTarget?: {
-                                /** @constant */
-                                type: "instance";
-                                containerIdTemplate: string;
-                                userIsolation?: boolean;
-                            } | {
-                                /** @constant */
-                                type: "class";
-                                isolationKeyTemplate?: string;
-                                userIsolation?: boolean;
-                            };
-                        };
-                    };
-                    runtimeWorkers?: {
-                        [key: string]: {
-                            label?: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                    systemRequestRuntimeWorkers?: {
-                        performSearch?: string[];
-                    };
-                    ui?: {
-                        /** @constant */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @constant */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                    settings?: {
-                        secretKeyPattern?: string;
-                        user?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                        folder?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["AppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["AppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                    };
-                };
-                requiresStorage: boolean;
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                systemRequestRuntimeWorkers: {
-                    performSearch: string[];
-                };
-                connectedRuntimeWorkers: {
-                    appIdentifier: string;
-                    workerId: string;
-                    socketClientId: string;
-                    ip: string;
-                }[];
-                runtimeWorkers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            label: string;
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                metrics: {
-                    tasksExecutedLast24Hours: {
-                        completed: number;
-                        failed: number;
-                    };
-                    errorsLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                    eventsEmittedLast24Hours: {
-                        total: number;
-                        last10Minutes: number;
-                    };
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            app: components["schemas"]["AdminApp"];
         };
         UpdateAppAccessSettingsInputDTO: {
             userScopeEnabledDefault: boolean;
@@ -4128,1495 +2546,61 @@ export interface components {
         StringMapDTO: {
             [key: string]: string;
         };
-        UserAppListResponse__schema0: (string | null) | number | boolean | components["schemas"]["UserAppListResponse__schema0"][] | {
-            [key: string]: components["schemas"]["UserAppListResponse__schema0"];
-        };
-        UserAppListResponse__schema1: {
-            taskIdentifier: string;
-            condition?: string;
-            dataTemplate?: {
-                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
+        UserApp: {
+            id: string;
+            identifier: string;
+            label: string;
+            config: components["schemas"]["AppConfig"];
+            enabled: boolean;
+            userScopeEnabledDefault: boolean;
+            userEnabled: boolean | null;
+            folderScopeEnabledDefault: boolean;
+            manifest: {
+                [key: string]: components["schemas"]["AppManifestEntry"];
             };
-            onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
-        };
-        UserAppListResponse__schema2: ({
-            type: "string" | [
-                "string",
-                "null"
-            ];
-            description?: string;
-            default?: string;
-            enum?: string[];
-            minLength?: number;
-            maxLength?: number;
-            pattern?: string;
-        } | {
-            type: "number" | [
-                "number",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "integer" | [
-                "integer",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "boolean" | [
-                "boolean",
-                "null"
-            ];
-            description?: string;
-            default?: boolean;
-        }) | {
-            /** @constant */
-            type: "array";
-            description?: string;
-            default?: unknown[];
-            items: {
-                /** @enum {string} */
-                type: "string" | "number" | "integer" | "boolean";
-            } | {
-                /** @constant */
-                type: "object";
-                properties?: {
-                    [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                };
-                additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
-                required?: string[];
-            };
-            minItems?: number;
-            maxItems?: number;
-        } | {
-            /** @constant */
-            type: "object";
-            description?: string;
-            default?: {
-                [key: string]: unknown;
-            };
-            properties?: {
-                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-            };
-            additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
-            required?: string[];
+            runtimeWorkers: components["schemas"]["RuntimeWorkers"];
+            ui: components["schemas"]["Ui"];
+            contributions: components["schemas"]["Contributions"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         UserAppListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                id: string;
-                identifier: string;
-                label: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @constant */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["UserAppListResponse__schema0"];
-                        };
-                        triggerKey?: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "schedule";
-                        config: {
-                            /** @constant */
-                            kind: "interval";
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        } | {
-                            /** @constant */
-                            kind: "cron";
-                            expression: string;
-                            timezone?: string;
-                        };
-                        triggerKey: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["UserAppListResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["UserAppListResponse__schema0"];
-                            };
-                        }[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "runtime" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @constant */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                containerTarget?: ({
-                                    /** @constant */
-                                    type: "instance";
-                                    containerIdTemplate: string;
-                                    userIsolation?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "class";
-                                    isolationKeyTemplate?: string;
-                                    userIsolation?: boolean;
-                                }) | null;
-                            } | {
-                                /** @constant */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    containerTarget?: ({
-                                        /** @constant */
-                                        type: "instance";
-                                        containerIdTemplate: string;
-                                        userIsolation?: boolean;
-                                    } | {
-                                        /** @constant */
-                                        type: "class";
-                                        isolationKeyTemplate?: string;
-                                        userIsolation?: boolean;
-                                    }) | null;
-                                    identifier: string;
-                                }[];
-                            })[];
-                            containerTarget?: {
-                                /** @constant */
-                                type: "instance";
-                                containerIdTemplate: string;
-                                userIsolation?: boolean;
-                            } | {
-                                /** @constant */
-                                type: "class";
-                                isolationKeyTemplate?: string;
-                                userIsolation?: boolean;
-                            };
-                        };
-                    };
-                    runtimeWorkers?: {
-                        [key: string]: {
-                            label?: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                    systemRequestRuntimeWorkers?: {
-                        performSearch?: string[];
-                    };
-                    ui?: {
-                        /** @constant */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @constant */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                    settings?: {
-                        secretKeyPattern?: string;
-                        user?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                        folder?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppListResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppListResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                    };
-                };
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                runtimeWorkers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            label: string;
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            }[];
-        };
-        UserAppGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["UserAppGetResponse__schema0"][] | {
-            [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
-        };
-        UserAppGetResponse__schema1: {
-            taskIdentifier: string;
-            condition?: string;
-            dataTemplate?: {
-                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
-            };
-            onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
-        };
-        UserAppGetResponse__schema2: ({
-            type: "string" | [
-                "string",
-                "null"
-            ];
-            description?: string;
-            default?: string;
-            enum?: string[];
-            minLength?: number;
-            maxLength?: number;
-            pattern?: string;
-        } | {
-            type: "number" | [
-                "number",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "integer" | [
-                "integer",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "boolean" | [
-                "boolean",
-                "null"
-            ];
-            description?: string;
-            default?: boolean;
-        }) | {
-            /** @constant */
-            type: "array";
-            description?: string;
-            default?: unknown[];
-            items: {
-                /** @enum {string} */
-                type: "string" | "number" | "integer" | "boolean";
-            } | {
-                /** @constant */
-                type: "object";
-                properties?: {
-                    [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                };
-                additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
-                required?: string[];
-            };
-            minItems?: number;
-            maxItems?: number;
-        } | {
-            /** @constant */
-            type: "object";
-            description?: string;
-            default?: {
-                [key: string]: unknown;
-            };
-            properties?: {
-                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-            };
-            additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
-            required?: string[];
+            meta: components["schemas"]["Meta"];
+            result: components["schemas"]["UserApp"][];
         };
         UserAppGetResponse: {
-            app: {
-                id: string;
-                identifier: string;
-                label: string;
-                config: {
-                    requiresStorage?: boolean;
-                    permissions?: {
-                        core?: "READ_FOLDER_ACL"[];
-                        user?: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
-                        folder?: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
-                    };
-                    slug: string;
-                    label: string;
-                    description: string;
-                    subscribedCoreEvents?: string[];
-                    triggers?: ({
-                        /** @constant */
-                        kind: "event";
-                        eventIdentifier: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
-                        };
-                        triggerKey?: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "schedule";
-                        config: {
-                            /** @constant */
-                            kind: "interval";
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        } | {
-                            /** @constant */
-                            kind: "cron";
-                            expression: string;
-                            timezone?: string;
-                        };
-                        triggerKey: string;
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
-                            };
-                        }[];
-                    } | {
-                        /** @constant */
-                        kind: "user_action";
-                        scope?: {
-                            user?: {
-                                permissions: string;
-                            };
-                            folder?: {
-                                /** Format: uuid */
-                                folderId: string;
-                            };
-                        };
-                        condition?: string;
-                        taskIdentifier: string;
-                        onComplete?: components["schemas"]["UserAppGetResponse__schema1"][];
-                        onProgress?: {
-                            taskIdentifier: string;
-                            condition?: string;
-                            dataTemplate?: {
-                                [key: string]: components["schemas"]["UserAppGetResponse__schema0"];
-                            };
-                        }[];
-                    })[];
-                    tasks?: {
-                        identifier: string;
-                        label: string;
-                        description: string;
-                        handler: {
-                            /** @enum {string} */
-                            type: "runtime" | "docker";
-                            identifier: string;
-                        };
-                    }[];
-                    containerProfiles?: {
-                        [key: string]: {
-                            image: string;
-                            resources?: {
-                                gpu?: boolean;
-                                memoryMB?: number;
-                                cpuCores?: number;
-                            };
-                            workers: ({
-                                /** @constant */
-                                kind: "exec";
-                                command: string[];
-                                jobIdentifier: string;
-                                containerTarget?: ({
-                                    /** @constant */
-                                    type: "instance";
-                                    containerIdTemplate: string;
-                                    userIsolation?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "class";
-                                    isolationKeyTemplate?: string;
-                                    userIsolation?: boolean;
-                                }) | null;
-                            } | {
-                                /** @constant */
-                                kind: "http";
-                                command: string[];
-                                port: number;
-                                jobs: {
-                                    containerTarget?: ({
-                                        /** @constant */
-                                        type: "instance";
-                                        containerIdTemplate: string;
-                                        userIsolation?: boolean;
-                                    } | {
-                                        /** @constant */
-                                        type: "class";
-                                        isolationKeyTemplate?: string;
-                                        userIsolation?: boolean;
-                                    }) | null;
-                                    identifier: string;
-                                }[];
-                            })[];
-                            containerTarget?: {
-                                /** @constant */
-                                type: "instance";
-                                containerIdTemplate: string;
-                                userIsolation?: boolean;
-                            } | {
-                                /** @constant */
-                                type: "class";
-                                isolationKeyTemplate?: string;
-                                userIsolation?: boolean;
-                            };
-                        };
-                    };
-                    runtimeWorkers?: {
-                        [key: string]: {
-                            label?: string;
-                            description: string;
-                            environmentVariables?: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                    systemRequestRuntimeWorkers?: {
-                        performSearch?: string[];
-                    };
-                    ui?: {
-                        /** @constant */
-                        enabled: true;
-                        csp?: string;
-                    };
-                    database?: {
-                        /** @constant */
-                        enabled: true;
-                    };
-                    contributions?: {
-                        sidebarMenuLinks: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectSidebarViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        objectDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                        folderDetailViews: {
-                            path: string;
-                            label: string;
-                            iconPath?: string;
-                        }[];
-                    };
-                    settings?: {
-                        secretKeyPattern?: string;
-                        user?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                        folder?: {
-                            /** @constant */
-                            type: "object";
-                            properties: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            patternProperties?: {
-                                [key: string]: {
-                                    type: "string" | [
-                                        "string",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: string;
-                                    enum?: string[];
-                                    minLength?: number;
-                                    maxLength?: number;
-                                    pattern?: string;
-                                } | {
-                                    type: "number" | [
-                                        "number",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "integer" | [
-                                        "integer",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: number;
-                                    minimum?: number;
-                                    maximum?: number;
-                                } | {
-                                    type: "boolean" | [
-                                        "boolean",
-                                        "null"
-                                    ];
-                                    description?: string;
-                                    default?: boolean;
-                                } | {
-                                    /** @constant */
-                                    type: "array";
-                                    description?: string;
-                                    default?: unknown[];
-                                    items: {
-                                        /** @enum {string} */
-                                        type: "string" | "number" | "integer" | "boolean";
-                                    } | {
-                                        /** @constant */
-                                        type: "object";
-                                        properties: {
-                                            [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                        };
-                                        required?: string[];
-                                    } | {
-                                        discriminator: string;
-                                        oneOf: {
-                                            /** @constant */
-                                            type: "object";
-                                            properties: {
-                                                [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                            };
-                                            required?: string[];
-                                        }[];
-                                    };
-                                    minItems?: number;
-                                    maxItems?: number;
-                                } | {
-                                    /** @constant */
-                                    type: "object";
-                                    description?: string;
-                                    default?: {
-                                        [key: string]: unknown;
-                                    };
-                                    properties?: {
-                                        [key: string]: components["schemas"]["UserAppGetResponse__schema2"];
-                                    };
-                                    additionalProperties?: components["schemas"]["UserAppGetResponse__schema2"];
-                                    required?: string[];
-                                };
-                            };
-                            required?: string[];
-                        };
-                    };
-                };
-                enabled: boolean;
-                userScopeEnabledDefault: boolean;
-                folderScopeEnabledDefault: boolean;
-                manifest: {
-                    [key: string]: {
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    };
-                };
-                runtimeWorkers: {
-                    hash: string;
-                    size: number;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                    definitions: {
-                        [key: string]: {
-                            label: string;
-                            description: string;
-                            environmentVariables: components["schemas"]["StringMapDTO"];
-                            entrypoint: string;
-                        };
-                    };
-                };
-                ui: {
-                    hash: string;
-                    size: number;
-                    csp?: string;
-                    manifest: {
-                        [key: string]: {
-                            hash: string;
-                            size: number;
-                            mimeType: string;
-                        };
-                    };
-                } | null;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            app: components["schemas"]["UserApp"];
         };
         AppContributionsResponse: {
             [key: string]: {
                 appLabel: string;
                 appIdentifier: string;
-                contributions: {
-                    sidebarMenuLinks: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectSidebarViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    objectDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                    folderDetailViews: {
-                        path: string;
-                        label: string;
-                        iconPath?: string;
-                    }[];
-                };
+                icon?: components["schemas"]["Icon"];
+                contributions: components["schemas"]["Contributions"];
             };
         };
         LoginResponse: {
-            session: {
-                accessToken: string;
-                refreshToken: string;
-                /** Format: date-time */
-                expiresAt: string;
-            };
+            session: components["schemas"]["Session"];
         };
         AppUserSettingsGetResponseDTO: {
             settings: {
                 appIdentifier: string;
                 enabledFallback: boolean;
                 folderScopeEnabledDefaultFallback: boolean;
-                permissionsFallback: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[];
+                permissionsFallback: components["schemas"]["UserScopeAppPermission"][];
                 enabled: boolean | null;
                 folderScopeEnabledDefault: boolean | null;
-                folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-                permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
+                folderScopePermissionsDefault: components["schemas"]["FolderScopeAppPermission"][] | null;
+                permissions: components["schemas"]["UserScopeAppPermission"][] | null;
             };
         };
         AppUserSettingsCreateInputDTO: {
             enabled: boolean | null;
             folderScopeEnabledDefault: boolean | null;
-            folderScopePermissionsDefault: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
-            permissions: ("CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER")[] | null;
-        };
-        AppCustomSettingsGetResponseDTO__schema0: ({
-            type: "string" | [
-                "string",
-                "null"
-            ];
-            description?: string;
-            default?: string;
-            enum?: string[];
-            minLength?: number;
-            maxLength?: number;
-            pattern?: string;
-        } | {
-            type: "number" | [
-                "number",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "integer" | [
-                "integer",
-                "null"
-            ];
-            description?: string;
-            default?: number;
-            minimum?: number;
-            maximum?: number;
-        } | {
-            type: "boolean" | [
-                "boolean",
-                "null"
-            ];
-            description?: string;
-            default?: boolean;
-        }) | {
-            /** @constant */
-            type: "array";
-            description?: string;
-            default?: unknown[];
-            items: {
-                /** @enum {string} */
-                type: "string" | "number" | "integer" | "boolean";
-            } | {
-                /** @constant */
-                type: "object";
-                properties?: {
-                    [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                };
-                additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                required?: string[];
-            };
-            minItems?: number;
-            maxItems?: number;
-        } | {
-            /** @constant */
-            type: "object";
-            description?: string;
-            default?: {
-                [key: string]: unknown;
-            };
-            properties?: {
-                [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-            };
-            additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-            required?: string[];
+            folderScopePermissionsDefault: components["schemas"]["FolderScopeAppPermission"][] | null;
+            permissions: components["schemas"]["UserScopeAppPermission"][] | null;
         };
         AppCustomSettingsGetResponseDTO: {
             settings: {
@@ -5626,184 +2610,25 @@ export interface components {
                 sources: {
                     [key: string]: "folder" | "user" | "default";
                 };
-                schema: {
-                    /** @constant */
-                    type: "object";
-                    properties: {
-                        [key: string]: {
-                            type: "string" | [
-                                "string",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: string;
-                            enum?: string[];
-                            minLength?: number;
-                            maxLength?: number;
-                            pattern?: string;
-                        } | {
-                            type: "number" | [
-                                "number",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: number;
-                            minimum?: number;
-                            maximum?: number;
-                        } | {
-                            type: "integer" | [
-                                "integer",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: number;
-                            minimum?: number;
-                            maximum?: number;
-                        } | {
-                            type: "boolean" | [
-                                "boolean",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: boolean;
-                        } | {
-                            /** @constant */
-                            type: "array";
-                            description?: string;
-                            default?: unknown[];
-                            items: {
-                                /** @enum {string} */
-                                type: "string" | "number" | "integer" | "boolean";
-                            } | {
-                                /** @constant */
-                                type: "object";
-                                properties: {
-                                    [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                                };
-                                required?: string[];
-                            } | {
-                                discriminator: string;
-                                oneOf: {
-                                    /** @constant */
-                                    type: "object";
-                                    properties: {
-                                        [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                                    };
-                                    required?: string[];
-                                }[];
-                            };
-                            minItems?: number;
-                            maxItems?: number;
-                        } | {
-                            /** @constant */
-                            type: "object";
-                            description?: string;
-                            default?: {
-                                [key: string]: unknown;
-                            };
-                            properties?: {
-                                [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                            };
-                            additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                            required?: string[];
-                        };
-                    };
-                    patternProperties?: {
-                        [key: string]: {
-                            type: "string" | [
-                                "string",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: string;
-                            enum?: string[];
-                            minLength?: number;
-                            maxLength?: number;
-                            pattern?: string;
-                        } | {
-                            type: "number" | [
-                                "number",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: number;
-                            minimum?: number;
-                            maximum?: number;
-                        } | {
-                            type: "integer" | [
-                                "integer",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: number;
-                            minimum?: number;
-                            maximum?: number;
-                        } | {
-                            type: "boolean" | [
-                                "boolean",
-                                "null"
-                            ];
-                            description?: string;
-                            default?: boolean;
-                        } | {
-                            /** @constant */
-                            type: "array";
-                            description?: string;
-                            default?: unknown[];
-                            items: {
-                                /** @enum {string} */
-                                type: "string" | "number" | "integer" | "boolean";
-                            } | {
-                                /** @constant */
-                                type: "object";
-                                properties: {
-                                    [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                                };
-                                required?: string[];
-                            } | {
-                                discriminator: string;
-                                oneOf: {
-                                    /** @constant */
-                                    type: "object";
-                                    properties: {
-                                        [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                                    };
-                                    required?: string[];
-                                }[];
-                            };
-                            minItems?: number;
-                            maxItems?: number;
-                        } | {
-                            /** @constant */
-                            type: "object";
-                            description?: string;
-                            default?: {
-                                [key: string]: unknown;
-                            };
-                            properties?: {
-                                [key: string]: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                            };
-                            additionalProperties?: components["schemas"]["AppCustomSettingsGetResponseDTO__schema0"];
-                            required?: string[];
-                        };
-                    };
-                    required?: string[];
-                } | null;
+                schema: components["schemas"]["JsonSchema07Object"] | null;
                 secretKeyPattern: string | null;
             };
         };
-        AppCustomSettingsPatchInputDTO__schema0: (string | null) | number | boolean | components["schemas"]["AppCustomSettingsPatchInputDTO__schema0"][] | {
-            [key: string]: components["schemas"]["AppCustomSettingsPatchInputDTO__schema0"];
-        };
         AppCustomSettingsPatchInputDTO: {
             values: {
-                [key: string]: components["schemas"]["AppCustomSettingsPatchInputDTO__schema0"];
+                [key: string]: components["schemas"]["JsonSerializableValue"];
             };
+        };
+        ImageUrls: {
+            small: string;
+            medium: string;
+            large: string;
         };
         PublicSettingsGetResponse: {
             settings: {
                 SIGNUP_ENABLED?: boolean;
                 GOOGLE_OAUTH_ENABLED?: boolean;
+                serverIcon?: components["schemas"]["ImageUrls"];
             };
         };
         PublicBuildIdGetResponse: {
@@ -5811,20 +2636,7 @@ export interface components {
         };
         SettingsGetResponse: {
             settings: {
-                STORAGE_PROVISIONS: {
-                    /** Format: uuid */
-                    id: string;
-                    accessKeyHashId: string;
-                    endpoint: string;
-                    bucket: string;
-                    region: string;
-                    accessKeyId: string;
-                    secretAccessKey: null;
-                    prefix: string | null;
-                    provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-                    label: string;
-                    description: string;
-                }[] | null;
+                STORAGE_PROVISIONS: components["schemas"]["StorageProvision"][] | null;
                 SERVER_STORAGE: {
                     accessKeyHashId: string;
                     accessKeyId: string;
@@ -5865,6 +2677,10 @@ export interface components {
                         workerIdentifier: string;
                     } | null;
                 } | null;
+                SERVER_ICON: {
+                    /** Format: date-time */
+                    updatedAt: string;
+                } | null;
             };
         };
         SetSettingInputDTO: {
@@ -5882,15 +2698,9 @@ export interface components {
             totalIndexedSizeBytes: string;
             sessionsCreatedPreviousWeek: string;
             sessionsCreatedPrevious24Hours: string;
-            provisionedStorage: {
-                totalCount: string;
-                summary: string;
-            };
+            provisionedStorage: components["schemas"]["InstalledApps"];
             totalIndexedSizeBytesAcrossStorageProvisions: string;
-            installedApps: {
-                totalCount: string;
-                summary: string;
-            };
+            installedApps: components["schemas"]["InstalledApps"];
             tasksCreatedPreviousDay: string;
             tasksCreatedPreviousHour: string;
             taskErrorsPreviousDay: string;
@@ -5901,36 +2711,10 @@ export interface components {
             folderEventsEmittedPreviousHour: string;
         };
         StorageProvisionsListResponse: {
-            result: {
-                /** Format: uuid */
-                id: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                accessKeyId: string;
-                secretAccessKey: null;
-                prefix: string | null;
-                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-                label: string;
-                description: string;
-            }[];
+            result: components["schemas"]["StorageProvision"][];
         };
         StorageProvisionGetResponse: {
-            storageProvision: {
-                /** Format: uuid */
-                id: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                accessKeyId: string;
-                secretAccessKey: null;
-                prefix: string | null;
-                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-                label: string;
-                description: string;
-            };
+            storageProvision: components["schemas"]["StorageProvision"];
         };
         StorageProvisionInputDTO: {
             label: string;
@@ -6011,11 +2795,7 @@ export interface components {
             }[];
         };
         DockerContainerLogsResponse: {
-            entries: {
-                /** @enum {string} */
-                stream: "stdout" | "stderr";
-                text: string;
-            }[];
+            entries: components["schemas"]["Entries"];
         };
         DockerContainerStatsResponse: {
             stats: {
@@ -6044,17 +2824,11 @@ export interface components {
         DockerContainerWorkerDetailResponse: {
             workerState?: unknown;
             workerStateError?: string;
-            jobs: {
-                jobId: string;
-                filePath: string;
-            }[];
+            jobs: components["schemas"]["Jobs"];
             jobsError?: string;
         };
         DockerContainerJobsResponse: {
-            jobs: {
-                jobId: string;
-                filePath: string;
-            }[];
+            jobs: components["schemas"]["Jobs"];
         };
         DockerContainerPurgeJobsResponse: {
             message: string;
@@ -6062,132 +2836,26 @@ export interface components {
         DockerContainerJobDetailResponse: {
             state?: unknown;
             stateError?: string;
-            entries?: {
-                /** @enum {string} */
-                stream: "stdout" | "stderr";
-                text: string;
-            }[];
+            entries?: components["schemas"]["Entries"];
             logError?: string;
         };
         DockerContainerActionResponse: {
             /** @constant */
             success: true;
         };
-        EventGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["EventGetResponse__schema0"][] | {
-            [key: string]: components["schemas"]["EventGetResponse__schema0"];
-        };
         EventGetResponse: {
-            event: {
-                /** Format: uuid */
-                id: string;
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data: {
-                    [key: string]: components["schemas"]["EventGetResponse__schema0"];
-                };
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                /** Format: date-time */
-                createdAt: string;
-            };
-        };
-        EventListResponse__schema0: (string | null) | number | boolean | components["schemas"]["EventListResponse__schema0"][] | {
-            [key: string]: components["schemas"]["EventListResponse__schema0"];
+            event: components["schemas"]["Event"];
         };
         EventListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                id: string;
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data: {
-                    [key: string]: components["schemas"]["EventListResponse__schema0"];
-                };
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                /** Format: date-time */
-                createdAt: string;
-            }[];
+            meta: components["schemas"]["Meta"];
+            result: components["schemas"]["Event"][];
         };
         LogGetResponse: {
-            log: {
-                /** Format: uuid */
-                id: string;
-                message: string;
-                /** @enum {string} */
-                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
-                emitterIdentifier: string;
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data: unknown;
-                /** Format: date-time */
-                createdAt: string;
-            };
+            log: components["schemas"]["Log"];
         };
         LogListResponse: {
-            result: {
-                /** Format: uuid */
-                id: string;
-                message: string;
-                /** @enum {string} */
-                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
-                emitterIdentifier: string;
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
-                data: unknown;
-                /** Format: date-time */
-                createdAt: string;
-            }[];
-            meta: {
-                totalCount: number;
-            };
+            result: components["schemas"]["Log"][];
+            meta: components["schemas"]["Meta"];
         };
         InlineMetadataEntryDTO: {
             /** @constant */
@@ -6208,192 +2876,79 @@ export interface components {
             /** @description Present only so this class has instance shape; validation uses static schema. */
             _schemaCarrier: Record<string, never>;
         };
+        Folder: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            ownerId: string;
+            name: string;
+            metadataLocation: components["schemas"]["StorageLocation"];
+            contentLocation: components["schemas"]["StorageLocation"];
+            accessError?: {
+                message: string;
+                code: string;
+            } | null;
+            icon?: components["schemas"]["ImageUrls"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        StorageLocation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId?: string;
+            /** @enum {string} */
+            providerType: "SERVER" | "USER";
+            label: string;
+            endpoint: string;
+            region: string;
+            bucket: string;
+            prefix: string | null;
+            accessKeyId: string;
+            accessKeyHashId: string;
+        };
+        /** @enum {string} */
+        FolderPermission: "FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE";
         FolderGetResponse: {
-            folder: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                ownerId: string;
-                name: string;
-                metadataLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix: string | null;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                contentLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix: string | null;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                accessError?: {
-                    message: string;
-                    code: string;
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
-            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+            folder: components["schemas"]["Folder"];
+            permissions: components["schemas"]["FolderPermission"][];
         };
         FolderGetMetadataResponse: {
             totalCount: number;
             totalSizeBytes: string;
         };
         FolderListResponse: {
-            meta: {
-                totalCount: number;
-            };
+            meta: components["schemas"]["Meta"];
             result: {
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-                folder: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    ownerId: string;
-                    name: string;
-                    metadataLocation: {
-                        /** Format: uuid */
-                        id: string;
-                        /** Format: uuid */
-                        userId?: string;
-                        /** @enum {string} */
-                        providerType: "SERVER" | "USER";
-                        label: string;
-                        endpoint: string;
-                        region: string;
-                        bucket: string;
-                        prefix: string | null;
-                        accessKeyId: string;
-                        accessKeyHashId: string;
-                    };
-                    contentLocation: {
-                        /** Format: uuid */
-                        id: string;
-                        /** Format: uuid */
-                        userId?: string;
-                        /** @enum {string} */
-                        providerType: "SERVER" | "USER";
-                        label: string;
-                        endpoint: string;
-                        region: string;
-                        bucket: string;
-                        prefix: string | null;
-                        accessKeyId: string;
-                        accessKeyHashId: string;
-                    };
-                    accessError?: {
-                        message: string;
-                        code: string;
-                    } | null;
-                    /** Format: date-time */
-                    createdAt: string;
-                    /** Format: date-time */
-                    updatedAt: string;
-                };
+                permissions: components["schemas"]["FolderPermission"][];
+                folder: components["schemas"]["Folder"];
             }[];
+        };
+        StorageLocationInput: {
+            accessKeyId: string;
+            secretAccessKey: string;
+            endpoint: string;
+            bucket: string;
+            region: string;
+            prefix: string | null;
+        } | {
+            /** Format: uuid */
+            storageProvisionId: string;
+        } | {
+            /** Format: uuid */
+            userLocationId: string;
+            userLocationBucketOverride: string;
+            userLocationPrefixOverride: string | null;
         };
         FolderCreateInputDTO: {
             name: string;
-            metadataLocation: {
-                accessKeyId: string;
-                secretAccessKey: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                prefix: string | null;
-            } | {
-                /** Format: uuid */
-                storageProvisionId: string;
-            } | {
-                /** Format: uuid */
-                userLocationId: string;
-                userLocationBucketOverride: string;
-                userLocationPrefixOverride: string | null;
-            };
-            contentLocation: {
-                accessKeyId: string;
-                secretAccessKey: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                prefix: string | null;
-            } | {
-                /** Format: uuid */
-                storageProvisionId: string;
-            } | {
-                /** Format: uuid */
-                userLocationId: string;
-                userLocationBucketOverride: string;
-                userLocationPrefixOverride: string | null;
-            };
+            metadataLocation: components["schemas"]["StorageLocationInput"];
+            contentLocation: components["schemas"]["StorageLocationInput"];
         };
         FolderCreateResponse: {
-            folder: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                ownerId: string;
-                name: string;
-                metadataLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix: string | null;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                contentLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix: string | null;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                accessError?: {
-                    message: string;
-                    code: string;
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            folder: components["schemas"]["Folder"];
         };
         FolderObjectListResponse: {
             meta: {
@@ -6401,48 +2956,10 @@ export interface components {
                 nextCursor?: string;
                 previousCursor?: string;
             };
-            result: {
-                /** Format: uuid */
-                id: string;
-                filename: string;
-                objectKey: string;
-                /** Format: uuid */
-                folderId: string;
-                hash?: string;
-                lastModified: number;
-                eTag: string;
-                sizeBytes: number;
-                mimeType: string;
-                /** @enum {string} */
-                mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                contentMetadata: {
-                    [key: string]: {
-                        [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
-                    };
-                };
-            }[];
+            result: components["schemas"]["FolderObject"][];
         };
         FolderObjectGetResponse: {
-            folderObject: {
-                /** Format: uuid */
-                id: string;
-                filename: string;
-                objectKey: string;
-                /** Format: uuid */
-                folderId: string;
-                hash?: string;
-                lastModified: number;
-                eTag: string;
-                sizeBytes: number;
-                mimeType: string;
-                /** @enum {string} */
-                mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                contentMetadata: {
-                    [key: string]: {
-                        [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
-                    };
-                };
-            };
+            folderObject: components["schemas"]["FolderObject"];
         };
         FolderCreateSignedUrlInputDTO: {
             objectIdentifier: string;
@@ -6453,83 +2970,27 @@ export interface components {
             urls: string[];
         };
         FolderShareGetResponse: {
-            share: {
-                /** Format: uuid */
-                userId: string;
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-            };
+            share: components["schemas"]["Share"];
         };
         FolderShareListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                /** Format: uuid */
-                userId: string;
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
-            }[];
+            meta: components["schemas"]["Meta"];
+            result: components["schemas"]["Share"][];
         };
         FolderShareUserListResponse: {
-            meta: {
-                totalCount: number;
-            };
+            meta: components["schemas"]["Meta"];
             result: {
                 username: string;
                 id: string;
             }[];
         };
         FolderShareCreateInputDTO: {
-            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+            permissions: components["schemas"]["FolderPermission"][];
         };
         FolderUpdateInputDTO: {
             name: string;
         };
         FolderUpdateResponseDTO: {
-            folder: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                ownerId: string;
-                name: string;
-                metadataLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix: string | null;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                contentLocation: {
-                    /** Format: uuid */
-                    id: string;
-                    /** Format: uuid */
-                    userId?: string;
-                    /** @enum {string} */
-                    providerType: "SERVER" | "USER";
-                    label: string;
-                    endpoint: string;
-                    region: string;
-                    bucket: string;
-                    prefix: string | null;
-                    accessKeyId: string;
-                    accessKeyHashId: string;
-                };
-                accessError?: {
-                    message: string;
-                    code: string;
-                } | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            folder: components["schemas"]["Folder"];
         };
         AppFolderSettingsGetResponseDTO: {
             settings: {
@@ -6541,55 +3002,37 @@ export interface components {
                         source: "system" | "user";
                     };
                     permissionsFallback: {
-                        value: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                        value: components["schemas"]["FolderScopeAppPermission"][];
                         /** @enum {string} */
                         source: "system" | "user";
                     };
                     enabled: boolean | null;
-                    permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+                    permissions: components["schemas"]["FolderScopeAppPermission"][] | null;
                 };
             };
         };
         AppFolderSettingsUpdateInputDTO: {
             [key: string]: ({
                 enabled: boolean | null;
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                permissions: components["schemas"]["FolderScopeAppPermission"][];
             } | null) | {
                 enabled: boolean;
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[];
+                permissions: components["schemas"]["FolderScopeAppPermission"][];
             } | {
                 enabled: boolean;
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+                permissions: components["schemas"]["FolderScopeAppPermission"][] | null;
             } | {
-                permissions: ("READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER")[] | null;
+                permissions: components["schemas"]["FolderScopeAppPermission"][] | null;
             } | {
                 enabled: boolean | null;
             };
         };
         AccessKeyListResponse: {
-            meta: {
-                totalCount: number;
-            };
-            result: {
-                secretAccessKey: null;
-                accessKeyId: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                endpointDomain: string;
-                region: string;
-                folderCount: number;
-            }[];
+            meta: components["schemas"]["Meta"];
+            result: components["schemas"]["AccessKey"][];
         };
         AccessKeyGetResponse: {
-            accessKey: {
-                secretAccessKey: null;
-                accessKeyId: string;
-                accessKeyHashId: string;
-                endpoint: string;
-                endpointDomain: string;
-                region: string;
-                folderCount: number;
-            };
+            accessKey: components["schemas"]["AccessKey"];
         };
         RotateAccessKeyInputDTO: {
             accessKeyId: string;
@@ -6605,232 +3048,24 @@ export interface components {
                 createdDate?: string;
             }[];
         };
-        TaskGetResponse__schema0: (string | null) | number | boolean | components["schemas"]["TaskGetResponse__schema0"][] | {
-            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-        };
-        TaskGetResponse__schema1: {
-            taskIdentifier: string;
-            condition?: string;
-            dataTemplate?: {
-                [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-            };
-            onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-        };
         TaskGetResponse: {
             task: {
                 /** Format: uuid */
                 id: string;
                 taskIdentifier: string;
                 ownerId: string;
-                invocation: {
-                    /** @constant */
-                    kind: "system_action";
-                    invokeContext: {
-                        idempotencyData?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    };
-                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "event";
-                    invokeContext: {
-                        /** Format: uuid */
-                        eventId: string;
-                        emitterId: string;
-                        eventIdentifier: string;
-                        eventTriggerConfigIndex?: number;
-                        /** Format: uuid */
-                        runtimeTriggerId?: string;
-                        triggerKey?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                        /** Format: uuid */
-                        targetUserId?: string;
-                        targetLocation?: {
-                            /** Format: uuid */
-                            folderId: string;
-                            objectKey?: string;
-                        };
-                        eventData: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    };
-                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "schedule";
-                    invokeContext: {
-                        timestampBucket: string;
-                        triggerKey: string;
-                        config: {
-                            /** @constant */
-                            kind: "interval";
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        } | {
-                            /** @constant */
-                            kind: "cron";
-                            expression: string;
-                            timezone?: string;
-                        };
-                        /** Format: uuid */
-                        runtimeTriggerId?: string;
-                    };
-                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "user_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        userId: string;
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "app_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "task_complete_child";
-                    invokeContext: {
-                        parentTask: {
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
-                            success: boolean;
-                            result: {
-                                [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                            };
-                        };
-                        onCompleteHandlerIndex: number;
-                    };
-                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "task_progress_child";
-                    invokeContext: {
-                        parentTask: {
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
-                            progressReport: {
-                                code?: string;
-                                details?: {
-                                    percent?: number;
-                                    current?: number;
-                                    total?: number;
-                                    label?: string;
-                                };
-                                message?: {
-                                    /** @enum {string} */
-                                    level: "debug" | "info" | "warn" | "error";
-                                    text: string;
-                                    /** @enum {string} */
-                                    audience: "user" | "system";
-                                };
-                                timestamp?: string;
-                                executorMetadata?: {
-                                    /** @constant */
-                                    type: "system";
-                                    metadata: {
-                                        [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                                    };
-                                } | {
-                                    /** @constant */
-                                    type: "docker";
-                                    metadata: {
-                                        profileKey: string;
-                                        profileHash: string;
-                                        jobIdentifier: string;
-                                        containerId: string;
-                                        hostId: string;
-                                    };
-                                } | {
-                                    /** @constant */
-                                    type: "runtime";
-                                    metadata: {
-                                        workerIdentifier: string;
-                                    };
-                                };
-                            };
-                        };
-                        onProgressHandlerIndex: number;
-                    };
-                    onComplete?: components["schemas"]["TaskGetResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    }[];
-                };
+                invocation: components["schemas"]["Invocation"];
                 success?: boolean;
                 handlerIdentifier?: string;
                 data?: {
-                    [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                    [key: string]: components["schemas"]["JsonSerializableValue"];
                 };
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
+                targetLocation?: components["schemas"]["TargetLocation"];
                 error?: {
                     code: string;
                     message: string;
                     details?: {
-                        [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                        [key: string]: components["schemas"]["JsonSerializableValue"];
                     };
                 };
                 taskDescription: string;
@@ -6853,56 +3088,18 @@ export interface components {
                         [key: string]: unknown;
                     };
                 }[];
-                progress?: {
-                    percent?: number;
-                    current?: number;
-                    total?: number;
-                    label?: string;
-                };
+                progress?: components["schemas"]["Details"];
                 progressReports?: {
                     code?: string;
-                    details?: {
-                        percent?: number;
-                        current?: number;
-                        total?: number;
-                        label?: string;
-                    };
-                    message?: {
-                        /** @enum {string} */
-                        level: "debug" | "info" | "warn" | "error";
-                        text: string;
-                        /** @enum {string} */
-                        audience: "user" | "system";
-                    };
+                    details?: components["schemas"]["Details"];
+                    message?: components["schemas"]["Message"];
                     timestamp?: string;
-                    executorMetadata?: {
-                        /** @constant */
-                        type: "system";
-                        metadata: {
-                            [key: string]: components["schemas"]["TaskGetResponse__schema0"];
-                        };
-                    } | {
-                        /** @constant */
-                        type: "docker";
-                        metadata: {
-                            profileKey: string;
-                            profileHash: string;
-                            jobIdentifier: string;
-                            containerId: string;
-                            hostId: string;
-                        };
-                    } | {
-                        /** @constant */
-                        type: "runtime";
-                        metadata: {
-                            workerIdentifier: string;
-                        };
-                    };
+                    executorMetadata?: components["schemas"]["ExecutorMetadata"];
                     /** Format: date-time */
                     receivedAt: string;
                 }[];
                 result?: {
-                    [key: string]: components["schemas"]["TaskGetResponse__schema0"];
+                    [key: string]: components["schemas"]["JsonSerializableValue"];
                 };
                 /** Format: date-time */
                 startedAt?: string;
@@ -6912,237 +3109,20 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
+                targetLocationContext?: components["schemas"]["TargetLocationContext"];
             };
-        };
-        TaskListResponse__schema0: (string | null) | number | boolean | components["schemas"]["TaskListResponse__schema0"][] | {
-            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-        };
-        TaskListResponse__schema1: {
-            taskIdentifier: string;
-            condition?: string;
-            dataTemplate?: {
-                [key: string]: components["schemas"]["TaskListResponse__schema0"];
-            };
-            onComplete?: components["schemas"]["TaskListResponse__schema1"][];
         };
         TaskListResponse: {
-            meta: {
-                totalCount: number;
-            };
+            meta: components["schemas"]["Meta"];
             result: {
                 /** Format: uuid */
                 id: string;
                 taskIdentifier: string;
                 ownerId: string;
-                invocation: {
-                    /** @constant */
-                    kind: "system_action";
-                    invokeContext: {
-                        idempotencyData?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    };
-                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "event";
-                    invokeContext: {
-                        /** Format: uuid */
-                        eventId: string;
-                        emitterId: string;
-                        eventIdentifier: string;
-                        eventTriggerConfigIndex?: number;
-                        /** Format: uuid */
-                        runtimeTriggerId?: string;
-                        triggerKey?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                        /** Format: uuid */
-                        targetUserId?: string;
-                        targetLocation?: {
-                            /** Format: uuid */
-                            folderId: string;
-                            objectKey?: string;
-                        };
-                        eventData: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    };
-                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "schedule";
-                    invokeContext: {
-                        timestampBucket: string;
-                        triggerKey: string;
-                        config: {
-                            /** @constant */
-                            kind: "interval";
-                            interval: number;
-                            /** @enum {string} */
-                            unit: "minutes" | "hours" | "days";
-                        } | {
-                            /** @constant */
-                            kind: "cron";
-                            expression: string;
-                            timezone?: string;
-                        };
-                        /** Format: uuid */
-                        runtimeTriggerId?: string;
-                    };
-                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "user_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        userId: string;
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "app_action";
-                    invokeContext: {
-                        /** Format: uuid */
-                        requestId: string;
-                    };
-                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "task_complete_child";
-                    invokeContext: {
-                        parentTask: {
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
-                            success: boolean;
-                            result: {
-                                [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                            };
-                        };
-                        onCompleteHandlerIndex: number;
-                    };
-                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    }[];
-                } | {
-                    /** @constant */
-                    kind: "task_progress_child";
-                    invokeContext: {
-                        parentTask: {
-                            /** Format: uuid */
-                            id: string;
-                            identifier: string;
-                            progressReport: {
-                                code?: string;
-                                details?: {
-                                    percent?: number;
-                                    current?: number;
-                                    total?: number;
-                                    label?: string;
-                                };
-                                message?: {
-                                    /** @enum {string} */
-                                    level: "debug" | "info" | "warn" | "error";
-                                    text: string;
-                                    /** @enum {string} */
-                                    audience: "user" | "system";
-                                };
-                                timestamp?: string;
-                                executorMetadata?: {
-                                    /** @constant */
-                                    type: "system";
-                                    metadata: {
-                                        [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                                    };
-                                } | {
-                                    /** @constant */
-                                    type: "docker";
-                                    metadata: {
-                                        profileKey: string;
-                                        profileHash: string;
-                                        jobIdentifier: string;
-                                        containerId: string;
-                                        hostId: string;
-                                    };
-                                } | {
-                                    /** @constant */
-                                    type: "runtime";
-                                    metadata: {
-                                        workerIdentifier: string;
-                                    };
-                                };
-                            };
-                        };
-                        onProgressHandlerIndex: number;
-                    };
-                    onComplete?: components["schemas"]["TaskListResponse__schema1"][];
-                    onProgress?: {
-                        taskIdentifier: string;
-                        condition?: string;
-                        dataTemplate?: {
-                            [key: string]: components["schemas"]["TaskListResponse__schema0"];
-                        };
-                    }[];
-                };
+                invocation: components["schemas"]["Invocation"];
                 success?: boolean;
                 handlerIdentifier?: string;
-                targetLocation?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                };
+                targetLocation?: components["schemas"]["TargetLocation"];
                 error?: components["schemas"]["ApiErrorResponseDTO"];
                 taskDescription: string;
                 storageAccessPolicy?: {
@@ -7176,33 +3156,14 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
-                targetLocationContext?: {
-                    /** Format: uuid */
-                    folderId: string;
-                    objectKey?: string;
-                    folderName: string;
-                    /** Format: uuid */
-                    folderOwnerId: string;
-                };
+                targetLocationContext?: components["schemas"]["TargetLocationContext"];
             }[];
         };
         NotificationSettingsResponseDTO: {
-            settings: {
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                /** @enum {string} */
-                channel: "web" | "email" | "mobile";
-                enabled: boolean;
-            }[];
+            settings: components["schemas"]["Settings"];
         };
         NotificationSettingsUpdateDTO: {
-            settings: {
-                eventIdentifier: string;
-                emitterIdentifier: string;
-                /** @enum {string} */
-                channel: "web" | "email" | "mobile";
-                enabled: boolean;
-            }[];
+            settings: components["schemas"]["Settings"];
         };
         NotificationListResponseDTO: {
             notifications: components["schemas"]["NotificationDTO"][];
@@ -7243,31 +3204,13 @@ export interface components {
             password: string;
         };
         SignupResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            user: components["schemas"]["User"];
         };
         VerifyEmailDTO: {
             token: string;
         };
         TokenRefreshResponse: {
-            session: {
-                accessToken: string;
-                refreshToken: string;
-                /** Format: date-time */
-                expiresAt: string;
-            };
+            session: components["schemas"]["Session"];
         };
         CompleteSSOSignupDTO: {
             username: string;
@@ -7286,20 +3229,7 @@ export interface components {
             signature: string;
         };
         CompleteSSOSignupResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            user: components["schemas"]["User"];
             accessToken: string;
             refreshToken: string;
             /** Format: date-time */
@@ -7335,20 +3265,7 @@ export interface components {
             success: boolean;
         };
         ViewerGetResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            user: components["schemas"]["User"];
         };
         ViewerUpdateInputDTO: {
             name: string;
@@ -7363,20 +3280,7 @@ export interface components {
             permissions?: string[];
         };
         UserGetResponse: {
-            user: {
-                /** Format: uuid */
-                id: string;
-                name: string | null;
-                email: string | null;
-                emailVerified: boolean;
-                isAdmin: boolean;
-                username: string;
-                permissions: string[];
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-            };
+            user: components["schemas"]["User"];
         };
         UserUpdateInputDTO: {
             name?: string | null;
@@ -7387,9 +3291,7 @@ export interface components {
             permissions?: string[];
         };
         UserListResponse: {
-            meta: {
-                totalCount: number;
-            };
+            meta: components["schemas"]["Meta"];
             result: {
                 /** Format: uuid */
                 id: string;
@@ -7406,9 +3308,7 @@ export interface components {
             }[];
         };
         UserSessionListResponse: {
-            meta: {
-                totalCount: number;
-            };
+            meta: components["schemas"]["Meta"];
             result: {
                 /** Format: uuid */
                 id: string;
@@ -7476,20 +3376,13 @@ export interface components {
                 url: string;
             }[];
         };
-        DockerJobCompleteRequestDTO__schema0: (string | null) | number | boolean | components["schemas"]["DockerJobCompleteRequestDTO__schema0"][] | {
-            [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
-        };
         DockerJobCompleteRequestDTO: {
             /** @constant */
             success: true;
             result: {
-                [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
+                [key: string]: components["schemas"]["JsonSerializableValue"];
             };
-            outputFiles?: {
-                /** Format: uuid */
-                folderId: string;
-                objectKey: string;
-            }[];
+            outputFiles?: components["schemas"]["OutputFiles"];
         } | {
             /** @constant */
             success: false;
@@ -7501,110 +3394,49 @@ export interface components {
                 /** @enum {string} */
                 origin: "platform" | "app";
                 details?: {
-                    [key: string]: components["schemas"]["DockerJobCompleteRequestDTO__schema0"];
+                    [key: string]: components["schemas"]["JsonSerializableValue"];
                 };
             };
-            outputFiles?: {
-                /** Format: uuid */
-                folderId: string;
-                objectKey: string;
-            }[];
-        };
-        DockerJobProgressRequestDTO__schema0: (string | null) | number | boolean | components["schemas"]["DockerJobProgressRequestDTO__schema0"][] | {
-            [key: string]: components["schemas"]["DockerJobProgressRequestDTO__schema0"];
+            outputFiles?: components["schemas"]["OutputFiles"];
         };
         DockerJobProgressRequestDTO: {
             code?: string;
-            details?: {
-                percent?: number;
-                current?: number;
-                total?: number;
-                label?: string;
-            };
-            message?: {
-                /** @enum {string} */
-                level: "debug" | "info" | "warn" | "error";
-                text: string;
-                /** @enum {string} */
-                audience: "user" | "system";
-            };
+            details?: components["schemas"]["Details"];
+            message?: components["schemas"]["Message"];
             timestamp?: string;
-            executorMetadata?: {
-                /** @constant */
-                type: "system";
-                metadata: {
-                    [key: string]: components["schemas"]["DockerJobProgressRequestDTO__schema0"];
-                };
-            } | {
-                /** @constant */
-                type: "docker";
-                metadata: {
-                    profileKey: string;
-                    profileHash: string;
-                    jobIdentifier: string;
-                    containerId: string;
-                    hostId: string;
-                };
-            } | {
-                /** @constant */
-                type: "runtime";
-                metadata: {
-                    workerIdentifier: string;
-                };
-            };
+            executorMetadata?: components["schemas"]["ExecutorMetadata"];
+        };
+        DockerHost: {
+            id: string;
+            label: string;
+            /** @enum {string} */
+            type: "docker_endpoint";
+            host: string;
+            tlsConfig: {
+                ca?: string;
+                cert?: string;
+                key?: string;
+            } | null;
+            isDefault: boolean;
+            enabled: boolean;
+            /** @enum {string} */
+            healthStatus: "healthy" | "unhealthy" | "unknown";
+            lastHealthCheck: string | null;
+            createdAt: string;
+            updatedAt: string;
         };
         DockerHostListResponse: {
-            result: {
-                id: string;
-                label: string;
-                /** @enum {string} */
-                type: "docker_endpoint";
-                host: string;
-                tlsConfig: {
-                    ca?: string;
-                    cert?: string;
-                    key?: string;
-                } | null;
-                isDefault: boolean;
-                enabled: boolean;
-                /** @enum {string} */
-                healthStatus: "healthy" | "unhealthy" | "unknown";
-                lastHealthCheck: string | null;
-                createdAt: string;
-                updatedAt: string;
-            }[];
+            result: components["schemas"]["DockerHost"][];
         };
         DockerHostResponse: {
-            result: {
-                id: string;
-                label: string;
-                /** @enum {string} */
-                type: "docker_endpoint";
-                host: string;
-                tlsConfig: {
-                    ca?: string;
-                    cert?: string;
-                    key?: string;
-                } | null;
-                isDefault: boolean;
-                enabled: boolean;
-                /** @enum {string} */
-                healthStatus: "healthy" | "unhealthy" | "unknown";
-                lastHealthCheck: string | null;
-                createdAt: string;
-                updatedAt: string;
-            };
+            result: components["schemas"]["DockerHost"];
         };
         DockerHostInputDTO: {
             label: string;
             /** @enum {string} */
             type: "docker_endpoint";
             host: string;
-            tlsConfig?: {
-                ca?: string;
-                cert?: string;
-                key?: string;
-            };
+            tlsConfig?: components["schemas"]["TlsConfig"];
             isDefault?: boolean;
             enabled?: boolean;
         };
@@ -7613,11 +3445,7 @@ export interface components {
             /** @enum {string} */
             type?: "docker_endpoint";
             host?: string;
-            tlsConfig?: {
-                ca?: string;
-                cert?: string;
-                key?: string;
-            };
+            tlsConfig?: components["schemas"]["TlsConfig"];
             isDefault?: boolean;
             enabled?: boolean;
         };
@@ -7625,16 +3453,17 @@ export interface components {
             /** @constant */
             success: true;
         };
+        DockerRegistryCredential: {
+            id: string;
+            registry: string;
+            serverAddress: string;
+            username: string;
+            password: string;
+            createdAt: string;
+            updatedAt: string;
+        };
         DockerRegistryCredentialListResponse: {
-            result: {
-                id: string;
-                registry: string;
-                serverAddress: string;
-                username: string;
-                password: string;
-                createdAt: string;
-                updatedAt: string;
-            }[];
+            result: components["schemas"]["DockerRegistryCredential"][];
         };
         DockerRegistryCredentialInputDTO: {
             registry: string;
@@ -7643,15 +3472,7 @@ export interface components {
             password: string;
         };
         DockerRegistryCredentialResponse: {
-            result: {
-                id: string;
-                registry: string;
-                serverAddress: string;
-                username: string;
-                password: string;
-                createdAt: string;
-                updatedAt: string;
-            };
+            result: components["schemas"]["DockerRegistryCredential"];
         };
         DockerRegistryCredentialUpdateDTO: {
             registry?: string;
@@ -7663,322 +3484,125 @@ export interface components {
             /** @constant */
             success: true;
         };
-        DockerProfileAssignmentListResponse: {
-            result: {
-                id: string;
-                appIdentifier: string;
-                profileKey: string;
-                dockerHostId: string;
-                config: {
-                    mounts?: ({
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "volume";
-                        source: string | null;
-                        volumeOptions?: {
-                            noCopy?: boolean;
-                            labels?: components["schemas"]["StringMapDTO"];
-                            driverConfig: {
-                                name: string;
-                                options?: components["schemas"]["StringMapDTO"];
-                                createSubpath?: string;
-                            };
-                            subpath?: string;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "bind";
-                        source: string;
-                        bindOptions?: {
-                            /** @enum {string} */
-                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                            nonRecursive?: boolean;
-                            createMountpoint?: boolean;
-                            readOnlyNonRecursive?: boolean;
-                            readOnlyForceRecursive?: boolean;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "tmpfs";
-                        source: unknown;
-                        tmpfsOptions?: {
-                            sizeBytes: number;
-                            mode: number;
-                            options?: string[][];
-                        };
-                    })[];
-                    env?: components["schemas"]["StringMapDTO"];
-                    gpus?: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                    extraHosts?: string[];
-                    networkMode?: string;
-                    capAdd?: string[];
-                    capDrop?: string[];
-                    securityOpt?: string[];
-                    ports?: {
-                        host: number;
-                        container: number;
-                        /**
-                         * @default tcp
-                         * @enum {string}
-                         */
-                        protocol: "tcp" | "udp";
-                    }[];
-                    /** @enum {string} */
-                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                    shmSize?: number;
-                    tmpfs?: components["schemas"]["StringMapDTO"];
-                    devices?: string[];
-                    ulimits?: {
-                        [key: string]: {
-                            soft: number;
-                            hard: number;
-                        };
-                    };
-                    sysctls?: components["schemas"]["StringMapDTO"];
+        DockerProfileResourceAssignment: {
+            id: string;
+            appIdentifier: string;
+            profileKey: string;
+            dockerHostId: string;
+            config: components["schemas"]["DockerResourceConfig"];
+            configHashes: components["schemas"]["StringMapDTO"];
+            createdAt: string;
+            updatedAt: string;
+        };
+        DockerResourceConfig: {
+            mounts?: ({
+                target: string;
+                readOnly?: boolean;
+                /** @constant */
+                type: "volume";
+                source: string | null;
+                volumeOptions?: {
+                    noCopy?: boolean;
                     labels?: components["schemas"]["StringMapDTO"];
-                    privileged?: boolean;
-                    readOnly?: boolean;
-                    user?: string;
-                    workingDir?: string;
-                    hostname?: string;
-                    domainName?: string;
-                    dns?: string[];
-                    dnsSearch?: string[];
-                    entrypoint?: string[];
-                    command?: string[];
-                    stopSignal?: string;
-                    stopTimeout?: number;
-                    memoryLimit?: number;
-                    cpuShares?: number;
-                    cpuQuota?: number;
-                    pidsLimit?: number;
-                    ipcMode?: string;
-                    pidMode?: string;
-                    cgroupParent?: string;
-                    runtime?: string;
+                    driverConfig: {
+                        name: string;
+                        options?: components["schemas"]["StringMapDTO"];
+                        createSubpath?: string;
+                    };
+                    subpath?: string;
                 };
-                configHashes: components["schemas"]["StringMapDTO"];
-                createdAt: string;
-                updatedAt: string;
+            } | {
+                target: string;
+                readOnly?: boolean;
+                /** @constant */
+                type: "bind";
+                source: string;
+                bindOptions?: {
+                    /** @enum {string} */
+                    propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                    nonRecursive?: boolean;
+                    createMountpoint?: boolean;
+                    readOnlyNonRecursive?: boolean;
+                    readOnlyForceRecursive?: boolean;
+                };
+            } | {
+                target: string;
+                readOnly?: boolean;
+                /** @constant */
+                type: "tmpfs";
+                source: unknown;
+                tmpfsOptions?: {
+                    sizeBytes: number;
+                    mode: number;
+                    options?: string[][];
+                };
+            })[];
+            env?: components["schemas"]["StringMapDTO"];
+            gpus?: {
+                driver: string;
+                deviceIds: string[];
+            };
+            extraHosts?: string[];
+            networkMode?: string;
+            capAdd?: string[];
+            capDrop?: string[];
+            securityOpt?: string[];
+            ports?: {
+                host: number;
+                container: number;
+                /**
+                 * @default tcp
+                 * @enum {string}
+                 */
+                protocol: "tcp" | "udp";
             }[];
+            /** @enum {string} */
+            restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
+            shmSize?: number;
+            tmpfs?: components["schemas"]["StringMapDTO"];
+            devices?: string[];
+            ulimits?: {
+                [key: string]: {
+                    soft: number;
+                    hard: number;
+                };
+            };
+            sysctls?: components["schemas"]["StringMapDTO"];
+            labels?: components["schemas"]["StringMapDTO"];
+            privileged?: boolean;
+            readOnly?: boolean;
+            user?: string;
+            workingDir?: string;
+            hostname?: string;
+            domainName?: string;
+            dns?: string[];
+            dnsSearch?: string[];
+            entrypoint?: string[];
+            command?: string[];
+            stopSignal?: string;
+            stopTimeout?: number;
+            memoryLimit?: number;
+            cpuShares?: number;
+            cpuQuota?: number;
+            pidsLimit?: number;
+            ipcMode?: string;
+            pidMode?: string;
+            cgroupParent?: string;
+            runtime?: string;
+        };
+        DockerProfileAssignmentListResponse: {
+            result: components["schemas"]["DockerProfileResourceAssignment"][];
         };
         DockerProfileResolveResponse: {
             result: {
                 hostId: string;
                 hostLabel: string;
                 hostEndpoint: string;
-                resourceConfig: {
-                    mounts?: ({
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "volume";
-                        source: string | null;
-                        volumeOptions?: {
-                            noCopy?: boolean;
-                            labels?: components["schemas"]["StringMapDTO"];
-                            driverConfig: {
-                                name: string;
-                                options?: components["schemas"]["StringMapDTO"];
-                                createSubpath?: string;
-                            };
-                            subpath?: string;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "bind";
-                        source: string;
-                        bindOptions?: {
-                            /** @enum {string} */
-                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                            nonRecursive?: boolean;
-                            createMountpoint?: boolean;
-                            readOnlyNonRecursive?: boolean;
-                            readOnlyForceRecursive?: boolean;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "tmpfs";
-                        source: unknown;
-                        tmpfsOptions?: {
-                            sizeBytes: number;
-                            mode: number;
-                            options?: string[][];
-                        };
-                    })[];
-                    env?: components["schemas"]["StringMapDTO"];
-                    gpus?: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                    extraHosts?: string[];
-                    networkMode?: string;
-                    capAdd?: string[];
-                    capDrop?: string[];
-                    securityOpt?: string[];
-                    ports?: {
-                        host: number;
-                        container: number;
-                        /**
-                         * @default tcp
-                         * @enum {string}
-                         */
-                        protocol: "tcp" | "udp";
-                    }[];
-                    /** @enum {string} */
-                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                    shmSize?: number;
-                    tmpfs?: components["schemas"]["StringMapDTO"];
-                    devices?: string[];
-                    ulimits?: {
-                        [key: string]: {
-                            soft: number;
-                            hard: number;
-                        };
-                    };
-                    sysctls?: components["schemas"]["StringMapDTO"];
-                    labels?: components["schemas"]["StringMapDTO"];
-                    privileged?: boolean;
-                    readOnly?: boolean;
-                    user?: string;
-                    workingDir?: string;
-                    hostname?: string;
-                    domainName?: string;
-                    dns?: string[];
-                    dnsSearch?: string[];
-                    entrypoint?: string[];
-                    command?: string[];
-                    stopSignal?: string;
-                    stopTimeout?: number;
-                    memoryLimit?: number;
-                    cpuShares?: number;
-                    cpuQuota?: number;
-                    pidsLimit?: number;
-                    ipcMode?: string;
-                    pidMode?: string;
-                    cgroupParent?: string;
-                    runtime?: string;
-                } | null;
+                resourceConfig: components["schemas"]["DockerResourceConfig"] | null;
             };
         };
         DockerProfileAssignmentResponse: {
-            result: {
-                id: string;
-                appIdentifier: string;
-                profileKey: string;
-                dockerHostId: string;
-                config: {
-                    mounts?: ({
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "volume";
-                        source: string | null;
-                        volumeOptions?: {
-                            noCopy?: boolean;
-                            labels?: components["schemas"]["StringMapDTO"];
-                            driverConfig: {
-                                name: string;
-                                options?: components["schemas"]["StringMapDTO"];
-                                createSubpath?: string;
-                            };
-                            subpath?: string;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "bind";
-                        source: string;
-                        bindOptions?: {
-                            /** @enum {string} */
-                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                            nonRecursive?: boolean;
-                            createMountpoint?: boolean;
-                            readOnlyNonRecursive?: boolean;
-                            readOnlyForceRecursive?: boolean;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "tmpfs";
-                        source: unknown;
-                        tmpfsOptions?: {
-                            sizeBytes: number;
-                            mode: number;
-                            options?: string[][];
-                        };
-                    })[];
-                    env?: components["schemas"]["StringMapDTO"];
-                    gpus?: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                    extraHosts?: string[];
-                    networkMode?: string;
-                    capAdd?: string[];
-                    capDrop?: string[];
-                    securityOpt?: string[];
-                    ports?: {
-                        host: number;
-                        container: number;
-                        /**
-                         * @default tcp
-                         * @enum {string}
-                         */
-                        protocol: "tcp" | "udp";
-                    }[];
-                    /** @enum {string} */
-                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                    shmSize?: number;
-                    tmpfs?: components["schemas"]["StringMapDTO"];
-                    devices?: string[];
-                    ulimits?: {
-                        [key: string]: {
-                            soft: number;
-                            hard: number;
-                        };
-                    };
-                    sysctls?: components["schemas"]["StringMapDTO"];
-                    labels?: components["schemas"]["StringMapDTO"];
-                    privileged?: boolean;
-                    readOnly?: boolean;
-                    user?: string;
-                    workingDir?: string;
-                    hostname?: string;
-                    domainName?: string;
-                    dns?: string[];
-                    dnsSearch?: string[];
-                    entrypoint?: string[];
-                    command?: string[];
-                    stopSignal?: string;
-                    stopTimeout?: number;
-                    memoryLimit?: number;
-                    cpuShares?: number;
-                    cpuQuota?: number;
-                    pidsLimit?: number;
-                    ipcMode?: string;
-                    pidMode?: string;
-                    cgroupParent?: string;
-                    runtime?: string;
-                };
-                configHashes: components["schemas"]["StringMapDTO"];
-                createdAt: string;
-                updatedAt: string;
-            };
+            result: components["schemas"]["DockerProfileResourceAssignment"];
         };
         DockerProfileAssignmentInputDTO: {
             appIdentifier: string;
@@ -7986,428 +3610,36 @@ export interface components {
             /** Format: uuid */
             dockerHostId: string;
             /** @default {} */
-            config: {
-                mounts?: ({
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "volume";
-                    source: string | null;
-                    volumeOptions?: {
-                        noCopy?: boolean;
-                        labels?: components["schemas"]["StringMapDTO"];
-                        driverConfig: {
-                            name: string;
-                            options?: components["schemas"]["StringMapDTO"];
-                            createSubpath?: string;
-                        };
-                        subpath?: string;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "bind";
-                    source: string;
-                    bindOptions?: {
-                        /** @enum {string} */
-                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                        nonRecursive?: boolean;
-                        createMountpoint?: boolean;
-                        readOnlyNonRecursive?: boolean;
-                        readOnlyForceRecursive?: boolean;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "tmpfs";
-                    source: unknown;
-                    tmpfsOptions?: {
-                        sizeBytes: number;
-                        mode: number;
-                        options?: string[][];
-                    };
-                })[];
-                env?: components["schemas"]["StringMapDTO"];
-                gpus?: {
-                    driver: string;
-                    deviceIds: string[];
-                };
-                extraHosts?: string[];
-                networkMode?: string;
-                capAdd?: string[];
-                capDrop?: string[];
-                securityOpt?: string[];
-                ports?: {
-                    host: number;
-                    container: number;
-                    /**
-                     * @default tcp
-                     * @enum {string}
-                     */
-                    protocol: "tcp" | "udp";
-                }[];
-                /** @enum {string} */
-                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                shmSize?: number;
-                tmpfs?: components["schemas"]["StringMapDTO"];
-                devices?: string[];
-                ulimits?: {
-                    [key: string]: {
-                        soft: number;
-                        hard: number;
-                    };
-                };
-                sysctls?: components["schemas"]["StringMapDTO"];
-                labels?: components["schemas"]["StringMapDTO"];
-                privileged?: boolean;
-                readOnly?: boolean;
-                user?: string;
-                workingDir?: string;
-                hostname?: string;
-                domainName?: string;
-                dns?: string[];
-                dnsSearch?: string[];
-                entrypoint?: string[];
-                command?: string[];
-                stopSignal?: string;
-                stopTimeout?: number;
-                memoryLimit?: number;
-                cpuShares?: number;
-                cpuQuota?: number;
-                pidsLimit?: number;
-                ipcMode?: string;
-                pidMode?: string;
-                cgroupParent?: string;
-                runtime?: string;
-            };
+            config: components["schemas"]["DockerResourceConfig"];
         };
         DockerProfileAssignmentUpdateDTO: {
             /** Format: uuid */
             dockerHostId?: string;
-            config?: {
-                mounts?: ({
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "volume";
-                    source: string | null;
-                    volumeOptions?: {
-                        noCopy?: boolean;
-                        labels?: components["schemas"]["StringMapDTO"];
-                        driverConfig: {
-                            name: string;
-                            options?: components["schemas"]["StringMapDTO"];
-                            createSubpath?: string;
-                        };
-                        subpath?: string;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "bind";
-                    source: string;
-                    bindOptions?: {
-                        /** @enum {string} */
-                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                        nonRecursive?: boolean;
-                        createMountpoint?: boolean;
-                        readOnlyNonRecursive?: boolean;
-                        readOnlyForceRecursive?: boolean;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "tmpfs";
-                    source: unknown;
-                    tmpfsOptions?: {
-                        sizeBytes: number;
-                        mode: number;
-                        options?: string[][];
-                    };
-                })[];
-                env?: components["schemas"]["StringMapDTO"];
-                gpus?: {
-                    driver: string;
-                    deviceIds: string[];
-                };
-                extraHosts?: string[];
-                networkMode?: string;
-                capAdd?: string[];
-                capDrop?: string[];
-                securityOpt?: string[];
-                ports?: {
-                    host: number;
-                    container: number;
-                    /**
-                     * @default tcp
-                     * @enum {string}
-                     */
-                    protocol: "tcp" | "udp";
-                }[];
-                /** @enum {string} */
-                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                shmSize?: number;
-                tmpfs?: components["schemas"]["StringMapDTO"];
-                devices?: string[];
-                ulimits?: {
-                    [key: string]: {
-                        soft: number;
-                        hard: number;
-                    };
-                };
-                sysctls?: components["schemas"]["StringMapDTO"];
-                labels?: components["schemas"]["StringMapDTO"];
-                privileged?: boolean;
-                readOnly?: boolean;
-                user?: string;
-                workingDir?: string;
-                hostname?: string;
-                domainName?: string;
-                dns?: string[];
-                dnsSearch?: string[];
-                entrypoint?: string[];
-                command?: string[];
-                stopSignal?: string;
-                stopTimeout?: number;
-                memoryLimit?: number;
-                cpuShares?: number;
-                cpuQuota?: number;
-                pidsLimit?: number;
-                ipcMode?: string;
-                pidMode?: string;
-                cgroupParent?: string;
-                runtime?: string;
-            };
+            config?: components["schemas"]["DockerResourceConfig"];
         };
         DockerProfileAssignmentDeleteResponse: {
             /** @constant */
             success: true;
         };
+        DockerStandaloneContainer: {
+            id: string;
+            dockerHostId: string;
+            label: string;
+            image: string;
+            tag: string;
+            /** @enum {string} */
+            desiredStatus: "running" | "stopped";
+            containerId: string;
+            config: components["schemas"]["DockerResourceConfig"];
+            configHashes: components["schemas"]["StringMapDTO"];
+            createdAt: string;
+            updatedAt: string;
+        };
         DockerStandaloneContainerListResponse: {
-            result: {
-                id: string;
-                dockerHostId: string;
-                label: string;
-                image: string;
-                tag: string;
-                /** @enum {string} */
-                desiredStatus: "running" | "stopped";
-                containerId: string;
-                config: {
-                    mounts?: ({
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "volume";
-                        source: string | null;
-                        volumeOptions?: {
-                            noCopy?: boolean;
-                            labels?: components["schemas"]["StringMapDTO"];
-                            driverConfig: {
-                                name: string;
-                                options?: components["schemas"]["StringMapDTO"];
-                                createSubpath?: string;
-                            };
-                            subpath?: string;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "bind";
-                        source: string;
-                        bindOptions?: {
-                            /** @enum {string} */
-                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                            nonRecursive?: boolean;
-                            createMountpoint?: boolean;
-                            readOnlyNonRecursive?: boolean;
-                            readOnlyForceRecursive?: boolean;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "tmpfs";
-                        source: unknown;
-                        tmpfsOptions?: {
-                            sizeBytes: number;
-                            mode: number;
-                            options?: string[][];
-                        };
-                    })[];
-                    env?: components["schemas"]["StringMapDTO"];
-                    gpus?: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                    extraHosts?: string[];
-                    networkMode?: string;
-                    capAdd?: string[];
-                    capDrop?: string[];
-                    securityOpt?: string[];
-                    ports?: {
-                        host: number;
-                        container: number;
-                        /**
-                         * @default tcp
-                         * @enum {string}
-                         */
-                        protocol: "tcp" | "udp";
-                    }[];
-                    /** @enum {string} */
-                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                    shmSize?: number;
-                    tmpfs?: components["schemas"]["StringMapDTO"];
-                    devices?: string[];
-                    ulimits?: {
-                        [key: string]: {
-                            soft: number;
-                            hard: number;
-                        };
-                    };
-                    sysctls?: components["schemas"]["StringMapDTO"];
-                    labels?: components["schemas"]["StringMapDTO"];
-                    privileged?: boolean;
-                    readOnly?: boolean;
-                    user?: string;
-                    workingDir?: string;
-                    hostname?: string;
-                    domainName?: string;
-                    dns?: string[];
-                    dnsSearch?: string[];
-                    entrypoint?: string[];
-                    command?: string[];
-                    stopSignal?: string;
-                    stopTimeout?: number;
-                    memoryLimit?: number;
-                    cpuShares?: number;
-                    cpuQuota?: number;
-                    pidsLimit?: number;
-                    ipcMode?: string;
-                    pidMode?: string;
-                    cgroupParent?: string;
-                    runtime?: string;
-                };
-                configHashes: components["schemas"]["StringMapDTO"];
-                createdAt: string;
-                updatedAt: string;
-            }[];
+            result: components["schemas"]["DockerStandaloneContainer"][];
         };
         DockerStandaloneContainerResponse: {
-            result: {
-                id: string;
-                dockerHostId: string;
-                label: string;
-                image: string;
-                tag: string;
-                /** @enum {string} */
-                desiredStatus: "running" | "stopped";
-                containerId: string;
-                config: {
-                    mounts?: ({
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "volume";
-                        source: string | null;
-                        volumeOptions?: {
-                            noCopy?: boolean;
-                            labels?: components["schemas"]["StringMapDTO"];
-                            driverConfig: {
-                                name: string;
-                                options?: components["schemas"]["StringMapDTO"];
-                                createSubpath?: string;
-                            };
-                            subpath?: string;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "bind";
-                        source: string;
-                        bindOptions?: {
-                            /** @enum {string} */
-                            propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                            nonRecursive?: boolean;
-                            createMountpoint?: boolean;
-                            readOnlyNonRecursive?: boolean;
-                            readOnlyForceRecursive?: boolean;
-                        };
-                    } | {
-                        target: string;
-                        readOnly?: boolean;
-                        /** @constant */
-                        type: "tmpfs";
-                        source: unknown;
-                        tmpfsOptions?: {
-                            sizeBytes: number;
-                            mode: number;
-                            options?: string[][];
-                        };
-                    })[];
-                    env?: components["schemas"]["StringMapDTO"];
-                    gpus?: {
-                        driver: string;
-                        deviceIds: string[];
-                    };
-                    extraHosts?: string[];
-                    networkMode?: string;
-                    capAdd?: string[];
-                    capDrop?: string[];
-                    securityOpt?: string[];
-                    ports?: {
-                        host: number;
-                        container: number;
-                        /**
-                         * @default tcp
-                         * @enum {string}
-                         */
-                        protocol: "tcp" | "udp";
-                    }[];
-                    /** @enum {string} */
-                    restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                    shmSize?: number;
-                    tmpfs?: components["schemas"]["StringMapDTO"];
-                    devices?: string[];
-                    ulimits?: {
-                        [key: string]: {
-                            soft: number;
-                            hard: number;
-                        };
-                    };
-                    sysctls?: components["schemas"]["StringMapDTO"];
-                    labels?: components["schemas"]["StringMapDTO"];
-                    privileged?: boolean;
-                    readOnly?: boolean;
-                    user?: string;
-                    workingDir?: string;
-                    hostname?: string;
-                    domainName?: string;
-                    dns?: string[];
-                    dnsSearch?: string[];
-                    entrypoint?: string[];
-                    command?: string[];
-                    stopSignal?: string;
-                    stopTimeout?: number;
-                    memoryLimit?: number;
-                    cpuShares?: number;
-                    cpuQuota?: number;
-                    pidsLimit?: number;
-                    ipcMode?: string;
-                    pidMode?: string;
-                    cgroupParent?: string;
-                    runtime?: string;
-                };
-                configHashes: components["schemas"]["StringMapDTO"];
-                createdAt: string;
-                updatedAt: string;
-            };
+            result: components["schemas"]["DockerStandaloneContainer"];
         };
         DockerStandaloneContainerInputDTO: {
             /** Format: uuid */
@@ -8422,102 +3654,7 @@ export interface components {
              */
             desiredStatus: "running" | "stopped";
             /** @default {} */
-            config: {
-                mounts?: ({
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "volume";
-                    source: string | null;
-                    volumeOptions?: {
-                        noCopy?: boolean;
-                        labels?: components["schemas"]["StringMapDTO"];
-                        driverConfig: {
-                            name: string;
-                            options?: components["schemas"]["StringMapDTO"];
-                            createSubpath?: string;
-                        };
-                        subpath?: string;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "bind";
-                    source: string;
-                    bindOptions?: {
-                        /** @enum {string} */
-                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                        nonRecursive?: boolean;
-                        createMountpoint?: boolean;
-                        readOnlyNonRecursive?: boolean;
-                        readOnlyForceRecursive?: boolean;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "tmpfs";
-                    source: unknown;
-                    tmpfsOptions?: {
-                        sizeBytes: number;
-                        mode: number;
-                        options?: string[][];
-                    };
-                })[];
-                env?: components["schemas"]["StringMapDTO"];
-                gpus?: {
-                    driver: string;
-                    deviceIds: string[];
-                };
-                extraHosts?: string[];
-                networkMode?: string;
-                capAdd?: string[];
-                capDrop?: string[];
-                securityOpt?: string[];
-                ports?: {
-                    host: number;
-                    container: number;
-                    /**
-                     * @default tcp
-                     * @enum {string}
-                     */
-                    protocol: "tcp" | "udp";
-                }[];
-                /** @enum {string} */
-                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                shmSize?: number;
-                tmpfs?: components["schemas"]["StringMapDTO"];
-                devices?: string[];
-                ulimits?: {
-                    [key: string]: {
-                        soft: number;
-                        hard: number;
-                    };
-                };
-                sysctls?: components["schemas"]["StringMapDTO"];
-                labels?: components["schemas"]["StringMapDTO"];
-                privileged?: boolean;
-                readOnly?: boolean;
-                user?: string;
-                workingDir?: string;
-                hostname?: string;
-                domainName?: string;
-                dns?: string[];
-                dnsSearch?: string[];
-                entrypoint?: string[];
-                command?: string[];
-                stopSignal?: string;
-                stopTimeout?: number;
-                memoryLimit?: number;
-                cpuShares?: number;
-                cpuQuota?: number;
-                pidsLimit?: number;
-                ipcMode?: string;
-                pidMode?: string;
-                cgroupParent?: string;
-                runtime?: string;
-            };
+            config: components["schemas"]["DockerResourceConfig"];
         };
         DockerStandaloneContainerUpdateDTO: {
             /** Format: uuid */
@@ -8532,102 +3669,7 @@ export interface components {
              */
             desiredStatus: "running" | "stopped";
             /** @default {} */
-            config: {
-                mounts?: ({
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "volume";
-                    source: string | null;
-                    volumeOptions?: {
-                        noCopy?: boolean;
-                        labels?: components["schemas"]["StringMapDTO"];
-                        driverConfig: {
-                            name: string;
-                            options?: components["schemas"]["StringMapDTO"];
-                            createSubpath?: string;
-                        };
-                        subpath?: string;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "bind";
-                    source: string;
-                    bindOptions?: {
-                        /** @enum {string} */
-                        propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                        nonRecursive?: boolean;
-                        createMountpoint?: boolean;
-                        readOnlyNonRecursive?: boolean;
-                        readOnlyForceRecursive?: boolean;
-                    };
-                } | {
-                    target: string;
-                    readOnly?: boolean;
-                    /** @constant */
-                    type: "tmpfs";
-                    source: unknown;
-                    tmpfsOptions?: {
-                        sizeBytes: number;
-                        mode: number;
-                        options?: string[][];
-                    };
-                })[];
-                env?: components["schemas"]["StringMapDTO"];
-                gpus?: {
-                    driver: string;
-                    deviceIds: string[];
-                };
-                extraHosts?: string[];
-                networkMode?: string;
-                capAdd?: string[];
-                capDrop?: string[];
-                securityOpt?: string[];
-                ports?: {
-                    host: number;
-                    container: number;
-                    /**
-                     * @default tcp
-                     * @enum {string}
-                     */
-                    protocol: "tcp" | "udp";
-                }[];
-                /** @enum {string} */
-                restartPolicy?: "no" | "always" | "unless-stopped" | "on-failure";
-                shmSize?: number;
-                tmpfs?: components["schemas"]["StringMapDTO"];
-                devices?: string[];
-                ulimits?: {
-                    [key: string]: {
-                        soft: number;
-                        hard: number;
-                    };
-                };
-                sysctls?: components["schemas"]["StringMapDTO"];
-                labels?: components["schemas"]["StringMapDTO"];
-                privileged?: boolean;
-                readOnly?: boolean;
-                user?: string;
-                workingDir?: string;
-                hostname?: string;
-                domainName?: string;
-                dns?: string[];
-                dnsSearch?: string[];
-                entrypoint?: string[];
-                command?: string[];
-                stopSignal?: string;
-                stopTimeout?: number;
-                memoryLimit?: number;
-                cpuShares?: number;
-                cpuQuota?: number;
-                pidsLimit?: number;
-                ipcMode?: string;
-                pidMode?: string;
-                cgroupParent?: string;
-                runtime?: string;
-            };
+            config: components["schemas"]["DockerResourceConfig"];
         };
         DockerStandaloneContainerDesiredStatusDTO: {
             /** @enum {string} */
@@ -8638,81 +3680,7 @@ export interface components {
             success: true;
         };
         AllCommentsListResponseDTO: {
-            comments: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                folderId: string;
-                /** Format: uuid */
-                folderObjectId: string;
-                /** Format: uuid */
-                rootId: string | null;
-                /** Format: uuid */
-                quoteId: string | null;
-                author: {
-                    /** Format: uuid */
-                    id: string;
-                    username: string;
-                    name: string | null;
-                    email: string | null;
-                };
-                content: string;
-                anchor: ({
-                    /** @constant */
-                    type: "image_point";
-                    x: number;
-                    y: number;
-                } | {
-                    /** @constant */
-                    type: "video_point";
-                    t: number;
-                    x?: number;
-                    y?: number;
-                } | {
-                    /** @constant */
-                    type: "audio_point";
-                    t: number;
-                }) | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-                /** Format: date-time */
-                deletedAt: string | null;
-                quotedComment?: {
-                    /** Format: uuid */
-                    id: string;
-                    author: {
-                        /** Format: uuid */
-                        id: string;
-                        username: string;
-                        name: string | null;
-                        email: string | null;
-                    };
-                    content: string;
-                    /** Format: date-time */
-                    createdAt: string;
-                    /** Format: date-time */
-                    deletedAt: string | null;
-                } | null;
-                mentions?: {
-                    /** Format: uuid */
-                    id: string;
-                    username: string;
-                    name: string | null;
-                }[];
-                reactions?: {
-                    emoji: string;
-                    count: number;
-                    users: {
-                        /** Format: uuid */
-                        id: string;
-                        username: string;
-                        name: string | null;
-                        email: string | null;
-                    }[];
-                }[];
-            }[];
+            comments: components["schemas"]["Comment"][];
         };
         CreateCommentDTO: {
             content: string;
@@ -8738,158 +3706,10 @@ export interface components {
             rootCommentId?: string;
         };
         CreateRootCommentResponseDTO: {
-            comment: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                folderId: string;
-                /** Format: uuid */
-                folderObjectId: string;
-                /** Format: uuid */
-                rootId: string | null;
-                /** Format: uuid */
-                quoteId: string | null;
-                author: {
-                    /** Format: uuid */
-                    id: string;
-                    username: string;
-                    name: string | null;
-                    email: string | null;
-                };
-                content: string;
-                anchor: ({
-                    /** @constant */
-                    type: "image_point";
-                    x: number;
-                    y: number;
-                } | {
-                    /** @constant */
-                    type: "video_point";
-                    t: number;
-                    x?: number;
-                    y?: number;
-                } | {
-                    /** @constant */
-                    type: "audio_point";
-                    t: number;
-                }) | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-                /** Format: date-time */
-                deletedAt: string | null;
-                quotedComment?: {
-                    /** Format: uuid */
-                    id: string;
-                    author: {
-                        /** Format: uuid */
-                        id: string;
-                        username: string;
-                        name: string | null;
-                        email: string | null;
-                    };
-                    content: string;
-                    /** Format: date-time */
-                    createdAt: string;
-                    /** Format: date-time */
-                    deletedAt: string | null;
-                } | null;
-                mentions?: {
-                    /** Format: uuid */
-                    id: string;
-                    username: string;
-                    name: string | null;
-                }[];
-                reactions?: {
-                    emoji: string;
-                    count: number;
-                    users: {
-                        /** Format: uuid */
-                        id: string;
-                        username: string;
-                        name: string | null;
-                        email: string | null;
-                    }[];
-                }[];
-            };
+            comment: components["schemas"]["Comment"];
         };
         ThreadResponseDTO: {
-            comments: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                folderId: string;
-                /** Format: uuid */
-                folderObjectId: string;
-                /** Format: uuid */
-                rootId: string | null;
-                /** Format: uuid */
-                quoteId: string | null;
-                author: {
-                    /** Format: uuid */
-                    id: string;
-                    username: string;
-                    name: string | null;
-                    email: string | null;
-                };
-                content: string;
-                anchor: ({
-                    /** @constant */
-                    type: "image_point";
-                    x: number;
-                    y: number;
-                } | {
-                    /** @constant */
-                    type: "video_point";
-                    t: number;
-                    x?: number;
-                    y?: number;
-                } | {
-                    /** @constant */
-                    type: "audio_point";
-                    t: number;
-                }) | null;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                updatedAt: string;
-                /** Format: date-time */
-                deletedAt: string | null;
-                quotedComment?: {
-                    /** Format: uuid */
-                    id: string;
-                    author: {
-                        /** Format: uuid */
-                        id: string;
-                        username: string;
-                        name: string | null;
-                        email: string | null;
-                    };
-                    content: string;
-                    /** Format: date-time */
-                    createdAt: string;
-                    /** Format: date-time */
-                    deletedAt: string | null;
-                } | null;
-                mentions?: {
-                    /** Format: uuid */
-                    id: string;
-                    username: string;
-                    name: string | null;
-                }[];
-                reactions?: {
-                    emoji: string;
-                    count: number;
-                    users: {
-                        /** Format: uuid */
-                        id: string;
-                        username: string;
-                        name: string | null;
-                        email: string | null;
-                    }[];
-                }[];
-            }[];
+            comments: components["schemas"]["Comment"][];
         };
         SuccessResponseDTO: {
             success: boolean;
@@ -8904,31 +3724,10 @@ export interface components {
                 objectKey: string;
                 similarity: number;
                 score?: number;
-                folderObject: {
-                    /** Format: uuid */
-                    id: string;
-                    filename: string;
-                    objectKey: string;
-                    /** Format: uuid */
-                    folderId: string;
-                    hash?: string;
-                    lastModified: number;
-                    eTag: string;
-                    sizeBytes: number;
-                    mimeType: string;
-                    /** @enum {string} */
-                    mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                    contentMetadata: {
-                        [key: string]: {
-                            [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
-                        };
-                    };
-                };
+                folderObject: components["schemas"]["FolderObject"];
                 folderName: string;
             }[];
-            meta: {
-                totalCount: number;
-            };
+            meta: components["schemas"]["Meta"];
         };
         CreateMcpTokenInputDTO: {
             clientName: string;
@@ -8972,6 +3771,437 @@ export interface components {
             canWrite?: boolean | null;
             canDelete?: boolean | null;
             canMove?: boolean | null;
+        };
+        Meta: {
+            totalCount: number;
+        };
+        Author: {
+            /** Format: uuid */
+            id: string;
+            username: string;
+            name: string | null;
+            email: string | null;
+        };
+        TargetLocation: {
+            /** Format: uuid */
+            folderId: string;
+            objectKey?: string;
+        };
+        Icon: {
+            /** @constant */
+            source: "builtin";
+            label?: string;
+            name: string;
+        } | ({
+            /** @constant */
+            source: "custom";
+            label?: string;
+            /** @constant */
+            format: "svg";
+            /** @enum {string} */
+            rendering: "template" | "original";
+            assets: {
+                path: string;
+                /** @enum {string} */
+                appearance?: "light" | "dark" | "any";
+            }[];
+        } | {
+            /** @constant */
+            source: "custom";
+            label?: string;
+            /** @constant */
+            format: "png";
+            /** @constant */
+            rendering: "original";
+            assets: {
+                path: string;
+                scale: 1 | 2 | 3;
+                /** @enum {string} */
+                appearance?: "light" | "dark" | "any";
+            }[];
+        });
+        TargetLocationContext: {
+            /** Format: uuid */
+            folderId: string;
+            objectKey?: string;
+            folderName: string;
+            /** Format: uuid */
+            folderOwnerId: string;
+        };
+        User: {
+            /** Format: uuid */
+            id: string;
+            name: string | null;
+            email: string | null;
+            emailVerified: boolean;
+            isAdmin: boolean;
+            username: string;
+            permissions: string[];
+            avatar?: components["schemas"]["ImageUrls"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Details: {
+            percent?: number;
+            current?: number;
+            total?: number;
+            label?: string;
+        };
+        Contributions: {
+            sidebarMenuLinks: components["schemas"]["AppContributedViews"];
+            folderSidebarViews: components["schemas"]["AppContributedViews"];
+            objectSidebarViews: components["schemas"]["AppContributedViews"];
+            objectDetailViews: components["schemas"]["AppContributedViews"];
+            folderDetailViews: components["schemas"]["AppContributedViews"];
+            mobile?: {
+                queries?: {
+                    [key: string]: components["schemas"]["MobileQueryDefinition"];
+                };
+                screens: {
+                    identifier: string;
+                    label: string;
+                    icon?: components["schemas"]["Icon"];
+                    title?: string;
+                    views: components["schemas"]["MobileView"][];
+                }[];
+                root?: components["schemas"]["MobileRoot"];
+            };
+        };
+        ExecutorMetadata: {
+            /** @constant */
+            type: "system";
+            metadata: {
+                [key: string]: components["schemas"]["JsonSerializableValue"];
+            };
+        } | {
+            /** @constant */
+            type: "docker";
+            metadata: {
+                profileKey: string;
+                profileHash: string;
+                jobIdentifier: string;
+                containerId: string;
+                hostId: string;
+            };
+        } | {
+            /** @constant */
+            type: "runtime";
+            metadata: {
+                workerIdentifier: string;
+            };
+        };
+        Message: {
+            /** @enum {string} */
+            level: "debug" | "info" | "warn" | "error";
+            text: string;
+            /** @enum {string} */
+            audience: "user" | "system";
+        };
+        Comment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            folderId: string;
+            /** Format: uuid */
+            folderObjectId: string;
+            /** Format: uuid */
+            rootId: string | null;
+            /** Format: uuid */
+            quoteId: string | null;
+            author: components["schemas"]["Author"];
+            content: string;
+            anchor: ({
+                /** @constant */
+                type: "image_point";
+                x: number;
+                y: number;
+            } | {
+                /** @constant */
+                type: "video_point";
+                t: number;
+                x?: number;
+                y?: number;
+            } | {
+                /** @constant */
+                type: "audio_point";
+                t: number;
+            }) | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt: string | null;
+            quotedComment?: {
+                /** Format: uuid */
+                id: string;
+                author: components["schemas"]["Author"];
+                content: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                deletedAt: string | null;
+            } | null;
+            mentions?: {
+                /** Format: uuid */
+                id: string;
+                username: string;
+                name: string | null;
+            }[];
+            reactions?: {
+                emoji: string;
+                count: number;
+                users: components["schemas"]["Author"][];
+            }[];
+        };
+        FolderObject: {
+            /** Format: uuid */
+            id: string;
+            filename: string;
+            objectKey: string;
+            /** Format: uuid */
+            folderId: string;
+            hash?: string;
+            lastModified: number;
+            eTag: string;
+            sizeBytes: number;
+            mimeType: string;
+            /** @enum {string} */
+            mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
+            contentMetadata: {
+                [key: string]: {
+                    [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
+                };
+            };
+        };
+        StorageProvision: {
+            /** Format: uuid */
+            id: string;
+            accessKeyHashId: string;
+            endpoint: string;
+            bucket: string;
+            region: string;
+            accessKeyId: string;
+            secretAccessKey: null;
+            prefix: string | null;
+            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+            label: string;
+            description: string;
+        };
+        ContainerTarget: {
+            /** @constant */
+            type: "instance";
+            containerIdTemplate: string;
+            userIsolation?: boolean;
+        } | {
+            /** @constant */
+            type: "class";
+            isolationKeyTemplate?: string;
+            userIsolation?: boolean;
+        };
+        EventIdentifier: string;
+        Invocation: {
+            /** @constant */
+            kind: "system_action";
+            invokeContext: {
+                idempotencyData?: {
+                    [key: string]: components["schemas"]["JsonSerializableValue"];
+                };
+            };
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+            onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+        } | {
+            /** @constant */
+            kind: "event";
+            invokeContext: {
+                /** Format: uuid */
+                eventId: string;
+                emitterId: string;
+                eventIdentifier: components["schemas"]["EventIdentifier"];
+                eventTriggerConfigIndex?: number;
+                /** Format: uuid */
+                runtimeTriggerId?: string;
+                triggerKey?: string;
+                dataTemplate?: {
+                    [key: string]: components["schemas"]["JsonSerializableValue"];
+                };
+                /** Format: uuid */
+                targetUserId?: string;
+                targetLocation?: components["schemas"]["TargetLocation"];
+                eventData: {
+                    [key: string]: components["schemas"]["JsonSerializableValue"];
+                };
+            };
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+            onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+        } | {
+            /** @constant */
+            kind: "schedule";
+            invokeContext: {
+                timestampBucket: string;
+                triggerKey: string;
+                config: components["schemas"]["ScheduleConfig"];
+                /** Format: uuid */
+                runtimeTriggerId?: string;
+            };
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+            onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+        } | {
+            /** @constant */
+            kind: "user_action";
+            invokeContext: {
+                /** Format: uuid */
+                userId: string;
+                /** Format: uuid */
+                requestId: string;
+            };
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+            onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+        } | {
+            /** @constant */
+            kind: "app_action";
+            invokeContext: {
+                /** Format: uuid */
+                requestId: string;
+            };
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+            onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+        } | {
+            /** @constant */
+            kind: "task_complete_child";
+            invokeContext: {
+                parentTask: {
+                    /** Format: uuid */
+                    id: string;
+                    identifier: string;
+                    success: boolean;
+                    result: {
+                        [key: string]: components["schemas"]["JsonSerializableValue"];
+                    };
+                };
+                onCompleteHandlerIndex: number;
+            };
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+            onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+        } | {
+            /** @constant */
+            kind: "task_progress_child";
+            invokeContext: {
+                parentTask: {
+                    /** Format: uuid */
+                    id: string;
+                    identifier: string;
+                    progressReport: components["schemas"]["DockerJobProgressRequestDTO"];
+                };
+                onProgressHandlerIndex: number;
+            };
+            onComplete?: components["schemas"]["TaskOnCompleteConfig"][];
+            onProgress?: components["schemas"]["TaskOnProgressConfig"][];
+        };
+        Event: {
+            /** Format: uuid */
+            id: string;
+            eventIdentifier: string;
+            emitterIdentifier: string;
+            targetLocationContext?: components["schemas"]["TargetLocationContext"];
+            data: {
+                [key: string]: components["schemas"]["JsonSerializableValue"];
+            };
+            targetLocation?: components["schemas"]["TargetLocation"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        Log: {
+            /** Format: uuid */
+            id: string;
+            message: string;
+            /** @enum {string} */
+            level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
+            emitterIdentifier: string;
+            targetLocation?: components["schemas"]["TargetLocation"];
+            targetLocationContext?: components["schemas"]["TargetLocationContext"];
+            data: unknown;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        RuntimeWorkers: {
+            hash: string;
+            size: number;
+            manifest: {
+                [key: string]: components["schemas"]["AppManifestEntry"];
+            };
+            definitions: {
+                [key: string]: {
+                    label: string;
+                    description: string;
+                    environmentVariables: components["schemas"]["StringMapDTO"];
+                    entrypoint: string;
+                };
+            };
+        };
+        Session: {
+            accessToken: string;
+            refreshToken: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        AccessKey: {
+            secretAccessKey: null;
+            accessKeyId: string;
+            accessKeyHashId: string;
+            endpoint: string;
+            endpointDomain: string;
+            region: string;
+            folderCount: number;
+        };
+        Settings: {
+            eventIdentifier: string;
+            emitterIdentifier: string;
+            /** @enum {string} */
+            channel: "web" | "email" | "mobile";
+            enabled: boolean;
+        }[];
+        Share: {
+            /** Format: uuid */
+            userId: string;
+            permissions: components["schemas"]["FolderPermission"][];
+        };
+        Ui: {
+            hash: string;
+            size: number;
+            csp?: string;
+            manifest: {
+                [key: string]: components["schemas"]["AppManifestEntry"];
+            };
+        } | null;
+        OutputFiles: {
+            /** Format: uuid */
+            folderId: string;
+            objectKey: string;
+        }[];
+        Entries: {
+            /** @enum {string} */
+            stream: "stdout" | "stderr";
+            text: string;
+        }[];
+        Jobs: {
+            jobId: string;
+            filePath: string;
+        }[];
+        ErrorsLast24Hours: {
+            total: number;
+            last10Minutes: number;
+        };
+        InstalledApps: {
+            totalCount: string;
+            summary: string;
+        };
+        TlsConfig: {
+            ca?: string;
+            cert?: string;
+            key?: string;
         };
     };
     responses: never;
@@ -9890,6 +5120,95 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
+            };
+        };
+    };
+    Server_setServerIcon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    Server_deleteServerIcon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    ServerIcon_getServerIcon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                size: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -11812,6 +7131,82 @@ export interface operations {
             };
         };
     };
+    Folders_setFolderIcon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderUpdateResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    Folders_deleteFolderIcon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
     Folders_getFolderAppSettings: {
         parameters: {
             query?: never;
@@ -12013,6 +7408,26 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
+            };
+        };
+    };
+    FolderIcons_getFolderIcon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                size: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -13236,6 +8651,42 @@ export interface operations {
             };
         };
     };
+    Viewer_setViewerAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerGetResponse"];
+                };
+            };
+        };
+    };
+    Viewer_deleteViewerAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     Users_listUsers: {
         parameters: {
             query?: {
@@ -13475,6 +8926,26 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ApiErrorResponseDTO"];
                 };
+            };
+        };
+    };
+    UserAvatar_getUserAvatar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                size: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

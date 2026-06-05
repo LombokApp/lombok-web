@@ -16,12 +16,14 @@ import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 import { TaskModule } from 'src/task/task.module'
 
+import { FolderIconsController } from './controllers/folder-icons.controller'
 import { FoldersController } from './controllers/folders.controller'
 import { ReindexFolderProcessor } from './processors/reindex-folder.task-processor'
 import { FolderService } from './services/folder.service'
+import { FolderIconService } from './services/folder-icon.service'
 
 @Module({
-  controllers: [FoldersController],
+  controllers: [FoldersController, FolderIconsController],
   imports: [
     StorageModule,
     ConfigModule.forFeature(appConfig),
@@ -38,12 +40,13 @@ import { FolderService } from './services/folder.service'
   providers: [
     EventService,
     FolderService,
+    FolderIconService,
     AppService,
     AppCustomSettingsService,
     LogEntryService,
     ReindexFolderProcessor,
   ],
-  exports: [FolderService, ReindexFolderProcessor],
+  exports: [FolderService, FolderIconService, ReindexFolderProcessor],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class FoldersModule {}

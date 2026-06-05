@@ -12,6 +12,7 @@ const alwaysExternalPackages = [
   '@lombokapp/core-worker',
   '@lombokapp/worker-utils',
   'cpu-features',
+  'sharp',
 ]
 
 void (async () => {

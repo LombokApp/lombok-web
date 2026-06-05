@@ -10,6 +10,7 @@ import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2/typ
 import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
 import React from 'react'
 
+import { ServerLogo } from '../server-logo/server-logo'
 import { SSOButtons } from '../sso/sso-buttons.component'
 import type { LoginFormValues } from './login-form.component'
 import { LoginForm } from './login-form.component'
@@ -40,7 +41,11 @@ export const LoginComponent = ({
       <Card className="min-w-[30rem]">
         <CardContent className="px-6 py-12 lg:px-8">
           <div className="mb-6 flex flex-col items-center gap-6">
-            <img className="mx-auto h-24 w-auto" src="/logo.png" alt="Lombok" />
+            <ServerLogo
+              size="md"
+              className="mx-auto h-24 w-auto"
+              alt="Lombok"
+            />
             <TypographyH2>Lombok</TypographyH2>
             <TypographyH3>Sign In</TypographyH3>
           </div>

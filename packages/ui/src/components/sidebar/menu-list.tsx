@@ -2,7 +2,6 @@ import type { UserDTO } from '@lombokapp/types'
 import type { LucideIcon } from 'lucide-react'
 import {
   AppWindow,
-  Box,
   ChartLine,
   FileText,
   Folders,
@@ -12,6 +11,7 @@ import {
   Users,
 } from 'lucide-react'
 
+import { AppIcon } from '@/src/components/app-icon/app-icon'
 import { DockerIcon } from '@/src/components/icons/docker-icon'
 import type { AppPathContribution } from '@/src/contexts/server'
 
@@ -26,21 +26,15 @@ export interface Menu {
   label: string
   active?: boolean
   submenus?: Submenu[]
-  icon: LucideIcon | string
+  // LucideIcon when set by platform code, ReactNode when rendered from an
+  // app contribution. CollapseMenuButton only accepts LucideIcon, so app
+  // contributions must never carry submenus.
+  icon: LucideIcon | React.ReactNode
 }
 
 export interface Group {
   groupLabel: string
   menus: Menu[]
-}
-
-const protocol = window.location.protocol
-const hostname = window.location.hostname
-const port = window.location.port
-const API_HOST = `${hostname}${port && !['80', '443'].includes(port) ? `:${port}` : ''}`
-
-function resolveAppIconUrl(appIdentifier: string, iconPath: string): string {
-  return `${protocol}//app-server--${appIdentifier}.${API_HOST}${iconPath}`
 }
 
 function groupContributionsByApp(
@@ -59,9 +53,14 @@ function groupContributionsByApp(
       href: item.href,
       active: pathname === item.href,
       label: item.label,
-      icon: item.iconPath
-        ? resolveAppIconUrl(item.appIdentifier, item.iconPath)
-        : Box,
+      icon: (
+        <AppIcon
+          icon={item.icon}
+          appIdentifier={item.appIdentifier}
+          fallbackLabel={item.label}
+          size={16}
+        />
+      ),
     })
   }
 

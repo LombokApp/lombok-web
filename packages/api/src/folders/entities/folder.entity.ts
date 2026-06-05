@@ -31,6 +31,7 @@ export const foldersTable = pgTable(
       message: string
       code: string
     }>(),
+    iconUpdatedAt: timestamp('icon_updated_at'),
     createdAt: timestamp('created_at').notNull(),
     updatedAt: timestamp('updated_at').notNull(),
   },

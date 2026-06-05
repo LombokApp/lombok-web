@@ -1,6 +1,7 @@
 import type {
   AppContributionsResponse,
   AppUILink,
+  Icon,
   ServerError,
   ServerSettingsListResponse,
 } from '@lombokapp/types'
@@ -36,6 +37,7 @@ export interface IServerContext {
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined
   >
+  getAppIcon: (appIdentifier: string) => Icon | undefined
   appContributions: {
     sidebarMenuContributions: {
       all: AppPathContribution[]

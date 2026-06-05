@@ -34,12 +34,14 @@ import {
   Menu,
   OctagonX,
   Settings,
+  Smartphone,
   Trash2,
   Upload,
 } from 'lucide-react'
 import React from 'react'
 import { Link, useNavigate } from 'react-router'
 
+import { AppIcon, iconRendersAsGlyph } from '@/src/components/app-icon/app-icon'
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { DockerIcon } from '@/src/components/icons/docker-icon'
 import { JavaScriptIcon } from '@/src/components/icons/javascript-icon'
@@ -49,6 +51,7 @@ import { $api, $apiClient } from '@/src/services/api'
 import { formatTriggerLabel } from '@/src/utils/trigger-utils'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
+import { appContributedMobileScreensTableColumns } from './app-contributed-mobile-screens-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
 import { serverConnectedAppWorkersTableColumns } from './server-connected-app-workers-table-columns'
@@ -213,9 +216,31 @@ export function ServerAppDetailScreen({
       <Card className="flex-1 border-0 bg-transparent shadow-none">
         <CardHeader className="p-0 pb-4">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <CardTitle>App: {app?.identifier.toUpperCase()}</CardTitle>
-              <CardDescription>{app?.config.description}</CardDescription>
+            <div className="flex items-start gap-4">
+              {app &&
+                (iconRendersAsGlyph(app.config.icon) ? (
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-md border bg-foreground/[0.02]">
+                    <AppIcon
+                      icon={app.config.icon}
+                      appIdentifier={app.identifier}
+                      fallbackLabel={app.label}
+                      size={32}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex size-12 shrink-0 items-center justify-center">
+                    <AppIcon
+                      icon={app.config.icon}
+                      appIdentifier={app.identifier}
+                      fallbackLabel={app.label}
+                      size={48}
+                    />
+                  </div>
+                ))}
+              <div>
+                <CardTitle>App: {app?.identifier.toUpperCase()}</CardTitle>
+                <CardDescription>{app?.config.description}</CardDescription>
+              </div>
             </div>
             {!!app && (
               <div className="flex items-center gap-2">
@@ -611,7 +636,12 @@ export function ServerAppDetailScreen({
               </CardContent>
             </Card>
             {appPathContributionTypes.map((linkContributionType) => {
-              const data = app?.contributions[linkContributionType] ?? []
+              const data = (app?.contributions[linkContributionType] ?? []).map(
+                (link) => ({
+                  ...link,
+                  appIdentifier: app?.identifier ?? '',
+                }),
+              )
 
               return (
                 <Card
@@ -662,6 +692,50 @@ export function ServerAppDetailScreen({
                 </Card>
               )
             })}
+            <Card
+              className="flex-1 border-0 bg-transparent shadow-none"
+              aria-describedby="mobile-screens-contribution-description"
+            >
+              <CardHeader className="p-0 pb-4">
+                <CardTitle className="py-0 text-base">
+                  <div className="flex flex-col">
+                    <span>Mobile screens</span>
+                    <span
+                      id="mobile-screens-contribution-description"
+                      className="text-sm font-normal text-muted-foreground/70"
+                    >
+                      Top-level screens rendered natively by the Lombok mobile
+                      app from a structured JSON spec (no web view).
+                    </span>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {(app?.contributions.mobile?.screens.length ?? 0) > 0 ? (
+                  <DataTable
+                    data={
+                      app?.contributions.mobile?.screens.map((screen) => ({
+                        identifier: screen.identifier,
+                        label: screen.label,
+                        title: screen.title,
+                        icon: screen.icon,
+                        appIdentifier: app.identifier,
+                        viewCount: screen.views.length,
+                      })) ?? []
+                    }
+                    columns={appContributedMobileScreensTableColumns}
+                    bodyCellClassName="w-1/5"
+                    headerCellClassName="w-1/5 bg-foreground/[0.02] text-foreground/50"
+                  />
+                ) : (
+                  <EmptyState
+                    variant="row-sm"
+                    icon={Smartphone}
+                    text="No mobile screens configured"
+                  />
+                )}
+              </CardContent>
+            </Card>
           </div>
         </CardContent>
       </Card>

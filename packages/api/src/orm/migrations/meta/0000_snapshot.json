@@ -1,5 +1,5 @@
 {
-  "id": "5aa9087d-21a0-4c3d-b636-00cf00eeb06a",
+  "id": "877f1f31-989b-4e60-9ae8-d8c9f42bc3aa",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2423,6 +2423,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "icon_updated_at": {
+          "name": "icon_updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -4061,6 +4067,12 @@
         "password_salt": {
           "name": "password_salt",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatar_updated_at": {
+          "name": "avatar_updated_at",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },

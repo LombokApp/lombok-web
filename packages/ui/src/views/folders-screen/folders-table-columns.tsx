@@ -2,9 +2,9 @@ import type { FolderDTO } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
-import { FolderIcon } from 'lucide-react'
 
 import { DateDisplay } from '@/src/components/date-display'
+import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
 
 import { TableLinkColumn } from '../../components/table-link-column/table-link-column'
 
@@ -31,7 +31,13 @@ export const foldersTableColumns: HideableColumnDef<{
     ),
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <FolderIcon className="size-4" />
+        <EntityAvatar
+          kind="folder"
+          name={row.original.folder.name}
+          image={row.original.folder.icon}
+          size="sm"
+          className="size-5"
+        />
         <span>{row.original.folder.name}</span>
         {row.original.folder.accessError && (
           <Badge variant="destructive" className="ml-2 text-[10px]">

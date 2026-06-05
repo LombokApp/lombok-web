@@ -43,6 +43,7 @@ const createMockApp = ({
       slug,
       label: 'Test App',
       description: 'Test App Description',
+      icon: { source: 'builtin', name: 'app' },
       permissions,
       tasks: [],
       runtimeWorkers: {},

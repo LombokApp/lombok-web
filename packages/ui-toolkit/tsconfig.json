@@ -22,6 +22,6 @@
     "noUncheckedSideEffectImports": true,
     "noUncheckedIndexedAccess": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "tailwind.config.ts", "eslint.config.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "eslint.config.ts"],
   "exclude": ["node_modules", "dist", "storybook-static", ".storybook"]
 }

@@ -62,6 +62,7 @@ describe('Server - Settings', () => {
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
+        SERVER_ICON: null,
       },
     })
   })
@@ -98,6 +99,7 @@ describe('Server - Settings', () => {
         SIGNUP_ENABLED: true,
         SEARCH_CONFIG: { app: null },
         SIGNUP_PERMISSIONS: [],
+        SERVER_ICON: null,
       },
     })
   })
@@ -131,6 +133,7 @@ describe('Server - Settings', () => {
         STORAGE_PROVISIONS: [],
         SERVER_STORAGE: null,
         SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
+        SERVER_ICON: null,
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
@@ -266,6 +269,7 @@ describe('Server - Settings', () => {
         SEARCH_CONFIG: { app: null },
         SERVER_HOSTNAME: null,
         SIGNUP_PERMISSIONS: [],
+        SERVER_ICON: null,
       },
     })
 
@@ -287,6 +291,7 @@ describe('Server - Settings', () => {
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
+        SERVER_ICON: null,
       },
     })
   })
@@ -324,6 +329,7 @@ describe('Server - Settings', () => {
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
+        SERVER_ICON: null,
       },
     })
   })
