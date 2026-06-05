@@ -40,12 +40,12 @@ export async function seed(db: LombokDatabase): Promise<void> {
     'ddc0674b-2826-4bdd-aa9d-b0a3eed55a57'
   const admin: NewUser = {
     id: ADMIN_1_ID,
-    username: 'Admin1',
-    email: 'admin1@example.com',
+    username: 'demo',
+    email: 'demo@example.com',
     passwordHash:
-      '59d56e777172cf14d847408f57665ea5da81bd1a902169c78215686f4c9770fed036293d268e97b8c1a5a0ee008e24e330bf46847e5cdfe3fa2286381101c0cb',
+      '69e172d55c719f26eba9ba150dd77ab7d9d396ab425697fc35b14cedfb0c83ec575a7e57bd7ab271943ec1d17eed6eb07dcba4f00bbbca89cb4d2e2bb6fffce1',
     passwordSalt:
-      'f919dbb85b901c1b7a713b47210a707abb8e7629a596f3ef9517535b2059db50622a6ddc57ee7eb8b2c1f2b7896fc5b2c0dc23807b7adb0dfac896779502f6db',
+      '664be0faf8a7bbd6bf7e8a040f4b585b6c54be10935c0135a02ba1495da972783aa73732dd0c47b7138a1eadb3bffc8a86a3011eca4fb376419f1f8310e5a2d2',
     isAdmin: true,
     emailVerified: true,
     createdAt: new Date('2023-11-01 22:49:00.93'),
