@@ -53,7 +53,6 @@ export class CoreWorkerService {
   >()
   private readonly appService: AppService
   private readonly folderService: FolderService
-  workers: Record<string, Worker | undefined> = {}
 
   constructor(
     @Inject(coreConfig.KEY)
@@ -452,136 +451,153 @@ export class CoreWorkerService {
       return
     }
     const instanceId = `embedded_worker_1_${crypto.randomUUID()}`
-    if (!this.workers[instanceId]) {
-      this.serverlessWorkerThreadReady = false
+    this.serverlessWorkerThreadReady = false
 
-      // Create Unix socket for IPC
-      const socketPath = `/tmp/lombok-core-worker-${instanceId}.sock`
-      const { server, cleanup } = await createSocketServer(
-        socketPath,
-        (message: string, socket: Socket) => {
-          this.handleWorkerMessage(message, socket)
-        },
-      )
-      this.socketCleanup = cleanup
+    // Create Unix socket for IPC
+    const socketPath = `/tmp/lombok-core-worker-${instanceId}.sock`
+    const { server, cleanup } = await createSocketServer(
+      socketPath,
+      (message: string, socket: Socket) => {
+        this.handleWorkerMessage(message, socket)
+      },
+    )
+    this.socketCleanup = cleanup
 
-      // Store the socket connection (will be set when client connects)
-      server.on('connection', (socket: Socket) => {
-        this.ipcSocket = socket
-        socket.on('close', () => {
-          this.ipcSocket = undefined
-        })
+    // Resolved when the worker connects, so init can wait for it.
+    let resolveConnected: (socket: Socket) => void
+    const connected = new Promise<Socket>((resolve) => {
+      resolveConnected = resolve
+    })
+    server.on('connection', (socket: Socket) => {
+      this.ipcSocket = socket
+      socket.on('close', () => {
+        this.ipcSocket = undefined
       })
+      resolveConnected(socket)
+    })
 
-      // Resolve the core-worker entry: use src in dev, dist in production
-      const isProduction = process.env.NODE_ENV === 'production'
-      const workerEntry = isProduction
-        ? require.resolve('@lombokapp/core-worker/core-worker')
-        : require.resolve('@lombokapp/core-worker/core-worker.ts')
-      this.child = Bun.spawn(['bun', workerEntry], {
-        stdout: 'pipe',
-        stderr: 'pipe',
-        stdin: 'pipe',
-        env: {
-          ...process.env,
-          LOMBOK_APP_JWT_PUBLIC_KEY:
-            this.keyDerivationService.getPublicKeyPem(),
-          LOMBOK_CORE_WORKER_SOCKET_PATH: socketPath,
-          ...(this._coreConfig.coreWorkerLogChannels
-            ? { LOMBOK_WORKER_LOG: this._coreConfig.coreWorkerLogChannels }
-            : {}),
-          ...(this._coreConfig.coreWorkerLogPretty
-            ? { LOMBOK_WORKER_LOG_PRETTY: '1' }
-            : {}),
-        },
-      })
-      this.setupParentShutdownHooks(this.child)
-      let hasScheduledRetry = false
+    // Resolve the core-worker entry: use src in dev, dist in production
+    const isProduction = process.env.NODE_ENV === 'production'
+    const workerEntry = isProduction
+      ? require.resolve('@lombokapp/core-worker/core-worker')
+      : require.resolve('@lombokapp/core-worker/core-worker.ts')
+    this.child = Bun.spawn(['bun', workerEntry], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+      stdin: 'pipe',
+      env: {
+        ...process.env,
+        LOMBOK_APP_JWT_PUBLIC_KEY: this.keyDerivationService.getPublicKeyPem(),
+        LOMBOK_CORE_WORKER_SOCKET_PATH: socketPath,
+        ...(this._coreConfig.coreWorkerLogChannels
+          ? { LOMBOK_WORKER_LOG: this._coreConfig.coreWorkerLogChannels }
+          : {}),
+        ...(this._coreConfig.coreWorkerLogPretty
+          ? { LOMBOK_WORKER_LOG_PRETTY: '1' }
+          : {}),
+      },
+    })
+    this.setupParentShutdownHooks(this.child)
+    let hasScheduledRetry = false
 
-      // Read stdout/stderr streams line-by-line. Structured log records
-      // emitted by the worker daemon are tagged with a "LOMBOK_LOG " prefix
-      // and routed through the NestJS logger at the appropriate level; other
-      // lines are treated as raw output.
-      const readLines = async (
-        streamKind: 'stdout' | 'stderr',
-      ): Promise<void> => {
-        const stream =
-          streamKind === 'stdout' ? this.child?.stdout : this.child?.stderr
-        if (!stream || typeof stream === 'number') {
+    // Read stdout/stderr streams line-by-line. Structured log records
+    // emitted by the worker daemon are tagged with a "LOMBOK_LOG " prefix
+    // and routed through the NestJS logger at the appropriate level; other
+    // lines are treated as raw output.
+    const readLines = async (
+      streamKind: 'stdout' | 'stderr',
+    ): Promise<void> => {
+      const stream =
+        streamKind === 'stdout' ? this.child?.stdout : this.child?.stderr
+      if (!stream || typeof stream === 'number') {
+        return
+      }
+      const reader = stream.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      const flush = (line: string) => {
+        if (!line) {
           return
         }
-        const reader = stream.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-        const flush = (line: string) => {
-          if (!line) {
-            return
-          }
-          this.emitWorkerLine(streamKind, line)
-        }
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-              break
-            }
-            buffer += decoder.decode(value, { stream: true })
-            let idx = buffer.indexOf('\n')
-            while (idx !== -1) {
-              const line = buffer.slice(0, idx)
-              buffer = buffer.slice(idx + 1)
-              flush(line)
-              idx = buffer.indexOf('\n')
-            }
-          }
-          if (buffer) {
-            flush(buffer)
-          }
-        } catch {
-          // Stream was closed or errored
-        } finally {
-          reader.releaseLock()
-        }
+        this.emitWorkerLine(streamKind, line)
       }
-
-      const readStdout = () => readLines('stdout')
-      const readStderr = () => readLines('stderr')
-
-      // Start reading streams in background
-      void readStdout()
-      void readStderr()
-
-      // If the child exits unexpectedly, schedule a retry
-      void this.child.exited
-        .then((exitCode) => {
-          this.serverlessWorkerThreadReady = false
-          this.ipcSocket = undefined
-          if (this.socketCleanup) {
-            this.socketCleanup()
-            this.socketCleanup = undefined
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
           }
-          if (exitCode !== 0) {
-            this.logger.warn(
-              `Embedded core worker exited with code ${String(exitCode)}. Retrying...`,
-            )
-            if (!hasScheduledRetry) {
-              hasScheduledRetry = true
-              setTimeout(() => {
-                void this.startCoreWorkerThread()
-              }, 1000)
-            }
+          buffer += decoder.decode(value, { stream: true })
+          let idx = buffer.indexOf('\n')
+          while (idx !== -1) {
+            const line = buffer.slice(0, idx)
+            buffer = buffer.slice(idx + 1)
+            flush(line)
+            idx = buffer.indexOf('\n')
           }
-        })
-        .catch((err: unknown) => {
-          this.serverlessWorkerThreadReady = false
-          const errorMessage = err instanceof Error ? err.message : String(err)
-          this.logger.error(
-            `Embedded core worker process error: ${errorMessage}`,
+        }
+        if (buffer) {
+          flush(buffer)
+        }
+      } catch {
+        // Stream was closed or errored
+      } finally {
+        reader.releaseLock()
+      }
+    }
+
+    const readStdout = () => readLines('stdout')
+    const readStderr = () => readLines('stderr')
+
+    // Start reading streams in background
+    void readStdout()
+    void readStderr()
+
+    // If the child exits unexpectedly, schedule a retry
+    void this.child.exited
+      .then((exitCode) => {
+        this.serverlessWorkerThreadReady = false
+        this.ipcSocket = undefined
+        if (this.socketCleanup) {
+          this.socketCleanup()
+          this.socketCleanup = undefined
+        }
+        if (exitCode !== 0) {
+          this.logger.warn(
+            `Embedded core worker exited with code ${String(exitCode)}. Retrying...`,
           )
-        })
+          if (!hasScheduledRetry) {
+            hasScheduledRetry = true
+            setTimeout(() => {
+              void this.startCoreWorkerThread()
+            }, 1000)
+          }
+        }
+      })
+      .catch((err: unknown) => {
+        this.serverlessWorkerThreadReady = false
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        this.logger.error(`Embedded core worker process error: ${errorMessage}`)
+      })
 
-      setTimeout(() => {
+    const initTimeoutMs = 30_000
+    void (async () => {
+      try {
+        // Wait for the IPC connection before init; a fixed delay raced it.
+        await Promise.race([
+          connected,
+          new Promise<never>((_resolve, reject) =>
+            setTimeout(
+              () =>
+                reject(
+                  new Error('Timed out waiting for core worker IPC connection'),
+                ),
+              initTimeoutMs,
+            ),
+          ),
+        ])
+
         const executionOptions = {
           printWorkerOutput: this._coreConfig.printCoreWorkerOutput,
           removeWorkerDirectory: this._coreConfig.removeCoreWorkerDirectories,
@@ -597,21 +613,30 @@ export class CoreWorkerService {
             serverBaseUrl: this.getServerBaseUrl(),
           }
 
-        void this.sendRequest('init', workerDataPayload).then(async () => {
-          await this.updateAppHashMapping()
-          this.serverlessWorkerThreadReady = true
-          this.logger.debug(
-            `Core worker thread started with execution options: ${Object.keys(
-              workerDataPayload.executionOptions ?? {},
-            )
-              .map(
-                (key) => `${key}=${workerDataPayload.executionOptions?.[key]}`,
-              )
-              .join(', ')}`,
+        await this.sendRequest('init', workerDataPayload)
+        await this.updateAppHashMapping()
+        this.serverlessWorkerThreadReady = true
+        this.logger.debug(
+          `Core worker thread started with execution options: ${Object.keys(
+            workerDataPayload.executionOptions ?? {},
           )
-        })
-      }, 500)
-    }
+            .map((key) => `${key}=${workerDataPayload.executionOptions?.[key]}`)
+            .join(', ')}`,
+        )
+      } catch (error) {
+        // Kill the child so the `exited` handler restarts it.
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        this.logger.warn(
+          `Core worker init failed: ${errorMessage}. Restarting core worker...`,
+        )
+        try {
+          this.child?.kill()
+        } catch {
+          void 0
+        }
+      }
+    })()
   }
 
   async analyzeObject(
