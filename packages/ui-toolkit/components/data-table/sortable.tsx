@@ -13,8 +13,10 @@ import {
   type DropAnimation,
   KeyboardSensor,
   MouseSensor,
+  type MouseSensorOptions,
   type ScreenReaderInstructions,
   TouchSensor,
+  type TouchSensorOptions,
   type UniqueIdentifier,
   useSensor,
   useSensors,
@@ -105,6 +107,9 @@ type SortableRootProps<T> = DndContextProps & {
   strategy?: SortableContextProps['strategy']
   orientation?: 'vertical' | 'horizontal' | 'mixed'
   flatCursor?: boolean
+  /** Pointer activation constraints — a mouse `distance`/touch `delay` so clicks and scrolls on clickable items don't start a drag. */
+  mouseActivationConstraint?: MouseSensorOptions['activationConstraint']
+  touchActivationConstraint?: TouchSensorOptions['activationConstraint']
 } & (T extends object ? GetItemValue<T> : Partial<GetItemValue<T>>)
 
 function SortableRoot<T>(props: SortableRootProps<T>) {
@@ -117,6 +122,8 @@ function SortableRoot<T>(props: SortableRootProps<T>) {
     onMove,
     orientation = 'vertical',
     flatCursor = false,
+    mouseActivationConstraint,
+    touchActivationConstraint,
     getItemValue: getItemValueProp,
     accessibility,
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -140,8 +147,8 @@ function SortableRoot<T>(props: SortableRootProps<T>) {
   const [activeId, setActiveId] = React.useState<UniqueIdentifier | null>(null)
 
   const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor),
+    useSensor(MouseSensor, { activationConstraint: mouseActivationConstraint }),
+    useSensor(TouchSensor, { activationConstraint: touchActivationConstraint }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
