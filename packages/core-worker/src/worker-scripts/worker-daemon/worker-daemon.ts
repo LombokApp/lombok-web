@@ -7,7 +7,7 @@ import type {
 import {
   AppTaskError,
   buildAppClient,
-  createLombokAppPgDatabase,
+  createLombokAppPgDatabaseForClient,
   LombokAppPgClient,
   verifyAppToken,
 } from '@lombokapp/app-worker-sdk'
@@ -309,8 +309,9 @@ void (async () => {
       responseWriter,
     }
 
+    // Share the daemon's pool; a per-request client leaked a pool each call.
     const createDb: CreateDbFn = (schema) =>
-      createLombokAppPgDatabase(serverClient, schema)
+      createLombokAppPgDatabaseForClient(dbClient, schema)
 
     // Process the request within ALS context
     await requestContext.run(ctx, async () => {
