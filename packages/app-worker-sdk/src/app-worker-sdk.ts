@@ -329,6 +329,9 @@ export class LombokAppPgClient {
         // helper that uses the pool client instead of the tx) hangs
         // forever; with it, the second checkout throws after 10s.
         connectionTimeoutMillis: 10_000,
+        // Bound per-daemon pools so one app can't exhaust shared PG slots.
+        max: 5,
+        idleTimeoutMillis: 10_000,
       })
     }
 
@@ -404,6 +407,14 @@ export const createLombokAppPgDatabase = <TDb extends Record<string, unknown>>(
   const client = new LombokAppPgClient(server)
   return drizzle(client as unknown as NodePgClient, { schema })
 }
+
+// Bind drizzle to an existing client so callers share its pool.
+export const createLombokAppPgDatabaseForClient = <
+  TDb extends Record<string, unknown>,
+>(
+  client: LombokAppPgClient,
+  schema: TDb,
+): NodePgDatabase<TDb> => drizzle(client as unknown as NodePgClient, { schema })
 
 export interface SerializeableRequest {
   url: string
