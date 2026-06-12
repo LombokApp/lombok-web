@@ -1,7 +1,6 @@
 import type { IAuthContext } from '@lombokapp/auth-utils'
 import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area'
 import type { LucideIcon } from 'lucide-react'
-import { LogOut } from 'lucide-react'
 import { useLocation } from 'react-router'
 
 import type { AppPathContribution } from '@/src/contexts/server'
@@ -12,6 +11,7 @@ import { NotificationsTrigger } from './notifications-trigger'
 import { SidebarGroup } from './sidebar-group'
 import { SidebarItem } from './sidebar-item'
 import { ThemeToggleTrigger } from './theme-toggle-trigger'
+import { UserNav } from './user-nav'
 
 interface MenuProps {
   isOpen: boolean | undefined
@@ -80,12 +80,7 @@ export function Menu({
       <div className="space-y-1 border-t px-3 pb-2 pt-2">
         <NotificationsTrigger isOpen={isOpen} />
         <ThemeToggleTrigger isOpen={isOpen} />
-        <SidebarItem
-          icon={LogOut}
-          label="Sign out"
-          isOpen={isOpen}
-          onClick={() => void onSignOut()}
-        />
+        <UserNav viewer={viewer} onSignout={onSignOut} isOpen={isOpen} />
       </div>
     </div>
   )

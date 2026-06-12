@@ -9,11 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@lombokapp/ui-toolkit/components/dropdown-menu'
-import {
-  Tooltip,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@lombokapp/ui-toolkit/components/tooltip'
+import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { LayoutGrid, LogOut, UserIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -22,34 +18,38 @@ import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
 export function UserNav({
   onSignout,
   viewer,
+  isOpen,
 }: {
   onSignout: () => Promise<void>
   viewer: UserDTO
+  isOpen?: boolean
 }) {
   return (
     <DropdownMenu>
-      <TooltipProvider disableHoverableContent>
-        <Tooltip delayDuration={100}>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="relative size-8 rounded-full p-0"
-              >
-                <EntityAvatar
-                  kind="user"
-                  name={viewer.name ?? viewer.username}
-                  image={viewer.avatar}
-                  size="sm"
-                  className="size-8"
-                />
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-        </Tooltip>
-      </TooltipProvider>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className={cn(
+            'h-10 w-full justify-start gap-2 px-1.5',
+            !isOpen && 'justify-center px-0',
+          )}
+        >
+          <EntityAvatar
+            kind="user"
+            name={viewer.name ?? viewer.username}
+            image={viewer.avatar}
+            size="sm"
+            className="size-7 shrink-0"
+          />
+          {isOpen && (
+            <span className="min-w-0 flex-1 truncate text-left text-sm font-medium">
+              {viewer.name ?? viewer.username}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56" align="start" side="top" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
