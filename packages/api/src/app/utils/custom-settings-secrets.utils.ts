@@ -13,42 +13,38 @@ export function isSecretKey(
   return new RegExp(secretKeyPattern).test(key)
 }
 
-function maskObjectItem(
-  item: Record<string, unknown>,
-  secretKeyPattern: string,
-): Record<string, unknown> {
-  const result: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(item)) {
-    result[key] = isSecretKey(key, secretKeyPattern) ? MASKED_VALUE : value
-  }
-  return result
-}
-
 /**
- * Mask a single value — if it's an array of objects, mask secret keys within each item.
+ * Recursively mask a value, preserving structure. A leaf is masked when it sits
+ * under a secret-matched key — either the top-level key, or any object key along
+ * the way. Keeping the surrounding object/array shape intact (rather than
+ * collapsing a secret object to a bare sentinel) lets the settings UI keep
+ * rendering its editor and round-trip edits in the schema's expected shape.
  */
-function maskValue(
-  key: string,
+function maskDeep(
   value: unknown,
+  secret: boolean,
   secretKeyPattern: string,
 ): unknown {
-  if (isSecretKey(key, secretKeyPattern)) {
-    return MASKED_VALUE
-  }
   if (Array.isArray(value)) {
-    return value.map((item: unknown) => {
-      if (item != null && typeof item === 'object' && !Array.isArray(item)) {
-        return maskObjectItem(item as Record<string, unknown>, secretKeyPattern)
-      }
-      return item
-    })
+    return value.map((item) => maskDeep(item, secret, secretKeyPattern))
   }
-  return value
+  if (value != null && typeof value === 'object') {
+    const result: Record<string, unknown> = {}
+    for (const [key, child] of Object.entries(value)) {
+      result[key] = maskDeep(
+        child,
+        secret || isSecretKey(key, secretKeyPattern),
+        secretKeyPattern,
+      )
+    }
+    return result
+  }
+  return secret ? MASKED_VALUE : value
 }
 
 /**
- * Mask secret values in a settings object for GET responses.
- * Handles top-level secrets and secrets nested inside array-of-objects.
+ * Mask secret values in a settings object for GET responses. Handles top-level
+ * secrets as well as secrets nested inside objects and arrays-of-objects.
  */
 export function maskSecretValues(
   values: Record<string, unknown>,
@@ -59,7 +55,11 @@ export function maskSecretValues(
   }
   const result: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(values)) {
-    result[key] = maskValue(key, value, secretKeyPattern)
+    result[key] = maskDeep(
+      value,
+      isSecretKey(key, secretKeyPattern),
+      secretKeyPattern,
+    )
   }
   return result
 }

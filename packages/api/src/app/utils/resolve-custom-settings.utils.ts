@@ -12,7 +12,7 @@ export interface ResolvedCustomSettings {
 /**
  * Check whether a key matches any pattern in the schema's patternProperties.
  */
-function matchesPatternProperty(
+export function matchesPatternProperty(
   schema: JsonSchema07Object,
   key: string,
 ): boolean {

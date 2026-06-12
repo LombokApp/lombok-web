@@ -22,6 +22,7 @@ import {
 } from '../utils/format-zod-issues'
 import { jsonSchemaPropertyToZod } from '../utils/json-schema-to-zod.util'
 import {
+  matchesPatternProperty,
   resolveCustomSettings,
   type ResolvedCustomSettings,
 } from '../utils/resolve-custom-settings.utils'
@@ -458,10 +459,11 @@ export class AppCustomSettingsService {
     if (!values) {
       return undefined
     }
+    const propertyKeys = new Set(Object.keys(schema.properties))
     const filtered: Record<string, unknown> = {}
-    for (const key of Object.keys(schema.properties)) {
-      if (key in values) {
-        filtered[key] = values[key]
+    for (const [key, value] of Object.entries(values)) {
+      if (propertyKeys.has(key) || matchesPatternProperty(schema, key)) {
+        filtered[key] = value
       }
     }
     return Object.keys(filtered).length > 0 ? filtered : undefined
