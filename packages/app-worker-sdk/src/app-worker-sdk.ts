@@ -100,14 +100,25 @@ export interface IAppPlatformService {
     params: AppSocketMessageDataMap['PATCH_APP_CUSTOM_SETTINGS'],
     options?: PlatformApiExecuteOptions,
   ) => Promise<SocketResponse<'PATCH_APP_CUSTOM_SETTINGS'>>
-  createBridgeTunnel: (
-    params: AppSocketMessageDataMap['CREATE_BRIDGE_TUNNEL'],
+  /** Create (or idempotently reuse) a durable tunnel; returns it bound live. */
+  createDurableTunnel: (
+    params: AppSocketMessageDataMap['CREATE_DURABLE_TUNNEL'],
     options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'CREATE_BRIDGE_TUNNEL'>>
-  deleteBridgeTunnel: (
-    params: AppSocketMessageDataMap['DELETE_BRIDGE_TUNNEL'],
+  ) => Promise<SocketResponse<'CREATE_DURABLE_TUNNEL'>>
+  /** Cheap list of durable tunnels for a (user, selectorKey) scope; no token. */
+  listDurableTunnels: (
+    params: AppSocketMessageDataMap['LIST_DURABLE_TUNNELS'],
     options?: PlatformApiExecuteOptions,
-  ) => Promise<SocketResponse<'DELETE_BRIDGE_TUNNEL'>>
+  ) => Promise<SocketResponse<'LIST_DURABLE_TUNNELS'>>
+  /** Open path — re-binds the session and returns a fresh url + token. */
+  ensureDurableTunnel: (
+    params: AppSocketMessageDataMap['ENSURE_DURABLE_TUNNEL'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'ENSURE_DURABLE_TUNNEL'>>
+  deleteDurableTunnel: (
+    params: AppSocketMessageDataMap['DELETE_DURABLE_TUNNEL'],
+    options?: PlatformApiExecuteOptions,
+  ) => Promise<SocketResponse<'DELETE_DURABLE_TUNNEL'>>
   destroyAppDockerContainers: (
     params: AppSocketMessageDataMap['DESTROY_APP_DOCKER_CONTAINERS'],
     options?: PlatformApiExecuteOptions,
@@ -274,11 +285,17 @@ export const buildAppClient = (
     patchAppCustomSettings(params, options) {
       return emitWithAck('PATCH_APP_CUSTOM_SETTINGS', params, options)
     },
-    createBridgeTunnel(params, options) {
-      return emitWithAck('CREATE_BRIDGE_TUNNEL', params, options)
+    createDurableTunnel(params, options) {
+      return emitWithAck('CREATE_DURABLE_TUNNEL', params, options)
     },
-    deleteBridgeTunnel(params, options) {
-      return emitWithAck('DELETE_BRIDGE_TUNNEL', params, options)
+    listDurableTunnels(params, options) {
+      return emitWithAck('LIST_DURABLE_TUNNELS', params, options)
+    },
+    ensureDurableTunnel(params, options) {
+      return emitWithAck('ENSURE_DURABLE_TUNNEL', params, options)
+    },
+    deleteDurableTunnel(params, options) {
+      return emitWithAck('DELETE_DURABLE_TUNNEL', params, options)
     },
     destroyAppDockerContainers(params, options) {
       return emitWithAck('DESTROY_APP_DOCKER_CONTAINERS', params, options)

@@ -134,6 +134,27 @@ CREATE TABLE "comments" (
 	CONSTRAINT "no_self_quote" CHECK (quote_id != id)
 );
 --> statement-breakpoint
+CREATE TABLE "docker_bridge_tunnels" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"app_id" text NOT NULL,
+	"user_id" uuid NOT NULL,
+	"host_id" uuid NOT NULL,
+	"selector_key" text NOT NULL,
+	"container_selector" jsonb NOT NULL,
+	"port" integer NOT NULL,
+	"label" text NOT NULL,
+	"public_id" text NOT NULL,
+	"command" jsonb NOT NULL,
+	"session_id" text,
+	"status" text DEFAULT 'pending' NOT NULL,
+	"last_error" text,
+	"last_bound_at" timestamp with time zone,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL,
+	CONSTRAINT "docker_bridge_tunnels_public_id_unique" UNIQUE("public_id"),
+	CONSTRAINT "docker_bridge_tunnels_scope_port_uq" UNIQUE("app_id","user_id","selector_key","port")
+);
+--> statement-breakpoint
 CREATE TABLE "docker_hosts" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"label" text NOT NULL,
@@ -407,6 +428,9 @@ ALTER TABLE "comments" ADD CONSTRAINT "comments_folder_object_id_folder_objects_
 ALTER TABLE "comments" ADD CONSTRAINT "comments_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_root_id_comments_id_fk" FOREIGN KEY ("root_id") REFERENCES "public"."comments"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_quote_id_comments_id_fk" FOREIGN KEY ("quote_id") REFERENCES "public"."comments"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "docker_bridge_tunnels" ADD CONSTRAINT "docker_bridge_tunnels_app_id_apps_identifier_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("identifier") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "docker_bridge_tunnels" ADD CONSTRAINT "docker_bridge_tunnels_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "docker_bridge_tunnels" ADD CONSTRAINT "docker_bridge_tunnels_host_id_docker_hosts_id_fk" FOREIGN KEY ("host_id") REFERENCES "public"."docker_hosts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "docker_profile_resource_assignments" ADD CONSTRAINT "docker_profile_resource_assignments_app_id_apps_id_fk" FOREIGN KEY ("app_id") REFERENCES "public"."apps"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "docker_profile_resource_assignments" ADD CONSTRAINT "docker_profile_resource_assignments_docker_host_id_docker_hosts_id_fk" FOREIGN KEY ("docker_host_id") REFERENCES "public"."docker_hosts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "docker_standalone_containers" ADD CONSTRAINT "docker_standalone_containers_docker_host_id_docker_hosts_id_fk" FOREIGN KEY ("docker_host_id") REFERENCES "public"."docker_hosts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -444,6 +468,9 @@ CREATE INDEX "idx_comments_folder_object_roots" ON "comments" USING btree ("fold
 CREATE INDEX "idx_comments_thread_flat" ON "comments" USING btree ("root_id","created_at") WHERE root_id IS NOT NULL AND deleted_at IS NULL;--> statement-breakpoint
 CREATE INDEX "idx_comments_tombstone_lookup" ON "comments" USING btree ("id","deleted_at","author_id");--> statement-breakpoint
 CREATE INDEX "idx_comments_folder_id" ON "comments" USING btree ("folder_id","created_at");--> statement-breakpoint
+CREATE INDEX "docker_bridge_tunnels_app_id_idx" ON "docker_bridge_tunnels" USING btree ("app_id");--> statement-breakpoint
+CREATE INDEX "docker_bridge_tunnels_host_id_idx" ON "docker_bridge_tunnels" USING btree ("host_id");--> statement-breakpoint
+CREATE INDEX "docker_bridge_tunnels_status_idx" ON "docker_bridge_tunnels" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "docker_hosts_is_default_idx" ON "docker_hosts" USING btree ("is_default");--> statement-breakpoint
 CREATE INDEX "docker_hosts_enabled_idx" ON "docker_hosts" USING btree ("enabled");--> statement-breakpoint
 CREATE UNIQUE INDEX "docker_profile_resource_assignments_app_profile_unique" ON "docker_profile_resource_assignments" USING btree ("app_id","profile_key");--> statement-breakpoint

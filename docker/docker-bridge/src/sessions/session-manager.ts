@@ -35,6 +35,29 @@ export class SessionManager {
     throw new Error('Failed to generate unique public ID')
   }
 
+  // A caller-supplied (durable) publicId must match the same tunnel hostname
+  // shape generatePublicId() produces: a `tn-` prefix followed by [a-z0-9-].
+  private static readonly PUBLIC_ID_SHAPE = /^tn-[a-z0-9-]+$/
+
+  private resolvePublicId(opts: {
+    isPublic: boolean
+    desiredPublicId?: string | null
+    durable?: boolean
+  }): string | null {
+    if (!opts.isPublic) {
+      return null
+    }
+    if (opts.desiredPublicId) {
+      if (!SessionManager.PUBLIC_ID_SHAPE.test(opts.desiredPublicId)) {
+        const err = new Error('Invalid public_id shape')
+        ;(err as Error & { statusCode: number }).statusCode = 400
+        throw err
+      }
+      return opts.desiredPublicId
+    }
+    return this.generatePublicId()
+  }
+
   create(
     hostId: string,
     containerId: string,
@@ -46,15 +69,32 @@ export class SessionManager {
       protocol: TunnelProtocol
       tty: boolean
       isPublic: boolean
+      desiredPublicId?: string | null
+      durable?: boolean
     },
   ): TunnelSession {
+    const durable = options.durable ?? false
+
+    // Idempotent durable create: a repeated desiredPublicId returns the live
+    // session, making bridge-reconnect replay and concurrent ensureLive safe.
+    if (durable && options.desiredPublicId) {
+      const existing = this.getByPublicId(options.desiredPublicId)
+      if (existing) {
+        return existing
+      }
+    }
+
     if (this.sessions.size >= this.maxSessions) {
       const err = new Error('Maximum session limit reached')
       ;(err as Error & { statusCode: number }).statusCode = 503
       throw err
     }
 
-    const publicId = options.isPublic ? this.generatePublicId() : null
+    const publicId = this.resolvePublicId({
+      isPublic: options.isPublic,
+      desiredPublicId: options.desiredPublicId,
+      durable,
+    })
 
     const now = Date.now()
     const session: TunnelSession = {
@@ -75,6 +115,7 @@ export class SessionManager {
       publicId,
       label,
       appId: options.appId,
+      durable,
     }
 
     this.sessions.set(session.id, session)
@@ -96,10 +137,7 @@ export class SessionManager {
     return this.sessions.get(sessionId)
   }
 
-  list(filter?: {
-    containerId?: string
-    appId?: string
-  }): Session[] {
+  list(filter?: { containerId?: string; appId?: string }): Session[] {
     let results = Array.from(this.sessions.values())
 
     if (filter?.containerId) {
@@ -107,9 +145,7 @@ export class SessionManager {
     }
 
     if (filter?.appId) {
-      results = results.filter(
-        (s) => s.appId === filter.appId,
-      )
+      results = results.filter((s) => s.appId === filter.appId)
     }
 
     return results
@@ -155,6 +191,12 @@ export class SessionManager {
       const toDelete: string[] = []
 
       for (const [id, session] of this.sessions) {
+        // Durable sessions self-heal only via the platform (reconnect replay /
+        // lazy re-bind); external traffic can't, so they are never swept.
+        if (session.durable) {
+          continue
+        }
+
         // Remove sessions idle beyond timeout
         if (now - session.lastActivityAt > this.sessionIdleTimeout) {
           toDelete.push(id)

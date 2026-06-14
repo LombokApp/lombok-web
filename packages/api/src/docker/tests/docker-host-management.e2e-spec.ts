@@ -38,6 +38,7 @@ describe('Docker Host Management', () => {
     startBridge: async () => undefined,
     stopBridge: async () => undefined,
     getSecret: () => 'test-bridge-secret',
+    onReady: () => () => undefined,
     onModuleInit: async () => undefined,
     onModuleDestroy: async () => undefined,
   }

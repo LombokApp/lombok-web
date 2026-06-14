@@ -55,6 +55,10 @@ import {
   DockerJobsService,
   DockerJobSubmitResult,
 } from 'src/docker/services/docker-jobs.service'
+import {
+  DurableTunnelService,
+  type DurableTunnelView,
+} from 'src/docker/services/durable-tunnel.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
@@ -171,6 +175,7 @@ export class AppService {
     private readonly customSettingsService: AppCustomSettingsService,
     private readonly runtimeTriggerService: AppRuntimeTriggerService,
     private readonly dockerClientService: DockerClientService,
+    private readonly durableTunnelService: DurableTunnelService,
   ) {
     this.coreTaskService = _coreTaskService as CoreTaskService
     this.coreWorkerService = _coreWorkerService as CoreWorkerService
@@ -395,56 +400,99 @@ export class AppService {
     )
   }
 
-  async createTunnelSessionAsApp(
-    requestingAppIdentifier: string,
-    params: {
-      hostId: string
-      containerId: string
-      command: string[]
-      label: string
-      mode: 'ephemeral' | 'persistent'
-      protocol: 'framed' | 'raw'
-      public?: boolean
-    },
-  ) {
-    // Validate container belongs to requesting app
-    const container = await this.dockerClientService.findContainerById(
-      params.hostId,
-      params.containerId,
-    )
-    if (!container) {
-      throw new Error('Container not found')
-    }
-    const containerAppId = container.labels[DOCKER_LABELS.APP_ID]
-    if (!containerAppId || containerAppId !== requestingAppIdentifier) {
-      throw new Error('Container not owned by this app')
-    }
+  // ─── Durable tunnels ─────────────────────────────────────────────────────
+  // Socket messages are app-scoped: the payload userId is enforced against the
+  // app's grant (never client-trusted), and ownership scope = requesting app.
 
-    const tunnelSession = await this.dockerClientService.createTunnelSession(
-      params.hostId,
-      params.containerId,
-      params.command,
-      params.label,
-      params.mode,
-      params.protocol,
-      { public: params.public, appIdentifier: requestingAppIdentifier },
-    )
+  private toDurableTunnelDTO(view: DurableTunnelView) {
     return {
-      sessionId: tunnelSession.sessionId,
-      token: tunnelSession.token,
-      urls: tunnelSession.urls,
-      public: tunnelSession.public,
+      id: view.id,
+      port: view.port,
+      label: view.label,
+      publicId: view.publicId,
+      url: view.url,
+      token: view.token,
+      state: view.state,
+      createdAt: view.createdAt.toISOString(),
+      updatedAt: view.updatedAt.toISOString(),
     }
   }
 
-  async deleteTunnelSessionAsApp(
+  async createDurableTunnelAsApp(
     requestingAppIdentifier: string,
-    sessionId: string,
+    params: {
+      userId: string
+      hostId: string
+      containerId: string
+      selectorKey: string
+      port: number
+      label: string
+    },
   ) {
-    await this.dockerClientService.deleteTunnelSession(
-      sessionId,
-      requestingAppIdentifier,
-    )
+    await this.validateAppUserAccess({
+      appIdentifier: requestingAppIdentifier,
+      userId: params.userId,
+    })
+    const view = await this.durableTunnelService.create({
+      appId: requestingAppIdentifier,
+      userId: params.userId,
+      hostId: params.hostId,
+      containerId: params.containerId,
+      selectorKey: params.selectorKey,
+      port: params.port,
+      label: params.label,
+      command: [
+        '/usr/local/bin/lombok-tunnel-agent',
+        '--ports',
+        String(params.port),
+      ],
+    })
+    return this.toDurableTunnelDTO(view)
+  }
+
+  async listDurableTunnelsAsApp(
+    requestingAppIdentifier: string,
+    params: { userId: string; selectorKey: string },
+  ) {
+    await this.validateAppUserAccess({
+      appIdentifier: requestingAppIdentifier,
+      userId: params.userId,
+    })
+    const views = await this.durableTunnelService.list({
+      appId: requestingAppIdentifier,
+      userId: params.userId,
+      selectorKey: params.selectorKey,
+    })
+    return { tunnels: views.map((v) => this.toDurableTunnelDTO(v)) }
+  }
+
+  async ensureDurableTunnelAsApp(
+    requestingAppIdentifier: string,
+    params: { userId: string; tunnelId: string },
+  ) {
+    await this.validateAppUserAccess({
+      appIdentifier: requestingAppIdentifier,
+      userId: params.userId,
+    })
+    const view = await this.durableTunnelService.get(params.tunnelId, {
+      appId: requestingAppIdentifier,
+      userId: params.userId,
+    })
+    return this.toDurableTunnelDTO(view)
+  }
+
+  async deleteDurableTunnelAsApp(
+    requestingAppIdentifier: string,
+    params: { userId: string; tunnelId: string },
+  ) {
+    await this.validateAppUserAccess({
+      appIdentifier: requestingAppIdentifier,
+      userId: params.userId,
+    })
+    await this.durableTunnelService.delete(params.tunnelId, {
+      appId: requestingAppIdentifier,
+      userId: params.userId,
+    })
   }
 
   async createSignedContentUrlsAsApp(

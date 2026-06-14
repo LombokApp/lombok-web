@@ -68,7 +68,8 @@ function makeTunnelSession(
     agentReady: true,
     publicId: 'abc123xyz',
     label: 'preview',
-    appId: 'coder',
+    appId: 'test-app',
+    durable: false,
     ...overrides,
   }
 }

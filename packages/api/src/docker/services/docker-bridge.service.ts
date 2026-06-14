@@ -48,6 +48,7 @@ export class DockerBridgeService {
   private readonly logRing: BridgeLogEntry[] = []
   private logSeq = 0
   private readonly logSubscribers = new Set<(entry: BridgeLogEntry) => void>()
+  private readonly readyCallbacks = new Set<() => void>()
   private readonly pendingRequests = new Map<
     string,
     {
@@ -69,6 +70,16 @@ export class DockerBridgeService {
 
   isReady(): boolean {
     return this.ready
+  }
+
+  /**
+   * Register a callback fired each time the bridge (re)connects and is ready —
+   * first boot and every auto-restart. Drives durable-tunnel replay. Returns an
+   * idempotent unsubscribe.
+   */
+  onReady(cb: () => void): () => void {
+    this.readyCallbacks.add(cb)
+    return () => this.readyCallbacks.delete(cb)
   }
 
   /** Recent captured bridge log lines (most recent last), newest-capped at the ring size. */
@@ -185,6 +196,18 @@ export class DockerBridgeService {
 
     this.ready = true
     this.logger.log('Docker bridge started and ready')
+
+    // Fire ready callbacks (fire-and-forget) so durable tunnels are replayed on
+    // first boot and every auto-restart. A callback must never block startup.
+    for (const cb of this.readyCallbacks) {
+      try {
+        cb()
+      } catch (err) {
+        this.logger.warn(
+          `Bridge onReady callback threw: ${err instanceof Error ? err.message : String(err)}`,
+        )
+      }
+    }
   }
 
   async syncHosts(): Promise<void> {

@@ -25,3 +25,11 @@ export {
   type DockerStandaloneContainer,
   type NewDockerStandaloneContainer,
 } from './docker-standalone-container.entity'
+
+export {
+  dockerBridgeTunnelsTable,
+  dockerBridgeTunnelsRelations,
+  type DockerBridgeTunnel,
+  type NewDockerBridgeTunnel,
+  type DockerBridgeTunnelStatus,
+} from './docker-bridge-tunnel.entity'

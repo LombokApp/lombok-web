@@ -25,7 +25,7 @@ describe('SessionManager', () => {
         'preview',
         {
           mode: 'persistent',
-          appId: 'coder',
+          appId: 'test-app',
           protocol: 'framed',
           tty: false,
           isPublic: true,
@@ -44,7 +44,7 @@ describe('SessionManager', () => {
       ])
       expect(session.publicId).toMatch(/^tn-[a-f0-9]{10}$/)
       expect(session.label).toBe('preview')
-      expect(session.appId).toBe('coder')
+      expect(session.appId).toBe('test-app')
       expect(session.agentReady).toBe(false)
     })
 
@@ -57,7 +57,7 @@ describe('SessionManager', () => {
         {
           mode: 'ephemeral',
           protocol: 'raw',
-          appId: 'coder',
+          appId: 'test-app',
           tty: false,
           isPublic: true,
         },
@@ -81,7 +81,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'terminal',
         {
-          appId: 'coder',
+          appId: 'test-app',
           mode: 'ephemeral',
           protocol: 'framed',
           tty: false,
@@ -99,7 +99,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appId: 'coder',
+          appId: 'test-app',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -112,7 +112,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '5173'],
         'api',
         {
-          appId: 'coder',
+          appId: 'test-app',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -133,7 +133,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appId: 'coder',
+          appId: 'test-app',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -197,7 +197,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appId: 'coder',
+          appId: 'test-app',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -299,7 +299,7 @@ describe('SessionManager', () => {
         ['/usr/local/bin/tunnel-agent', '--ports', '3000'],
         'preview',
         {
-          appId: 'coder',
+          appId: 'test-app',
           mode: 'persistent',
           protocol: 'framed',
           tty: false,
@@ -309,6 +309,94 @@ describe('SessionManager', () => {
 
       const sessions = manager.list()
       expect(sessions).toHaveLength(2)
+    })
+  })
+
+  describe('durable sessions', () => {
+    const durableOpts = (desiredPublicId: string) => ({
+      appId: 'test-app',
+      mode: 'persistent' as const,
+      protocol: 'framed' as const,
+      tty: false,
+      isPublic: true,
+      durable: true,
+      desiredPublicId,
+    })
+
+    it('uses the supplied public_id verbatim', () => {
+      const session = manager.create(
+        'local',
+        'c1',
+        ['/agent'],
+        'preview',
+        durableOpts('tn-stable123'),
+      )
+      expect(session.publicId).toBe('tn-stable123')
+      expect(session.durable).toBe(true)
+    })
+
+    it('is idempotent on a repeated public_id (returns the live session)', () => {
+      const first = manager.create(
+        'local',
+        'c1',
+        ['/agent'],
+        'preview',
+        durableOpts('tn-stable123'),
+      )
+      const second = manager.create(
+        'local',
+        'c1',
+        ['/agent'],
+        'preview',
+        durableOpts('tn-stable123'),
+      )
+      expect(second.id).toBe(first.id)
+      expect(manager.size).toBe(1)
+    })
+
+    it('rejects a malformed public_id', () => {
+      expect(() =>
+        manager.create(
+          'local',
+          'c1',
+          ['/agent'],
+          'preview',
+          durableOpts('bad_id!'),
+        ),
+      ).toThrow('Invalid public_id shape')
+    })
+
+    it('survives a sweep tick that reaps non-durable sessions', async () => {
+      const small = new SessionManager({
+        maxSessions: 200,
+        sessionIdleTimeout: 50,
+      })
+
+      const ephemeral = small.create('local', 'c1', ['/bin/sh'], 'term', {
+        appId: 'app',
+        mode: 'ephemeral',
+        protocol: 'raw',
+        tty: false,
+        isPublic: true,
+      })
+      const durable = small.create(
+        'local',
+        'c2',
+        ['/agent'],
+        'preview',
+        durableOpts('tn-durable001'),
+      )
+      // Both idle past the timeout and the durable one is still 'created'.
+      ephemeral.lastActivityAt = Date.now() - 70_000
+      durable.lastActivityAt = Date.now() - 70_000
+      durable.createdAt = Date.now() - 70_000
+
+      small.startSweep(10)
+      await new Promise((resolve) => setTimeout(resolve, 30))
+
+      expect(small.get(ephemeral.id)).toBeUndefined()
+      expect(small.get(durable.id)).toBeDefined()
+      small.stopSweep()
     })
   })
 

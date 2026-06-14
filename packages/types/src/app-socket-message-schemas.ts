@@ -179,18 +179,41 @@ export const patchAppCustomSettingsSchema = z.object({
   values: z.record(z.string(), z.unknown()),
 })
 
-export const createBridgeTunnelSchema = z.object({
+export const createDurableTunnelSchema = z.object({
+  userId: z.string(),
   hostId: z.string(),
   containerId: z.string(),
-  command: z.array(z.string()).min(1),
+  selectorKey: z.string(),
+  port: z.number().int().min(1).max(65535),
   label: z.string().min(1).max(63),
-  public: z.boolean().optional(),
-  mode: z.enum(['ephemeral', 'persistent']).default('persistent'),
-  protocol: z.enum(['framed', 'raw']).default('framed'),
 })
 
-export const deleteBridgeTunnelSchema = z.object({
-  sessionId: z.string(),
+export const listDurableTunnelsSchema = z.object({
+  userId: z.string(),
+  selectorKey: z.string(),
+})
+
+export const ensureDurableTunnelSchema = z.object({
+  userId: z.string(),
+  tunnelId: z.string(),
+})
+
+export const deleteDurableTunnelSchema = z.object({
+  userId: z.string(),
+  tunnelId: z.string(),
+})
+
+/** App-facing durable tunnel state — sessionId is platform-internal, not exposed. */
+export const durableTunnelDTOSchema = z.object({
+  id: z.string(),
+  port: z.number(),
+  label: z.string(),
+  publicId: z.string(),
+  url: z.string(),
+  token: z.string().nullable(),
+  state: z.enum(['live', 'container_not_running', 'error']),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
 export const destroyAppDockerContainersSchema = z.union([
@@ -261,8 +284,10 @@ export const AppSocketMessageSchemaMap = {
   REPORT_TASK_PROGRESS: reportTaskProgressSchema,
   GET_APP_CUSTOM_SETTINGS: getAppCustomSettingsSchema,
   PATCH_APP_CUSTOM_SETTINGS: patchAppCustomSettingsSchema,
-  CREATE_BRIDGE_TUNNEL: createBridgeTunnelSchema,
-  DELETE_BRIDGE_TUNNEL: deleteBridgeTunnelSchema,
+  CREATE_DURABLE_TUNNEL: createDurableTunnelSchema,
+  LIST_DURABLE_TUNNELS: listDurableTunnelsSchema,
+  ENSURE_DURABLE_TUNNEL: ensureDurableTunnelSchema,
+  DELETE_DURABLE_TUNNEL: deleteDurableTunnelSchema,
   DESTROY_APP_DOCKER_CONTAINERS: destroyAppDockerContainersSchema,
   RESOLVE_APP_DOCKER_CONTAINER: resolveAppDockerContainerSchema,
   INSPECT_APP_DOCKER_CONTAINER: inspectAppDockerContainerSchema,
@@ -386,23 +411,12 @@ export const AppSocketMessageResponseSchemaMap = {
       port: z.number(),
     }),
   ),
-  CREATE_BRIDGE_TUNNEL: createResponseSchema(
-    z.object({
-      public: z
-        .object({
-          id: z.string(),
-          url: z.string(),
-        })
-        .optional(),
-      sessionId: z.string(),
-      token: z.string(),
-      urls: z.object({
-        ws: z.string(),
-        http: z.string(),
-      }),
-    }),
+  CREATE_DURABLE_TUNNEL: createResponseSchema(durableTunnelDTOSchema),
+  LIST_DURABLE_TUNNELS: createResponseSchema(
+    z.object({ tunnels: z.array(durableTunnelDTOSchema) }),
   ),
-  DELETE_BRIDGE_TUNNEL: createResponseSchema(
+  ENSURE_DURABLE_TUNNEL: createResponseSchema(durableTunnelDTOSchema),
+  DELETE_DURABLE_TUNNEL: createResponseSchema(
     z.object({ success: z.boolean() }),
   ),
   DESTROY_APP_DOCKER_CONTAINERS: createResponseSchema(

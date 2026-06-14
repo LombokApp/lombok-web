@@ -1,5 +1,5 @@
 {
-  "id": "d1d29cd0-e198-46a5-abb4-e3ba0991eb2e",
+  "id": "f40d4fb6-82f2-4623-9830-89114fe3c1c4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1376,6 +1376,220 @@
           "value": "quote_id != id"
         }
       },
+      "isRLSEnabled": false
+    },
+    "public.docker_bridge_tunnels": {
+      "name": "docker_bridge_tunnels",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "app_id": {
+          "name": "app_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "host_id": {
+          "name": "host_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "selector_key": {
+          "name": "selector_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "container_selector": {
+          "name": "container_selector",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "port": {
+          "name": "port",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "public_id": {
+          "name": "public_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "command": {
+          "name": "command",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_bound_at": {
+          "name": "last_bound_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "docker_bridge_tunnels_app_id_idx": {
+          "name": "docker_bridge_tunnels_app_id_idx",
+          "columns": [
+            {
+              "expression": "app_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "docker_bridge_tunnels_host_id_idx": {
+          "name": "docker_bridge_tunnels_host_id_idx",
+          "columns": [
+            {
+              "expression": "host_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "docker_bridge_tunnels_status_idx": {
+          "name": "docker_bridge_tunnels_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "docker_bridge_tunnels_app_id_apps_identifier_fk": {
+          "name": "docker_bridge_tunnels_app_id_apps_identifier_fk",
+          "tableFrom": "docker_bridge_tunnels",
+          "tableTo": "apps",
+          "columnsFrom": [
+            "app_id"
+          ],
+          "columnsTo": [
+            "identifier"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "docker_bridge_tunnels_user_id_users_id_fk": {
+          "name": "docker_bridge_tunnels_user_id_users_id_fk",
+          "tableFrom": "docker_bridge_tunnels",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "docker_bridge_tunnels_host_id_docker_hosts_id_fk": {
+          "name": "docker_bridge_tunnels_host_id_docker_hosts_id_fk",
+          "tableFrom": "docker_bridge_tunnels",
+          "tableTo": "docker_hosts",
+          "columnsFrom": [
+            "host_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "docker_bridge_tunnels_public_id_unique": {
+          "name": "docker_bridge_tunnels_public_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "public_id"
+          ]
+        },
+        "docker_bridge_tunnels_scope_port_uq": {
+          "name": "docker_bridge_tunnels_scope_port_uq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "app_id",
+            "user_id",
+            "selector_key",
+            "port"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.docker_hosts": {
