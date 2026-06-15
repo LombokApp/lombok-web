@@ -553,11 +553,15 @@ describe('Folders', () => {
         body: [
           {
             method: 'PUT',
-            objectIdentifier: 'content:someobjectkey',
+            objectIdentifier: { kind: 'content', objectKey: 'someobjectkey' },
           },
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey:somehash',
+            objectIdentifier: {
+              kind: 'metadata',
+              objectKey: 'someobjectkey',
+              metadataHash: 'somehash',
+            },
           },
         ],
       },
@@ -620,11 +624,15 @@ describe('Folders', () => {
         body: [
           {
             method: 'PUT',
-            objectIdentifier: 'content:someobjectkey',
+            objectIdentifier: { kind: 'content', objectKey: 'someobjectkey' },
           },
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey:somehash',
+            objectIdentifier: {
+              kind: 'metadata',
+              objectKey: 'someobjectkey',
+              metadataHash: 'somehash',
+            },
           },
         ],
       },
@@ -683,11 +691,15 @@ describe('Folders', () => {
         body: [
           {
             method: 'PUT',
-            objectIdentifier: 'content:someobjectkey',
+            objectIdentifier: { kind: 'content', objectKey: 'someobjectkey' },
           },
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey:somehash',
+            objectIdentifier: {
+              kind: 'metadata',
+              objectKey: 'someobjectkey',
+              metadataHash: 'somehash',
+            },
           },
         ],
       },
@@ -745,7 +757,11 @@ describe('Folders', () => {
         body: [
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey:somehash',
+            objectIdentifier: {
+              kind: 'metadata',
+              objectKey: 'someobjectkey',
+              metadataHash: 'somehash',
+            },
           },
         ],
       },
@@ -761,7 +777,11 @@ describe('Folders', () => {
         body: [
           {
             method: 'PUT',
-            objectIdentifier: 'metadata:someobjectkey:somehash',
+            objectIdentifier: {
+              kind: 'metadata',
+              objectKey: 'someobjectkey',
+              metadataHash: 'somehash',
+            },
           },
         ],
       },
@@ -778,13 +798,42 @@ describe('Folders', () => {
         body: [
           {
             method: 'DELETE',
-            objectIdentifier: 'metadata:someobjectkey:somehash',
+            objectIdentifier: {
+              kind: 'metadata',
+              objectKey: 'someobjectkey',
+              metadataHash: 'somehash',
+            },
           },
         ],
       },
     )
 
     expect(presignedUrls2.response.status).toBe(401)
+  })
+
+  it(`should 400 on createPresignedUrls with a malformed objectIdentifier`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    // metadata identifier missing its required metadataHash
+    const response = await apiClient(accessToken).POST(
+      '/api/v1/folders/{folderId}/presigned-urls',
+      {
+        params: { path: { folderId: '__dummy__' } },
+        body: [
+          {
+            method: 'GET',
+            objectIdentifier: { kind: 'metadata', objectKey: 'someobjectkey' },
+          },
+        ] as never,
+      },
+    )
+
+    expect(response.response.status).toBe(400)
   })
 
   it(`should 401 on create folder without token`, async () => {
@@ -855,7 +904,12 @@ describe('Folders', () => {
       '/api/v1/folders/{folderId}/presigned-urls',
       {
         params: { path: { folderId: '__dummy__' } },
-        body: [{ method: 'GET', objectIdentifier: '__dummy__' }],
+        body: [
+          {
+            method: 'GET',
+            objectIdentifier: { kind: 'content', objectKey: '__dummy__' },
+          },
+        ],
       },
     )
 

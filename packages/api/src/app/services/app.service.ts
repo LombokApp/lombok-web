@@ -20,7 +20,7 @@ import {
   LogEntryLevel,
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
-import { mimeFromExtension } from '@lombokapp/utils'
+import { joinStoragePrefix, mimeFromExtension } from '@lombokapp/utils'
 import { hashLocalFile } from '@lombokapp/worker-utils'
 import {
   BadRequestException,
@@ -551,11 +551,10 @@ export class AppService {
           }
           return {
             method: request.method,
-            objectKey: `${metadataLocation.prefix}${
-              metadataLocation.prefix && !metadataLocation.prefix.endsWith('/')
-                ? '/'
-                : ''
-            }${request.objectKey}/${request.metadataHash}`,
+            objectKey: joinStoragePrefix(
+              metadataLocation.prefix,
+              `${request.objectKey}/${request.metadataHash}`,
+            ),
             accessKeyId: metadataLocation.accessKeyId,
             secretAccessKey: metadataLocation.secretAccessKey,
             bucket: metadataLocation.bucket,
@@ -774,7 +773,10 @@ export class AppService {
           .createS3PresignedUrls(
             folderRequests.map(({ method, objectKey }) => ({
               method,
-              objectKey: `${folder.contentLocation.prefix}${!folder.contentLocation.prefix || folder.contentLocation.prefix.endsWith('/') ? '' : '/'}${objectKey}`,
+              objectKey: joinStoragePrefix(
+                folder.contentLocation.prefix,
+                objectKey,
+              ),
               accessKeyId: folder.contentLocation.accessKeyId,
               secretAccessKey: folder.contentLocation.secretAccessKey,
               bucket: folder.contentLocation.bucket,

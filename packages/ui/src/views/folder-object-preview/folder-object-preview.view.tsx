@@ -7,10 +7,13 @@ import { MediaType } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
+  contentIdentifier,
   documentLabelFromMimeType,
   isRenderableDocumentMimeType,
   isRenderableTextMimeType,
   mediaTypeFromMimeType,
+  metadataIdentifier,
+  type ObjectIdentifier,
 } from '@lombokapp/utils'
 import React from 'react'
 
@@ -80,7 +83,7 @@ export const FolderObjectPreview = ({
     maxRenderSizeBytes,
   )
   const resolveRenderedVersion = React.useCallback((): {
-    renderedContentKey: string
+    renderedContentKey: ObjectIdentifier
     mimeType: string
     mediaType: MediaType
   } => {
@@ -89,7 +92,10 @@ export const FolderObjectPreview = ({
       displayConfig.variantKey in previews
     ) {
       return {
-        renderedContentKey: `metadata:${objectKey}:${previews[displayConfig.variantKey]?.hash}`,
+        renderedContentKey: metadataIdentifier(
+          objectKey,
+          previews[displayConfig.variantKey]?.hash ?? '',
+        ),
         mimeType: previews[displayConfig.variantKey]?.mimeType ?? '',
         mediaType: mediaTypeFromMimeType(
           previews[displayConfig.variantKey]?.mimeType ?? '',
@@ -109,7 +115,10 @@ export const FolderObjectPreview = ({
       if (purposeMatchedVariantKey) {
         const previewVariant = previews[purposeMatchedVariantKey]
         return {
-          renderedContentKey: `metadata:${objectKey}:${previewVariant?.hash}`,
+          renderedContentKey: metadataIdentifier(
+            objectKey,
+            previewVariant?.hash ?? '',
+          ),
           mimeType: previews[displayConfig.purposeType]?.mimeType ?? '',
           mediaType: mediaTypeFromMimeType(
             previews[purposeMatchedVariantKey]?.mimeType ?? '',
@@ -118,7 +127,7 @@ export const FolderObjectPreview = ({
       }
     }
     return {
-      renderedContentKey: `content:${objectKey}`,
+      renderedContentKey: contentIdentifier(objectKey),
       mimeType: folderObject.mimeType,
       mediaType: mediaTypeFromMimeType(folderObject.mimeType),
     }
@@ -129,7 +138,7 @@ export const FolderObjectPreview = ({
         srcUrl: string
         mimeType: string
         mediaType: MediaType
-        renderedContentKey: string
+        renderedContentKey: ObjectIdentifier
         isRenderableDocument: boolean
         isTextRenderableDocument: boolean
       }
@@ -143,18 +152,16 @@ export const FolderObjectPreview = ({
         resolveRenderedVersion()
       const isRenderableDocument = isRenderableDocumentMimeType(mimeType)
       const isTextRenderableDocument = isRenderableTextMimeType(mimeType)
-      if (renderedContentKey) {
-        await getPresignedDownloadUrl(folderId, renderedContentKey).then(
-          async ({ url }) => {
-            if (isTextRenderableDocument) {
-              const contents = await fetch(url)
-              srcUrl = await contents.text()
-            } else {
-              srcUrl = url
-            }
-          },
-        )
-      }
+      await getPresignedDownloadUrl(folderId, renderedContentKey).then(
+        async ({ url }) => {
+          if (isTextRenderableDocument) {
+            const contents = await fetch(url)
+            srcUrl = await contents.text()
+          } else {
+            srcUrl = url
+          }
+        },
+      )
       setToRender({
         srcUrl: srcUrl ?? '',
         mimeType,
@@ -227,7 +234,7 @@ export const FolderObjectPreview = ({
           isCoverView && 'size-full',
         )}
       >
-        {toRender?.renderedContentKey.startsWith('content:') &&
+        {toRender?.renderedContentKey.kind === 'content' &&
         !canRenderOriginalResult.result &&
         !renderBlockOverriden ? (
           renderEmptyPreview(canRenderOriginalResult.reason)

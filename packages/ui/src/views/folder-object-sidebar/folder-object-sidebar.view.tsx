@@ -18,7 +18,7 @@ import {
   extensionFromMimeType,
   formatBytes,
   mediaTypeFromMimeType,
-  toMetadataObjectIdentifier,
+  metadataIdentifier,
 } from '@lombokapp/utils'
 import {
   Box,
@@ -328,7 +328,7 @@ export const FolderObjectSidebar = ({
                                       onClick={() => {
                                         downloadToFile(
                                           folderObject.folderId,
-                                          toMetadataObjectIdentifier(
+                                          metadataIdentifier(
                                             objectKey,
                                             metadataEntry.hash,
                                           ),
