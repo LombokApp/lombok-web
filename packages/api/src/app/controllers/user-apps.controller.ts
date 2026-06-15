@@ -46,9 +46,6 @@ export class UserAppsController {
     private readonly appCustomSettingsService: AppCustomSettingsService,
   ) {}
 
-  /**
-   * List enabled apps available for the current user
-   */
   @Get('/apps')
   async listApps(@Req() req: express.Request): Promise<UserAppListResponse> {
     if (!req.user) {
@@ -66,9 +63,6 @@ export class UserAppsController {
     }
   }
 
-  /**
-   * Get an enabled app by identifier for the current user
-   */
   @Get('/apps/:appIdentifier')
   async getApp(
     @Req() req: express.Request,
@@ -84,9 +78,6 @@ export class UserAppsController {
     }
   }
 
-  /**
-   * List objects in the current user's partition of an app's server storage
-   */
   @Get('/apps/:appIdentifier/storage/objects')
   async listAppStorageObjects(
     @Req() req: express.Request,
@@ -104,9 +95,6 @@ export class UserAppsController {
     })
   }
 
-  /**
-   * Presign read-only URLs for objects in the current user's app storage partition
-   */
   @Post('/apps/:appIdentifier/storage/presigned-urls')
   async createAppStoragePresignedUrls(
     @Req() req: express.Request,
@@ -124,9 +112,6 @@ export class UserAppsController {
     return { urls }
   }
 
-  /**
-   * Get app contributions
-   */
   @Get('/app-contributions')
   async getAppContributions(
     @Req() req: express.Request,
@@ -138,9 +123,6 @@ export class UserAppsController {
     return contributions
   }
 
-  /**
-   * Generate app user access token
-   */
   @Post('/apps/:appIdentifier/access-token')
   async generateAppUserAccessToken(
     @Req() req: express.Request,
@@ -164,9 +146,6 @@ export class UserAppsController {
     }
   }
 
-  /**
-   * Get app user settings for the current user
-   */
   @Get('/apps/:appIdentifier/settings')
   async getAppUserSettings(
     @Req() req: express.Request,
@@ -182,9 +161,6 @@ export class UserAppsController {
     return { settings }
   }
 
-  /**
-   * Create or update app user settings for the current user
-   */
   @Post('/apps/:appIdentifier/settings')
   async upsertAppUserSettings(
     @Req() req: express.Request,
@@ -205,9 +181,6 @@ export class UserAppsController {
     return { settings }
   }
 
-  /**
-   * Remove app user settings for the current user
-   */
   @Delete('/apps/:appIdentifier/settings')
   async removeAppUserSettings(
     @Req() req: express.Request,
@@ -219,9 +192,6 @@ export class UserAppsController {
     await this.appService.removeAppUserSettings(req.user, appIdentifier)
   }
 
-  /**
-   * Get resolved custom settings for the current user
-   */
   @Get('/apps/:appIdentifier/custom-settings')
   async getUserCustomSettings(
     @Req() req: express.Request,
@@ -238,11 +208,7 @@ export class UserAppsController {
     return { settings: result }
   }
 
-  /**
-   * Patch custom settings for the current user. Keys not present are
-   * preserved; explicit `null` values delete the key. Writes are atomic per
-   * key, so concurrent patches on disjoint keys do not race.
-   */
+  // Absent keys preserved, explicit `null` deletes; writes are per-key atomic so concurrent disjoint-key patches don't race.
   @Patch('/apps/:appIdentifier/custom-settings')
   async patchUserCustomSettings(
     @Req() req: express.Request,
@@ -261,9 +227,7 @@ export class UserAppsController {
     return { settings: result }
   }
 
-  /**
-   * Remove custom settings for the current user (revert to defaults)
-   */
+  // Revert the user's custom settings to defaults.
   @Delete('/apps/:appIdentifier/custom-settings')
   async deleteUserCustomSettings(
     @Req() req: express.Request,

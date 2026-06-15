@@ -6,7 +6,7 @@ APP_UI_HOST="${APP_UI_HOST:-http://127.0.0.1:3001}"
 
 cd /usr/src/app || { echo "Error: Cannot cd to /usr/src/app"; exit 1; }
 
-# Clean up background processes on exit
+# Kill background processes on exit.
 cleanup() {
   kill $(jobs -p) 2>/dev/null
   wait
@@ -34,8 +34,7 @@ echo ""
 echo "================================================"
 echo "NGINX"
 echo "================================================"
-# Template the nginx conf, build app_frontend_proxies.json, start/reload nginx
-# (shared with `./dx restart proxies`).
+# Shared with `./dx restart proxies`.
 sh ./packages/api/cmd/gen-app-proxies.sh
 
 # ── PostgreSQL ──────────────────────────────────────────────
@@ -48,27 +47,23 @@ export PGDATA='/var/lib/postgresql/data'
 su-exec postgres mkdir -p "$PGDATA"
 su-exec postgres chmod 0700 "$PGDATA"
 
-# Initialize PostgreSQL data directory if not already initialized
 if ! su-exec postgres test -f "$PGDATA/PG_VERSION"; then
     echo "Initializing PostgreSQL data directory..."
     su-exec postgres initdb -D "$PGDATA" --auth-local=trust --auth-host=md5
     echo "PostgreSQL data directory initialized."
 fi
 
-# Allow connections from any IP (dev only — connections come via Docker bridge)
-# Must run as postgres because DAC_OVERRIDE is not in cap_add
+# Allow connections from any IP (dev only). Runs as postgres since DAC_OVERRIDE isn't in cap_add.
 su-exec postgres sh -c "grep -q '^host.*0\.0\.0\.0/0' '$PGDATA/pg_hba.conf' || echo 'host all all 0.0.0.0/0 trust' >> '$PGDATA/pg_hba.conf'"
 
-# Start PostgreSQL, listening on all interfaces so host port-mapping works
+# listen_addresses='*' so host port-mapping works.
 su-exec postgres postgres -D "$PGDATA" -c listen_addresses='*' > /dev/stdout 2>&1 &
 
-# Wait for PostgreSQL to become available
 until su-exec postgres pg_isready -q; do
   echo "Waiting for PostgreSQL to start..."
   sleep 1
 done
 
-# Create user if it doesn't exist
 USER_EXISTS=$(su-exec postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}';")
 if [ "$USER_EXISTS" != "1" ]; then
     su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres \
@@ -78,14 +73,12 @@ else
       -c "ALTER USER ${DB_USER} WITH CREATEROLE CREATEDB SUPERUSER;"
 fi
 
-# Create database if it doesn't exist
 DB_EXISTS=$(su-exec postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}';")
 if [ "$DB_EXISTS" != "1" ]; then
     su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres \
       -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};"
 fi
 
-# Create extensions
 su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" \
   -c "CREATE SCHEMA IF NOT EXISTS extensions;"
 su-exec postgres psql -v ON_ERROR_STOP=1 --username postgres -d "${DB_NAME}" \
@@ -119,7 +112,6 @@ until curl -sf http://127.0.0.1:9000/minio/health/live; do
 done
 echo "MinIO is ready."
 
-# Create bucket and dev user
 mc alias set localminio http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" --quiet
 mc mb --ignore-existing "localminio/${DEV_S3_BUCKET_NAME}"
 mc admin user add localminio "${DEV_S3_ACCESS_KEY_ID}" "${DEV_S3_SECRET_ACCESS_KEY}" 2>/dev/null || true
@@ -129,20 +121,17 @@ echo ""
 echo "================================================"
 echo "Install dependencies"
 echo "================================================"
-# ── Install dependencies ────────────────────────────────────
 su-exec "$APP_USER" bun install
 echo ""
 echo "================================================"
 echo "Database migrations and seed"
 echo "================================================"
-# ── Run migrations + idempotent seed ────────────────────────
 su-exec "$APP_USER" bun --cwd packages/api db:migrate
 su-exec "$APP_USER" bun --cwd packages/api db:seed --exit-0
 echo ""
 echo "================================================"
 echo "Vite frontend dev server"
 echo "================================================"
-# ── Start Vite frontend dev server ──────────────────────────
 su-exec "$APP_USER" bun --cwd packages/ui dev --host &
 echo "Vite dev server starting on port 5173..."
 echo ""
@@ -152,7 +141,7 @@ echo "================================================"
 
 mkdir -p /var/lib/lombok && chown "$APP_USER" /var/lib/lombok
 
-# ── Start the backend (foreground, auto-restart on exit) ────
+# Foreground, auto-restart on exit.
 while true; do
   su-exec "$APP_USER" bun --cwd packages/api dev
   echo "API process exited, restarting in 1s..."

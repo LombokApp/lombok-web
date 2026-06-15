@@ -50,9 +50,6 @@ export class ServerController {
     private readonly serverIconService: ServerIconService,
   ) {}
 
-  /**
-   * Get the server settings object.
-   */
   @Get('/settings')
   async getServerSettings(
     @Req() req: express.Request,
@@ -67,9 +64,6 @@ export class ServerController {
     }
   }
 
-  /**
-   * Set a setting in the server settings objects.
-   */
   @Put('/settings/:settingKey')
   async setServerSetting(
     @Req() req: express.Request,
@@ -90,9 +84,6 @@ export class ServerController {
     }
   }
 
-  /**
-   * Reset a setting in the server settings objects.
-   */
   @Delete('/settings/:settingKey')
   async resetServerSetting(
     @Req() req: express.Request,
@@ -111,9 +102,6 @@ export class ServerController {
     return { settingKey, settingValue: newSettings[settingKey] as never }
   }
 
-  /**
-   * Get server metrics including user counts, folder counts, and storage statistics.
-   */
   @Get('/metrics')
   async getServerMetrics(
     @Req() req: express.Request,
@@ -125,10 +113,6 @@ export class ServerController {
     return transformServerMetricsToDTO(metrics)
   }
 
-  /**
-   * Get a unified activity time-series (events, tasks, task duration, or logs),
-   * fixed-bucketed over a rolling window and optionally partitioned by app.
-   */
   @Get('/metrics/activity')
   async getServerActivityMetrics(
     @Req() req: express.Request,
@@ -147,9 +131,6 @@ export class ServerController {
     })
   }
 
-  /**
-   * Upload (or replace) the server icon shown across the platform.
-   */
   @Post('/icon')
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
@@ -177,9 +158,6 @@ export class ServerController {
     return { updatedAt: updatedAt.toISOString() }
   }
 
-  /**
-   * Remove the server icon.
-   */
   @Delete('/icon')
   @HttpCode(204)
   async deleteServerIcon(@Req() req: express.Request): Promise<void> {

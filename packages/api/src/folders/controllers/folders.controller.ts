@@ -94,12 +94,7 @@ export class FoldersController {
     private readonly folderIconService: FolderIconService,
   ) {}
 
-  /**
-   * List the current user's starred folders.
-   *
-   * Declared before `/:folderId` so the literal `starred` segment is not
-   * captured by the UUID-parsed folder route.
-   */
+  // Declared before `/:folderId` so `starred` isn't captured by the UUID-parsed folder route.
   @Get('/starred')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -114,9 +109,6 @@ export class FoldersController {
     return { folders }
   }
 
-  /**
-   * Get a folder by id.
-   */
   @Get('/:folderId')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -137,9 +129,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Star or unstar a folder for the current user.
-   */
   @Put('/:folderId/starred')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -160,9 +149,6 @@ export class FoldersController {
     return { starred }
   }
 
-  /**
-   * Check S3 access and update folder accessError
-   */
   @Post('/:folderId/check-access')
   async checkFolderAccess(
     @Req() req: express.Request,
@@ -183,9 +169,6 @@ export class FoldersController {
     return { ok: true }
   }
 
-  /**
-   * Get the metadata for a folder by id.
-   */
   @Get('/:folderId/metadata')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -204,9 +187,6 @@ export class FoldersController {
     return result
   }
 
-  /**
-   * List folders.
-   */
   @Get()
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -235,9 +215,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Create a folder.
-   */
   @Post()
   async createFolder(
     @Req() req: express.Request,
@@ -256,9 +233,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Delete a folder by id.
-   */
   @Delete('/:folderId')
   async deleteFolder(
     @Req() req: express.Request,
@@ -270,9 +244,6 @@ export class FoldersController {
     await this.folderService.deleteFolderAsUser(req.user, folderId)
   }
 
-  /**
-   * Scan the underlying S3 location and update our local representation of it.
-   */
   @Post('/:folderId/reindex')
   async reindexFolder(
     @Req() req: express.Request,
@@ -294,9 +265,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * List folder objects by folderId.
-   */
   @Get('/:folderId/objects')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -324,9 +292,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Get a folder object by folderId and objectKey.
-   */
   @Get('/:folderId/objects/:objectKey')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -348,9 +313,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Delete a folder object by folderId and objectKey.
-   */
   @Delete('/:folderId/objects/:objectKey')
   async deleteFolderObject(
     @Req() req: express.Request,
@@ -366,9 +328,6 @@ export class FoldersController {
     })
   }
 
-  /**
-   * Create presigned urls for objects in a folder.
-   */
   @Post('/:folderId/presigned-urls')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -388,9 +347,6 @@ export class FoldersController {
     return { urls }
   }
 
-  /**
-   * Scan the object again in the underlying storage, and update its state in our db.
-   */
   @Post('/:folderId/objects/:objectKey/refresh')
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
@@ -414,9 +370,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Get folder share for a user
-   */
   @Get('/:folderId/shares/:userId')
   async getFolderShares(
     @Req() req: express.Request,
@@ -434,9 +387,6 @@ export class FoldersController {
     return { share }
   }
 
-  /**
-   * List folder shares
-   */
   @Get('/:folderId/shares')
   async listFolderShares(
     @Req() req: express.Request,
@@ -450,9 +400,6 @@ export class FoldersController {
     return shares
   }
 
-  /**
-   * List prospective folder share users
-   */
   @Get('/:folderId/user-share-options')
   async listFolderShareUsers(
     @Req() req: express.Request,
@@ -470,9 +417,6 @@ export class FoldersController {
     return shares
   }
 
-  /**
-   * Add or update a folder share
-   */
   @Post('/:folderId/shares/:userId')
   async upsertFolderShare(
     @Req() req: express.Request,
@@ -493,9 +437,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Remove a folder share
-   */
   @Delete('/:folderId/shares/:userId')
   async removeFolderShare(
     @Req() req: express.Request,
@@ -508,9 +449,6 @@ export class FoldersController {
     await this.folderService.removeFolderShare(req.user, folderId, userId)
   }
 
-  /**
-   * Update a folder by id.
-   */
   @Put('/:folderId')
   async updateFolder(
     @Req() req: express.Request,
@@ -530,9 +468,6 @@ export class FoldersController {
     }
   }
 
-  /**
-   * Upload (or replace) a folder icon image.
-   */
   @Post('/:folderId/icon')
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
@@ -565,9 +500,6 @@ export class FoldersController {
     return { folder: transformFolderToDTO(folder) }
   }
 
-  /**
-   * Remove a folder icon.
-   */
   @Delete('/:folderId/icon')
   @HttpCode(204)
   async deleteFolderIcon(
@@ -580,9 +512,6 @@ export class FoldersController {
     await this.folderIconService.deleteIcon(req.user, folderId)
   }
 
-  /**
-   * Get all app settings for a folder
-   */
   @Get('/:folderId/app-settings')
   async getFolderAppSettings(
     @Req() req: express.Request,
@@ -598,9 +527,6 @@ export class FoldersController {
     return { settings }
   }
 
-  /**
-   * Bulk update app settings for a folder
-   */
   @Patch('/:folderId/app-settings')
   async updateFolderAppSettings(
     @Req() req: express.Request,
@@ -618,9 +544,6 @@ export class FoldersController {
     return { settings }
   }
 
-  /**
-   * Get resolved custom settings for an app on a folder
-   */
   @Get('/:folderId/apps/:appIdentifier/custom-settings')
   async getFolderCustomSettings(
     @Req() req: express.Request,
@@ -639,11 +562,7 @@ export class FoldersController {
     return { settings: result }
   }
 
-  /**
-   * Patch custom settings for an app on a folder. Keys not present are
-   * preserved; explicit `null` values delete the key. Writes are atomic per
-   * key, so concurrent patches on disjoint keys do not race.
-   */
+  // Absent keys preserved, explicit `null` deletes; writes are per-key atomic so concurrent disjoint-key patches don't race.
   @Patch('/:folderId/apps/:appIdentifier/custom-settings')
   async patchFolderCustomSettings(
     @Req() req: express.Request,
@@ -668,9 +587,7 @@ export class FoldersController {
     return { settings: result }
   }
 
-  /**
-   * Remove custom settings for an app on a folder (revert to user-level)
-   */
+  // Revert folder custom settings to user-level.
   @Delete('/:folderId/apps/:appIdentifier/custom-settings')
   async deleteFolderCustomSettings(
     @Req() req: express.Request,

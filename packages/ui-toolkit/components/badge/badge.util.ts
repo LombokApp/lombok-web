@@ -1,7 +1,4 @@
-/*
- * Badge — same additive color model as Button (UI_TOOLKIT_ALIGNMENT.md §4.6).
- * `variant` (solid|soft|outline) × `tone`/`color` × `size`. Derives from `--badge-color`.
- */
+// Same additive color model as Button; every state derives from --badge-color (UI_TOOLKIT_ALIGNMENT.md §4.6).
 
 import { cva } from 'class-variance-authority'
 
@@ -36,8 +33,7 @@ export const badgeVariants = cva(
       },
     },
     compoundVariants: [
-      // Neutral outline border = foreground at low opacity (adapts to light/dark; % is the
-      // visibility knob, unlike opacity of the near-white --border token).
+      // Neutral outline border = foreground at low opacity; % is the visibility knob (adapts to light/dark).
       {
         variant: 'outline',
         tone: 'neutral',

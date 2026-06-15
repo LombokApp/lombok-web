@@ -9,10 +9,7 @@ const Tooltip = TooltipPrimitive.Root
 
 const TooltipTrigger = TooltipPrimitive.Trigger
 
-// Portal the content so its position:fixed popper wrapper escapes any
-// transformed/overflow ancestor (e.g. the collapsible sidebar's translate-x
-// aside + overflow-y-auto), which otherwise traps it in the scroll subtree
-// and nudges the container's scroll height on open.
+// Portal the content so its fixed popper escapes transformed/overflow ancestors that would otherwise trap it in their scroll subtree.
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>

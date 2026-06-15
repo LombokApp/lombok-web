@@ -1,8 +1,6 @@
 import { z } from 'zod'
 
-// A folder object can be addressed by its content or by one of its metadata
-// variants. This is a discriminated union, validated at the API boundary —
-// there is no string encoding to parse.
+// A folder object is addressed by content or by a metadata variant; validated at the API boundary, not string-encoded.
 export const objectIdentifierSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('content'), objectKey: z.string().min(1) }),
   z.object({
@@ -24,14 +22,12 @@ export const metadataIdentifier = (
   metadataHash: string,
 ): ObjectIdentifier => ({ kind: 'metadata', objectKey, metadataHash })
 
-// Stable string key for an identifier, for use as a cache/map key. Not a wire
-// format — the wire payload is the ObjectIdentifier object itself.
+// Stable cache/map key, not a wire format (the wire payload is the ObjectIdentifier object).
 export const objectIdentifierKey = (id: ObjectIdentifier): string =>
   id.kind === 'metadata'
     ? `metadata:${id.objectKey}:${id.metadataHash}`
     : `content:${id.objectKey}`
 
-// Joins a storage-location prefix with a relative key, normalising the slash.
 export const joinStoragePrefix = (prefix: string, key: string): string =>
   prefix.length === 0 || prefix.endsWith('/')
     ? `${prefix}${key}`

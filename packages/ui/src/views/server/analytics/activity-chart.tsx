@@ -114,8 +114,7 @@ export function ActivityChart({
   }
   const formatTick = (value: string) =>
     safeFormat(value, granularity === 'hour' ? 'HH:mm' : 'MMM d')
-  // This fork's ChartTooltipContent only forwards the x-value to labelFormatter
-  // when it's a config key, so resolve the bucket from the hovered row instead.
+  // ChartTooltipContent only forwards the x-value when it's a config key, so resolve the bucket from the hovered row.
   const formatLabel = (
     items: { payload?: { bucket?: string } }[] | undefined,
   ) =>

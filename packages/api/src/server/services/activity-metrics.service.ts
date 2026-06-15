@@ -165,13 +165,7 @@ export function shapeSeries(
 export class ActivityMetricsService {
   constructor(private readonly ormService: OrmService) {}
 
-  /**
-   * Unified activity time-series. Counts come from the events table
-   * (`events`/`tasks`) and the log_entries table (`logs`); `task_duration` is
-   * an average derived from the tasks table because event `data` is
-   * base64-wrapped and not SQL-queryable. All metrics share the same
-   * fixed-bucket, zero-filled output shape.
-   */
+  // `task_duration` derives from the tasks table because event `data` is base64-wrapped and not SQL-queryable.
   async getActivityTimeseries({
     actor,
     metric,
@@ -222,11 +216,7 @@ export class ActivityMetricsService {
     }
   }
 
-  /**
-   * Prune synthetic task telemetry older than the retention window. Only
-   * `task_completed`/`task_failed` rows are removed — domain events are never
-   * touched. Returns the number of rows deleted.
-   */
+  // Only task_completed/task_failed rows are pruned — domain events are never touched.
   async pruneTaskTelemetry(
     olderThanDays = TASK_TELEMETRY_RETENTION_DAYS,
   ): Promise<number> {
@@ -348,12 +338,7 @@ export class ActivityMetricsService {
     wheres: (SQL | undefined)[]
   }): Promise<BucketRow[]> {
     const bucket = bucketExpr(timeColumn, granularity)
-    // Group/order by ordinal position (1 = bucket, 2 = dim). Re-rendering the
-    // same parameterized `sql` object in GROUP BY renumbers its bind params, so
-    // Postgres wouldn't match it to the SELECT expression ("created_at must
-    // appear in the GROUP BY clause"); and Drizzle doesn't emit SQL aliases for
-    // raw `sql` select columns, so grouping by name fails too. Ordinals avoid
-    // both.
+    // Group/order by ordinal (1=bucket, 2=dim): re-rendering the `sql` object renumbers its bind params, and Drizzle emits no aliases for raw `sql` columns.
     return this.ormService.db
       .select({ bucket, dim: dimExpr, value: valueExpr })
       .from(table)

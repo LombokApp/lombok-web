@@ -6,12 +6,7 @@ import { DurableTunnelService } from './durable-tunnel.service'
 /** Max concurrent ensureLive calls during a bulk replay. */
 const REPLAY_CONCURRENCY = 6
 
-/**
- * Replays durable tunnels into live bridge sessions whenever the bridge
- * (re)connects. A thin layer over DurableTunnelService that registers itself on
- * the bridge's onReady hook — kept separate to avoid a
- * DockerBridgeService → DurableTunnelService import cycle.
- */
+/** Replays durable tunnels into live bridge sessions on each bridge (re)connect; separate from DurableTunnelService to avoid a DockerBridgeService import cycle. */
 @Injectable()
 export class TunnelReconcilerService implements OnApplicationBootstrap {
   private readonly logger = new Logger(TunnelReconcilerService.name)
@@ -28,10 +23,7 @@ export class TunnelReconcilerService implements OnApplicationBootstrap {
     })
   }
 
-  /**
-   * Re-bind every durable tunnel under its stable publicId. Bounded concurrency,
-   * per-row error isolation; guarded against overlapping replays.
-   */
+  /** Re-bind every durable tunnel under its stable publicId; bounded concurrency, per-row error isolation, guarded against overlapping replays. */
   async replayAll(): Promise<void> {
     if (this.replaying) {
       this.logger.debug('Replay already in progress, skipping')

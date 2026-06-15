@@ -1,9 +1,6 @@
 import type { Icon } from '@lombokapp/types'
 
-// True when the icon is a monochromatic glyph (built-in lucide icon or a
-// tinted SVG) — those look best on a neutral tile background. PNGs and
-// `rendering: "original"` SVGs supply their own treatment and should render
-// raw without a wrapping border.
+// True for monochromatic glyphs (builtin or tinted SVG) that want a neutral tile; PNGs and original-rendering SVGs render raw.
 export function iconRendersAsGlyph(icon: Icon | undefined): boolean {
   if (!icon) {
     return true

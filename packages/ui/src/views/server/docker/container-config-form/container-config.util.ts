@@ -48,11 +48,7 @@ function mountsToJson(val: ConfigMount[] | undefined): string {
 
 type ConfigMount = NonNullable<DockerContainerResourceConfig['mounts']>[number]
 
-// Parse the textarea contents. Returns undefined for empty/whitespace
-// (meaning "no mounts configured"). Returns the parsed array for well-
-// formed JSON. Returns the error string itself so the caller can preserve
-// the user's in-progress input on the server round-trip — the server will
-// still reject it via Zod validation, which is the source of truth.
+// Parse the mounts textarea; on invalid JSON returns the error so the caller can preserve in-progress input (the server's Zod validation is the source of truth).
 export function mountsFromJson(
   s: string,
 ):
@@ -79,9 +75,7 @@ export function mountsFromJson(
 
 // ─── Public API ───────────────────────────────────────────────────────────
 
-/**
- * Load a config object into the form-friendly state shape used by useContainerConfigForm.
- */
+/** Load a config object into the form-friendly state shape used by useContainerConfigForm. */
 export function loadConfigState(
   cfg: DockerContainerResourceConfig,
 ): ContainerConfigState {
@@ -149,16 +143,13 @@ export function loadConfigState(
   }
 }
 
-/**
- * Serialize form state back to a config object for the API.
- */
+/** Serialize form state back to a config object for the API. */
 export function buildConfigFromState(
   s: ContainerConfigState,
 ): DockerContainerResourceConfig {
   const config: DockerContainerResourceConfig = {}
 
-  // Mounts is a JSON textarea. Well-formed JSON wins; invalid / in-progress
-  // input drops the field (server would reject it anyway). Empty = omit.
+  // Invalid/in-progress mounts JSON drops the field (server would reject it anyway).
   const parsedMounts = mountsFromJson(s.mounts)
   if (parsedMounts.kind === 'valid') {
     config.mounts = parsedMounts.value

@@ -1,5 +1,4 @@
-// Canonical layout for an app's server-storage partition. Both the signing path
-// and the user-facing listing path build keys through here so they can't diverge:
+// Canonical key layout for an app's server-storage partition; signing and listing paths both build through here so they can't diverge.
 //   app-runtime-storage/{appId}/shared/{objectKey}          (userId omitted)
 //   app-runtime-storage/{appId}/users/{userId}/{objectKey}  (userId present)
 

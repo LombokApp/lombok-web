@@ -1,13 +1,4 @@
-/*
- * Button — additive color model (UI_TOOLKIT_ALIGNMENT.md §4.6). Two orthogonal axes:
- *   • color : `tone` (named token) or `color` (one-shot base; derives every state)
- *   • style : `variant` (solid|soft|outline|ghost|link) + feature flag `gradient`
- *
- * Every state derives from `--button-color` via color-mix. Solid foreground uses
- * `contrast-color()` (auto black/white) with the `fg` prop / `--button-fg` as override.
- * Tone is a cva variant (static `[--button-color:…]` classes) so it also works through the
- * `buttonVariants()` helper. Literal class strings — Tailwind only emits what it can see.
- */
+// Additive color model: every state derives from --button-color via color-mix; tone is a static cva variant so it works through buttonVariants() (UI_TOOLKIT_ALIGNMENT.md §4.6).
 
 import { cva } from 'class-variance-authority'
 
@@ -26,8 +17,7 @@ export const buttonVariants = cva(
           'bg-[color-mix(in_srgb,var(--button-color)_14%,transparent)] text-[var(--button-color)] ' +
           'not-disabled:hover:bg-[color-mix(in_srgb,var(--button-color)_22%,transparent)]',
         outline:
-          // Colored tones tint the border toward the --border token; the neutral tone uses
-          // --border directly (compound below) since its base is the near-white/black --primary.
+          // Colored tones tint the border toward --border; neutral uses --border directly (compound below).
           'border border-[color-mix(in_srgb,var(--button-color)_25%,var(--border))] text-[var(--button-color)] ' +
           'not-disabled:hover:bg-[color-mix(in_srgb,var(--button-color)_5%,transparent)]',
         ghost:
@@ -35,9 +25,7 @@ export const buttonVariants = cva(
         link: 'text-[var(--button-color)] underline-offset-4 not-disabled:hover:underline',
       },
       tone: {
-        // Each tone sets its solid foreground (--button-fg) explicitly so solids don't depend
-        // on contrast-color() support. neutral omits it → falls back to contrast-color (its
-        // base is --primary, which flips light/dark). soft/outline/ghost ignore --button-fg.
+        // Each tone sets --button-fg explicitly so solids don't depend on contrast-color(); neutral omits it (base --primary flips light/dark).
         neutral: '[--button-color:var(--primary)]',
         blue: '[--button-color:var(--color-tone-blue)] [--button-fg:#fff]',
         green: '[--button-color:var(--color-tone-green)] [--button-fg:#fff]',
@@ -60,16 +48,14 @@ export const buttonVariants = cva(
         icon: 'size-10',
       },
       gradient: { true: '', false: '' },
-      // Dimmed at rest, brightens to full on hover — for low-emphasis affordances (e.g. icon links).
-      // `transition` (over the base `transition-colors`) so the brightness filter animates too.
+      // Dimmed at rest, brightens on hover; `transition` (over base transition-colors) so brightness animates too.
       dim: {
         true: 'transition not-disabled:brightness-70 not-disabled:hover:brightness-100',
         false: '',
       },
     },
     compoundVariants: [
-      // Neutral outline border = foreground at low opacity — adapts to light/dark and the
-      // % is a meaningful visibility knob (unlike opacity of the near-white --border token).
+      // Neutral outline border = foreground at low opacity; % is the visibility knob (adapts to light/dark).
       {
         variant: 'outline',
         tone: 'neutral',

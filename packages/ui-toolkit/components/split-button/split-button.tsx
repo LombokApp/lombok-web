@@ -24,10 +24,7 @@ export interface SplitButtonProps {
   fg?: string
   /** Apply the solid gradient treatment. */
   gradient?: boolean
-  /**
-   * Primary action. When `null`, the primary button opens the menu instead of
-   * running an action (e.g. nothing sensible to launch by default).
-   */
+  /** Primary action; `null` makes the primary button open the menu instead. */
   onPrimaryAction?: (() => void) | null
   /** Disables the whole control. */
   disabled?: boolean
@@ -41,11 +38,7 @@ export interface SplitButtonProps {
   contentClassName?: string
 }
 
-/**
- * A split button: a primary action joined to a chevron that opens a dropdown
- * menu of alternative actions. Built on the Radix `DropdownMenu` (keyboard nav,
- * focus management, portal/collision) and the toolkit `Button` color system.
- */
+// Primary action joined to a chevron that opens a dropdown of alternatives; built on Radix DropdownMenu + toolkit Button.
 export function SplitButton({
   label,
   icon,

@@ -153,10 +153,7 @@ export const Dim: Story = {
   ),
 }
 
-/**
- * Single-base override: pass any CSS `color` and every state (hover/active/border/
- * soft/ghost) is derived from it — no token needed.
- */
+/** Single-base override: any CSS `color` derives every state, no token needed. */
 export const SingleBaseColor: Story = {
   render: () => {
     const colors = ['#7c3aed', '#0ea5e9', '#e11d48', '#16a34a', '#f59e0b']

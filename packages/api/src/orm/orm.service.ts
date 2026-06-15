@@ -155,30 +155,19 @@ export class OrmService {
         user: this._ormConfig.dbUser,
         password: this._ormConfig.dbPassword,
         database: this._ormConfig.dbName,
-        // Surface deadlocks loudly instead of hanging forever. If a caller
-        // can't get a connection within 10s, throw — better a noisy error
-        // than a silent freeze.
+        // Fail fast instead of hanging forever when the pool is exhausted.
         connectionTimeoutMillis: 10_000,
       })
     }
     return this._client
   }
 
-  /**
-   * Per-app Postgres schema name. Embeds slug + canonical id so the schema
-   * stays diagnosable when inspecting the cluster and unique across reinstalls
-   * (id changes on every fresh install).
-   */
+  // slug + id: diagnosable in the cluster, unique across reinstalls (id changes per fresh install).
   private getAppSchemaName(app: App): string {
     return `app_${app.slug}_${app.id}`
   }
 
-  /**
-   * Per-app Postgres role name. `${slug}_${id}` keeps it diagnosable while
-   * id makes it unique across Lombok deployments sharing a PG cluster and
-   * across uninstall→reinstall cycles. Without it, `DROP ROLE` would fail
-   * if any other DB still grants permissions to the same name.
-   */
+  // slug + id: unique across deployments sharing a PG cluster and across reinstalls (roles are cluster-level).
   private getAppRoleName(app: App): string {
     return `app_role_${app.slug}_${app.id}`
   }
@@ -234,19 +223,14 @@ export class OrmService {
     }
   }
 
-  /**
-   * Generate a consistent advisory lock ID from an app identifier
-   * Uses a simple hash to convert the string identifier to a number
-   */
   private getAdvisoryLockId(appIdentifier: string): number {
     let hash = 0
     for (let i = 0; i < appIdentifier.length; i++) {
       const char = appIdentifier.charCodeAt(i)
       hash = (hash << 5) - hash + char
-      hash = hash & hash // Convert to 32-bit integer
+      hash = hash & hash // 32-bit
     }
-    // Use a namespace prefix to avoid conflicts with other advisory locks
-    // PostgreSQL advisory locks use 64-bit integers, so we can use a high bit
+    // High-bit namespace prefix to avoid colliding with other advisory locks.
     return Math.abs(hash) | 0x40000000
   }
 
@@ -257,12 +241,10 @@ export class OrmService {
     const platformRole = this._ormConfig.dbUser
     const lockId = this.getAdvisoryLockId(app.id)
 
-    // Use a dedicated connection from the pool to ensure advisory locks work correctly
-    // Advisory locks are session-scoped, so we need the same connection for lock/unlock
+    // Advisory locks are session-scoped: lock/unlock must use the same connection.
     const client = await this.client.connect()
 
     try {
-      // Acquire advisory lock to prevent concurrent privilege grants
       await client.query('SELECT pg_advisory_lock($1)', [lockId])
 
       try {
@@ -317,11 +299,9 @@ export class OrmService {
           throw error
         }
       } finally {
-        // Always release the advisory lock, even if an error occurred
         await client.query('SELECT pg_advisory_unlock($1)', [lockId])
       }
     } finally {
-      // Always release the connection back to the pool
       client.release()
     }
   }
@@ -372,7 +352,7 @@ export class OrmService {
       })
     }
 
-    // Ensure extensions and schemas exist BEFORE running migrations
+    // Extensions and schemas must exist before migrations run.
     await this.ensureExtensionsSchema()
     await this.ensureVectorExtension()
 
@@ -492,10 +472,7 @@ export class OrmService {
               (t) => `"${t}"`,
             ).join(', ')
             const truncateTablesQuery = `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`
-            // Retry on deadlock/lock-timeout: fire-and-forget writes (e.g. task
-            // activity telemetry) can still be in flight when a test truncates,
-            // producing a transient TRUNCATE/INSERT lock cycle. lock_timeout
-            // fails fast instead of blocking, then we back off and retry.
+            // Retry on deadlock/lock-timeout: in-flight fire-and-forget writes (e.g. task telemetry) can cause a transient TRUNCATE/INSERT lock cycle.
             const maxAttempts = 5
             for (let attempt = 1; ; attempt++) {
               const client = await this.client.connect()
@@ -566,7 +543,6 @@ export class OrmService {
   }
 
   async ensureExtensionsSchema(): Promise<void> {
-    // Create extensions schema if it doesn't exist
     await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${EXTENSIONS_SCHEMA};`)
     await this.client.query(
       `GRANT USAGE ON SCHEMA ${EXTENSIONS_SCHEMA} TO ${this._ormConfig.dbUser};`,
@@ -574,43 +550,27 @@ export class OrmService {
     await this.client.query(`SET search_path TO public, ${EXTENSIONS_SCHEMA};`)
   }
 
-  /**
-   * Ensure app schema exists
-   */
   async ensureAppSchemaAndRole(app: App): Promise<void> {
     const schemaName = this.getAppSchemaName(app)
 
-    // Check if schema exists
     const schemaExists = await this.client.query<{ exists: number }>(
       'SELECT 1 as exists FROM information_schema.schemata WHERE schema_name = $1',
       [schemaName],
     )
 
     if (schemaExists.rows.length === 0) {
-      // Create the schema
       await this.client.query(`CREATE SCHEMA IF NOT EXISTS ${schemaName}`)
     }
 
     await this.ensureAppRole(app)
   }
 
-  /**
-   * Drop app schema (for cleanup/testing)
-   */
   async dropAppSchema(app: App): Promise<void> {
     const schemaName = this.getAppSchemaName(app)
     await this.client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`)
   }
 
-  /**
-   * Drop the per-app Postgres role and forget its KV password. Schema must be
-   * dropped first (the role owns objects in it). DROP OWNED BY revokes every
-   * grant given to the role *in the current database* — roles are cluster-
-   * level in Postgres, so if the same role name is referenced from another
-   * database (rare in production but defensible), the role is left in place.
-   * Best-effort: a leaked role is harmless since the next install gets a
-   * fresh canonical id (and therefore a fresh role name).
-   */
+  // Schema must be dropped first (the role owns objects in it). Best-effort: a leaked role is harmless since reinstall gets a fresh role name.
   async dropAppRole(app: App): Promise<void> {
     const appRoleName = this.getAppRoleName(app)
     const roleExists = await this.client.query<{ exists: number }>(
@@ -650,9 +610,6 @@ export class OrmService {
     )
   }
 
-  /**
-   * Run migrations for a specific app
-   */
   async runAppMigrations(
     app: App,
     migrationFiles: { filename: string; content: string }[],
@@ -663,7 +620,6 @@ export class OrmService {
       return
     }
 
-    // Create migration tracking table if it doesn't exist
     await this.client.query(`
       CREATE TABLE IF NOT EXISTS ${schemaName}.__migrations__ (
         id SERIAL PRIMARY KEY,
@@ -674,7 +630,6 @@ export class OrmService {
       )
     `)
 
-    // Get list of executed migrations
     const executedMigrationsResult = await this.client.query(
       `SELECT filename FROM ${schemaName}.__migrations__ ORDER BY id`,
     )
@@ -684,7 +639,6 @@ export class OrmService {
 
     const executedFilenames = new Set(executedMigrations.map((m) => m.filename))
 
-    // Execute pending migrations in order
     for (const migrationFile of migrationFiles) {
       if (!executedFilenames.has(migrationFile.filename)) {
         await this.executeAppMigration(app, migrationFile)
@@ -692,32 +646,25 @@ export class OrmService {
     }
   }
 
-  /**
-   * Remove schema references from migration content
-   * Strips schema prefixes from table references and removes CREATE SCHEMA statements
-   */
+  // App migrations are authored with schema prefixes; strip them so the SQL runs inside the app's own schema via search_path.
   private removeSchemaReferencesFromMigration(content: string): string {
     let processedContent = content
 
-    // Remove CREATE SCHEMA statements entirely
     processedContent = processedContent.replace(
       /CREATE\s+SCHEMA\s+[^;]+;/gi,
       '',
     )
 
-    // Remove SET search_path statements
     processedContent = processedContent.replace(
       /SET\s+search_path\s+TO\s+[^;]+;/gi,
       '',
     )
 
-    // Remove WITH SCHEMA clauses from CREATE EXTENSION statements
     processedContent = processedContent.replace(
       /CREATE\s+EXTENSION\s+[^;]+WITH\s+SCHEMA\s+[^;]+;/gi,
       (match) => match.replace(/\s+WITH\s+SCHEMA\s+[^;]+/gi, ''),
     )
 
-    // Remove IN SCHEMA clauses from ALTER DEFAULT PRIVILEGES
     processedContent = processedContent.replace(
       /ALTER\s+DEFAULT\s+PRIVILEGES\s+IN\s+SCHEMA\s+"[^"]+"\s+/gi,
       'ALTER DEFAULT PRIVILEGES ',
@@ -727,15 +674,12 @@ export class OrmService {
       'ALTER DEFAULT PRIVILEGES ',
     )
 
-    // Remove schema prefixes from quoted identifiers like "public"."table_name"
-    // But preserve system schemas like pg_catalog, information_schema, etc.
+    // Strip schema prefixes from identifiers (quoted, mixed, unquoted) but preserve system schemas (pg_catalog, information_schema, …).
     processedContent = processedContent.replace(
       /"(?!pg_catalog|information_schema|pg_toast|pg_temp)([^"]+)"\."([^"]+)"/g,
       '"$2"',
     )
 
-    // Remove schema prefixes from mixed identifiers like public."table_name" or "schema".table_name
-    // But preserve system schemas like pg_catalog, information_schema, etc.
     processedContent = processedContent.replace(
       /\b(?!pg_catalog|information_schema|pg_toast|pg_temp)([a-zA-Z_][a-zA-Z0-9_]*)\.("([^"]+)")/g,
       '$2',
@@ -745,23 +689,16 @@ export class OrmService {
       '$2',
     )
 
-    // Remove schema prefixes from unquoted identifiers like public.table_name
-    // But preserve system schemas like pg_catalog, information_schema, etc.
     processedContent = processedContent.replace(
       /\b(?!pg_catalog|information_schema|pg_toast|pg_temp)([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)\b/g,
       '$2',
     )
 
-    // Clean up any extra whitespace that might be left
     processedContent = processedContent.replace(/\n\s*\n\s*\n/g, '\n\n')
 
     return processedContent.trim()
   }
 
-  /**
-   * Execute a single migration file for an app
-   * Uses transaction-scoped search path to avoid affecting other queries
-   */
   private async executeAppMigration(
     app: App,
     migrationFile: { filename: string; content: string },
@@ -772,7 +709,6 @@ export class OrmService {
       const migrationFileContent = this.removeSchemaReferencesFromMigration(
         migrationFile.content,
       )
-      // Calculate checksum for migration integrity
       const checksum = this.calculateChecksum(migrationFile.content)
 
       const client: PoolClient = await this.client.connect()
@@ -780,7 +716,7 @@ export class OrmService {
       try {
         await client.query('BEGIN')
         await client.query(`SET LOCAL ROLE ${appRoleName}`)
-        // Explicitly set search_path since SET ROLE doesn't apply role defaults
+        // SET ROLE doesn't apply role default search_path, so set it explicitly.
         await client.query(
           `SET LOCAL search_path = ${schemaName}, ${EXTENSIONS_SCHEMA}`,
         )
@@ -816,23 +752,16 @@ export class OrmService {
     }
   }
 
-  /**
-   * Calculate checksum for migration content
-   */
   private calculateChecksum(content: string): string {
-    // Simple checksum implementation - in production you might want to use crypto
     let hash = 0
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i)
       hash = (hash << 5) - hash + char
-      hash = hash & hash // Convert to 32-bit integer
+      hash = hash & hash // 32-bit
     }
     return Math.abs(hash).toString(16)
   }
 
-  /**
-   * Get migration status for an app
-   */
   async getAppMigrationStatus(app: App): Promise<{
     executed: string[]
     pending: string[]
@@ -840,7 +769,6 @@ export class OrmService {
     const schemaName = this.getAppSchemaName(app)
 
     try {
-      // Get executed migrations
       const executedMigrationsResult = await this.client.query(
         `SELECT filename FROM ${schemaName}.__migrations__ ORDER BY id`,
       )
@@ -850,10 +778,10 @@ export class OrmService {
 
       return {
         executed: executedMigrations.map((m) => m.filename),
-        pending: [], // Would be populated by comparing with available migration files
+        pending: [],
       }
     } catch {
-      // If migration table doesn't exist, return empty status
+      // Missing migration table → no migrations run yet.
       return {
         executed: [],
         pending: [],
@@ -861,11 +789,7 @@ export class OrmService {
     }
   }
 
-  /**
-   * Ensure the main app's search path is set correctly
-   * This should be called after any app-specific operations to ensure
-   * subsequent main app queries work correctly
-   */
+  // Call after app-specific operations so subsequent main-app queries see the public search_path.
   async ensureMainAppSearchPath(): Promise<void> {
     await this.client.query('SET search_path TO public')
   }

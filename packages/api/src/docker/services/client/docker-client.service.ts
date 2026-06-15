@@ -234,9 +234,7 @@ export class DockerClientService {
     const result = await this.bridgeRequest<BridgeContainerInfo>(
       'POST',
       `/docker/${hostId}/containers`,
-      // Options contain typed nested objects (mounts, ports, gpus, …) that
-      // don't satisfy `JsonSerializableValue`'s index-signature requirement,
-      // but are structurally JSON-serializable at runtime.
+      // Typed nested objects (mounts, ports, gpus) are JSON-serializable at runtime but don't satisfy JsonSerializableValue's index signature.
       createPayload,
     )
     return toBridgeContainerInfo(result)
@@ -466,7 +464,7 @@ export class DockerClientService {
     const secret = this.dockerBridgeService.getSecret()
     const env = options?.env ?? {}
 
-    // Create a raw tunnel session with tty=false for demuxed stdout/stderr
+    // tty=false yields demuxed stdout/stderr.
     const session = await this.bridgeRequest<{ id: string }>(
       'POST',
       '/sessions/tunnel',
@@ -483,7 +481,6 @@ export class DockerClientService {
       },
     )
 
-    // Connect via WebSocket for bidirectional streaming
     const ws = new WebSocket(
       `${BRIDGE_WS_URL}/sessions/${session.id}/attach?token=${encodeURIComponent(secret)}`,
     )
@@ -526,7 +523,7 @@ export class DockerClientService {
         return
       }
 
-      // First byte is stream type: 0x01=stdout, 0x02=stderr
+      // First byte is stream type: 0x01=stdout, 0x02=stderr.
       const streamType = buf[0]
       const payload = buf.subarray(1)
 
@@ -599,10 +596,7 @@ export class DockerClientService {
     }
   }
 
-  /**
-   * Look up registry credentials for an image. Returns auth config if the
-   * image's registry matches a stored credential, otherwise undefined.
-   */
+  /** Look up registry credentials for an image; undefined if no stored credential matches its registry. */
   private async resolveRegistryAuth(
     image: string,
   ): Promise<
@@ -613,8 +607,7 @@ export class DockerClientService {
       return undefined
     }
 
-    // Extract registry from image (e.g. "ghcr.io/org/img:tag" → "ghcr.io")
-    // Images without a registry prefix (e.g. "nginx:latest") use Docker Hub
+    // Registry is the first path segment if it looks like a host; else Docker Hub.
     const firstSegment = image.split('/')[0] ?? ''
     const hasRegistry = firstSegment.includes('.') || firstSegment.includes(':')
     const registry = hasRegistry ? firstSegment : 'docker.io'
@@ -729,9 +722,7 @@ export class DockerClientService {
       },
     )
 
-    // Filter containers by userId and isolationKey labels: if a label was not
-    // requested, exclude containers that have one set. When a label is requested,
-    // Docker's label filter already ensures an exact match.
+    // Exclude containers carrying a userId/isolationKey label the request didn't ask for (requested labels are already exact-matched by Docker's filter).
     const requestedUserId = options.labels[DOCKER_LABELS.USER_ID]
     const requestedIsolationKey = options.labels[DOCKER_LABELS.ISOLATION_KEY]
 
@@ -748,7 +739,6 @@ export class DockerClientService {
       return true
     })
 
-    // Find a running container
     const runningContainer = matchingContainers.find(
       (container) => container.state === 'running',
     )
@@ -757,7 +747,6 @@ export class DockerClientService {
       return runningContainer
     }
 
-    // Find a stopped container we can restart
     const stoppedContainer = matchingContainers.find(
       (container) =>
         container.state === 'exited' || container.state === 'created',
@@ -770,7 +759,7 @@ export class DockerClientService {
       return stoppedContainer
     }
 
-    // No suitable container found, create a new one with labels as env vars
+    // No reusable container: create one, exposing labels as env vars.
     const createOptions = {
       ...options,
       env: {
@@ -786,7 +775,6 @@ export class DockerClientService {
 
     return this.withErrorGuard(
       async () => {
-        // Pull image with registry auth if configured
         const registryAuth = await this.resolveRegistryAuth(createOptions.image)
         if (registryAuth) {
           await this.pullImage(hostId, createOptions.image, registryAuth)
@@ -895,10 +883,7 @@ export class DockerClientService {
   // Tunnel / session management
   // ---------------------------------------------------------------------------
 
-  /**
-   * Create a raw tunnel session and return a DockerTtyStream for server-side relay.
-   * Used by Socket.IO terminal relay (backend attaches to terminal, not browser).
-   */
+  /** Create a raw tunnel session and return a DockerTtyStream for server-side relay (Socket.IO terminal relay; backend attaches, not the browser). */
   async execTty(
     containerId: string,
     command: string[],
@@ -911,7 +896,6 @@ export class DockerClientService {
   ): Promise<DockerTtyStream> {
     const backendToken = this.dockerBridgeService.getSecret()
 
-    // 1. Create raw tunnel session via HTTP
     const createResponse = await fetch(`${BRIDGE_HTTP_URL}/sessions/tunnel`, {
       method: 'POST',
       headers: {
@@ -946,7 +930,6 @@ export class DockerClientService {
       `Bridge raw tunnel created: ${session.id} for container ${containerId}`,
     )
 
-    // 2. Attach via WebSocket for bidirectional I/O
     const ws = new WebSocket(
       `${BRIDGE_WS_URL}/sessions/${session.id}/attach?token=${encodeURIComponent(backendToken)}`,
     )
@@ -1008,7 +991,6 @@ export class DockerClientService {
       )
     })
 
-    // 3. Return DockerTtyStream interface
     const stream: DockerTtyStream = {
       write: (data: string | Buffer) => {
         if (destroyed || ws.readyState !== WebSocket.OPEN) {
@@ -1062,11 +1044,7 @@ export class DockerClientService {
     return stream
   }
 
-  /**
-   * Create a tunnel session and return credentials for direct client access.
-   * For raw protocol: used for terminal sessions (browser connects via WS).
-   * For framed protocol: used for HTTP tunnel-agent proxying.
-   */
+  /** Create a tunnel session and return credentials for direct client access (raw = terminal WS, framed = HTTP tunnel-agent proxying). */
   async createTunnelSession(
     hostId: string,
     containerId: string,
@@ -1144,11 +1122,7 @@ export class DockerClientService {
     }
   }
 
-  /**
-   * Create (or idempotently reuse) a durable tunnel session under a stable,
-   * caller-supplied publicId. Always persistent/framed/public. Asserts the
-   * bridge echoed back the same publicId, then mints a fresh token bound to it.
-   */
+  /** Create (or idempotently reuse) a durable tunnel session under a caller-supplied publicId (always persistent/framed/public); asserts the bridge echoed it back, then mints a token bound to it. */
   async createDurableTunnelSession(
     hostId: string,
     containerId: string,
@@ -1238,10 +1212,7 @@ export class DockerClientService {
     return this.buildTunnelUrl(publicId, label, appIdentifier)
   }
 
-  /**
-   * Fetch a single bridge session by id (drives the durable health check).
-   * Returns null when the session no longer exists (404).
-   */
+  /** Fetch a single bridge session by id (drives the durable health check); null on 404. */
   async getSessionById(sessionId: string): Promise<BridgeSessionFull | null> {
     try {
       return await this.bridgeRequest<BridgeSessionFull>(
@@ -1256,10 +1227,7 @@ export class DockerClientService {
     }
   }
 
-  /**
-   * List all bridge tunnel sessions (admin observability), optionally filtered.
-   * Maps the bridge's snake_case payload to the camelCase DTO.
-   */
+  /** List bridge tunnel sessions (admin observability), optionally filtered; maps snake_case to the camelCase DTO. */
   async listSessions(filter?: {
     appId?: string
     containerId?: string
@@ -1280,9 +1248,7 @@ export class DockerClientService {
     return sessions.map(toDockerSessionDTO)
   }
 
-  /**
-   * List tunnel sessions belonging to an app. Returns session IDs only.
-   */
+  /** List tunnel sessions belonging to an app (session IDs only). */
   async listTunnelSessionsByApp(
     appIdentifier: string,
   ): Promise<{ sessionId: string }[]> {
@@ -1298,16 +1264,13 @@ export class DockerClientService {
     return sessions.map((s) => ({ sessionId: s.id }))
   }
 
-  /**
-   * Delete a tunnel session, optionally validating ownership by app identifier.
-   */
+  /** Delete a tunnel session, optionally validating ownership by app identifier. */
   async deleteTunnelSession(
     sessionId: string,
     appIdentifier?: string,
   ): Promise<void> {
     const backendToken = this.dockerBridgeService.getSecret()
 
-    // If appIdentifier provided, validate ownership first
     if (appIdentifier) {
       const getResponse = await fetch(
         `${BRIDGE_HTTP_URL}/sessions/${sessionId}`,
@@ -1349,10 +1312,7 @@ export class DockerClientService {
       protocol?: 'framed' | 'raw'
     },
   ): Promise<string> {
-    // Framed sessions auth per-request over their active life (kept alive by
-    // touch() on a live SSE) and must outlive the 30-min idle window, so they
-    // get the long TTL — as do public sessions. Raw/PTY sessions auth once at
-    // attach and stay at the short TTL.
+    // Framed and public sessions get the long TTL (framed auth per-request and must outlive the 30-min idle window); raw/PTY auth once at attach and keep the short TTL.
     const ttlSeconds =
       options?.publicId || options?.protocol === 'framed'
         ? PUBLIC_SESSION_TOKEN_TTL_SECONDS

@@ -72,11 +72,7 @@ export class DockerBridgeService {
     return this.ready
   }
 
-  /**
-   * Register a callback fired each time the bridge (re)connects and is ready —
-   * first boot and every auto-restart. Drives durable-tunnel replay. Returns an
-   * idempotent unsubscribe.
-   */
+  /** Register a callback fired on each bridge (re)connect (first boot + every restart); drives durable-tunnel replay. Returns an idempotent unsubscribe. */
   onReady(cb: () => void): () => void {
     this.readyCallbacks.add(cb)
     return () => this.readyCallbacks.delete(cb)
@@ -115,7 +111,6 @@ export class DockerBridgeService {
     const instanceId = crypto.randomUUID()
     const socketPath = `/tmp/lombok-docker-bridge-${instanceId}.sock`
 
-    // Create IPC server
     const { server, cleanup } = await createSocketServer(
       socketPath,
       (message: string, _socket: Socket) => {
@@ -150,7 +145,7 @@ export class DockerBridgeService {
 
     this.logger.debug(`Starting bridge: ${cmd.join(' ')}`)
 
-    // Build NODE_PATH for compiled binary's runtime deps
+    // NODE_PATH for the compiled binary's runtime deps.
     const bridgeNodeModules = path.join(bridgeDir, 'node_modules')
     const nodePath = fs.existsSync(bridgeNodeModules)
       ? bridgeNodeModules
@@ -188,17 +183,13 @@ export class DockerBridgeService {
       }, 1000)
     })
 
-    // Wait for bridge to connect then send init
     await this.waitForConnection(server, 10000)
-
-    // Send init config
     await this.sendInit(hosts)
 
     this.ready = true
     this.logger.log('Docker bridge started and ready')
 
-    // Fire ready callbacks (fire-and-forget) so durable tunnels are replayed on
-    // first boot and every auto-restart. A callback must never block startup.
+    // Fire-and-forget; a ready callback must never block startup.
     for (const cb of this.readyCallbacks) {
       try {
         cb()
@@ -220,7 +211,7 @@ export class DockerBridgeService {
     }
 
     if (!this.ready) {
-      // Bridge not running yet — start it if we now have hosts
+      // Bridge not running yet: start it if we now have hosts.
       if (Object.keys(hosts).length > 0) {
         await this.startBridge()
       }
@@ -373,9 +364,7 @@ export class DockerBridgeService {
       }
       const reader = stream.getReader()
       const decoder = new TextDecoder()
-      // Per-child carry: a chunk may hold several newline-delimited JSON lines
-      // or a partial trailing line. Reset per invocation so a killed child's
-      // dangling bytes can't corrupt the next child's first line.
+      // Per-child carry for partial trailing lines; reset per invocation so a killed child's dangling bytes can't corrupt the next child.
       let carry = ''
       try {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -455,7 +444,7 @@ export class DockerBridgeService {
       try {
         sub(entry)
       } catch {
-        // A subscriber must never break ingestion or other subscribers.
+        // One subscriber must not break ingestion or others.
       }
     }
   }
@@ -499,7 +488,7 @@ export class DockerBridgeService {
         return existing
       }
     } catch {
-      // File doesn't exist or is unreadable — generate a new one
+      // Missing or unreadable: generate a new one.
     }
 
     const secret = crypto.randomBytes(32).toString('base64url')

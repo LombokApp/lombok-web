@@ -3,10 +3,7 @@ import * as React from 'react'
 
 import { cn } from '../../utils'
 
-/**
- * Spinner — the design-system loading indicator (same glyph as Button's `loading`).
- * Inherits `currentColor`; set color/size via `className` or the `size` prop.
- */
+// Loading indicator (same glyph as Button's `loading`); inherits currentColor.
 const Spinner = React.forwardRef<SVGSVGElement, LucideProps>(
   ({ className, size = 16, ...props }, ref) => (
     <Loader2

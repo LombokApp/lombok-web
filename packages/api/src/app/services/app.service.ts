@@ -629,11 +629,7 @@ export class AppService {
     return urls
   }
 
-  /**
-   * List objects in the calling user's own partition of an app's server storage
-   * (`app-runtime-storage/{appId}/users/{userId}/`). Keys are returned relative
-   * to that partition. Scoped to `actor` — never another user's data.
-   */
+  // Lists the calling user's own app-storage partition; keys are partition-relative, scoped to `actor` only.
   async listUserAppStorage(
     actor: User,
     appIdentifier: string,
@@ -681,10 +677,7 @@ export class AppService {
     }
   }
 
-  /**
-   * Presign read-only (GET/HEAD) URLs within the calling user's own partition
-   * of an app's server storage. `objectKey`s are partition-relative.
-   */
+  // Presign read-only (GET/HEAD) URLs in the user's own app-storage partition; objectKeys are partition-relative.
   async createUserAppStoragePresignedUrls(
     actor: User,
     appIdentifier: string,

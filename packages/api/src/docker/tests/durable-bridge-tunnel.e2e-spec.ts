@@ -21,12 +21,7 @@ const TEST_MODULE_KEY = 'durable_bridge_tunnel'
 const TEST_APP_SLUG = 'testapp'
 const HOST_ID = TEST_DOCKER_HOST_ID
 
-/**
- * A controllable stand-in for the bridge-facing half of DockerClientService.
- * Tests drive which container is "running" and what the bridge reports for a
- * session; the world records the durable create/delete calls. App/user ids are
- * read live from the closed-over refs so a single instance survives re-install.
- */
+/** Controllable stand-in for the bridge-facing half of DockerClientService; app/user ids are read live from closed-over refs so one instance survives re-install. */
 function buildBridgeWorld(getAppId: () => string, getUserId: () => string) {
   const world = {
     container: { id: 'container-1', state: 'running' as 'running' | 'exited' },
@@ -221,7 +216,7 @@ describe('Durable bridge tunnels', () => {
     const created = await createOne()
     const oldSessionId = world.sessions.keys().next().value!
 
-    // Container recreated with a new id; the old session is now stale.
+    // Container recreated with a new id, so the old session is stale.
     world.container = { id: 'container-2', state: 'running' }
 
     const reBound = await durableTunnelService.get(created.id, {
