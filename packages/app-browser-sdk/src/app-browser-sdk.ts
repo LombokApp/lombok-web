@@ -130,6 +130,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
       accessToken: initialData.accessToken,
       refreshToken: initialData.refreshToken,
       pathAndQuery: initialData.pathAndQuery,
+      parentBasePath: initialData.parentBasePath,
       theme: initialData.theme,
     }
     AppBrowserSdk.updateTokens(initialData)

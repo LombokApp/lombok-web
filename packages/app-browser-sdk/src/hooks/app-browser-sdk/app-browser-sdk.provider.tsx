@@ -102,6 +102,7 @@ export const AppBrowserSdkContextProvider = ({
         navigateTo: sdk.handleNavigateTo,
         currentPathAndQuery: sdk.initialData?.pathAndQuery ?? '',
         executeWorkerScriptUrl: sdk.executeWorkerScriptUrl,
+        parentBasePath: sdk.initialData?.parentBasePath ?? '',
       }}
     >
       {children}
