@@ -1,7 +1,9 @@
+import {
+  dockerProfileResourceAssignmentDTOSchema,
+  dockerResourceConfigDataSchema,
+} from '@lombokapp/types'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
-
-import { dockerResourceConfigDataSchema } from '../docker-resource-config-input.dto'
 
 // ─── Shared schemas ────────────────────────────────────────────────────────
 
@@ -78,23 +80,6 @@ export class DockerRegistryCredentialDeleteResponse extends createZodDto(
 ) {}
 
 // ─── Profile Resource Assignment ──────────────────────────────────────────
-
-export const dockerProfileResourceAssignmentDTOSchema = z
-  .object({
-    id: z.string(),
-    appIdentifier: z.string(),
-    profileKey: z.string(),
-    dockerHostId: z.string(),
-    config: dockerResourceConfigDataSchema,
-    configHashes: z.record(z.string(), z.string()),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  })
-  .meta({ id: 'DockerProfileResourceAssignment' })
-
-export type DockerProfileResourceAssignmentDTO = z.infer<
-  typeof dockerProfileResourceAssignmentDTOSchema
->
 
 export class DockerProfileAssignmentListResponse extends createZodDto(
   z.object({ result: z.array(dockerProfileResourceAssignmentDTOSchema) }),

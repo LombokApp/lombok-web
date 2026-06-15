@@ -1,7 +1,5 @@
-import type { JsonSerializableObject } from '@lombokapp/types'
+import type { JsonSerializableObject, mountSchema } from '@lombokapp/types'
 import type { z } from 'zod'
-
-import type { mountSchema } from '../../dto/docker-resource-config-input.dto'
 
 export interface ContainerInfo {
   id: string

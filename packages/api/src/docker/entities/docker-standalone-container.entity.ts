@@ -1,3 +1,4 @@
+import type { dockerResourceConfigDataSchema } from '@lombokapp/types'
 import { relations } from 'drizzle-orm'
 import {
   index,
@@ -9,7 +10,6 @@ import {
 } from 'drizzle-orm/pg-core'
 import type { z } from 'zod'
 
-import type { dockerResourceConfigDataSchema } from '../dto/docker-resource-config-input.dto'
 import { dockerHostsTable } from './docker-host.entity'
 
 export type DockerResourceConfig = z.infer<
