@@ -34,28 +34,9 @@ echo ""
 echo "================================================"
 echo "NGINX"
 echo "================================================"
-sed -e "s|{{PLATFORM_HOST}}|$PLATFORM_HOST|g" -e "s|{{APP_UI_HOST}}|$APP_UI_HOST|g" ./packages/api/nginx/dev-nginx.conf > /etc/nginx/http.d/default.conf
-cp ./packages/api/nginx/app_router.js /etc/nginx/app_router.js
-
-# Build app_frontend_proxies.json from LOMBOK_APP_FRONTEND_PROXY_HOST_* env vars
-APP_FRONTEND_PROXIES_ENV="./packages/ui/.env.development.local"
-if [ -f "$APP_FRONTEND_PROXIES_ENV" ]; then
-  # Extract active (uncommented) proxy host vars, build JSON
-  ENTRIES=$(grep -v '^\s*#' "$APP_FRONTEND_PROXIES_ENV" | grep 'LOMBOK_APP_FRONTEND_PROXY_HOST_' | sed 's/LOMBOK_APP_FRONTEND_PROXY_HOST_//' | awk -F= '{printf "\"%s\": \"%s\"", tolower($1), $2}' | paste -sd, -)
-  echo "{${ENTRIES}}" > /etc/nginx/app_frontend_proxies.json
-  echo "App frontend proxy overrides:"
-  cat /etc/nginx/app_frontend_proxies.json
-else
-  echo "{}" > /etc/nginx/app_frontend_proxies.json
-  echo "No app frontend proxy overrides (${APP_FRONTEND_PROXIES_ENV} not found)"
-fi
-
-if [ -f /run/nginx/nginx.pid ] && kill -0 $(cat /run/nginx/nginx.pid) 2>/dev/null; then
-    nginx -s reload
-else
-    nginx
-fi
-echo "NGINX started on port 8080"
+# Template the nginx conf, build app_frontend_proxies.json, start/reload nginx
+# (shared with `./dx restart proxies`).
+sh ./packages/api/cmd/gen-app-proxies.sh
 
 # ── PostgreSQL ──────────────────────────────────────────────
 echo ""
