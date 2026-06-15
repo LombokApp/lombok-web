@@ -14792,7 +14792,47 @@
           "type": "object",
           "properties": {
             "objectIdentifier": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "content"
+                    },
+                    "objectKey": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "objectKey"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "metadata"
+                    },
+                    "objectKey": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "metadataHash": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "objectKey",
+                    "metadataHash"
+                  ]
+                }
+              ]
             },
             "method": {
               "type": "string",

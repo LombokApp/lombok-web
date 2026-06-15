@@ -21,6 +21,7 @@ import {
 import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
+import { contentIdentifier } from '@lombokapp/utils'
 import { Download, File, Image, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
@@ -68,7 +69,7 @@ export const FolderObjectDetailScreen = ({
     toast({ title: 'Preparing download' })
     downloadToFile(
       folderId,
-      `content:${objectKey}`,
+      contentIdentifier(objectKey),
       objectKey.split('/').at(-1) ?? objectKey,
     )
   }, [downloadToFile, folderId, objectKey, toast])

@@ -1,3 +1,5 @@
+import type { ObjectIdentifier } from '@lombokapp/utils'
+
 export type LocalFileCache = Record<string, { size: number; type: string }>
 
 export class FileCacheError extends Error {}
@@ -6,11 +8,11 @@ export interface ILocalFileCacheContext {
   error?: FileCacheError
   getPresignedDownloadUrl: (
     folderId: string,
-    objectIdentifier: string,
+    objectIdentifier: ObjectIdentifier,
   ) => Promise<{ url: string }>
   downloadToFile: (
     folderId: string,
-    objectIdentifier: string,
+    objectIdentifier: ObjectIdentifier,
     downloadFilename: string,
   ) => void
   uploadFile: (folderId: string, filename: string, file: File) => void

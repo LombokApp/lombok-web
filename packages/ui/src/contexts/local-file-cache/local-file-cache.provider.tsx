@@ -1,3 +1,8 @@
+import {
+  contentIdentifier,
+  type ObjectIdentifier,
+  objectIdentifierKey,
+} from '@lombokapp/utils'
 import React from 'react'
 
 import { sdkInstance } from '../../services/api'
@@ -71,10 +76,10 @@ export const LocalFileCacheContextProvider = ({
           } else if (event.data[0] === 'GOT_PRESIGNED_DOWNLOAD_URL') {
             const { folderId, objectIdentifier, url } = event.data[1] as {
               folderId: string
-              objectIdentifier: string
+              objectIdentifier: ObjectIdentifier
               url: string
             }
-            const folderIdAndKey = `${folderId}:${objectIdentifier}`
+            const folderIdAndKey = `${folderId}:${objectIdentifierKey(objectIdentifier)}`
             pendingPresignedDownloadUrlRequests.current[
               folderIdAndKey
             ]?.resolve({ url })
@@ -93,10 +98,10 @@ export const LocalFileCacheContextProvider = ({
   }, [loggingContext, updateWorkerWithAuth])
 
   const getPresignedDownloadUrl = React.useCallback(
-    async (folderId: string, objectIdentifier: string) => {
+    async (folderId: string, objectIdentifier: ObjectIdentifier) => {
       return new Promise(
         (resolve: (result: { url: string }) => void, reject) => {
-          const folderIdAndKey = `${folderId}:${objectIdentifier}`
+          const folderIdAndKey = `${folderId}:${objectIdentifierKey(objectIdentifier)}`
           if (pendingPresignedDownloadUrlRequests.current[folderIdAndKey]) {
             const oldResolve = pendingPresignedDownloadUrlRequests.current[
               folderIdAndKey
@@ -138,7 +143,7 @@ export const LocalFileCacheContextProvider = ({
         'UPLOAD',
         {
           folderId,
-          objectIdentifier: `content:${objectKey}`,
+          objectIdentifier: contentIdentifier(objectKey),
           uploadFile: file,
         },
       ])
@@ -147,7 +152,11 @@ export const LocalFileCacheContextProvider = ({
   )
 
   const downloadToFile = React.useCallback(
-    (folderId: string, objectIdentifer: string, downloadFilename: string) => {
+    (
+      folderId: string,
+      objectIdentifer: ObjectIdentifier,
+      downloadFilename: string,
+    ) => {
       void getPresignedDownloadUrl(folderId, objectIdentifer).then((f) => {
         downloadData(f.url, downloadFilename)
       })

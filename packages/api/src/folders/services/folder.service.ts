@@ -19,9 +19,10 @@ import {
   StorageProvisionTypeEnum,
 } from '@lombokapp/types'
 import {
+  joinStoragePrefix,
   mediaTypeFromMimeType,
   mimeFromExtension,
-  objectIdentifierToObjectKey,
+  type ObjectIdentifier,
   safeZodParse,
 } from '@lombokapp/utils'
 import {
@@ -83,7 +84,6 @@ import type { FolderObject } from '../entities/folder-object.entity'
 import { folderObjectsTable } from '../entities/folder-object.entity'
 import { folderSharesTable } from '../entities/folder-share.entity'
 import { folderUserPreferencesTable } from '../entities/folder-user-preference.entity'
-import { FolderLocationNotFoundException } from '../exceptions/folder-location-not-found.exception'
 import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-metadata-write-unauthorized.exception'
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
@@ -104,7 +104,7 @@ export interface ContentMetadataPayload {
 }
 
 export interface SignedURLsRequest {
-  objectIdentifier: string
+  objectIdentifier: ObjectIdentifier
   method: SignedURLsRequestMethod
 }
 
@@ -1242,65 +1242,40 @@ export class FolderService {
     const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
 
     return createS3PresignedUrls(
-      urls.map((urlRequest) => {
-        // objectIdentifier looks like one of these, depending on if it's a regular object content request or an object metadata request
-        // `metadata:${objectKey}:${metadataObject.hash}`
-        // `content:${objectKey}`
+      urls.map(({ objectIdentifier, method }) => {
+        const isMetadata = objectIdentifier.kind === 'metadata'
+        const location = isMetadata
+          ? folder.metadataLocation
+          : folder.contentLocation
+        const absoluteObjectKey = isMetadata
+          ? joinStoragePrefix(
+              location.prefix,
+              `${objectIdentifier.objectKey}/${objectIdentifier.metadataHash}`,
+            )
+          : joinStoragePrefix(location.prefix, objectIdentifier.objectKey)
+
+        // deny access to write operations for anyone without edit perms
         if (
-          !urlRequest.objectIdentifier.startsWith('content:') &&
-          !urlRequest.objectIdentifier.startsWith('metadata:')
+          [
+            SignedURLsRequestMethod.DELETE,
+            SignedURLsRequestMethod.PUT,
+          ].includes(method) &&
+          !permissions.includes(FolderPermissionEnum.OBJECT_EDIT)
         ) {
-          throw new BadRequestException(
-            'In createS3PresignedUrls, objectIdentifier should start with "content:" or "metadata:"',
-          )
+          throw new FolderOperationForbiddenException()
         }
-        try {
-          const { isMetadataIdentifier, objectKey, metadataHash } =
-            objectIdentifierToObjectKey(urlRequest.objectIdentifier)
-          const absoluteObjectKey = isMetadataIdentifier
-            ? `${folder.metadataLocation.prefix}${folder.metadataLocation.prefix.length > 0 && !folder.metadataLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}/${metadataHash}`
-            : `${folder.contentLocation.prefix}${folder.contentLocation.prefix.length > 0 && !folder.contentLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}`
 
-          // deny access to write operations for anyone without edit perms
-          if (
-            [
-              SignedURLsRequestMethod.DELETE,
-              SignedURLsRequestMethod.PUT,
-            ].includes(urlRequest.method) &&
-            !permissions.includes(FolderPermissionEnum.OBJECT_EDIT)
-          ) {
-            throw new FolderOperationForbiddenException()
-          }
+        // deny all write operations for metadata
+        if (isMetadata && method !== SignedURLsRequestMethod.GET) {
+          throw new FolderMetadataWriteUnauthorisedException()
+        }
 
-          // deny all write operations for metadata
-          if (
-            isMetadataIdentifier &&
-            urlRequest.method !== SignedURLsRequestMethod.GET
-          ) {
-            throw new FolderMetadataWriteUnauthorisedException()
-          }
-
-          return {
-            ...(isMetadataIdentifier
-              ? folder.metadataLocation
-              : folder.contentLocation),
-            region: isMetadataIdentifier
-              ? folder.metadataLocation.region
-              : folder.contentLocation.region,
-            method: urlRequest.method,
-            objectKey: absoluteObjectKey,
-            expirySeconds: 3600,
-          }
-        } catch (e: unknown) {
-          if (
-            e &&
-            typeof e === 'object' &&
-            'constructor' in e &&
-            e.constructor.name === 'BadObjectIdentifierError'
-          ) {
-            throw new FolderLocationNotFoundException()
-          }
-          throw e
+        return {
+          ...location,
+          region: location.region,
+          method,
+          objectKey: absoluteObjectKey,
+          expirySeconds: 3600,
         }
       }),
     )

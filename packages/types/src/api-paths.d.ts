@@ -3132,7 +3132,16 @@ export interface components {
             folderObject: components["schemas"]["FolderObject"];
         };
         FolderCreateSignedUrlInputDTO: {
-            objectIdentifier: string;
+            objectIdentifier: {
+                /** @constant */
+                kind: "content";
+                objectKey: string;
+            } | {
+                /** @constant */
+                kind: "metadata";
+                objectKey: string;
+                metadataHash: string;
+            };
             /** @enum {string} */
             method: "PUT" | "DELETE" | "GET" | "HEAD";
         }[];

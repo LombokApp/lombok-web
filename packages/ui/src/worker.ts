@@ -2,7 +2,8 @@ import type { LombokApiClient, paths } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
 import {
   encodeS3ObjectKey,
-  objectIdentifierToObjectKey,
+  type ObjectIdentifier,
+  objectIdentifierKey,
 } from '@lombokapp/utils'
 import createFetchClient from 'openapi-fetch'
 
@@ -197,7 +198,7 @@ const recentlyRequestedDownloadUrls = new LruTtlCache<
 const presignedURLBufferContext: Record<
   string,
   {
-    batchBuffer: string[]
+    batchBuffer: ObjectIdentifier[]
     lastTimeExecuted?: number
   }
 > = {}
@@ -226,17 +227,20 @@ const maybeSendBatch = (folderId: string) => {
           folderId,
         },
       },
-      body: toFetch.map((k) => ({
+      body: toFetch.map((id) => ({
         method: SignedURLsRequestMethod.GET,
-        objectIdentifier: k,
+        objectIdentifier: id,
       })),
     })
       .then(({ response, data }) => {
         if (response.status === 201 && data) {
           data.urls.forEach((result, i) => {
-            const entry = recentlyRequestedDownloadUrls.get(
-              `${folderId}:${toFetch[i]}`,
-            )
+            const id = toFetch[i]
+            const entry = id
+              ? recentlyRequestedDownloadUrls.get(
+                  `${folderId}:${objectIdentifierKey(id)}`,
+                )
+              : undefined
             if (entry?.callbacks.resolve) {
               entry.callbacks.resolve(result)
             }
@@ -244,10 +248,11 @@ const maybeSendBatch = (folderId: string) => {
         }
       })
       .catch((e) => {
-        toFetch.forEach((k) => {
-          const entry = recentlyRequestedDownloadUrls.get(`${folderId}:${k}`)
+        toFetch.forEach((id) => {
+          const key = `${folderId}:${objectIdentifierKey(id)}`
+          const entry = recentlyRequestedDownloadUrls.get(key)
           if (entry) {
-            recentlyRequestedDownloadUrls.delete(`${folderId}:${k}`)
+            recentlyRequestedDownloadUrls.delete(key)
             entry.callbacks.reject?.(e)
           }
         })
@@ -257,9 +262,9 @@ const maybeSendBatch = (folderId: string) => {
 
 const requestDownloadUrlAndMaybeSendBatch = (
   folderId: string,
-  objectIdentifier: string,
+  objectIdentifier: ObjectIdentifier,
 ) => {
-  const folderObjectKey = `${folderId}:${objectIdentifier}`
+  const folderObjectKey = `${folderId}:${objectIdentifierKey(objectIdentifier)}`
   const folderBatch = presignedURLBufferContext[folderId] ?? {
     batchBuffer: [],
     lastTimeExecuted: Date.now(),
@@ -300,9 +305,9 @@ setInterval(() => {
 
 const getPresignedDownloadUrl = async (
   folderId: string,
-  objectIdentifier: string,
+  objectIdentifier: ObjectIdentifier,
 ) => {
-  const folderObjectKey = `${folderId}:${objectIdentifier}`
+  const folderObjectKey = `${folderId}:${objectIdentifierKey(objectIdentifier)}`
   if (!recentlyRequestedDownloadUrls.has(folderObjectKey)) {
     requestDownloadUrlAndMaybeSendBatch(folderId, objectIdentifier)
   }
@@ -317,12 +322,12 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const folderId: string = message[1].folderId
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const objectIdentifier: string = message[1].objectIdentifier
+    const objectIdentifier: ObjectIdentifier = message[1].objectIdentifier
     log({
       level: LogLevel.INFO,
       folderId,
-      objectIdentifier,
-      message: `Upload of '${objectIdentifier}' started`,
+      objectIdentifier: objectIdentifierKey(objectIdentifier),
+      message: `Upload of '${objectIdentifier.objectKey}' started`,
     })
     // TODO: type check this with zod
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -394,9 +399,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
             params: {
               path: {
                 folderId,
-                objectKey: encodeS3ObjectKey(
-                  objectIdentifierToObjectKey(objectIdentifier).objectKey,
-                ),
+                objectKey: encodeS3ObjectKey(objectIdentifier.objectKey),
               },
             },
           },
@@ -405,15 +408,15 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         log({
           level: LogLevel.INFO,
           folderId,
-          objectIdentifier,
-          message: `Upload of '${objectIdentifier}' complete`,
+          objectIdentifier: objectIdentifierKey(objectIdentifier),
+          message: `Upload of '${objectIdentifier.objectKey}' complete`,
         })
       })
   } else if (message[0] === 'GET_PRESIGNED_DOWNLOAD_URL') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const folderId = message[1].folderId as string
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const objectIdentifier = message[1].objectIdentifier as string
+    const objectIdentifier = message[1].objectIdentifier as ObjectIdentifier
     void getPresignedDownloadUrl(folderId, objectIdentifier).then((url) => {
       postMessage([
         'GOT_PRESIGNED_DOWNLOAD_URL',
