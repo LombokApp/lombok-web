@@ -1,5 +1,5 @@
-import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons'
 import type { Column } from '@tanstack/react-table'
+import { Check, CirclePlus } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '../../utils'
@@ -41,23 +41,20 @@ export function DataTableFacetedFilter<TData, TValue>({
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircledIcon className="mr-2 size-4" />
+          <CirclePlus className="mr-2 size-4" />
           {title}
           {selectedValues.size > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
               <Badge
-                variant="secondary"
+                variant="soft"
                 className="rounded-sm px-1 font-normal lg:hidden"
               >
                 {selectedValues.size}
               </Badge>
               <div className="hidden space-x-1 lg:flex">
                 {selectedValues.size > 2 ? (
-                  <Badge
-                    variant="secondary"
-                    className="rounded-sm px-1 font-normal"
-                  >
+                  <Badge variant="soft" className="rounded-sm px-1 font-normal">
                     {selectedValues.size} selected
                   </Badge>
                 ) : (
@@ -65,7 +62,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     .filter((option) => selectedValues.has(option.value))
                     .map((option) => (
                       <Badge
-                        variant="secondary"
+                        variant="soft"
                         key={option.value}
                         className="rounded-sm px-1 font-normal"
                       >
@@ -109,7 +106,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                           : 'opacity-50 [&_svg]:invisible',
                       )}
                     >
-                      <CheckIcon className={cn('size-4')} />
+                      <Check className={cn('size-4')} />
                     </div>
                     {option.icon && (
                       <option.icon className="mr-2 size-4 text-muted-foreground" />

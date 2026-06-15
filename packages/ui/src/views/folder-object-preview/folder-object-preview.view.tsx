@@ -4,7 +4,7 @@ import type {
   PreviewMetadata,
 } from '@lombokapp/types'
 import { MediaType } from '@lombokapp/types'
-import { Button, ButtonVariant } from '@lombokapp/ui-toolkit/components'
+import { Button } from '@lombokapp/ui-toolkit/components'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
   documentLabelFromMimeType,
@@ -203,7 +203,7 @@ export const FolderObjectPreview = ({
             {loadRestriction === 'TOO_LARGE' && (
               <div>
                 <Button
-                  variant={ButtonVariant.outline}
+                  variant="outline"
                   onClick={() => setRenderBlockOverriden(true)}
                 >
                   Render anyway

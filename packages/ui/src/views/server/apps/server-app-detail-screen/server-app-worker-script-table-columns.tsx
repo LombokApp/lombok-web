@@ -1,6 +1,6 @@
 import type { AppRuntimeWorkersMap } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table'
 import type { UseMutationResult } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Settings } from 'lucide-react'

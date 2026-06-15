@@ -1,3 +1,4 @@
+import type { DockerContainerResourceConfig } from '@lombokapp/types'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,15 +10,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@lombokapp/ui-toolkit/components/alert-dialog'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
-  Badge,
-  BadgeVariant,
-} from '@lombokapp/ui-toolkit/components/badge/badge'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+  Card,
+  CardHeader,
+  CardTitle,
+} from '@lombokapp/ui-toolkit/components/card'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import {
@@ -71,7 +72,7 @@ interface ProfileRow {
   assignedHostLabel: string | null
   assignmentId: string | null
   assignedHostId: string | null
-  currentConfig: Record<string, unknown> | null
+  currentConfig: DockerContainerResourceConfig | null
 }
 
 // ─── Host columns ──────────────────────────────────────────────────────────
@@ -101,12 +102,12 @@ const createHostColumns = (
         <div className="flex items-center gap-2">
           <span className="font-medium">{row.original.label}</span>
           {row.original.isDefault && (
-            <Badge variant={BadgeVariant.secondary} className="text-xs">
+            <Badge variant="soft" className="text-xs">
               default
             </Badge>
           )}
           {!row.original.enabled && (
-            <Badge variant={BadgeVariant.outline} className="text-xs">
+            <Badge variant="outline" className="text-xs">
               disabled
             </Badge>
           )}
@@ -133,7 +134,7 @@ const createHostColumns = (
       const conn = row.original.connection
       if (!conn) {
         return (
-          <Badge variant={BadgeVariant.outline} className="text-xs">
+          <Badge variant="outline" className="text-xs">
             {row.original.healthStatus === 'unknown'
               ? 'Unknown'
               : row.original.healthStatus}
@@ -143,9 +144,9 @@ const createHostColumns = (
       return (
         <div className="flex flex-col gap-1 w-min">
           <Badge
-            variant={
-              conn.success ? BadgeVariant.secondary : BadgeVariant.destructive
-            }
+            {...(conn.success
+              ? { variant: 'soft' as const }
+              : { tone: 'danger' as const })}
             className="text-xs"
           >
             {conn.success ? 'Connected' : 'Offline'}
@@ -169,7 +170,7 @@ const createHostColumns = (
       const conn = row.original.connection
       if (!conn) {
         return (
-          <Badge variant={BadgeVariant.outline} className="text-xs">
+          <Badge variant="outline" className="text-xs">
             {row.original.healthStatus === 'unknown'
               ? '-'
               : row.original.healthStatus}
@@ -292,7 +293,7 @@ const createProfileColumns = (
       <div className="flex items-center gap-2">
         <span className="font-medium">{row.original.appLabel}</span>
         {!row.original.appEnabled && (
-          <Badge variant={BadgeVariant.outline} className="text-xs">
+          <Badge variant="outline" className="text-xs">
             disabled
           </Badge>
         )}
@@ -311,7 +312,7 @@ const createProfileColumns = (
       />
     ),
     cell: ({ row }) => (
-      <Badge variant={BadgeVariant.outline} className="text-xs">
+      <Badge variant="outline" className="text-xs">
         {row.original.profileKey}
       </Badge>
     ),
@@ -538,7 +539,7 @@ export function ServerDockerScreen() {
       image: sc.image,
       tag: sc.tag,
       desiredStatus: sc.desiredStatus,
-      config: sc.config as Record<string, unknown>,
+      config: sc.config,
     }
   }, [editContainerId, standaloneRecords])
 
@@ -652,7 +653,7 @@ export function ServerDockerScreen() {
           <div className="flex items-center gap-2">
             <Server className="size-4 text-muted-foreground" />
             <h2 className="text-lg font-semibold">Hosts</h2>
-            <Badge variant={BadgeVariant.secondary} className="text-xs">
+            <Badge variant="soft" className="text-xs">
               {hostRows.length}
             </Badge>
           </div>
@@ -697,7 +698,7 @@ export function ServerDockerScreen() {
           <CardTitle className="flex items-center gap-2 text-lg">
             <Container className="size-4 text-muted-foreground" />
             Containers
-            <Badge variant={BadgeVariant.outline} className="text-xs">
+            <Badge variant="outline" className="text-xs">
               {containerRows.length}
             </Badge>
           </CardTitle>
@@ -727,7 +728,7 @@ export function ServerDockerScreen() {
           <CardTitle className="flex items-center gap-2 text-lg">
             <Cpu className="size-4 text-muted-foreground" />
             App Container Profiles
-            <Badge variant={BadgeVariant.outline} className="text-xs">
+            <Badge variant="outline" className="text-xs">
               {profileRows.length}
             </Badge>
           </CardTitle>

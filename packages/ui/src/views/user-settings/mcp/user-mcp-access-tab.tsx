@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import React from 'react'
 
 import { CreateMcpTokenModal } from './create-mcp-token-modal'

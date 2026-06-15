@@ -1,12 +1,12 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 import { FolderSync } from 'lucide-react'
 export interface ReindexFolderModalData {
   isOpen: boolean

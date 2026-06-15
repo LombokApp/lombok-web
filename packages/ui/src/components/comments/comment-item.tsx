@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Popover,
   PopoverContent,
@@ -110,7 +110,7 @@ export const CommentItem = ({
             return (
               <Button
                 key={reaction.emoji}
-                variant={hasUserReaction ? 'secondary' : 'outline'}
+                variant={hasUserReaction ? 'soft' : 'outline'}
                 size="sm"
                 className="h-7 gap-1 text-xs dark:bg-background dark:text-foreground/75 dark:hover:bg-foreground/10"
                 onClick={() => {
@@ -133,7 +133,7 @@ export const CommentItem = ({
               >
                 <PopoverTrigger asChild>
                   <Button
-                    variant="secondary"
+                    variant="soft"
                     size="sm"
                     className="h-7 gap-1 text-xs dark:bg-background dark:text-foreground/75 dark:hover:bg-foreground/10"
                   >

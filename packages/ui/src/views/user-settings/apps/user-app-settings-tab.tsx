@@ -14,15 +14,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@lombokapp/ui-toolkit/components/alert-dialog'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import {
   Select,
   SelectContent,

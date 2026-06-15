@@ -1,5 +1,5 @@
 import type { StorageProvision } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu'
 
 export function StorageLocationDropdown({
   storageProvisions,
@@ -21,7 +21,7 @@ export function StorageLocationDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="default">{'Select location'}</Button>
+        <Button variant="solid">{'Select location'}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>Available storage locations</DropdownMenuLabel>

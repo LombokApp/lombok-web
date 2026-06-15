@@ -3,7 +3,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@lombokapp/ui-toolkit/components/tabs/tabs'
+} from '@lombokapp/ui-toolkit/components/tabs'
 
 import { FolderAppConfigTab } from './folder-app-config-tab'
 import { FolderCustomSettingsTab } from './folder-custom-settings-tab'

@@ -1,6 +1,10 @@
 import type { FolderListRequest } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import {
+  Button,
+  ButtonTone,
+  ButtonVariant,
+} from '@lombokapp/ui-toolkit/components/button'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -163,7 +167,9 @@ export const FoldersScreen = () => {
         </div>
         <div>
           <Button
-            variant={'outline'}
+            leftIcon={<PlusIcon />}
+            tone={ButtonTone.neutral}
+            variant={ButtonVariant.outline}
             onClick={() => {
               void storageProvisionsQuery.refetch().then(({ data }) => {
                 setCreateFolderModalData({
@@ -174,10 +180,7 @@ export const FoldersScreen = () => {
               })
             }}
           >
-            <div className="flex items-center gap-2">
-              <PlusIcon className="size-5" />
-              Create folder
-            </div>
+            Create folder
           </Button>
           <CreateFolderModal
             setModalData={setCreateFolderModalData}

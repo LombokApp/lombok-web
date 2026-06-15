@@ -1,6 +1,5 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { ButtonVariant } from '@lombokapp/ui-toolkit/components/button'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import React from 'react'
 import { useNavigate } from 'react-router'
 
@@ -48,7 +47,7 @@ export const LandingPage = () => {
               <Button onClick={handleGetStarted}>Get started</Button>
               <a className="flex" href="https://lombokapp.com">
                 <Button
-                  variant={ButtonVariant.link}
+                  variant="link"
                   className="text-sm font-semibold leading-6 text-white"
                 >
                   Learn more <span aria-hidden="true">→</span>

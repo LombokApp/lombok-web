@@ -1,6 +1,9 @@
-import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from '@lombokapp/ui-toolkit/components/card'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import { useQueryClient } from '@tanstack/react-query'
 import { MessageSquare } from 'lucide-react'
 import React from 'react'

@@ -2,7 +2,7 @@ import type {
   StorageProvision,
   StorageProvisionInputDTO,
 } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import { Folder, Plus } from 'lucide-react'
 import React from 'react'
 

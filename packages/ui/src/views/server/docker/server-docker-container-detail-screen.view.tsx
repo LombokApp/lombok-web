@@ -8,17 +8,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@lombokapp/ui-toolkit/components/alert-dialog/alert-dialog'
+} from '@lombokapp/ui-toolkit/components/alert-dialog'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button, buttonVariants } from '@lombokapp/ui-toolkit/components/button'
 import {
-  Badge,
-  BadgeVariant,
-} from '@lombokapp/ui-toolkit/components/badge/badge'
-import {
-  Button,
-  buttonVariants,
-} from '@lombokapp/ui-toolkit/components/button/button'
-import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+  Card,
+  CardHeader,
+  CardTitle,
+} from '@lombokapp/ui-toolkit/components/card'
 import { Checkbox } from '@lombokapp/ui-toolkit/components/checkbox'
 import {
   Collapsible,
@@ -32,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import {
   dateToHumanReadable,
@@ -109,15 +106,15 @@ function DetailRow({
 }
 
 const StateBadge = (state: DockerHostContainerState['state']) => {
-  const variant =
+  const badgeProps =
     state === 'running'
-      ? BadgeVariant.secondary
+      ? { variant: 'soft' as const }
       : state === 'exited'
-        ? BadgeVariant.destructive
-        : BadgeVariant.outline
+        ? { tone: 'danger' as const }
+        : { variant: 'outline' as const }
 
   return (
-    <Badge variant={variant} className="text-xs capitalize">
+    <Badge {...badgeProps} className="text-xs capitalize">
       {state}
     </Badge>
   )
@@ -180,11 +177,7 @@ function StandaloneContainerActions({
     <>
       <AlertDialog open={startDialogOpen} onOpenChange={setStartDialogOpen}>
         <AlertDialogTrigger asChild>
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={isRunning || isPending}
-          >
+          <Button variant="soft" size="sm" disabled={isRunning || isPending}>
             <Play className="mr-2 size-4" />
             Start
           </Button>
@@ -200,7 +193,7 @@ function StandaloneContainerActions({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className={buttonVariants({ variant: 'secondary' })}
+              className={buttonVariants({ variant: 'soft' })}
               onClick={onStart}
             >
               Start
@@ -281,7 +274,7 @@ function StandaloneContainerActions({
       >
         <AlertDialogTrigger asChild>
           <Button
-            variant="destructive"
+            tone="danger"
             size="sm"
             disabled={isPending}
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
@@ -316,7 +309,7 @@ function StandaloneContainerActions({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className={buttonVariants({ variant: 'destructive' })}
+              className={buttonVariants({ tone: 'danger' })}
               onClick={onRemove}
             >
               Delete
@@ -369,11 +362,7 @@ function WorkerContainerActions({
     <>
       <AlertDialog open={startDialogOpen} onOpenChange={setStartDialogOpen}>
         <AlertDialogTrigger asChild>
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={isRunning || isPending}
-          >
+          <Button variant="soft" size="sm" disabled={isRunning || isPending}>
             <Play className="mr-2 size-4" />
             Start
           </Button>
@@ -388,7 +377,7 @@ function WorkerContainerActions({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className={buttonVariants({ variant: 'secondary' })}
+              className={buttonVariants({ variant: 'soft' })}
               onClick={() => onAction('start')}
             >
               Start
@@ -461,7 +450,7 @@ function WorkerContainerActions({
         <AlertDialog open={purgeDialogOpen} onOpenChange={setPurgeDialogOpen}>
           <AlertDialogTrigger asChild>
             <Button
-              variant="destructive"
+              tone="danger"
               size="sm"
               disabled={purgeJobsMutation.isPending}
               className="bg-destructive/10 text-destructive hover:bg-destructive/20"
@@ -501,7 +490,7 @@ function WorkerContainerActions({
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                className={buttonVariants({ variant: 'destructive' })}
+                className={buttonVariants({ tone: 'danger' })}
                 onClick={onPurge}
               >
                 Purge
@@ -514,7 +503,7 @@ function WorkerContainerActions({
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button
-            variant="destructive"
+            tone="danger"
             size="sm"
             disabled={isPending}
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
@@ -532,7 +521,7 @@ function WorkerContainerActions({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className={buttonVariants({ variant: 'destructive' })}
+              className={buttonVariants({ tone: 'danger' })}
               onClick={() => onAction('remove')}
             >
               Remove
@@ -959,11 +948,7 @@ export function ServerDockerContainerDetailScreen({
                 {containerState.id.slice(0, 12)}
               </h1>
               {StateBadge(containerState.state)}
-              <Badge
-                variant={
-                  isWorker ? BadgeVariant.secondary : BadgeVariant.outline
-                }
-              >
+              <Badge variant={isWorker ? 'soft' : 'outline'}>
                 {isWorker ? 'Worker' : 'Standalone'}
               </Badge>
             </div>
@@ -1210,7 +1195,7 @@ export function ServerDockerContainerDetailScreen({
                 <span className="text-sm font-semibold text-muted-foreground">
                   HTTP Workers
                 </span>
-                <Badge variant={BadgeVariant.outline} className="text-xs">
+                <Badge variant="outline" className="text-xs">
                   {workersQuery.data?.workers.length ?? 0}
                 </Badge>
               </div>
@@ -1225,7 +1210,7 @@ export function ServerDockerContainerDetailScreen({
                       key={worker.workerId}
                       variant={
                         selectedWorkerId === worker.workerId
-                          ? 'secondary'
+                          ? 'soft'
                           : 'outline'
                       }
                       size="sm"
@@ -1254,7 +1239,7 @@ export function ServerDockerContainerDetailScreen({
                 <span className="text-sm font-semibold text-muted-foreground">
                   Recent Jobs
                 </span>
-                <Badge variant={BadgeVariant.outline} className="text-xs">
+                <Badge variant="outline" className="text-xs">
                   {jobsQuery.data?.jobs.length ?? 0}
                 </Badge>
               </div>
@@ -1267,9 +1252,7 @@ export function ServerDockerContainerDetailScreen({
                   {jobsQuery.data.jobs.map((job) => (
                     <Button
                       key={job.jobId}
-                      variant={
-                        selectedJobId === job.jobId ? 'secondary' : 'outline'
-                      }
+                      variant={selectedJobId === job.jobId ? 'soft' : 'outline'}
                       size="sm"
                       className="w-full justify-start gap-3 font-mono text-xs"
                       onClick={() => handleOpenJob(job.jobId)}
@@ -1504,7 +1487,7 @@ export function ServerDockerContainerDetailScreen({
                       <div className="text-sm font-semibold text-muted-foreground">
                         Recent Jobs
                       </div>
-                      <Badge variant={BadgeVariant.outline} className="text-xs">
+                      <Badge variant="outline" className="text-xs">
                         {workerJobs.length}
                       </Badge>
                     </div>

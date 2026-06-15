@@ -1,11 +1,11 @@
 import type { AccessKeyPublicDTO, ServerError } from '@lombokapp/types'
 import {
+  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
-import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
 

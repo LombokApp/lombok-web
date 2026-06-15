@@ -1,10 +1,10 @@
 import {
+  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
-import { TypographySubtitle } from '@lombokapp/ui-toolkit/components/typography-subtitle/typography-subtitle'
+import { TypographySubtitle } from '@lombokapp/ui-toolkit/components/typography-subtitle'
 
 import { AccessKeyRotateForm } from '@/src/components/access-key-rotate-form/access-key-rotate-form'
 

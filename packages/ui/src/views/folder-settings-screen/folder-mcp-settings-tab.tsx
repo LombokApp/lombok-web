@@ -1,5 +1,5 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'

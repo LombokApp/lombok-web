@@ -1,10 +1,13 @@
 import type { FolderGetResponse, FolderMetadata } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from '@lombokapp/ui-toolkit/components/card'
 import { Label } from '@lombokapp/ui-toolkit/components/label'
-import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
-import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { formatBytes } from '@lombokapp/utils'
 import { Calculator, Globe, KeyRound, Search } from 'lucide-react'
@@ -107,7 +110,7 @@ export function FolderSidebar({
                           <div className="mt-2">
                             <Button
                               size="sm"
-                              variant="destructive"
+                              tone="danger"
                               onClick={() => void rerunAccessCheck()}
                             >
                               Re-run access check

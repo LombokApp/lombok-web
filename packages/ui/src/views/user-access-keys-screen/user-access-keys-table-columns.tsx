@@ -3,8 +3,8 @@ import type {
   RotateAccessKeyInputDTO,
 } from '@lombokapp/types'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'

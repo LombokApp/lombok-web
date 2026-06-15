@@ -1,4 +1,4 @@
-import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
+import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area'
 import { useNavigate } from 'react-router'
 
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'

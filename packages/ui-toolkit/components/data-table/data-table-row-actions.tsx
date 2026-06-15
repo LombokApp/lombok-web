@@ -1,5 +1,5 @@
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import type { Row } from '@tanstack/react-table'
+import { Ellipsis } from 'lucide-react'
 import React from 'react'
 
 import {
@@ -69,7 +69,7 @@ export function DataTableRowActions<TData>({
                 size="xs"
                 className="flex w-8 p-0 data-[state=open]:bg-muted"
               >
-                <DotsHorizontalIcon className="size-4" />
+                <Ellipsis className="size-4" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>,

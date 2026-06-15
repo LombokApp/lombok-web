@@ -1,9 +1,5 @@
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
-import {
-  CheckIcon,
-  ChevronRightIcon,
-  DotFilledIcon,
-} from '@radix-ui/react-icons'
+import { Check, ChevronRight, Circle } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '../../utils'
@@ -36,7 +32,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronRightIcon className="ml-auto size-4" />
+    <ChevronRight className="ml-auto size-4" />
   </DropdownMenuPrimitive.SubTrigger>
 ))
 DropdownMenuSubTrigger.displayName =
@@ -67,7 +63,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'bg-popover text-popover-foreground z-50 min-w-32 overflow-hidden rounded-md border p-1 shadow-md',
+        'bg-popover text-popover-foreground z-50 min-w-32 overflow-hidden rounded-md border p-1 shadow-md border-input',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
         className,
       )}
@@ -81,18 +77,56 @@ const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
     inset?: boolean
+    /** Leading icon. The caller controls its color (e.g. `<Zap className="text-tone-blue" />`). */
+    icon?: React.ReactNode
+    /** Primary line. When set, the item renders the two-line rich layout. */
+    title?: React.ReactNode
+    /** Secondary muted line below the title (rich layout only). */
+    description?: React.ReactNode
   }
->(({ className, inset, ...props }, ref) => (
-  <DropdownMenuPrimitive.Item
-    ref={ref}
-    className={cn(
-      'focus:bg-accent focus:text-accent-foreground relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      inset && 'pl-8',
-      className,
-    )}
-    {...props}
-  />
-))
+>(({ className, inset, icon, title, description, children, ...props }, ref) => {
+  // Rich layout: icon + title + description, ported from the codicle launch menu.
+  if (title !== undefined) {
+    return (
+      <DropdownMenuPrimitive.Item
+        ref={ref}
+        className={cn(
+          'focus:bg-accent relative flex cursor-default select-none items-start gap-2.5 rounded-sm px-3 py-3 text-left outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+          inset && 'pl-8',
+          className,
+        )}
+        {...props}
+      >
+        {icon ? (
+          <span className="mt-0.5 flex shrink-0 items-center">{icon}</span>
+        ) : null}
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-compact text-popover-foreground font-medium">
+            {title}
+          </span>
+          {description ? (
+            <span className="text-footnote text-muted-foreground">
+              {description}
+            </span>
+          ) : null}
+        </span>
+      </DropdownMenuPrimitive.Item>
+    )
+  }
+  return (
+    <DropdownMenuPrimitive.Item
+      ref={ref}
+      className={cn(
+        'focus:bg-accent focus:text-accent-foreground relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        inset && 'pl-8',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </DropdownMenuPrimitive.Item>
+  )
+})
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
 
 const DropdownMenuCheckboxItem = React.forwardRef<
@@ -110,7 +144,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   >
     <span className="absolute left-2 flex size-3.5 items-center justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
-        <CheckIcon className="size-4" />
+        <Check className="size-4" />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}
@@ -133,7 +167,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   >
     <span className="absolute left-2 flex size-3.5 items-center justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
-        <DotFilledIcon className="size-4 fill-current" />
+        <Circle className="size-2 fill-current" />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}

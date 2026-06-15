@@ -1,17 +1,8 @@
-import type { FolderObjectDTO } from '@lombokapp/types'
 import React from 'react'
 
 import { $api } from '@/src/services/api'
 
-export interface IFocusedFolderObjectContext {
-  focusedFolderObject?: FolderObjectDTO
-  refetch: () => Promise<void>
-}
-
-export const FocusedFolderObjectContext =
-  React.createContext<IFocusedFolderObjectContext>(
-    {} as IFocusedFolderObjectContext,
-  )
+import { FocusedFolderObjectContext } from './focused-folder-object.context'
 
 export const FocusedFolderObjectContextProvider = ({
   children,
@@ -47,8 +38,4 @@ export const FocusedFolderObjectContextProvider = ({
       {children}
     </FocusedFolderObjectContext.Provider>
   )
-}
-
-export const useFocusedFolderObjectContext = () => {
-  return React.useContext(FocusedFolderObjectContext)
 }

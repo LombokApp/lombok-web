@@ -1,6 +1,6 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { Label } from '@lombokapp/ui-toolkit/components/label/label'
-import { Textarea } from '@lombokapp/ui-toolkit/components/textarea/textarea'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import { Label } from '@lombokapp/ui-toolkit/components/label'
+import { Textarea } from '@lombokapp/ui-toolkit/components/textarea'
 import React from 'react'
 
 import type { CommentAnchorType } from './comment.types'

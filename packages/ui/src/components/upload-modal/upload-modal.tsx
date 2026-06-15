@@ -1,12 +1,12 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import type { FileRejection } from 'react-dropzone'
@@ -122,7 +122,7 @@ const UploadModal = ({
         <DialogFooter className="mt-4">
           <div className="flex gap-4">
             <Button
-              variant="primary"
+              variant="solid"
               onClick={() => setModalData({ ...modalData, isOpen: false })}
             >
               Done

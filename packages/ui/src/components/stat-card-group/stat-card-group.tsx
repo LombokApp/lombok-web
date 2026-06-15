@@ -1,9 +1,9 @@
 import {
+  Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 export interface Stat {
@@ -51,7 +51,7 @@ function chunkStats(stats: Stat[]): Stat[][] {
 
 function StatCard({ stat }: { stat: Stat }) {
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="flex h-full flex-col bg-card border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
         {stat.icon && <stat.icon />}

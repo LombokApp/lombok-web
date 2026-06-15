@@ -4,7 +4,7 @@
 /* Shared design tokens (semantic roles + dark mode). */
 @import '../styles/theme.css';
 
-@source "../components/**/*.tsx";
+@source "../components/**/*.{ts,tsx}";
 
 @custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
 
@@ -12,6 +12,13 @@
   button,
   [role='button'] {
     cursor: pointer;
+  }
+
+  /* Storybook canvas follows the active theme. */
+  html,
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 

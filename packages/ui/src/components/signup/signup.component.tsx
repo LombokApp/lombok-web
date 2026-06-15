@@ -1,15 +1,12 @@
 import type { AuthError } from '@lombokapp/auth-utils'
-import {
-  Alert,
-  AlertDescription,
-} from '@lombokapp/ui-toolkit/components/alert/alert'
+import { Alert, AlertDescription } from '@lombokapp/ui-toolkit/components/alert'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lombokapp/ui-toolkit/components/card/card'
+} from '@lombokapp/ui-toolkit/components/card'
 import React from 'react'
 import { Link } from 'react-router'
 

@@ -3,7 +3,7 @@ import { CORE_IDENTIFIER } from '@lombokapp/types'
 import { useServerContext } from '@/src/contexts/server'
 import { invertColour, stringToColour } from '@/src/utils/colors'
 
-import { AppIcon, iconRendersAsGlyph } from '../app-icon/app-icon'
+import { AppIcon, iconRendersAsGlyph } from '../app-icon'
 import { ServerLogo } from '../server-logo/server-logo'
 
 interface ActorFeedbackProps {

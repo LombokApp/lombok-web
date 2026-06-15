@@ -9,14 +9,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@lombokapp/ui-toolkit/components/alert-dialog'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
-  Badge,
-  BadgeVariant,
-} from '@lombokapp/ui-toolkit/components/badge/badge'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+  Card,
+  CardHeader,
+  CardTitle,
+} from '@lombokapp/ui-toolkit/components/card'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import { formatBytes } from '@lombokapp/utils'
 import {
@@ -56,14 +56,14 @@ const VALUE_CLASS = 'text-sm'
 
 const renderConnectionBadge = (connection?: DockerHostConnectionState) => {
   if (!connection) {
-    return <Badge variant={BadgeVariant.outline}>Unknown</Badge>
+    return <Badge variant="outline">Unknown</Badge>
   }
 
   return (
     <Badge
-      variant={
-        connection.success ? BadgeVariant.secondary : BadgeVariant.destructive
-      }
+      {...(connection.success
+        ? { variant: 'soft' as const }
+        : { tone: 'danger' as const })}
       className="text-xs"
     >
       {connection.success ? 'Connected' : 'Offline'}
@@ -207,12 +207,12 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
             <h1 className="text-2xl font-semibold">{host.label}</h1>
             {renderConnectionBadge(hostState?.connection)}
             {host.isDefault && (
-              <Badge variant={BadgeVariant.secondary} className="text-xs">
+              <Badge variant="soft" className="text-xs">
                 default
               </Badge>
             )}
             {!host.enabled && (
-              <Badge variant={BadgeVariant.outline} className="text-xs">
+              <Badge variant="outline" className="text-xs">
                 disabled
               </Badge>
             )}
@@ -355,7 +355,7 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
                 Stored settings and endpoint details.
               </p>
             </div>
-            <Badge variant={BadgeVariant.outline} className="text-xs uppercase">
+            <Badge variant="outline" className="text-xs uppercase">
               {host.type.replace('_', ' ')}
             </Badge>
           </CardHeader>
@@ -370,13 +370,11 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
               <div className={LABEL_CLASS}>Health Status</div>
               <div className={VALUE_CLASS}>
                 <Badge
-                  variant={
-                    host.healthStatus === 'healthy'
-                      ? BadgeVariant.secondary
-                      : host.healthStatus === 'unhealthy'
-                        ? BadgeVariant.destructive
-                        : BadgeVariant.outline
-                  }
+                  {...(host.healthStatus === 'healthy'
+                    ? { variant: 'soft' as const }
+                    : host.healthStatus === 'unhealthy'
+                      ? { tone: 'danger' as const }
+                      : { variant: 'outline' as const })}
                   className="text-xs capitalize"
                 >
                   {host.healthStatus}
@@ -400,7 +398,7 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
               <div className={LABEL_CLASS}>TLS</div>
               <div className={VALUE_CLASS}>
                 {host.tlsConfig ? (
-                  <Badge variant={BadgeVariant.secondary} className="text-xs">
+                  <Badge variant="soft" className="text-xs">
                     Configured
                   </Badge>
                 ) : (
@@ -424,7 +422,7 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
           <CardTitle className="flex items-center gap-2 text-lg">
             <Container className="size-4 text-muted-foreground" />
             Containers
-            <Badge variant={BadgeVariant.outline} className="text-xs">
+            <Badge variant="outline" className="text-xs">
               {containerRows.length}
             </Badge>
           </CardTitle>

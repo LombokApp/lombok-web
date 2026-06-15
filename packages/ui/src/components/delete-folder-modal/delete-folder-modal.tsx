@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Dialog,
   DialogContent,
@@ -47,7 +47,7 @@ export const DeleteFolderModal = ({
             >
               Cancel
             </Button>
-            <Button variant={'destructive'} onClick={() => void onConfirm()}>
+            <Button tone="danger" onClick={() => void onConfirm()}>
               Delete
             </Button>
           </div>

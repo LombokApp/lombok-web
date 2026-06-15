@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lombokapp/ui-toolkit/components/card/card'
+} from '@lombokapp/ui-toolkit/components/card'
 import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'
 

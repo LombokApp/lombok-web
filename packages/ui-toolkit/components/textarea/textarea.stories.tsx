@@ -33,3 +33,13 @@ export const BasicUsage: Story = {
     </div>
   ),
 }
+
+export const Sizes: Story = {
+  render: () => (
+    <div className="flex w-[400px] flex-col gap-3">
+      <Textarea size="sm" placeholder="sm" />
+      <Textarea size="default" placeholder="default" />
+      <Textarea size="lg" placeholder="lg" />
+    </div>
+  ),
+}

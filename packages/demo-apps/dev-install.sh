@@ -199,7 +199,7 @@ if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "201" ]; then
   exit 1
 fi
 
-echo "App ${ACTION}ed successfully!"
+echo "App ${ACTION} performed successfully!"
 echo "Response: $INSTALL_BODY"
 
 # Step 6: Enable app for all users

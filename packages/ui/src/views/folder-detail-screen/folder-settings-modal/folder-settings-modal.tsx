@@ -1,10 +1,10 @@
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 import React from 'react'
 
 interface ModalData {

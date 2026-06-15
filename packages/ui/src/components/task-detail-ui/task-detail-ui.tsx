@@ -4,28 +4,28 @@ import type {
   JsonSerializableObject,
   TaskWithLocationContextDTO,
 } from '@lombokapp/types'
-import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import { Progress } from '@lombokapp/ui-toolkit/components/progress/progress'
+import { Progress } from '@lombokapp/ui-toolkit/components/progress'
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@lombokapp/ui-toolkit/components/tabs/tabs'
+} from '@lombokapp/ui-toolkit/components/tabs'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@lombokapp/ui-toolkit/components/tooltip/tooltip'
+} from '@lombokapp/ui-toolkit/components/tooltip'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
   AlertCircle,
@@ -523,7 +523,7 @@ function TaskErrorDisplay({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <Badge
-                  variant="destructive"
+                  tone="danger"
                   className="font-mono text-xs font-semibold"
                 >
                   {primaryCode ?? 'ERROR'}
@@ -961,17 +961,17 @@ export function TaskDetailUI({
   // Get the status text and badge variant
   const getStatusInfo = (task?: TaskWithLocationContextDTO) => {
     if (!task) {
-      return { text: 'Unknown', variant: 'secondary' as const }
+      return { text: 'Unknown', badgeProps: { variant: 'soft' as const } }
     }
 
     if (task.completedAt && task.success) {
-      return { text: 'Complete', variant: 'default' as const }
+      return { text: 'Complete', badgeProps: { variant: 'solid' as const } }
     } else if (task.completedAt && !task.success) {
-      return { text: 'Failed', variant: 'destructive' as const }
+      return { text: 'Failed', badgeProps: { tone: 'danger' as const } }
     } else if (!task.startedAt) {
-      return { text: 'Pending', variant: 'secondary' as const }
+      return { text: 'Pending', badgeProps: { variant: 'soft' as const } }
     } else {
-      return { text: 'Running', variant: 'outline' as const }
+      return { text: 'Running', badgeProps: { variant: 'outline' as const } }
     }
   }
 
@@ -1135,7 +1135,7 @@ export function TaskDetailUI({
                       getStatusColor(taskData),
                     )}
                   />
-                  <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>
+                  <Badge {...statusInfo.badgeProps}>{statusInfo.text}</Badge>
                 </div>
                 <span>•</span>
                 <span className="font-mono">ID: {taskData.id}</span>

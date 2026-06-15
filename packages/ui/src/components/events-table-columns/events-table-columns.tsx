@@ -1,5 +1,5 @@
 import { CORE_IDENTIFIER, type EventDTO } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 
 import { ActorFeedback } from '@/src/components/actor-feedback'

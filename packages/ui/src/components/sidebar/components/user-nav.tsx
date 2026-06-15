@@ -1,5 +1,5 @@
 import type { UserDTO } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu'
 import {
   Tooltip,
   TooltipProvider,

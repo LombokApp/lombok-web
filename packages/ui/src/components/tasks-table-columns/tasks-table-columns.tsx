@@ -1,6 +1,6 @@
 import type { TaskSummaryDTO } from '@lombokapp/types'
 import { CORE_IDENTIFIER } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 

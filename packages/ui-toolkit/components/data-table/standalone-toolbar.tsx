@@ -1,5 +1,5 @@
-import { Cross2Icon } from '@radix-ui/react-icons'
 import type { SortingState } from '@tanstack/table-core'
+import { X } from 'lucide-react'
 import React from 'react'
 
 import {
@@ -137,7 +137,7 @@ export function StandaloneToolbar({
               className="px-2 lg:px-3"
             >
               Reset
-              <Cross2Icon className="ml-2 size-4" />
+              <X className="ml-2 size-4" />
             </Button>
           )}
         </div>
@@ -149,7 +149,7 @@ export function StandaloneToolbar({
               Sort
               {sorting.length > 0 && (
                 <Badge
-                  variant="secondary"
+                  variant="soft"
                   className="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal"
                 >
                   {sorting.length}

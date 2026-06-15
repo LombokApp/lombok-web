@@ -1,5 +1,5 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons'
 import React from 'react'
 
 import { $api } from '@/src/services/api'

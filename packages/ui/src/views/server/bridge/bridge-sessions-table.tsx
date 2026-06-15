@@ -1,6 +1,6 @@
 import type { components } from '@lombokapp/types'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import { FileText } from 'lucide-react'
 import React from 'react'

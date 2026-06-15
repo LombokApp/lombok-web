@@ -1,6 +1,6 @@
 import type { FolderGetResponse, FolderMetadata } from '@lombokapp/types'
 import { FolderPermissionEnum } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import { formatBytes } from '@lombokapp/utils'
 
 export const FolderDetailSidePanel = ({
@@ -60,7 +60,7 @@ export const FolderDetailSidePanel = ({
           {folderAndPermissions?.permissions.includes(
             FolderPermissionEnum.FOLDER_REINDEX,
           ) && (
-            <Button size="md" onClick={onRefreshFolder}>
+            <Button size="default" onClick={onRefreshFolder}>
               {!folderIndex?.indexingJobContext
                 ? 'Refresh folder'
                 : 'Continue folder refresh'}
@@ -69,14 +69,14 @@ export const FolderDetailSidePanel = ({
           {folderAndPermissions?.permissions.includes(
             FolderPermissionEnum.FOLDER_FORGET,
           ) && (
-            <Button size="md" onClick={onForgetFolder}>
+            <Button size="default" onClick={onForgetFolder}>
               Forget folder
             </Button>
           )}
           {folderAndPermissions?.permissions.includes(
             FolderPermissionEnum.OBJECT_MANAGE,
           ) && (
-            <Button size="md" onClick={onShareClick}>
+            <Button size="default" onClick={onShareClick}>
               Share folder
             </Button>
           )}

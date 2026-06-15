@@ -1,10 +1,5 @@
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  CaretSortIcon,
-  EyeNoneIcon,
-} from '@radix-ui/react-icons'
 import type { Column } from '@tanstack/react-table'
+import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from 'lucide-react'
 
 import { cn } from '../../utils'
 import {
@@ -44,28 +39,28 @@ export function DataTableColumnHeader<TData, TValue>({
           >
             <span>{title}</span>
             {column.getIsSorted() === 'desc' ? (
-              <ArrowDownIcon className="ml-2 size-4" />
+              <ArrowDown className="ml-2 size-4" />
             ) : column.getIsSorted() === 'asc' ? (
-              <ArrowUpIcon className="ml-2 size-4" />
+              <ArrowUp className="ml-2 size-4" />
             ) : (
-              <CaretSortIcon className="ml-2 size-4" />
+              <ChevronsUpDown className="ml-2 size-4" />
             )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-            <ArrowUpIcon className="mr-2 size-3.5 text-muted-foreground/70" />
+            <ArrowUp className="mr-2 size-3.5 text-muted-foreground/70" />
             Asc
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-            <ArrowDownIcon className="mr-2 size-3.5 text-muted-foreground/70" />
+            <ArrowDown className="mr-2 size-3.5 text-muted-foreground/70" />
             Desc
           </DropdownMenuItem>
           {canHide && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-                <EyeNoneIcon className="mr-2 size-3.5 text-muted-foreground/70" />
+                <EyeOff className="mr-2 size-3.5 text-muted-foreground/70" />
                 Hide
               </DropdownMenuItem>
             </>

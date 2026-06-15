@@ -1,6 +1,6 @@
 import type { FolderDTO } from '@lombokapp/types'
-import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 
 import { DateDisplay } from '@/src/components/date-display'
@@ -40,7 +40,7 @@ export const foldersTableColumns: HideableColumnDef<{
         />
         <span>{row.original.folder.name}</span>
         {row.original.folder.accessError && (
-          <Badge variant="destructive" className="ml-2 text-[10px]">
+          <Badge tone="danger" className="ml-2 text-[10px]">
             {row.original.folder.accessError.code}
           </Badge>
         )}

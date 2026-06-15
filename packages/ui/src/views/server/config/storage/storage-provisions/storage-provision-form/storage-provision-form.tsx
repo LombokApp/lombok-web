@@ -9,7 +9,7 @@ import {
   StorageProvisionTypeEnum,
   StorageProvisionTypeZodEnum,
 } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Form,
   FormControl,
@@ -18,9 +18,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 import { useForm } from 'react-hook-form'
@@ -302,7 +302,7 @@ export const StorageProvisionForm = (props: StorageProvisionFormProps) => {
             />
           </div>
           <div className="flex gap-2">
-            <Button variant={'secondary'} onClick={onCancel}>
+            <Button variant="soft" onClick={onCancel}>
               Cancel
             </Button>
             <Button type="submit">

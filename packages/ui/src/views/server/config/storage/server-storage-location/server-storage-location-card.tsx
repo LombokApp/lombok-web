@@ -1,5 +1,5 @@
 import type { ServerStorageDTO } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Globe,
   KeyRoundIcon,
@@ -117,10 +117,10 @@ export function ServerStorageLocationCard({
           </div>
         </dl>
         <div className="mt-6 flex gap-3 border-t border-gray-900/5 p-6">
-          <Button onClick={onRotateClick} variant="secondary">
+          <Button onClick={onRotateClick} variant="soft">
             Rotate key
           </Button>
-          <Button onClick={onRemoveClick} variant="destructive">
+          <Button onClick={onRemoveClick} tone="danger">
             Remove
           </Button>
         </div>

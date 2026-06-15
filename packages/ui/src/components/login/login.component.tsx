@@ -1,13 +1,9 @@
 import type { AuthError } from '@lombokapp/auth-utils'
-import {
-  Alert,
-  AlertDescription,
-} from '@lombokapp/ui-toolkit/components/alert/alert'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { CardContent } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2/typography-h2'
-import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import { Alert, AlertDescription } from '@lombokapp/ui-toolkit/components/alert'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import { Card, CardContent } from '@lombokapp/ui-toolkit/components/card'
+import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import React from 'react'
 
 import { ServerLogo } from '../server-logo/server-logo'

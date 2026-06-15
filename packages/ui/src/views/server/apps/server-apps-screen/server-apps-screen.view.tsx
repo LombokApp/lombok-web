@@ -1,5 +1,5 @@
 import type { ServerAppsListRequest } from '@lombokapp/types'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'

@@ -1,8 +1,11 @@
 import { CoreEvent } from '@lombokapp/types'
-import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from '@lombokapp/ui-toolkit/components/card'
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
-import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
+import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import React from 'react'
 

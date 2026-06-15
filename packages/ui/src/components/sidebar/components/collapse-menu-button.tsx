@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Collapsible,
   CollapsibleContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu'
 import {
   Tooltip,
   TooltipContent,
@@ -64,7 +64,7 @@ export function CollapseMenuButton({
         asChild
       >
         <Button
-          variant={isSubmenuActive ? 'secondary' : 'ghost'}
+          variant={isSubmenuActive ? 'soft' : 'ghost'}
           className="h-10 w-full justify-start"
         >
           <div className="flex w-full items-center justify-between">
@@ -98,7 +98,7 @@ export function CollapseMenuButton({
             key={index}
             variant={
               (active === undefined && location.pathname === href) || active
-                ? 'secondary'
+                ? 'soft'
                 : 'ghost'
             }
             className="mb-1 h-10 w-full justify-start"
@@ -128,7 +128,7 @@ export function CollapseMenuButton({
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button
-                variant={isSubmenuActive ? 'secondary' : 'ghost'}
+                variant={isSubmenuActive ? 'soft' : 'ghost'}
                 className="mb-1 h-10 w-full justify-start"
               >
                 <div className="flex w-full items-center justify-between">

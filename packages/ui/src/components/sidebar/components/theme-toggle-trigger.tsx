@@ -3,7 +3,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu'
 import { MonitorIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import { useTheme } from '@/src/contexts/theme'

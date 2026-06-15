@@ -469,7 +469,7 @@ const refineComponentTree = (
   })
 }
 
-export const mobileViewSchema = z
+export const mobileRootViewSchema = z
   .object({
     id: z.string().nonempty(),
     // Marks this view as the app's nav-root (entry) surface — the one embedded
@@ -487,7 +487,7 @@ export const mobileViewSchema = z
   .superRefine((view, ctx) => {
     refineComponentTree(view.components, ctx)
   })
-  .meta({ id: 'MobileView' })
+  .meta({ id: 'MobileRootView' })
 
 export const MOBILE_HTTP_METHODS = [
   'GET',
@@ -727,7 +727,7 @@ export const mobileQueriesSchema = z.record(
 // embedded at the root); the rest are its in-app `navigate` drill-down targets.
 export const mobileRootSchema = z
   .object({
-    views: z.array(mobileViewSchema).min(1),
+    views: z.array(mobileRootViewSchema).min(1),
   })
   .strict()
   .superRefine((root, ctx) => {
@@ -1723,7 +1723,7 @@ export type MobileQueryRef = z.infer<typeof mobileQueryRefSchema>
 
 export type MobileQueryBinding = z.infer<typeof mobileQueryBindingSchema>
 
-export type MobileView = z.infer<typeof mobileViewSchema>
+export type MobileRootView = z.infer<typeof mobileRootViewSchema>
 
 export type MobileRoot = z.infer<typeof mobileRootSchema>
 

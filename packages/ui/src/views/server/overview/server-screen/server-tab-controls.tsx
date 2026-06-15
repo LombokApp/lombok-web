@@ -18,7 +18,7 @@ interface ServerTabControlsProps {
 
 const BUTTON_STYLE =
   'ring-offset-background focus-visible:ring-ring text-muted-foreground ' +
-  'data-[state=active]:bg-background data-[state=active]:text-foreground ' +
+  'data-[state=active]:bg-card data-[state=active]:brightness-200 data-[state=active]:text-foreground data-[state=active]:shadow-sm' +
   'inline-flex items-center justify-center whitespace-nowrap rounded-sm ' +
   'px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none ' +
   'focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none ' +
@@ -32,7 +32,7 @@ export function ServerTabControls({
     <div
       role="tablist"
       aria-orientation="horizontal"
-      className="inline-flex h-10 grow-0 items-center justify-center rounded-md bg-foreground/[.06] p-1 text-muted-foreground"
+      className="inline-flex h-10 grow-0 items-center justify-center rounded-md bg-card border p-1 text-muted-foreground"
       tabIndex={0}
       data-orientation="horizontal"
       style={{ outline: 'none' }}

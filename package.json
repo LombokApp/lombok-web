@@ -67,7 +67,7 @@
     "react-dropzone": "14.3.5",
     "react-image-crop": "11.0.10",
     "react-router": "7.13.0",
-    "lucide-react": "0.525.0",
+    "lucide-react": "1.17.0",
     "socket.io": "4.8.1",
     "uuid": "13.0.0",
     "mime": "4.0.7",

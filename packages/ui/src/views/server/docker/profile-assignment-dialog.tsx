@@ -1,9 +1,6 @@
 import type { DockerContainerResourceConfig } from '@lombokapp/types'
-import {
-  Badge,
-  BadgeVariant,
-} from '@lombokapp/ui-toolkit/components/badge/badge'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Dialog,
   DialogContent,
@@ -11,25 +8,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Label } from '@lombokapp/ui-toolkit/components/label/label'
+import { Label } from '@lombokapp/ui-toolkit/components/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@lombokapp/ui-toolkit/components/select/select'
+} from '@lombokapp/ui-toolkit/components/select'
 import React from 'react'
 
 import { $api, $apiClient } from '@/src/services/api'
 
+import { EMPTY_CONFIG_STATE } from './container-config-form/container-config.constants'
+import type { ContainerConfigState } from './container-config-form/container-config.types'
 import {
   buildConfigFromState,
-  ContainerConfigForm,
-  type ContainerConfigState,
-  EMPTY_CONFIG_STATE,
   loadConfigState,
-} from './container-config-form'
+} from './container-config-form/container-config.util'
+import { ContainerConfigForm } from './container-config-form/container-config-form'
 
 const UNASSIGNED = '__default__'
 
@@ -163,7 +160,7 @@ export function ProfileAssignmentDialog({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-foreground">Profile</span>
-              <Badge variant={BadgeVariant.outline} className="text-xs">
+              <Badge variant="outline" className="text-xs">
                 {profileKey}
               </Badge>
             </div>

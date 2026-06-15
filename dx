@@ -92,6 +92,8 @@ else
   DOCKER_EXEC="docker compose exec -T api su-exec bun"
 fi
 
+DOCKER_EXEC_NOTTY="docker compose exec -T api su-exec bun"
+
 usage() {
   cat <<'HELP'
 Usage: ./dx <command>
@@ -179,7 +181,7 @@ case "${1:-help}" in
         $DOCKER_EXEC bun --cwd packages/api restart
         ;;
       ui)
-        $DOCKER_EXEC sh /usr/src/app/packages/api/cmd/restart-ui.sh
+        $DOCKER_EXEC_NOTTY sh /usr/src/app/packages/api/cmd/restart-ui.sh
         ;;
       bridge)
         $DOCKER_EXEC pkill -f 'bun run.*/docker-bridge/src/index.ts' || true

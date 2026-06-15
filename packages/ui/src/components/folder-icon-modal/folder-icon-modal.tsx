@@ -4,7 +4,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@lombokapp/ui-toolkit/components/dialog/dialog'
+} from '@lombokapp/ui-toolkit/components/dialog'
 import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'
 

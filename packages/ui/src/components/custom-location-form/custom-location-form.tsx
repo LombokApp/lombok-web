@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { s3LocationSchema } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Form,
   FormControl,
@@ -8,8 +8,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 

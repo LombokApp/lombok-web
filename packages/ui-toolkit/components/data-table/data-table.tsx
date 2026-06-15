@@ -145,12 +145,12 @@ export function DataTable<TData, TValue>({
           onFiltersChange={onColumnFiltersChange}
         />
       )}
-      <div className="relative max-h-max min-h-0 self-stretch">
-        <div className="absolute inset-x-0 top-0 z-10 h-12 rounded-t-md border bg-background"></div>
+      <div className="relative max-h-max min-h-0 self-stretch bg-card">
+        <div className="absolute inset-x-0 top-0 z-10 h-12 rounded-t-md border"></div>
         <ScrollArea
           type="always"
           className="h-full"
-          viewportClassName="rounded-md bg-background border"
+          viewportClassName="rounded-md border"
         >
           <div className={cn('flex flex-1', className)}>
             <Table
@@ -164,7 +164,7 @@ export function DataTable<TData, TValue>({
                   return (
                     <TableRow
                       key={headerGroup.id}
-                      className="relative border-b-0"
+                      className="relative border-b-0 bg-tertiary"
                     >
                       {headerGroup.headers.map((header) => {
                         return (
