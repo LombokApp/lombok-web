@@ -7,6 +7,7 @@ import type {
   JsonSchema07ObjectItemProperty,
   JsonSchema07PrimitiveProperty,
 } from '@lombokapp/types'
+import { SETTINGS_KEY_REGEX } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge'
 import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
@@ -157,17 +158,62 @@ function primitiveBase(
   return Array.isArray(t) ? t[0] : t
 }
 
+/** Build a sensible empty value for a freshly-added top-level property. */
+function buildDefaultValue(property: CustomSettingsSchemaProperty): unknown {
+  if (property.type === 'array') {
+    return property.default ?? []
+  }
+  if (property.type === 'object') {
+    const obj = property as Extract<
+      JsonSchema07ObjectItemProperty,
+      { type: 'object' }
+    >
+    if (obj.default !== undefined) {
+      return obj.default
+    }
+    const result: Record<string, unknown> = {}
+    for (const [key, prop] of Object.entries(obj.properties ?? {})) {
+      if (prop.default !== undefined) {
+        result[key] = prop.default
+      }
+    }
+    return result
+  }
+  const prim = property as JsonSchema07PrimitiveProperty
+  if (prim.default !== undefined) {
+    return prim.default
+  }
+  switch (primitiveBase(prim.type)) {
+    case 'string':
+      return ''
+    case 'number':
+    case 'integer':
+      return 0
+    case 'boolean':
+      return false
+  }
+}
+
 function PrimitiveFieldInput({
   id,
   property,
   value,
   isSecret,
+  isSecretModified,
   onChange,
 }: {
   id: string
   property: JsonSchema07PrimitiveProperty
   value: unknown
   isSecret: boolean
+  /**
+   * Whether the user has edited this secret in the current session. Stored
+   * secrets are never echoed by the server, so until it's edited we render an
+   * empty input with a hint instead of binding the (masked) value. Undefined
+   * in contexts without edit tracking (nested object fields) — there we bind
+   * the value directly.
+   */
+  isSecretModified?: boolean
   onChange: (value: unknown) => void
 }) {
   const base = primitiveBase(property.type)
@@ -177,6 +223,25 @@ function PrimitiveFieldInput({
         JsonSchema07PrimitiveProperty,
         { type: 'string' | ['string', 'null'] }
       >
+      if (isSecret) {
+        const edited = isSecretModified ?? true
+        const hasStoredValue = value != null && value !== ''
+        return (
+          <Input
+            id={id}
+            type="password"
+            autoComplete="off"
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
+            value={edited ? String(value ?? '') : ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={
+              !edited && hasStoredValue
+                ? 'Secret set — leave blank to keep'
+                : 'Enter secret value'
+            }
+          />
+        )
+      }
       if (stringProp.enum) {
         return (
           <Select
@@ -200,7 +265,7 @@ function PrimitiveFieldInput({
       return (
         <Input
           id={id}
-          type={isSecret ? 'password' : 'text'}
+          type="text"
           // eslint-disable-next-line @typescript-eslint/no-base-to-string
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
@@ -609,11 +674,89 @@ function DiscriminatedObjectArrayFieldInput({
   )
 }
 
+/**
+ * When a whole key is secret but its schema wraps the value in a single-string
+ * object (e.g. `{ value: string }`), return that field name so a secret can be
+ * edited as one opaque value and saved back in the expected shape. Otherwise
+ * null — the value is treated as a plain string secret.
+ */
+function singleSecretObjectField(
+  property: CustomSettingsSchemaProperty,
+): string | null {
+  if (property.type !== 'object') {
+    return null
+  }
+  const objectProp = property as Extract<
+    JsonSchema07ObjectItemProperty,
+    { type: 'object' }
+  >
+  const entries = Object.entries(objectProp.properties ?? {})
+  const entry = entries[0]
+  if (entries.length !== 1 || !entry) {
+    return null
+  }
+  const [key, sub] = entry
+  if (sub.type === 'array' || sub.type === 'object') {
+    return null
+  }
+  return primitiveBase(sub.type) === 'string' ? key : null
+}
+
+/** Input for an object-typed property — renders each sub-field one level deep. */
+function ObjectFieldInput({
+  fieldId,
+  property,
+  value,
+  secretKeyPattern,
+  onChange,
+}: {
+  fieldId: string
+  property: Extract<JsonSchema07ObjectItemProperty, { type: 'object' }>
+  value: unknown
+  secretKeyPattern: string | null
+  onChange: (value: unknown) => void
+}) {
+  const obj =
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {}
+  const propertyEntries = Object.entries(property.properties ?? {})
+  const requiredKeys = new Set(property.required ?? [])
+
+  return (
+    <div className="space-y-2 rounded-md border bg-muted/30 p-3">
+      {propertyEntries.map(([propKey, propDef]) => (
+        <div key={propKey} className="space-y-1">
+          <Label htmlFor={`${fieldId}-${propKey}`} className="text-xs">
+            {propKey}
+            {requiredKeys.has(propKey) && (
+              <span className="ml-0.5 text-destructive">*</span>
+            )}
+          </Label>
+          {propDef.description && (
+            <p className="text-[10px] text-muted-foreground">
+              {propDef.description}
+            </p>
+          )}
+          <ObjectItemPropertyInput
+            id={`${fieldId}-${propKey}`}
+            property={propDef}
+            value={obj[propKey]}
+            isSecret={isSecretKey(propKey, secretKeyPattern)}
+            onChange={(v) => onChange({ ...obj, [propKey]: v })}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function FieldInput({
   fieldId,
   property,
   value,
   isSecret,
+  isSecretModified,
   secretKeyPattern,
   onChange,
 }: {
@@ -621,9 +764,50 @@ function FieldInput({
   property: CustomSettingsSchemaProperty
   value: unknown
   isSecret: boolean
+  isSecretModified?: boolean
   secretKeyPattern: string | null
   onChange: (value: unknown) => void
 }) {
+  if (isSecret) {
+    // The whole value is masked opaque by the server, so edit it as a single
+    // secret. If the schema wraps it in a single-string object, marshal to and
+    // from that field; otherwise treat the value as a plain string.
+    const wrapField = singleSecretObjectField(property)
+    const objValue =
+      value != null && typeof value === 'object' && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : undefined
+    return (
+      <PrimitiveFieldInput
+        id={fieldId}
+        property={{ type: 'string' } as JsonSchema07PrimitiveProperty}
+        value={wrapField ? objValue?.[wrapField] : value}
+        isSecret
+        isSecretModified={isSecretModified}
+        onChange={(v) =>
+          onChange(wrapField ? { ...(objValue ?? {}), [wrapField]: v } : v)
+        }
+      />
+    )
+  }
+
+  if (property.type === 'object') {
+    return (
+      <ObjectFieldInput
+        fieldId={fieldId}
+        property={
+          property as Extract<
+            JsonSchema07ObjectItemProperty,
+            { type: 'object' }
+          >
+        }
+        value={value}
+        secretKeyPattern={secretKeyPattern}
+        onChange={onChange}
+      />
+    )
+  }
+
   if (property.type !== 'array') {
     return (
       <PrimitiveFieldInput
@@ -631,6 +815,7 @@ function FieldInput({
         property={property as JsonSchema07PrimitiveProperty}
         value={value}
         isSecret={isSecret}
+        isSecretModified={isSecretModified}
         onChange={onChange}
       />
     )
@@ -678,22 +863,27 @@ function FieldRenderer({
   value,
   source,
   isSecret,
+  isSecretModified,
   isRequired,
   secretKeyPattern,
   onChange,
   level,
   onResetField,
+  onRemove,
 }: {
   fieldKey: string
   property: CustomSettingsSchemaProperty
   value: unknown
   source: CustomSettingsSource
   isSecret: boolean
+  isSecretModified?: boolean
   isRequired: boolean
   secretKeyPattern: string | null
   onChange: (value: unknown) => void
   level: 'user' | 'folder'
   onResetField?: (key: string) => void
+  /** When set, renders a remove control (for dynamic patternProperties keys). */
+  onRemove?: () => void
 }) {
   const fieldId = `custom-setting-${fieldKey}`
   const canResetField =
@@ -718,6 +908,17 @@ function FieldRenderer({
             Reset
           </button>
         )}
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+            title="Remove setting"
+          >
+            <Trash2 className="size-3" />
+            Remove
+          </button>
+        )}
       </div>
       {property.description && (
         <p className="text-xs text-muted-foreground">{property.description}</p>
@@ -727,8 +928,191 @@ function FieldRenderer({
         property={property}
         value={value}
         isSecret={isSecret}
+        isSecretModified={isSecretModified}
         secretKeyPattern={secretKeyPattern}
         onChange={onChange}
+      />
+    </div>
+  )
+}
+
+/**
+ * Add-control for a `patternProperties` entry. The pattern is a literal
+ * lowercase prefix regex (e.g. `^provider_`), so we surface the prefix as a
+ * fixed adornment and let the user type the remaining suffix. The assembled
+ * key is validated against both the platform key format and the pattern.
+ */
+function AddPatternKeyRow({
+  pattern,
+  existingKeys,
+  onAdd,
+}: {
+  pattern: string
+  existingKeys: Set<string>
+  onAdd: (key: string) => void
+}) {
+  const [isAdding, setIsAdding] = React.useState(false)
+  const [suffix, setSuffix] = React.useState('')
+
+  const prefix = pattern.startsWith('^') ? pattern.slice(1) : ''
+  const fullKey = `${prefix}${suffix}`
+  const regex = React.useMemo(() => {
+    try {
+      return new RegExp(pattern)
+    } catch {
+      return null
+    }
+  }, [pattern])
+
+  const error = React.useMemo(() => {
+    if (!suffix) {
+      return null
+    }
+    if (!SETTINGS_KEY_REGEX.test(fullKey)) {
+      return 'Use lowercase a-z, 0-9, or _ — no leading or trailing _'
+    }
+    if (regex && !regex.test(fullKey)) {
+      return 'Key does not match the required pattern'
+    }
+    if (existingKeys.has(fullKey)) {
+      return 'A setting with this key already exists'
+    }
+    return null
+  }, [suffix, fullKey, regex, existingKeys])
+
+  const canAdd = suffix.length > 0 && !error
+
+  const reset = () => {
+    setSuffix('')
+    setIsAdding(false)
+  }
+
+  const commit = () => {
+    if (!canAdd) {
+      return
+    }
+    onAdd(fullKey)
+    reset()
+  }
+
+  if (!isAdding) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => setIsAdding(true)}
+        className="gap-1"
+      >
+        <Plus className="size-3.5" />
+        Add {prefix ? `${prefix}…` : 'setting'}
+      </Button>
+    )
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <div className="focus-within:ring-ring flex flex-1 items-center rounded-md border focus-within:ring-1">
+          {prefix && (
+            <span className="pl-2 text-sm text-muted-foreground">{prefix}</span>
+          )}
+          <Input
+            autoFocus
+            value={suffix}
+            onChange={(e) => setSuffix(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                commit()
+              } else if (e.key === 'Escape') {
+                reset()
+              }
+            }}
+            placeholder="key"
+            className="border-0 pl-0 shadow-none focus-visible:ring-0"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!canAdd}
+          onClick={commit}
+        >
+          Add
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={reset}
+          className="text-muted-foreground"
+        >
+          Cancel
+        </Button>
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  )
+}
+
+/**
+ * Renders one `patternProperties` entry: every stored key matching the pattern
+ * as an editable, removable field, plus a control to add new matching keys.
+ */
+function PatternPropertyGroup({
+  pattern,
+  property,
+  keys,
+  localValues,
+  sources,
+  secretKeyPattern,
+  modifiedSecrets,
+  level,
+  existingKeys,
+  onChange,
+  onRemove,
+  onAdd,
+}: {
+  pattern: string
+  property: CustomSettingsSchemaProperty
+  keys: string[]
+  localValues: Record<string, unknown>
+  sources: Record<string, CustomSettingsSource>
+  secretKeyPattern: string | null
+  modifiedSecrets: Set<string>
+  level: 'user' | 'folder'
+  existingKeys: Set<string>
+  onChange: (key: string, value: unknown) => void
+  onRemove: (key: string) => void
+  onAdd: (key: string) => void
+}) {
+  return (
+    <div className="space-y-3 rounded-md border border-dashed p-3">
+      {property.description && (
+        <p className="text-xs text-muted-foreground">{property.description}</p>
+      )}
+      {keys.map((key) => (
+        <FieldRenderer
+          key={key}
+          fieldKey={key}
+          property={property}
+          value={localValues[key]}
+          source={sources[key] ?? (level === 'folder' ? 'folder' : 'user')}
+          isSecret={isSecretKey(key, secretKeyPattern)}
+          isSecretModified={modifiedSecrets.has(key)}
+          isRequired={false}
+          secretKeyPattern={secretKeyPattern}
+          onChange={(value) => onChange(key, value)}
+          level={level}
+          onRemove={() => onRemove(key)}
+        />
+      ))}
+      <AddPatternKeyRow
+        pattern={pattern}
+        existingKeys={existingKeys}
+        onAdd={onAdd}
       />
     </div>
   )
@@ -769,12 +1153,92 @@ export function CustomSettingsForm({
 
   const propertyEntries = Object.entries(schema.properties)
   const requiredKeys = new Set(schema.required ?? [])
+  const propertyKeySet = React.useMemo(
+    () => new Set(Object.keys(schema.properties)),
+    [schema.properties],
+  )
+
+  // Compile each patternProperties entry once. Keys are assigned to the first
+  // matching pattern so a key is never rendered twice.
+  const compiledPatterns = React.useMemo(
+    () =>
+      Object.entries(schema.patternProperties ?? {}).map(
+        ([pattern, property]) => ({
+          pattern,
+          property,
+          regex: (() => {
+            try {
+              return new RegExp(pattern)
+            } catch {
+              return null
+            }
+          })(),
+        }),
+      ),
+    [schema.patternProperties],
+  )
+
+  const matchesAnyPattern = (key: string) =>
+    compiledPatterns.some(({ regex }) => regex?.test(key))
+
+  // Group the dynamic (pattern-matched) keys currently held in local state.
+  const assigned = new Set<string>()
+  const patternGroups = compiledPatterns.map(({ pattern, property, regex }) => {
+    const keys = regex
+      ? Object.keys(localValues)
+          .filter(
+            (k) => !propertyKeySet.has(k) && !assigned.has(k) && regex.test(k),
+          )
+          .sort()
+      : []
+    keys.forEach((k) => assigned.add(k))
+    return { pattern, property, keys }
+  })
+  const patternKeys = [...assigned]
+
+  // Pattern keys that existed on the server but were removed locally — these
+  // must be sent as `null` to delete them.
+  const removedPatternKeys = Object.keys(values).filter(
+    (key) =>
+      !propertyKeySet.has(key) &&
+      !(key in localValues) &&
+      matchesAnyPattern(key),
+  )
+
+  const allExistingKeys = new Set([
+    ...propertyKeySet,
+    ...Object.keys(localValues),
+  ])
 
   const handleFieldChange = (key: string, value: unknown) => {
     setLocalValues((prev) => ({ ...prev, [key]: value }))
     if (isSecretKey(key, secretKeyPattern)) {
       setModifiedSecrets((prev) => new Set(prev).add(key))
     }
+  }
+
+  const handleAddPatternKey = (
+    key: string,
+    property: CustomSettingsSchemaProperty,
+  ) => {
+    setLocalValues((prev) => ({ ...prev, [key]: buildDefaultValue(property) }))
+    if (isSecretKey(key, secretKeyPattern)) {
+      setModifiedSecrets((prev) => new Set(prev).add(key))
+    }
+  }
+
+  const handleRemovePatternKey = (key: string) => {
+    setLocalValues((prev) =>
+      Object.fromEntries(Object.entries(prev).filter(([k]) => k !== key)),
+    )
+    setModifiedSecrets((prev) => {
+      if (!prev.has(key)) {
+        return prev
+      }
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
   }
 
   const isDirty = (key: string) => {
@@ -789,17 +1253,26 @@ export function CustomSettingsForm({
     // keys (including untouched secrets) are preserved server-side.
     const submitValues: Record<string, unknown> = {}
     for (const [key] of propertyEntries) {
-      if (!isDirty(key)) {
-        continue
+      if (isDirty(key)) {
+        submitValues[key] = localValues[key] ?? null
       }
-      const localVal = localValues[key]
-      submitValues[key] = localVal ?? null
+    }
+    for (const key of patternKeys) {
+      if (isDirty(key)) {
+        submitValues[key] = localValues[key] ?? null
+      }
+    }
+    for (const key of removedPatternKeys) {
+      submitValues[key] = null
     }
     onSave(submitValues)
   }
 
   // Check if anything changed from server values
-  const hasChanges = propertyEntries.some(([key]) => isDirty(key))
+  const hasChanges =
+    propertyEntries.some(([key]) => isDirty(key)) ||
+    patternKeys.some((key) => isDirty(key)) ||
+    removedPatternKeys.length > 0
 
   // Check if any values are explicitly set (not all defaults)
   const hasCustomValues = Object.values(sources).some((s) => s !== 'default')
@@ -824,11 +1297,29 @@ export function CustomSettingsForm({
               value={localValues[key]}
               source={sources[key] ?? 'default'}
               isSecret={isSecretKey(key, secretKeyPattern)}
+              isSecretModified={modifiedSecrets.has(key)}
               isRequired={requiredKeys.has(key)}
               secretKeyPattern={secretKeyPattern}
               onChange={(value) => handleFieldChange(key, value)}
               level={level}
               onResetField={onResetField}
+            />
+          ))}
+          {patternGroups.map(({ pattern, property, keys }) => (
+            <PatternPropertyGroup
+              key={pattern}
+              pattern={pattern}
+              property={property}
+              keys={keys}
+              localValues={localValues}
+              sources={sources}
+              secretKeyPattern={secretKeyPattern}
+              modifiedSecrets={modifiedSecrets}
+              level={level}
+              existingKeys={allExistingKeys}
+              onChange={handleFieldChange}
+              onRemove={handleRemovePatternKey}
+              onAdd={(key) => handleAddPatternKey(key, property)}
             />
           ))}
         </div>
