@@ -1,10 +1,11 @@
+import type { DockerProfileResourceAssignmentDTO } from '@lombokapp/types'
+import type { DockerProfileResourceAssignment } from 'src/docker/entities'
+
 import type { DockerHost } from '../../entities/docker-host.entity'
-import type { DockerProfileResourceAssignment } from '../../entities/docker-profile-resource-assignment.entity'
 import type { DockerRegistryCredential } from '../../entities/docker-registry-credential.entity'
 import type { DockerStandaloneContainer } from '../../entities/docker-standalone-container.entity'
 import type {
   DockerHostDTO,
-  DockerProfileResourceAssignmentDTO,
   DockerRegistryCredentialDTO,
   DockerStandaloneContainerDTO,
 } from '../responses/docker-host-management-responses.dto'
@@ -40,7 +41,9 @@ export function transformDockerRegistryCredentialToDTO(
 }
 
 export function transformDockerProfileAssignmentToDTO(
-  assignment: DockerProfileResourceAssignment & { app: { identifier: string } },
+  assignment: DockerProfileResourceAssignment & {
+    app: { identifier: string }
+  },
 ): DockerProfileResourceAssignmentDTO {
   return {
     id: assignment.id,

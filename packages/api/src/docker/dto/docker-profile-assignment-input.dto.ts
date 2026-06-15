@@ -1,7 +1,6 @@
+import { dockerResourceConfigDataSchema } from '@lombokapp/types'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
-
-import { dockerResourceConfigDataSchema } from './docker-resource-config-input.dto'
 
 export const dockerProfileAssignmentInputSchema = z.object({
   appIdentifier: z.string().min(1),

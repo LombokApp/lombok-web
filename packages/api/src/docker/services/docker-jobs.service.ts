@@ -1,6 +1,7 @@
 import type {
   ContainerProfileConfig,
   ContainerTarget,
+  DockerResourceMount,
   JsonSerializableObject,
 } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
@@ -21,7 +22,6 @@ import { buildPlatformOrigin } from 'src/core/utils/platform-origin.util'
 import { waitForCondition } from 'src/core/utils/wait.util'
 import { OrmService } from 'src/orm/orm.service'
 
-import type { DockerResourceMount } from '../dto/docker-resource-config-input.dto'
 import type { DockerResourceConfig } from '../entities/docker-profile-resource-assignment.entity'
 import {
   type ContainerCreateOptions,
