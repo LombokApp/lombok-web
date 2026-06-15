@@ -1,12 +1,6 @@
 import type { CSSProperties } from 'react'
 
-/**
- * Named additive tones — seed colors mapped to `--color-tone-*` tokens (theme.css).
- * Applied as a cva `tone` variant on Button/Badge (static `[--*-color:…]` classes), so
- * tone works through both the component and the `*Variants()` className helpers.
- * The `color` prop is the one-shot escape hatch (inline style). See §4.6 of
- * packages/demo-apps/coder/UI_TOOLKIT_ALIGNMENT.md.
- */
+// Named additive tones mapped to `--color-tone-*` tokens; `color` prop is the one-shot escape hatch (UI_TOOLKIT_ALIGNMENT.md §4.6).
 export type Tone =
   | 'neutral'
   | 'blue'
@@ -51,11 +45,7 @@ function parseRgb(color: string): [number, number, number] | null {
   return null
 }
 
-/**
- * A readable (black/white) foreground for a solid swatch of `color`, via YIQ brightness.
- * Returns undefined for colors we can't parse (named, var(), oklch, …) — callers then let
- * CSS `contrast-color()` handle it.
- */
+// Readable black/white foreground for a solid `color` via YIQ; undefined for unparseable colors (caller falls back to CSS contrast-color()).
 export function readableForeground(color: string): string | undefined {
   const rgb = parseRgb(color)
   if (!rgb) {
@@ -66,13 +56,7 @@ export function readableForeground(color: string): string | undefined {
   return yiq >= 140 ? '#1c1917' : '#fff'
 }
 
-/**
- * Inline style for the one-shot `color`/`fg` overrides on a toned component.
- * `scope` is the component prefix, e.g. `'button'` → sets `--button-color` / `--button-fg`.
- * When `color` is set without an explicit `fg`, a readable fg is computed for hex/rgb colors
- * (so solid text doesn't depend on `contrast-color()` support); unparseable colors fall
- * through to the CSS `contrast-color()` default. Merges any caller `style` last.
- */
+// Inline style for one-shot `color`/`fg` overrides; `scope` is the var prefix (e.g. 'button' → --button-color). Computes a readable fg for hex/rgb when none given.
 export function toneStyle(
   scope: string,
   color?: string,

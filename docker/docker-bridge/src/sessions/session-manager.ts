@@ -21,10 +21,7 @@ export class SessionManager {
     return 'sess_' + crypto.randomUUID().replace(/-/g, '').slice(0, 21)
   }
 
-  // The `tn-` prefix puts a hyphen inside the publicId — that hyphen
-  // partitions publicIds from app/worker identifiers (which are [a-z0-9_]+),
-  // so tunnel hostnames cannot collide with api-server--{worker}--{app}
-  // or app-server--{name} patterns.
+  // The `tn-` hyphen partitions publicIds from app/worker identifiers ([a-z0-9_]+) so tunnel hostnames can't collide with api-server/app-server patterns.
   private generatePublicId(): string {
     for (let i = 0; i < 10; i++) {
       const id = 'tn-' + crypto.randomUUID().replace(/-/g, '').slice(0, 10)
@@ -35,8 +32,7 @@ export class SessionManager {
     throw new Error('Failed to generate unique public ID')
   }
 
-  // A caller-supplied (durable) publicId must match the same tunnel hostname
-  // shape generatePublicId() produces: a `tn-` prefix followed by [a-z0-9-].
+  // Caller-supplied (durable) publicIds must match the shape generatePublicId() produces.
   private static readonly PUBLIC_ID_SHAPE = /^tn-[a-z0-9-]+$/
 
   private resolvePublicId(opts: {
@@ -75,8 +71,7 @@ export class SessionManager {
   ): TunnelSession {
     const durable = options.durable ?? false
 
-    // Idempotent durable create: a repeated desiredPublicId returns the live
-    // session, making bridge-reconnect replay and concurrent ensureLive safe.
+    // Idempotent durable create: a repeated desiredPublicId returns the live session (safe for replay + concurrent ensureLive).
     if (durable && options.desiredPublicId) {
       const existing = this.getByPublicId(options.desiredPublicId)
       if (existing) {
@@ -157,16 +152,14 @@ export class SessionManager {
       return
     }
 
-    // Close exec stream if active
     if (session.execStream) {
       try {
         session.execStream.destroy()
       } catch {
-        // Ignore stream close errors
+        // Ignore stream close errors.
       }
     }
 
-    // Remove from tunnel index
     if (session.publicId) {
       this.tunnelIndex.delete(session.publicId)
     }
@@ -191,19 +184,17 @@ export class SessionManager {
       const toDelete: string[] = []
 
       for (const [id, session] of this.sessions) {
-        // Durable sessions self-heal only via the platform (reconnect replay /
-        // lazy re-bind); external traffic can't, so they are never swept.
+        // Durable sessions self-heal only via the platform, so they are never swept.
         if (session.durable) {
           continue
         }
 
-        // Remove sessions idle beyond timeout
         if (now - session.lastActivityAt > this.sessionIdleTimeout) {
           toDelete.push(id)
           continue
         }
 
-        // Remove sessions in 'created' state older than 60s (creation timeout)
+        // Creation timeout: drop sessions stuck in 'created' past 60s.
         if (session.state === 'created' && now - session.createdAt > 60_000) {
           toDelete.push(id)
         }

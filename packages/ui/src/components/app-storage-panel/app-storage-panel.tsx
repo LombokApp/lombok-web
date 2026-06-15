@@ -74,8 +74,7 @@ export function AppStoragePanel({ appIdentifier }: { appIdentifier: string }) {
     },
   )
 
-  // Append each fetched page; a page with no token is the first/only one.
-  // Dedupe by key so a background refetch of the current page can't duplicate rows.
+  // Append each page, deduping by key so a background refetch can't duplicate rows.
   const pageData = listQuery.data
   React.useEffect(() => {
     if (!pageData) {

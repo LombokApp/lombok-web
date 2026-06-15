@@ -21,11 +21,7 @@ export type DockerBridgeTunnelStatus =
   | 'unavailable'
   | 'error'
 
-/**
- * Durable tunnel desired state. The platform DB is the single source of truth;
- * the in-memory bridge session (`sessionId`) is the only ephemeral field and is
- * (re)created by the reconciler under the stable `publicId` to match this row.
- */
+/** Durable tunnel desired state (DB is source of truth); `sessionId` is the only ephemeral field, recreated by the reconciler under the stable `publicId`. */
 export const dockerBridgeTunnelsTable = pgTable(
   'docker_bridge_tunnels',
   {
@@ -41,8 +37,7 @@ export const dockerBridgeTunnelsTable = pgTable(
       .references(() => dockerHostsTable.id),
     // App-chosen stable key for cheap per-scope listing (e.g. a workspace id).
     selectorKey: text('selector_key').notNull(),
-    // Snapshot of identifying container labels used to re-resolve the live
-    // container id (APP_ID / USER_ID / ISOLATION_KEY / PROFILE_ID).
+    // Snapshot of identifying labels used to re-resolve the live container id.
     containerSelector: jsonb('container_selector')
       .$type<Record<string, string>>()
       .notNull(),
@@ -52,7 +47,7 @@ export const dockerBridgeTunnelsTable = pgTable(
     publicId: text('public_id').notNull().unique(),
     // Agent spawn command, replayed verbatim on recreation.
     command: jsonb('command').$type<string[]>().notNull(),
-    // Current live bridge session id — the only ephemeral field (null when down).
+    // Live bridge session id — the only ephemeral field (null when down).
     sessionId: text('session_id'),
     status: text('status')
       .notNull()

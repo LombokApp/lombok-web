@@ -85,7 +85,7 @@ const DropdownMenuItem = React.forwardRef<
     description?: React.ReactNode
   }
 >(({ className, inset, icon, title, description, children, ...props }, ref) => {
-  // Rich layout: icon + title + description, ported from the codicle launch menu.
+  // Rich layout: icon + title + description.
   if (title !== undefined) {
     return (
       <DropdownMenuPrimitive.Item

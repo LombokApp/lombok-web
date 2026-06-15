@@ -2,12 +2,7 @@ import * as React from 'react'
 
 import { cn } from '../../utils'
 
-/*
- * ButtonGroup — joins adjacent controls into one unit. Pure container: it squares the
- * inner corners and overlaps shared borders via child selectors, so it works with any
- * children (Buttons, dividers, etc.) without mutating their props. Children keep their
- * own rounding on the outer edges.
- */
+// Joins adjacent controls: squares inner corners and overlaps shared borders via child selectors, without mutating child props.
 interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: 'horizontal' | 'vertical'
 }

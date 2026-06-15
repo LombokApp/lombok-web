@@ -60,8 +60,7 @@ const SELECTOR_LABELS = [
 export class DurableTunnelService {
   private readonly logger = new Logger(DurableTunnelService.name)
 
-  // Coalesce concurrent ensureLive per tunnel id — a single in-flight rebind is
-  // shared by all callers (replay + lazy open racing on the same row).
+  // Coalesce concurrent ensureLive per tunnel id so racing callers share one rebind.
   private readonly inFlight = new Map<string, Promise<DurableTunnelView>>()
 
   constructor(
@@ -69,10 +68,7 @@ export class DurableTunnelService {
     private readonly dockerClientService: DockerClientService,
   ) {}
 
-  /**
-   * Create (or idempotently reuse) a durable tunnel for the unique
-   * (app, user, selectorKey, port) tuple, then bind it live.
-   */
+  /** Create (or idempotently reuse) a durable tunnel for the unique (app, user, selectorKey, port) tuple, then bind it live. */
   async create(input: CreateDurableTunnelInput): Promise<DurableTunnelView> {
     const container = await this.dockerClientService.findContainerById(
       input.hostId,
@@ -151,11 +147,7 @@ export class DurableTunnelService {
     return this.ensureLive(row.id)
   }
 
-  /**
-   * The self-heal core. Re-resolves the live container by labels, reuses a
-   * healthy bridge session or (re)creates one under the stable publicId, and
-   * mints a fresh token. Never starts a container.
-   */
+  /** Self-heal: re-resolve the container by labels, reuse or recreate the bridge session under the stable publicId, mint a fresh token. Never starts a container. */
   async ensureLive(tunnelId: string): Promise<DurableTunnelView> {
     const pending = this.inFlight.get(tunnelId)
     if (pending) {
@@ -178,7 +170,6 @@ export class DurableTunnelService {
     }
 
     try {
-      // Re-resolve the live container by its identifying labels.
       const container = await this.resolveRunningContainer(row)
       if (!container) {
         const updated = await this.patch(row.id, {
@@ -211,7 +202,7 @@ export class DurableTunnelService {
           })
           return this.toView(updated, token)
         }
-        // Stale session (gone, wrong container, or not ready) — drop and rebind.
+        // Stale session (gone, wrong container, or not ready): drop and rebind.
         if (session) {
           await this.dockerClientService
             .deleteTunnelSession(row.sessionId, row.appId)
@@ -219,7 +210,6 @@ export class DurableTunnelService {
         }
       }
 
-      // Otherwise (re)create the bridge session under the stable publicId.
       const created = await this.dockerClientService.createDurableTunnelSession(
         row.hostId,
         container.id,
@@ -326,8 +316,7 @@ export class DurableTunnelService {
       row.hostId,
       row.containerSelector,
     )
-    // Exclude containers carrying an identifying label the selector did not
-    // request (mirrors findOrCreateContainer's not-requested-label exclusion).
+    // Exclude containers carrying an identifying label the selector did not request (mirrors findOrCreateContainer).
     const hasIsolationKey = DOCKER_LABELS.ISOLATION_KEY in row.containerSelector
     const matching = containers.filter((container) => {
       if (!hasIsolationKey && container.labels[DOCKER_LABELS.ISOLATION_KEY]) {

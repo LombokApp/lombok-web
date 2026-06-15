@@ -149,9 +149,7 @@ function ArrayFieldInput({
     </div>
   )
 }
-// `type` can now be either the canonical literal (`"string"`) or the JSON
-// Schema tuple form (`["string", "null"]`) — collapse to the base literal
-// for switch-narrowing.
+// Collapse the JSON Schema tuple form (`["string","null"]`) to its base literal for switch-narrowing.
 function primitiveBase(
   t: JsonSchema07PrimitiveProperty['type'],
 ): 'string' | 'number' | 'integer' | 'boolean' {
@@ -206,13 +204,7 @@ function PrimitiveFieldInput({
   property: JsonSchema07PrimitiveProperty
   value: unknown
   isSecret: boolean
-  /**
-   * Whether the user has edited this secret in the current session. Stored
-   * secrets are never echoed by the server, so until it's edited we render an
-   * empty input with a hint instead of binding the (masked) value. Undefined
-   * in contexts without edit tracking (nested object fields) — there we bind
-   * the value directly.
-   */
+  // Stored secrets are never echoed; until edited we show an empty hinted input. Undefined (nested fields) binds the value directly.
   isSecretModified?: boolean
   onChange: (value: unknown) => void
 }) {
@@ -348,8 +340,7 @@ function ObjectItemPropertyInput({
     )
   }
   if (property.type === 'object') {
-    // Nested object settings are not yet supported in the UI
-    return null
+    return null // nested object settings not yet supported in the UI
   }
   return (
     <PrimitiveFieldInput
@@ -428,7 +419,7 @@ function ObjectItemCard({
       </div>
       <div className="space-y-2">
         {propertyEntries.map(([propKey, propDef]) => {
-          // Hide the discriminator field — it's shown in the card header
+          // Discriminator is shown in the card header instead.
           if (propKey === discriminatorKey) {
             return null
           }
@@ -547,7 +538,6 @@ function DiscriminatedObjectArrayFieldInput({
     : []
   const { discriminator, oneOf } = itemSchema
 
-  // Build a map from discriminator value to its variant schema
   const variantMap = React.useMemo(() => {
     const map = new Map<string, JsonSchema07ObjectItem>()
     for (const variant of oneOf) {
@@ -656,7 +646,6 @@ function DiscriminatedObjectArrayFieldInput({
             variant="outline"
             size="sm"
             onClick={() => {
-              // If only one variant, add it directly
               if (variantKeys.length === 1) {
                 handleAdd(variantKeys[0] ?? '')
               } else {
@@ -674,12 +663,7 @@ function DiscriminatedObjectArrayFieldInput({
   )
 }
 
-/**
- * When a whole key is secret but its schema wraps the value in a single-string
- * object (e.g. `{ value: string }`), return that field name so a secret can be
- * edited as one opaque value and saved back in the expected shape. Otherwise
- * null — the value is treated as a plain string secret.
- */
+// For a secret key whose schema wraps the value in a single-string object, returns that field name; else null (plain string secret).
 function singleSecretObjectField(
   property: CustomSettingsSchemaProperty,
 ): string | null {
@@ -769,9 +753,7 @@ function FieldInput({
   onChange: (value: unknown) => void
 }) {
   if (isSecret) {
-    // The whole value is masked opaque by the server, so edit it as a single
-    // secret. If the schema wraps it in a single-string object, marshal to and
-    // from that field; otherwise treat the value as a plain string.
+    // Value is server-masked: edit as one secret, marshalling through the wrapped field when the schema wraps it.
     const wrapField = singleSecretObjectField(property)
     const objValue =
       value != null && typeof value === 'object' && !Array.isArray(value)
@@ -936,12 +918,7 @@ function FieldRenderer({
   )
 }
 
-/**
- * Add-control for a `patternProperties` entry. The pattern is a literal
- * lowercase prefix regex (e.g. `^provider_`), so we surface the prefix as a
- * fixed adornment and let the user type the remaining suffix. The assembled
- * key is validated against both the platform key format and the pattern.
- */
+// Add-control for a `patternProperties` entry: prefix (e.g. `^provider_`) is a fixed adornment, user types the suffix; the assembled key is validated against the key format and the pattern.
 function AddPatternKeyRow({
   pattern,
   existingKeys,
@@ -1057,10 +1034,7 @@ function AddPatternKeyRow({
   )
 }
 
-/**
- * Renders one `patternProperties` entry: every stored key matching the pattern
- * as an editable, removable field, plus a control to add new matching keys.
- */
+// Renders one `patternProperties` entry: each matching key as an editable/removable field, plus an add control.
 function PatternPropertyGroup({
   pattern,
   property,
@@ -1129,19 +1103,15 @@ export function CustomSettingsForm({
   onReset,
   onResetField,
 }: CustomSettingsFormProps) {
-  // Track local edits — start from the server values
   const [localValues, setLocalValues] = React.useState<Record<string, unknown>>(
     () => ({ ...values }),
   )
-  // Track which secret fields the user touched. Secrets arrive from the
-  // server as masked placeholders; only keys the user actually edited should
-  // be included in the PATCH body. Untouched secrets are omitted and remain
-  // as stored.
+  // Only touched secrets go in the PATCH body; untouched (masked) ones are omitted and stay as stored.
   const [modifiedSecrets, setModifiedSecrets] = React.useState<Set<string>>(
     () => new Set(),
   )
 
-  // Re-sync local state when server values change (after save/reset)
+  // Re-sync local state when server values change (after save/reset).
   const prevValuesRef = React.useRef(values)
   React.useEffect(() => {
     if (prevValuesRef.current !== values) {
@@ -1158,8 +1128,7 @@ export function CustomSettingsForm({
     [schema.properties],
   )
 
-  // Compile each patternProperties entry once. Keys are assigned to the first
-  // matching pattern so a key is never rendered twice.
+  // Each key is assigned to the first matching pattern so it's never rendered twice.
   const compiledPatterns = React.useMemo(
     () =>
       Object.entries(schema.patternProperties ?? {}).map(
@@ -1181,7 +1150,6 @@ export function CustomSettingsForm({
   const matchesAnyPattern = (key: string) =>
     compiledPatterns.some(({ regex }) => regex?.test(key))
 
-  // Group the dynamic (pattern-matched) keys currently held in local state.
   const assigned = new Set<string>()
   const patternGroups = compiledPatterns.map(({ pattern, property, regex }) => {
     const keys = regex
@@ -1196,8 +1164,7 @@ export function CustomSettingsForm({
   })
   const patternKeys = [...assigned]
 
-  // Pattern keys that existed on the server but were removed locally — these
-  // must be sent as `null` to delete them.
+  // Server keys removed locally must be sent as `null` to delete them.
   const removedPatternKeys = Object.keys(values).filter(
     (key) =>
       !propertyKeySet.has(key) &&
@@ -1249,8 +1216,7 @@ export function CustomSettingsForm({
   }
 
   const handleSave = () => {
-    // PATCH semantics: only send keys the user actually changed. Untouched
-    // keys (including untouched secrets) are preserved server-side.
+    // PATCH: only send changed keys; untouched ones are preserved server-side.
     const submitValues: Record<string, unknown> = {}
     for (const [key] of propertyEntries) {
       if (isDirty(key)) {

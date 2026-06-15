@@ -354,18 +354,7 @@ export class TaskService {
     }
   }
 
-  /**
-   * Used to trigger a platform task on request from a user.
-   *
-   * @param userId - The user ID triggering the task.
-   * @param taskIdentifier - The identifier of the core task to trigger.
-   * @param taskData - The data to pass to the task (must be serializable).
-   * @param targetUserId - The user ID to relate the task to.
-   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
-   * @param storageAccessPolicy - The policy regarding governing the storage locations accessible to the task.
-   *
-   ** @returns The created task record.
-   */
+  // Trigger a platform (core) task on request from a user.
   async triggerCoreUserActionTask({
     userId,
     taskIdentifier,
@@ -412,19 +401,7 @@ export class TaskService {
     return task
   }
 
-  /**
-   * Used to trigger an app's task on request from a user.
-   *
-   * @param userId - The user ID triggering the task.
-   * @param appIdentifier - The identifier of the app that owns the task.
-   * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
-   * @param taskData - The data to pass to the task (must be serializable).
-   * @param targetUserId - The user ID to relate the task to.
-   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
-   * @param storageAccessPolicy - The policy regarding governing the storage locations accessible to the task.
-   *
-   ** @returns The created task record.
-   */
+  // Trigger an app's task on request from a user.
   async triggerAppUserActionTask({
     userId,
     appIdentifier,
@@ -488,19 +465,7 @@ export class TaskService {
     })
   }
 
-  /**
-   * Used to trigger an app's own tasks.
-   *
-   * @param appIdentifier - The identifier of the app triggering the task.
-   * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
-   * @param taskData - The data to pass to the task (must be serializable).
-   * @param dontStartBefore - The time before which the task should not start.
-   * @param targetUserId - The user ID to relate the task to.
-   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
-   * @param storageAccessPolicy - The storage access policy to use for the task.
-   * @param onComplete - Optional onComplete handler(s) to trigger when this task completes.
-   * @returns The created task record.
-   */
+  // Trigger an app's own task.
   async triggerAppActionTask({
     appIdentifier,
     taskIdentifier,
@@ -537,7 +502,6 @@ export class TaskService {
       )
     }
 
-    // validate user and folder access if task is scoped as such
     if (targetUserId) {
       await this.appService.validateAppUserAccess({
         appIdentifier,
@@ -552,7 +516,6 @@ export class TaskService {
       })
     }
 
-    // validate the entire storage access policy if one is provided
     if (storageAccessPolicy) {
       await this.appService.validateAppStorageAccessPolicy({
         appIdentifier,
@@ -600,18 +563,7 @@ export class TaskService {
     })
   }
 
-  /**
-   * Used to trigger an task as a completion handler for another task.
-   *
-   * @param appIdentifier - The identifier of the app triggering the task.
-   * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
-   * @param taskData - The data to pass to the task (must be serializable).
-   * @param dontStartBefore - The time before which the task should not start.
-   * @param targetUserId - The user ID to relate the task to.
-   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
-   * @param storageAccessPolicy - The storage access policy to use for the task.
-   * @returns The created task record.
-   */
+  // Trigger a task as a completion handler for another task.
   async executeOnCompleteHandler({
     parentTask,
     parentTaskSuccess,
@@ -631,7 +583,7 @@ export class TaskService {
     parentTask: Task
     correlationKey?: string
     taskIdentifier: string
-    taskDataTemplate?: JsonSerializableObject // parse this to interpolate variables, e.g. {{task.result.someKey}} or {{task.error.someKey}}
+    taskDataTemplate?: JsonSerializableObject // interpolated, e.g. {{task.result.someKey}}
     dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
@@ -773,19 +725,7 @@ export class TaskService {
     }
   }
 
-  /**
-   * Used to trigger a task as an onProgress handler for another task.
-   *
-   * @param parentTask - The parent task that experienced the progress report.
-   * @param parentProgressReport - The worker-originated progress report.
-   * @param taskIdentifier - The identifier of the task to trigger (must be defined in the app's config).
-   * @param taskData - The data to pass to the task (must be serializable).
-   * @param dontStartBefore - The time before which the task should not start.
-   * @param targetUserId - The user ID to relate the task to.
-   * @param targetLocation - The folderId and possibly objectKey to relate the task to.
-   * @param storageAccessPolicy - The storage access policy to use for the task.
-   * @returns The created task record.
-   */
+  // Trigger a task as an onProgress handler for another task.
   async executeOnProgressHandler({
     parentTask,
     parentProgressReport,
@@ -803,7 +743,7 @@ export class TaskService {
     parentProgressReport: TaskProgressReport
     correlationKey?: string
     taskIdentifier: string
-    taskDataTemplate?: JsonSerializableObject // parse this to interpolate variables, e.g. {{task.result.someKey}} or {{task.error.someKey}}
+    taskDataTemplate?: JsonSerializableObject // interpolated, e.g. {{task.result.someKey}}
     dontStartBefore?: { timestamp: Date } | { delayMs: number }
     targetUserId?: string
     targetLocation?: { folderId: string; objectKey?: string }
@@ -1003,13 +943,7 @@ export class TaskService {
       message: string
       payload?: JsonSerializableObject
     }
-    /**
-     * Full executor metadata observed at runtime (e.g. docker containerId
-     * and hostId once the container has started). When provided on the
-     * first heartbeat, the `started` system log entry is upgraded so its
-     * payload carries the full ExecutorMetadata instead of the
-     * ExecutorStartMetadata written at task start.
-     */
+    // Runtime-observed metadata (e.g. containerId, hostId); on the first heartbeat it upgrades the `started` log's ExecutorStartMetadata to full ExecutorMetadata.
     executorMetadata?: ExecutorMetadata
     options?: { tx?: OrmService['db'] }
   }) {
@@ -1057,11 +991,7 @@ export class TaskService {
         }
       : undefined
 
-    // On the first heartbeat with full executor metadata, upgrade the
-    // `started` system log entry in place so the payload reflects the
-    // runtime-observed fields (containerId, hostId, …). We rebuild the
-    // whole systemLog array — heartbeats are serialized per task and
-    // this column is otherwise append-only while the task is running.
+    // First heartbeat with full metadata upgrades the `started` log in place; safe to rebuild the array since heartbeats are serialized per task.
     const shouldUpgradeStartLog =
       executorMetadata !== undefined && task.latestHeartbeatAt === null
     const upgradedSystemLog = shouldUpgradeStartLog
@@ -1130,20 +1060,12 @@ export class TaskService {
       : await this.ormService.db.transaction(async (tx) => {
           return this._registerTaskCompletedInTx(args, tx)
         })
-    // Activity telemetry — fire-and-forget so a failure here can never break
-    // task completion. Emitted after the completion write (outside the inner
-    // tx) for the same reason.
+    // Fire-and-forget, outside the tx, so telemetry failure can't break task completion.
     void this.emitTaskCompletionTelemetry(updatedTask)
     return updatedTask
   }
 
-  /**
-   * Emits a synthetic `task_completed`/`task_failed` event for activity charts.
-   * Only terminal outcomes are counted — requeues (`success === null`) are
-   * skipped so a retried task isn't recorded as failed. Duration lives in
-   * `data` for drill-down only; the duration metric reads it from the tasks
-   * table since event `data` is base64-wrapped and not SQL-queryable.
-   */
+  // Synthetic task_completed/task_failed event for activity charts; requeues (success === null) are skipped so retries aren't recorded as failures.
   private async emitTaskCompletionTelemetry(task: Task) {
     if (task.success === null) {
       return
@@ -1198,8 +1120,6 @@ export class TaskService {
       throw new Error(`Task "${taskId}"  has already been completed.`)
     }
 
-    // build the task system log — typed payload keeps the shape
-    // consumable by onComplete handlers without runtime casts.
     const completionPayload:
       | TaskSuccessSystemLogPayload
       | TaskErrorSystemLogPayload = completion.success
@@ -1304,10 +1224,7 @@ export class TaskService {
       throw new ConflictException('Failed to register task completion task.')
     }
 
-    // Enqueue the completion handler task if one was configured for this task.
-    // `onComplete` is present on every invocation kind via the base trigger
-    // shape, but the discriminated union means we need the `in` check to
-    // narrow away `task_update_child` (which has no onComplete slot).
+    // `in` check narrows away invocation kinds (task_update_child) that have no onComplete slot.
     if ('onComplete' in task.invocation && task.invocation.onComplete?.length) {
       for (let i = 0; i < task.invocation.onComplete.length; i++) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1361,7 +1278,6 @@ export class TaskService {
       }
     }
 
-    // Broadcast success/failure update
     this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
       updatedTask,
       completion.success
@@ -1371,7 +1287,6 @@ export class TaskService {
     )
 
     if (shouldRequeue) {
-      // Broadcast requeue update
       this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
         updatedTask,
         TaskUpdateType.task_requeued,
@@ -1419,8 +1334,8 @@ export class TaskService {
     )[0]
 
     if (!updatedTask) {
-      return null
-    } // task not in running state
+      return null // task not in running state
+    }
 
     this.asyncTaskUpdateBroadcasterService.handleTaskUpdate(
       updatedTask,
@@ -1429,7 +1344,6 @@ export class TaskService {
       storedProgressReport,
     )
 
-    // Evaluate and dispatch onProgress handlers
     const onProgressHandlers =
       'onProgress' in updatedTask.invocation
         ? (updatedTask.invocation.onProgress ?? [])

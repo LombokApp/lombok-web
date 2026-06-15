@@ -22,9 +22,7 @@ export interface TunnelSession {
   publicId: string | null
   label: string
   appId: string | null
-  /** Durable sessions are exempt from the idle/creation sweep — they are torn
-   *  down only by explicit delete or bridge restart, and recreated by the
-   *  platform reconciler under their stable publicId. */
+  /** Exempt from the idle/creation sweep; torn down only by explicit delete or bridge restart, then recreated by the platform reconciler under the stable publicId. */
   durable: boolean
 }
 
