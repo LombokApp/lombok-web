@@ -150,6 +150,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user/apps/{appIdentifier}/storage/objects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List objects in the current user's partition of an app's server storage */
+        get: operations["UserApps_listAppStorageObjects"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/apps/{appIdentifier}/storage/presigned-urls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Presign read-only URLs for objects in the current user's app storage partition */
+        post: operations["UserApps_createAppStoragePresignedUrls"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/user/app-contributions": {
         parameters: {
             query?: never;
@@ -2600,6 +2634,25 @@ export interface components {
         UserAppGetResponse: {
             app: components["schemas"]["UserApp"];
         };
+        UserAppStorageListResponseDTO: {
+            result: {
+                key: string;
+                size: number;
+                eTag: string;
+                lastModified: number;
+            }[];
+            continuationToken?: string;
+        };
+        UserAppStoragePresignInputDTO: {
+            requests: {
+                objectKey: string;
+                /** @enum {string} */
+                method: "GET" | "HEAD";
+            }[];
+        };
+        UserAppStoragePresignResponseDTO: {
+            urls: string[];
+        };
         AppContributionsResponse: {
             [key: string]: {
                 appLabel: string;
@@ -4647,6 +4700,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserAppGetResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    UserApps_listAppStorageObjects: {
+        parameters: {
+            query?: {
+                prefix?: string;
+                continuationToken?: string;
+            };
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAppStorageListResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    UserApps_createAppStoragePresignedUrls: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserAppStoragePresignInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAppStoragePresignResponseDTO"];
                 };
             };
             /** @description Server Error */

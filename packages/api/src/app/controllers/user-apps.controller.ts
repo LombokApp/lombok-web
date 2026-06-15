@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -27,7 +28,11 @@ import { AppCustomSettingsGetResponseDTO } from '../dto/responses/app-custom-set
 import { AppUserSettingsGetResponseDTO } from '../dto/responses/app-user-settings-get-response.dto'
 import { UserAppGetResponse } from '../dto/responses/user-app-get-response.dto'
 import { UserAppListResponse } from '../dto/responses/user-app-list-response.dto'
+import { UserAppStorageListResponseDTO } from '../dto/responses/user-app-storage-list-response.dto'
+import { UserAppStoragePresignResponseDTO } from '../dto/responses/user-app-storage-presign-response.dto'
 import { transformAppToUserDTO } from '../dto/transforms/user-app.transforms'
+import { UserAppStorageListQueryParamsDTO } from '../dto/user-app-storage-list-query-params.dto'
+import { UserAppStoragePresignInputDTO } from '../dto/user-app-storage-presign-input.dto'
 
 @Controller('/api/v1/user')
 @ApiTags('User Apps')
@@ -77,6 +82,46 @@ export class UserAppsController {
     return {
       app: transformAppToUserDTO(result.app, result.userEnabled),
     }
+  }
+
+  /**
+   * List objects in the current user's partition of an app's server storage
+   */
+  @Get('/apps/:appIdentifier/storage/objects')
+  async listAppStorageObjects(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+    @Query() query: UserAppStorageListQueryParamsDTO,
+  ): Promise<UserAppStorageListResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    return this.appService.listUserAppStorage(req.user, appIdentifier, {
+      ...(query.prefix ? { prefix: query.prefix } : {}),
+      ...(query.continuationToken
+        ? { continuationToken: query.continuationToken }
+        : {}),
+    })
+  }
+
+  /**
+   * Presign read-only URLs for objects in the current user's app storage partition
+   */
+  @Post('/apps/:appIdentifier/storage/presigned-urls')
+  async createAppStoragePresignedUrls(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+    @Body() body: UserAppStoragePresignInputDTO,
+  ): Promise<UserAppStoragePresignResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const urls = await this.appService.createUserAppStoragePresignedUrls(
+      req.user,
+      appIdentifier,
+      body.requests,
+    )
+    return { urls }
   }
 
   /**

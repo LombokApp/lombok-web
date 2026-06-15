@@ -74,7 +74,7 @@ import {
   AppSocketService,
 } from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
-import { S3Service } from 'src/storage/s3.service'
+import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
@@ -106,6 +106,10 @@ import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirem
 import { appConfigSanitize } from '../utils/app-config-sanitize'
 import { validateAppIcons } from '../utils/app-icon-validate'
 import { deriveAppId } from '../utils/app-id.util'
+import {
+  buildAppStorageObjectKey,
+  buildAppStoragePartitionPrefix,
+} from '../utils/app-storage-keys'
 import { summariseZodError } from '../utils/format-zod-issues'
 import {
   resolveFolderAppSettings,
@@ -550,6 +554,7 @@ export class AppService {
     payload: {
       objectKey: string
       method: SignedURLsRequestMethod
+      userId?: string
     }[],
   ) {
     const serverStorage =
@@ -558,9 +563,14 @@ export class AppService {
       throw new Error('Server storage not found')
     }
     const urls = this.s3Service.createS3PresignedUrls(
-      payload.map(({ method, objectKey }) => ({
+      payload.map(({ method, objectKey, userId }) => ({
         method,
-        objectKey: `${serverStorage.prefix}${!serverStorage.prefix || serverStorage.prefix.endsWith('/') ? '' : '/'}app-runtime-storage/${requestingAppIdentifier}${objectKey.startsWith('/') ? '' : '/'}${objectKey}`,
+        objectKey: buildAppStorageObjectKey({
+          serverPrefix: serverStorage.prefix,
+          appIdentifier: requestingAppIdentifier,
+          userId,
+          objectKey,
+        }),
         accessKeyId: serverStorage.accessKeyId,
         secretAccessKey: serverStorage.secretAccessKey,
         bucket: serverStorage.bucket,
@@ -570,6 +580,92 @@ export class AppService {
       })),
     )
     return urls
+  }
+
+  /**
+   * List objects in the calling user's own partition of an app's server storage
+   * (`app-runtime-storage/{appId}/users/{userId}/`). Keys are returned relative
+   * to that partition. Scoped to `actor` — never another user's data.
+   */
+  async listUserAppStorage(
+    actor: User,
+    appIdentifier: string,
+    options: { prefix?: string; continuationToken?: string },
+  ) {
+    const { app } = await this.getAppAsUser(actor, appIdentifier)
+    const serverStorage =
+      await this.serverConfigurationService.getServerStorage()
+    if (!serverStorage) {
+      throw new Error('Server storage not found')
+    }
+    const partitionPrefix = buildAppStoragePartitionPrefix({
+      serverPrefix: serverStorage.prefix,
+      appIdentifier: app.identifier,
+      userId: actor.id,
+    })
+    const subPrefix = options.prefix
+      ? options.prefix.startsWith('/')
+        ? options.prefix.slice(1)
+        : options.prefix
+      : ''
+    const s3Client = configureS3Client({
+      accessKeyId: serverStorage.accessKeyId,
+      secretAccessKey: serverStorage.secretAccessKey,
+      endpoint: serverStorage.endpoint,
+      region: serverStorage.region,
+    })
+    const { result, continuationToken } =
+      await this.s3Service.s3ListBucketObjects({
+        s3Client,
+        bucketName: serverStorage.bucket,
+        prefix: `${partitionPrefix}${subPrefix}`,
+        continuationToken: options.continuationToken,
+      })
+    return {
+      result: result.map((obj) => ({
+        key: obj.key.startsWith(partitionPrefix)
+          ? obj.key.slice(partitionPrefix.length)
+          : obj.key,
+        size: obj.size,
+        eTag: obj.eTag,
+        lastModified: obj.lastModified,
+      })),
+      ...(continuationToken ? { continuationToken } : {}),
+    }
+  }
+
+  /**
+   * Presign read-only (GET/HEAD) URLs within the calling user's own partition
+   * of an app's server storage. `objectKey`s are partition-relative.
+   */
+  async createUserAppStoragePresignedUrls(
+    actor: User,
+    appIdentifier: string,
+    requests: { objectKey: string; method: SignedURLsRequestMethod }[],
+  ) {
+    const { app } = await this.getAppAsUser(actor, appIdentifier)
+    const serverStorage =
+      await this.serverConfigurationService.getServerStorage()
+    if (!serverStorage) {
+      throw new Error('Server storage not found')
+    }
+    return this.s3Service.createS3PresignedUrls(
+      requests.map(({ method, objectKey }) => ({
+        method,
+        objectKey: buildAppStorageObjectKey({
+          serverPrefix: serverStorage.prefix,
+          appIdentifier: app.identifier,
+          userId: actor.id,
+          objectKey,
+        }),
+        accessKeyId: serverStorage.accessKeyId,
+        secretAccessKey: serverStorage.secretAccessKey,
+        bucket: serverStorage.bucket,
+        endpoint: serverStorage.endpoint,
+        expirySeconds: 3600,
+        region: serverStorage.region,
+      })),
+    )
   }
 
   async createSignedContentUrls(
