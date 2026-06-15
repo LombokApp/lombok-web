@@ -116,7 +116,8 @@ export function AppUI({
                 payload: {
                   accessToken,
                   refreshToken,
-                  initialPathAndQuery: paths.initial,
+                  pathAndQuery: paths.initial,
+                  parentBasePath: `${window.location.origin}/apps/${appIdentifier}`,
                   theme: theme.theme,
                 },
               }
@@ -130,7 +131,6 @@ export function AppUI({
             }
 
             case 'NAVIGATE_TO': {
-              console.log('(chid) Navigate to:', message.payload)
               const navigateToPayload = message.payload as {
                 pathAndQuery: string
               }

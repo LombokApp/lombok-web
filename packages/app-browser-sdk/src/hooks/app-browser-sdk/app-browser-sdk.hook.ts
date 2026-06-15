@@ -14,6 +14,7 @@ export interface ISdkContext {
   currentPathAndQuery: string
   getAccessToken: AppBrowserSdk['authenticator']['getAccessToken']
   executeWorkerScriptUrl: AppBrowserSdk['executeWorkerScriptUrl']
+  parentBasePath: string
 }
 
 export function useAppBrowserSdk(): ISdkContext {

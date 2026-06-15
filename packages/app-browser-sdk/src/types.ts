@@ -7,6 +7,7 @@ export interface InitialData {
   accessToken: string
   refreshToken: string
   pathAndQuery: string
+  parentBasePath: string
   theme: string
 }
 
