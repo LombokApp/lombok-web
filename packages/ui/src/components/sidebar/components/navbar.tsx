@@ -12,7 +12,6 @@ import React from 'react'
 import { Link } from 'react-router'
 
 import { SheetMenu } from './sheet-menu'
-import { UserNav } from './user-nav'
 
 interface NavbarProps {
   breadcrumbs?: { href?: string; label: string }[]
@@ -65,14 +64,6 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
             )}
           </div>
         </div>
-        {authContext.viewer && (
-          <div className="flex shrink-0 items-center justify-end gap-2 px-2">
-            <UserNav
-              onSignout={() => authContext.logout()}
-              viewer={authContext.viewer}
-            />
-          </div>
-        )}
       </div>
     </header>
   )
