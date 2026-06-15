@@ -47,6 +47,12 @@ const eventAggregationConfig: Record<
   [CoreEvent.new_user_registered]: {
     notificationsEnabled: false,
   },
+  [CoreEvent.task_completed]: {
+    notificationsEnabled: false,
+  },
+  [CoreEvent.task_failed]: {
+    notificationsEnabled: false,
+  },
 }
 
 /**

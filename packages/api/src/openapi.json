@@ -1459,6 +1459,117 @@
         ]
       }
     },
+    "/api/v1/server/metrics/activity": {
+      "get": {
+        "operationId": "Server_getServerActivityMetrics",
+        "parameters": [
+          {
+            "name": "metric",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "events",
+                "tasks",
+                "task_duration",
+                "logs"
+              ]
+            }
+          },
+          {
+            "name": "range",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "7d",
+              "type": "string",
+              "enum": [
+                "24h",
+                "7d",
+                "30d",
+                "90d"
+              ]
+            }
+          },
+          {
+            "name": "granularity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day"
+              ]
+            }
+          },
+          {
+            "name": "groupBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "none",
+              "type": "string",
+              "enum": [
+                "none",
+                "app",
+                "type"
+              ]
+            }
+          },
+          {
+            "name": "appId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityMetricsResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a unified activity time-series (events, tasks, task duration, or logs),\nfixed-bucketed over a rolling window and optionally partitioned by app.",
+        "tags": [
+          "Server"
+        ]
+      }
+    },
     "/api/v1/server/icon": {
       "post": {
         "operationId": "Server_setServerIcon",
@@ -13434,6 +13545,71 @@
           "serverEventsEmittedPreviousHour",
           "folderEventsEmittedPreviousDay",
           "folderEventsEmittedPreviousHour"
+        ]
+      },
+      "ActivityMetricsResponse": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "string",
+            "enum": [
+              "hour",
+              "day"
+            ]
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "points": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "bucket": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "bucket",
+                      "value"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "key",
+                "label",
+                "points"
+              ]
+            }
+          }
+        },
+        "required": [
+          "metric",
+          "granularity",
+          "from",
+          "to",
+          "series"
         ]
       },
       "StorageProvisionsListResponse": {

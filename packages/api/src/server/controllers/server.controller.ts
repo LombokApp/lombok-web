@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UnauthorizedException,
   UploadedFile,
@@ -23,11 +24,14 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 import { MAX_IMAGE_UPLOAD_BYTES } from 'src/shared/utils'
 
+import { ActivityMetricsQueryDTO } from '../dto/activity-metrics-query.dto'
+import { ActivityMetricsResponse } from '../dto/responses/activity-metrics-response.dto'
 import { ServerMetricsResponse } from '../dto/responses/server-metrics-response.dto'
 import { SettingSetResponse } from '../dto/responses/setting-set-response.dto'
 import { SettingsGetResponse } from '../dto/responses/settings-get-response.dto'
 import { SetSettingInputDTO } from '../dto/set-setting-input.dto'
 import { transformServerMetricsToDTO } from '../dto/transforms/server-metrics.transforms'
+import { ActivityMetricsService } from '../services/activity-metrics.service'
 import { ServerConfigurationService } from '../services/server-configuration.service'
 import { ServerIconService } from '../services/server-icon.service'
 import { ServerMetricsService } from '../services/server-metrics.service'
@@ -42,6 +46,7 @@ export class ServerController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly serverMetricsService: ServerMetricsService,
+    private readonly activityMetricsService: ActivityMetricsService,
     private readonly serverIconService: ServerIconService,
   ) {}
 
@@ -118,6 +123,28 @@ export class ServerController {
     }
     const metrics = await this.serverMetricsService.getServerMetrics(req.user)
     return transformServerMetricsToDTO(metrics)
+  }
+
+  /**
+   * Get a unified activity time-series (events, tasks, task duration, or logs),
+   * fixed-bucketed over a rolling window and optionally partitioned by app.
+   */
+  @Get('/metrics/activity')
+  async getServerActivityMetrics(
+    @Req() req: express.Request,
+    @Query() query: ActivityMetricsQueryDTO,
+  ): Promise<ActivityMetricsResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    return this.activityMetricsService.getActivityTimeseries({
+      actor: req.user,
+      metric: query.metric,
+      range: query.range,
+      granularity: query.granularity,
+      groupBy: query.groupBy,
+      appId: query.appId,
+    })
   }
 
   /**

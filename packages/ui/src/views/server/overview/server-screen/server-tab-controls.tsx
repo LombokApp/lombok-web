@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   ListChecks,
   Settings,
+  TrendingUp,
   Users,
 } from 'lucide-react'
 
@@ -26,6 +27,12 @@ const TABS = [
     label: 'Overview',
     icon: LayoutDashboard,
     path: '/server',
+  },
+  {
+    value: 'analytics',
+    label: 'Analytics',
+    icon: TrendingUp,
+    path: '/server/analytics',
   },
   { value: 'users', label: 'Users', icon: Users, path: '/server/users' },
   { value: 'apps', label: 'Apps', icon: LayoutGrid, path: '/server/apps' },

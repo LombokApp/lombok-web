@@ -485,21 +485,38 @@ export class OrmService {
             const tableNames = schemaToTableMapping[schema]!.map(
               (t) => `"${t}"`,
             ).join(', ')
-            const client = await this.client.connect()
-            try {
-              await client.query('BEGIN')
-              await client.query('SET CONSTRAINTS ALL DEFERRED')
-              await client.query(`SET SCHEMA '${schema}';`)
-              const truncateTablesQuery = `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`
-              await client.query(truncateTablesQuery)
-              await client.query(`SET SCHEMA 'public';`)
-              await client.query('SET CONSTRAINTS ALL IMMEDIATE')
-              await client.query('COMMIT')
-            } catch (error) {
-              await client.query('ROLLBACK')
-              throw error
-            } finally {
-              client.release()
+            const truncateTablesQuery = `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`
+            // Retry on deadlock/lock-timeout: fire-and-forget writes (e.g. task
+            // activity telemetry) can still be in flight when a test truncates,
+            // producing a transient TRUNCATE/INSERT lock cycle. lock_timeout
+            // fails fast instead of blocking, then we back off and retry.
+            const maxAttempts = 5
+            for (let attempt = 1; ; attempt++) {
+              const client = await this.client.connect()
+              try {
+                await client.query('BEGIN')
+                await client.query(`SET LOCAL lock_timeout = '5s'`)
+                await client.query('SET CONSTRAINTS ALL DEFERRED')
+                await client.query(`SET SCHEMA '${schema}';`)
+                await client.query(truncateTablesQuery)
+                await client.query(`SET SCHEMA 'public';`)
+                await client.query('SET CONSTRAINTS ALL IMMEDIATE')
+                await client.query('COMMIT')
+                break
+              } catch (error) {
+                await client.query('ROLLBACK').catch(() => undefined)
+                const code = (error as { code?: string }).code
+                const retriable = code === '40P01' || code === '55P03'
+                if (retriable && attempt < maxAttempts) {
+                  await new Promise((resolve) =>
+                    setTimeout(resolve, 50 * attempt),
+                  )
+                  continue
+                }
+                throw error
+              } finally {
+                client.release()
+              }
             }
           }
         }
