@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { PanelLeftClose } from 'lucide-react'
 

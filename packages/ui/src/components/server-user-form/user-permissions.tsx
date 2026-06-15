@@ -1,4 +1,4 @@
-import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
+import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 
 const PERMISSIONS = ['one_permission', 'two_permission']
 

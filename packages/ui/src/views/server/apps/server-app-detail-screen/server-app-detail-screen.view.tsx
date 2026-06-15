@@ -14,16 +14,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@lombokapp/ui-toolkit/components/alert-dialog'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { formatBytes } from '@lombokapp/utils'
@@ -34,14 +34,13 @@ import {
   Menu,
   OctagonX,
   Settings,
-  Smartphone,
   Trash2,
   Upload,
 } from 'lucide-react'
 import React from 'react'
 import { Link, useNavigate } from 'react-router'
 
-import { AppIcon, iconRendersAsGlyph } from '@/src/components/app-icon/app-icon'
+import { AppIcon, iconRendersAsGlyph } from '@/src/components/app-icon'
 import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { DockerIcon } from '@/src/components/icons/docker-icon'
 import { JavaScriptIcon } from '@/src/components/icons/javascript-icon'
@@ -51,7 +50,6 @@ import { $api, $apiClient } from '@/src/services/api'
 import { formatTriggerLabel } from '@/src/utils/trigger-utils'
 
 import { appContributedRouteLinksTableColumns } from './app-contributed-links-table-columns'
-import { appContributedMobileScreensTableColumns } from './app-contributed-mobile-screens-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
 import { serverConnectedAppWorkersTableColumns } from './server-connected-app-workers-table-columns'
@@ -692,50 +690,6 @@ export function ServerAppDetailScreen({
                 </Card>
               )
             })}
-            <Card
-              className="flex-1 border-0 bg-transparent shadow-none"
-              aria-describedby="mobile-screens-contribution-description"
-            >
-              <CardHeader className="p-0 pb-4">
-                <CardTitle className="py-0 text-base">
-                  <div className="flex flex-col">
-                    <span>Mobile screens</span>
-                    <span
-                      id="mobile-screens-contribution-description"
-                      className="text-sm font-normal text-muted-foreground/70"
-                    >
-                      Top-level screens rendered natively by the Lombok mobile
-                      app from a structured JSON spec (no web view).
-                    </span>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {(app?.contributions.mobile?.screens.length ?? 0) > 0 ? (
-                  <DataTable
-                    data={
-                      app?.contributions.mobile?.screens.map((screen) => ({
-                        identifier: screen.identifier,
-                        label: screen.label,
-                        title: screen.title,
-                        icon: screen.icon,
-                        appIdentifier: app.identifier,
-                        viewCount: screen.views.length,
-                      })) ?? []
-                    }
-                    columns={appContributedMobileScreensTableColumns}
-                    bodyCellClassName="w-1/5"
-                    headerCellClassName="w-1/5 bg-foreground/[0.02] text-foreground/50"
-                  />
-                ) : (
-                  <EmptyState
-                    variant="row-sm"
-                    icon={Smartphone}
-                    text="No mobile screens configured"
-                  />
-                )}
-              </CardContent>
-            </Card>
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
 import type { StorageProvision } from '@lombokapp/types'
-import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 
 const ROW_SPACING = 'px-4 py-3'

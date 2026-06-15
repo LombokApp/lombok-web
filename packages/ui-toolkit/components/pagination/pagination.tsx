@@ -1,8 +1,4 @@
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  DotsHorizontalIcon,
-} from '@radix-ui/react-icons'
+import { ChevronLeft, ChevronRight, Ellipsis } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '../../utils'
@@ -74,7 +70,7 @@ const PaginationPrevious = ({
     className={cn('gap-1 pl-2.5', className)}
     {...props}
   >
-    <ChevronLeftIcon className="size-4" />
+    <ChevronLeft className="size-4" />
     <span>Previous</span>
   </PaginationLink>
 )
@@ -91,7 +87,7 @@ const PaginationNext = ({
     {...props}
   >
     <span>Next</span>
-    <ChevronRightIcon className="size-4" />
+    <ChevronRight className="size-4" />
   </PaginationLink>
 )
 PaginationNext.displayName = 'PaginationNext'
@@ -105,7 +101,7 @@ const PaginationEllipsis = ({
     className={cn('flex size-9 items-center justify-center', className)}
     {...props}
   >
-    <DotsHorizontalIcon className="size-4" />
+    <Ellipsis className="size-4" />
     <span className="sr-only">More pages</span>
   </span>
 )

@@ -21,14 +21,22 @@ const alertVariants = cva(
 
 const Alert = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
->(({ className, variant, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> &
+    VariantProps<typeof alertVariants> & {
+      /** Optional leading icon. Rendered as the first child so the built-in
+       *  `[&>svg]` layout positions it — sugar for passing the svg in `children`. */
+      icon?: React.ReactNode
+    }
+>(({ className, variant, icon, children, ...props }, ref) => (
   <div
     ref={ref}
     role="alert"
     className={cn(alertVariants({ variant }), className)}
     {...props}
-  />
+  >
+    {icon}
+    {children}
+  </div>
 ))
 Alert.displayName = 'Alert'
 

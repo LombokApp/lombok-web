@@ -1,4 +1,4 @@
-import { Camera, Loader2 } from 'lucide-react'
+import { Camera, Loader2, X } from 'lucide-react'
 import React from 'react'
 import type { FileRejection } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'
@@ -14,6 +14,7 @@ const DEFAULT_MIN_DIMENSION = 250
 const ACCEPTED_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 export type ImageUploaderShape = 'circle' | 'square'
+export type ImageUploaderVariant = 'default' | 'compact'
 
 export type ImageUploaderErrorKind =
   | 'invalid-type'
@@ -34,6 +35,8 @@ export interface ImageUploaderError {
 export interface ImageUploaderProps {
   /** Circular preview + crop (avatars) or square (icons). Default 'square'. */
   shape?: ImageUploaderShape
+  /** `compact` hides side buttons + helper text and shrinks the preview. Default 'default'. */
+  variant?: ImageUploaderVariant
   /** Current image to preview (a URL or a data URL). */
   imageUrl?: string
   alt?: string
@@ -74,6 +77,7 @@ function readImageDimensions(
 
 export function ImageUploader({
   shape = 'square',
+  variant = 'default',
   imageUrl,
   alt = '',
   fallback,
@@ -82,12 +86,15 @@ export function ImageUploader({
   maxSourceBytes = DEFAULT_MAX_SOURCE_BYTES,
   compressOptions,
   helperText,
-  previewClassName = 'size-20',
+  previewClassName,
   modalTitle,
   onUpload,
   onDelete,
   onError,
 }: ImageUploaderProps) {
+  const isCompact = variant === 'compact'
+  const resolvedPreviewClassName =
+    previewClassName ?? (isCompact ? 'size-10' : 'size-20')
   const [pendingFile, setPendingFile] = React.useState<File | null>(null)
   const [modalOpen, setModalOpen] = React.useState(false)
   const [isBusy, setIsBusy] = React.useState(false)
@@ -211,45 +218,99 @@ export function ImageUploader({
     }
   }, [onDelete, onError])
 
-  return (
-    <div className="flex items-center gap-4">
+  const dropzone = (
+    <div
+      {...getRootProps()}
+      className={cn(
+        'group relative flex cursor-pointer items-center justify-center ring-offset-background transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        shapeClass,
+        resolvedPreviewClassName,
+        isDragActive && 'ring-2 ring-primary',
+        (disabled || isBusy) && 'pointer-events-none opacity-60',
+      )}
+      aria-label="Upload image"
+    >
+      <input {...getInputProps()} />
+      <Avatar className={cn(shapeClass, 'size-full bg-muted')}>
+        {imageUrl ? <AvatarImage src={imageUrl} alt={alt} /> : null}
+        <AvatarFallback
+          className={cn(shapeClass, 'bg-muted text-muted-foreground')}
+        >
+          {fallback}
+        </AvatarFallback>
+      </Avatar>
       <div
-        {...getRootProps()}
         className={cn(
-          'group relative flex cursor-pointer items-center justify-center ring-offset-background transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-black/55 text-white opacity-0 transition-opacity group-hover:opacity-100',
           shapeClass,
-          previewClassName,
-          isDragActive && 'ring-2 ring-primary',
-          (disabled || isBusy) && 'pointer-events-none opacity-60',
+          (isDragActive || isBusy) && 'opacity-100',
         )}
-        aria-label="Upload image"
       >
-        <input {...getInputProps()} />
-        <Avatar className={cn(shapeClass, 'size-full bg-muted')}>
-          {imageUrl ? <AvatarImage src={imageUrl} alt={alt} /> : null}
-          <AvatarFallback
-            className={cn(shapeClass, 'bg-muted text-muted-foreground')}
-          >
-            {fallback}
-          </AvatarFallback>
-        </Avatar>
+        {isBusy ? (
+          <Loader2
+            className={cn(isCompact ? 'size-4' : 'size-5', 'animate-spin')}
+            aria-hidden
+          />
+        ) : (
+          <>
+            <Camera className={'w-1/4'} aria-hidden />
+            {!isCompact ? (
+              <span className="text-[10px] font-medium">Change</span>
+            ) : null}
+          </>
+        )}
+      </div>
+    </div>
+  )
+
+  if (isCompact) {
+    const canRemove = !!imageUrl && !!onDelete && !disabled && !isBusy
+    return (
+      <>
         <div
           className={cn(
-            'absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-black/55 text-white opacity-0 transition-opacity group-hover:opacity-100',
-            shapeClass,
-            isDragActive && 'opacity-100',
+            'group relative inline-block',
+            resolvedPreviewClassName,
           )}
         >
-          {isBusy ? (
-            <Loader2 className="size-5 animate-spin" aria-hidden />
-          ) : (
-            <>
-              <Camera className="size-5" aria-hidden />
-              <span className="text-[10px] font-medium">Change</span>
-            </>
-          )}
+          {dropzone}
+          {canRemove ? (
+            <button
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                void handleDelete()
+              }}
+              aria-label="Remove image"
+              className={`absolute right-0 top-0 translate-y-[-50%] translate-x-[50%] z-10
+              flex size-1/5 items-center justify-center rounded-full bg-background/30 text-fg-muted
+              shadow ring-2 ring-fg-subtle opacity-0 cursor-pointer transition-opacity stroke-3
+              group-hover:opacity-100 focus:opacity-100 focus:outline-none
+              hover:text-fg hover:bg-background/30 hover:ring-2 hover:ring-fg
+              focus-visible:ring-2 focus-visible:ring-ring`}
+            >
+              <X className="size-1/2" aria-hidden />
+            </button>
+          ) : null}
         </div>
-      </div>
+        <ImageCropModal
+          open={modalOpen}
+          file={pendingFile}
+          circularCrop={isCircle}
+          title={modalTitle}
+          compressOptions={compressOptions}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+          onError={(message) => onError?.({ kind: 'process-failed', message })}
+        />
+      </>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      {dropzone}
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">

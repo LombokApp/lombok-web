@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
 import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'
@@ -108,7 +108,7 @@ export function McpTokenList() {
               </td>
               <td className="p-3 text-right align-middle">
                 <Button
-                  variant="destructive"
+                  tone="danger"
                   size="sm"
                   disabled={revoking === token.id}
                   onClick={() => void handleRevoke(token.id)}

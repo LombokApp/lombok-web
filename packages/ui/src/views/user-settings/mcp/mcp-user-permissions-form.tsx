@@ -1,7 +1,10 @@
-import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from '@lombokapp/ui-toolkit/components/card'
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
-import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
+import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'

@@ -10,10 +10,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@lombokapp/ui-toolkit/components/alert-dialog'
-import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
-import { buttonVariants } from '@lombokapp/ui-toolkit/components/button'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button, buttonVariants } from '@lombokapp/ui-toolkit/components/button'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
@@ -195,7 +194,7 @@ export const storageProvisionsTableColumns = (
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                className={buttonVariants({ variant: 'destructive' })}
+                className={buttonVariants({ tone: 'danger' })}
                 onClick={() => {
                   onDelete?.(original)
                 }}

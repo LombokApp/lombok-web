@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Dialog,
   DialogContent,
@@ -6,9 +6,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
-import { Label } from '@lombokapp/ui-toolkit/components/label/label'
-import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
+import { Label } from '@lombokapp/ui-toolkit/components/label'
+import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 import React from 'react'
 
 import { $apiClient } from '@/src/services/api'

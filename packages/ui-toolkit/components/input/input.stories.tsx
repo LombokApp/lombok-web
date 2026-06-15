@@ -46,3 +46,13 @@ export const BasicUsage: Story = {
     </Card>
   ),
 }
+
+export const Sizes: Story = {
+  render: () => (
+    <div className="flex w-80 flex-col gap-3">
+      <Input size="sm" placeholder="sm" />
+      <Input size="default" placeholder="default" />
+      <Input size="lg" placeholder="lg" />
+    </div>
+  ),
+}

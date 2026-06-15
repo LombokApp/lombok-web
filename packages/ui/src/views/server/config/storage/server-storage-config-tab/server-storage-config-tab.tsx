@@ -1,10 +1,10 @@
 import {
+  Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import React from 'react'
 

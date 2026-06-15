@@ -1,0 +1,42 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import * as Stories from './split-button.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A primary action joined to a chevron that opens a dropdown menu of alternative actions. Built on the Radix DropdownMenu and the toolkit Button color system. When `onPrimaryAction` is `null`, the primary button opens the menu too.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import {
+  SplitButton,
+  DropdownMenuItem,
+} from '@lombokapp/ui-toolkit'
+import { SlidersHorizontal, Zap } from 'lucide-react'
+
+<SplitButton label="Chat" tone="blue" gradient onPrimaryAction={() => start()}>
+  <DropdownMenuItem
+    icon={<Zap size={15} className="text-tone-blue" />}
+    title="Start with defaults"
+    description="Launch using all agent defaults"
+    onSelect={() => start()}
+  />
+  <DropdownMenuItem
+    icon={<SlidersHorizontal size={15} className="text-muted-foreground" />}
+    title="Configure and start…"
+    description="Override models and other settings"
+    onSelect={() => configure()}
+  />
+</SplitButton>
+
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />
+
+<Canvas of={Stories.Tones} sourceState="none" />
+
+<Canvas of={Stories.PrimaryOpensMenu} sourceState="none" />

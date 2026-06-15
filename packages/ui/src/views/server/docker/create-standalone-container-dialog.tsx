@@ -1,4 +1,4 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Dialog,
   DialogContent,
@@ -6,26 +6,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
-import { Label } from '@lombokapp/ui-toolkit/components/label/label'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
+import { Label } from '@lombokapp/ui-toolkit/components/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@lombokapp/ui-toolkit/components/select/select'
+} from '@lombokapp/ui-toolkit/components/select'
 import React from 'react'
 
 import { $api, $apiClient } from '@/src/services/api'
 
+import type { ContainerConfigState } from './container-config-form'
 import {
   buildConfigFromState,
-  ContainerConfigForm,
-  type ContainerConfigState,
   EMPTY_CONFIG_STATE,
   loadConfigState,
 } from './container-config-form'
+import { ContainerConfigForm } from './container-config-form/container-config-form'
 
 interface CreateStandaloneContainerDialogProps {
   open: boolean

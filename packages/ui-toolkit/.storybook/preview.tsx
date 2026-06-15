@@ -6,6 +6,7 @@ const preview: Preview = {
   globalTypes: {
     theme: {
       description: 'Global theme for components',
+      defaultValue: 'Light Mode',
       toolbar: {
         icon: 'sun',
         items: ['Light Mode', 'Dark Mode'],
@@ -15,13 +16,24 @@ const preview: Preview = {
   },
   decorators: [
     (Story, context) => {
-      if (context.globals.theme === 'Dark Mode') {
-        document.documentElement.setAttribute('data-mode', 'dark')
+      const dark = context.globals.theme === 'Dark Mode'
+      // Token swap is keyed off the root; mirror it on body so the canvas (which Storybook
+      // owns) repaints too, and wrap the story in a themed, padded surface.
+      const root = document.documentElement
+      const body = document.body
+      if (dark) {
+        root.setAttribute('data-mode', 'dark')
+        body.setAttribute('data-mode', 'dark')
       } else {
-        document.documentElement.removeAttribute('data-mode')
+        root.removeAttribute('data-mode')
+        body.removeAttribute('data-mode')
       }
 
-      return <Story />
+      return (
+        <div className="bg-background text-foreground min-h-screen p-6">
+          <Story />
+        </div>
+      )
     },
   ],
 }

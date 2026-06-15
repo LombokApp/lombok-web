@@ -1,5 +1,5 @@
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { ArrowRight, FolderOpen } from 'lucide-react'
 import type { MouseEvent } from 'react'

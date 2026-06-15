@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Form,
   FormControl,
@@ -8,8 +8,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Switch } from '@lombokapp/ui-toolkit/components/switch/switch'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Switch } from '@lombokapp/ui-toolkit/components/switch'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 

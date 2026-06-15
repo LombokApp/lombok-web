@@ -1,14 +1,14 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import React from 'react'
 

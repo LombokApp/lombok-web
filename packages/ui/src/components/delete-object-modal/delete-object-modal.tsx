@@ -1,13 +1,13 @@
 import type { FolderObjectDTO } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 import { Trash } from 'lucide-react'
 
 export interface DeleteObjectModalData {
@@ -63,7 +63,7 @@ export const DeleteObjectModal = ({
           <Button variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={() => void handleConfirm()}>
+          <Button tone="danger" onClick={() => void handleConfirm()}>
             Delete
           </Button>
         </DialogFooter>

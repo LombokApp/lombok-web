@@ -1,5 +1,5 @@
 import type { ServerLogsListRequest } from '@lombokapp/types'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'

@@ -1,4 +1,4 @@
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { Card } from '@lombokapp/ui-toolkit/components/card'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import { Search, X } from 'lucide-react'
 import React from 'react'

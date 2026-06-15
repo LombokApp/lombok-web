@@ -11176,12 +11176,31 @@
           }
         ]
       },
-      "MobileView": {
+      "MobileRoot": {
+        "type": "object",
+        "properties": {
+          "views": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileRootView"
+            }
+          }
+        },
+        "required": [
+          "views"
+        ],
+        "additionalProperties": false
+      },
+      "MobileRootView": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "minLength": 1
+          },
+          "navRoot": {
+            "type": "boolean"
           },
           "refreshable": {
             "type": "boolean"
@@ -11379,52 +11398,6 @@
         },
         "required": [
           "name"
-        ],
-        "additionalProperties": false
-      },
-      "MobileRoot": {
-        "type": "object",
-        "properties": {
-          "refreshable": {
-            "type": "boolean"
-          },
-          "components": {
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MobileComponent"
-            }
-          },
-          "initialDataModel": {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonSerializableValue"
-            }
-          },
-          "initialQueries": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MobileQueryBinding"
-            }
-          },
-          "actionMap": {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/MobileQueryBinding"
-              }
-            }
-          }
-        },
-        "required": [
-          "components"
         ],
         "additionalProperties": false
       },
@@ -17668,162 +17641,6 @@
           "folderId"
         ]
       },
-      "Icon": {
-        "oneOf": [
-          {
-            "type": "object",
-            "properties": {
-              "source": {
-                "type": "string",
-                "const": "builtin"
-              },
-              "label": {
-                "type": "string",
-                "minLength": 1
-              },
-              "name": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "required": [
-              "source",
-              "name"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "oneOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "source": {
-                    "type": "string",
-                    "const": "custom"
-                  },
-                  "label": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "format": {
-                    "type": "string",
-                    "const": "svg"
-                  },
-                  "rendering": {
-                    "type": "string",
-                    "enum": [
-                      "template",
-                      "original"
-                    ]
-                  },
-                  "assets": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "path": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "appearance": {
-                          "type": "string",
-                          "enum": [
-                            "light",
-                            "dark",
-                            "any"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "path"
-                      ],
-                      "additionalProperties": false
-                    }
-                  }
-                },
-                "required": [
-                  "source",
-                  "format",
-                  "rendering",
-                  "assets"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "source": {
-                    "type": "string",
-                    "const": "custom"
-                  },
-                  "label": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "format": {
-                    "type": "string",
-                    "const": "png"
-                  },
-                  "rendering": {
-                    "type": "string",
-                    "const": "original"
-                  },
-                  "assets": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "path": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "scale": {
-                          "anyOf": [
-                            {
-                              "type": "number",
-                              "const": 1
-                            },
-                            {
-                              "type": "number",
-                              "const": 2
-                            },
-                            {
-                              "type": "number",
-                              "const": 3
-                            }
-                          ]
-                        },
-                        "appearance": {
-                          "type": "string",
-                          "enum": [
-                            "light",
-                            "dark",
-                            "any"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "path",
-                        "scale"
-                      ],
-                      "additionalProperties": false
-                    }
-                  }
-                },
-                "required": [
-                  "source",
-                  "format",
-                  "rendering",
-                  "assets"
-                ],
-                "additionalProperties": false
-              }
-            ]
-          }
-        ]
-      },
       "TargetLocationContext": {
         "type": "object",
         "properties": {
@@ -17930,92 +17747,6 @@
           }
         }
       },
-      "Contributions": {
-        "type": "object",
-        "properties": {
-          "sidebarMenuLinks": {
-            "$ref": "#/components/schemas/AppContributedViews"
-          },
-          "folderSidebarViews": {
-            "$ref": "#/components/schemas/AppContributedViews"
-          },
-          "objectSidebarViews": {
-            "$ref": "#/components/schemas/AppContributedViews"
-          },
-          "objectDetailViews": {
-            "$ref": "#/components/schemas/AppContributedViews"
-          },
-          "folderDetailViews": {
-            "$ref": "#/components/schemas/AppContributedViews"
-          },
-          "mobile": {
-            "type": "object",
-            "properties": {
-              "queries": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string",
-                  "pattern": "^[a-z0-9]+(?:[._][a-z0-9]+)*$"
-                },
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/MobileQueryDefinition"
-                }
-              },
-              "screens": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "identifier": {
-                      "type": "string",
-                      "minLength": 1,
-                      "pattern": "^[a-z][a-z0-9_]*$"
-                    },
-                    "label": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "icon": {
-                      "$ref": "#/components/schemas/Icon"
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "views": {
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/MobileView"
-                      }
-                    }
-                  },
-                  "required": [
-                    "identifier",
-                    "label",
-                    "views"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "root": {
-                "$ref": "#/components/schemas/MobileRoot"
-              }
-            },
-            "required": [
-              "screens"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "sidebarMenuLinks",
-          "folderSidebarViews",
-          "objectSidebarViews",
-          "objectDetailViews",
-          "folderDetailViews"
-        ],
-        "additionalProperties": false
-      },
       "ExecutorMetadata": {
         "oneOf": [
           {
@@ -18105,6 +17836,53 @@
             ]
           }
         ]
+      },
+      "Contributions": {
+        "type": "object",
+        "properties": {
+          "sidebarMenuLinks": {
+            "$ref": "#/components/schemas/AppContributedViews"
+          },
+          "folderSidebarViews": {
+            "$ref": "#/components/schemas/AppContributedViews"
+          },
+          "objectSidebarViews": {
+            "$ref": "#/components/schemas/AppContributedViews"
+          },
+          "objectDetailViews": {
+            "$ref": "#/components/schemas/AppContributedViews"
+          },
+          "folderDetailViews": {
+            "$ref": "#/components/schemas/AppContributedViews"
+          },
+          "mobile": {
+            "type": "object",
+            "properties": {
+              "queries": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]+(?:[._][a-z0-9]+)*$"
+                },
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/MobileQueryDefinition"
+                }
+              },
+              "root": {
+                "$ref": "#/components/schemas/MobileRoot"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "sidebarMenuLinks",
+          "folderSidebarViews",
+          "objectSidebarViews",
+          "objectDetailViews",
+          "folderDetailViews"
+        ],
+        "additionalProperties": false
       },
       "Message": {
         "type": "object",
@@ -18368,6 +18146,162 @@
           "createdAt",
           "updatedAt",
           "deletedAt"
+        ]
+      },
+      "Icon": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "const": "builtin"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "source",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "const": "custom"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "format": {
+                    "type": "string",
+                    "const": "svg"
+                  },
+                  "rendering": {
+                    "type": "string",
+                    "enum": [
+                      "template",
+                      "original"
+                    ]
+                  },
+                  "assets": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "appearance": {
+                          "type": "string",
+                          "enum": [
+                            "light",
+                            "dark",
+                            "any"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "path"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "source",
+                  "format",
+                  "rendering",
+                  "assets"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "const": "custom"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "format": {
+                    "type": "string",
+                    "const": "png"
+                  },
+                  "rendering": {
+                    "type": "string",
+                    "const": "original"
+                  },
+                  "assets": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scale": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "const": 1
+                            },
+                            {
+                              "type": "number",
+                              "const": 2
+                            },
+                            {
+                              "type": "number",
+                              "const": 3
+                            }
+                          ]
+                        },
+                        "appearance": {
+                          "type": "string",
+                          "enum": [
+                            "light",
+                            "dark",
+                            "any"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "scale"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "source",
+                  "format",
+                  "rendering",
+                  "assets"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
         ]
       },
       "FolderObject": {

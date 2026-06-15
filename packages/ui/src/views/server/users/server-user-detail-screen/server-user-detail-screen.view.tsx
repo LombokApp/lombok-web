@@ -1,7 +1,10 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+} from '@lombokapp/ui-toolkit/components/card'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { format } from 'date-fns'
 import { Folders, HandshakeIcon, KeyIcon, Pencil } from 'lucide-react'
 import React from 'react'

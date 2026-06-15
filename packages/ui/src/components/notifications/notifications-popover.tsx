@@ -1,11 +1,11 @@
 import type { components } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@lombokapp/ui-toolkit/components/popover'
-import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
+import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area'
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
 import { useQueryClient } from '@tanstack/react-query'
 import { Bell } from 'lucide-react'

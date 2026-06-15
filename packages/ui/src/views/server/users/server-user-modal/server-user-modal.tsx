@@ -1,11 +1,11 @@
 import type { UserDTO } from '@lombokapp/types'
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 
 import type {

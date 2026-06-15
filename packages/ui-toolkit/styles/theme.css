@@ -41,27 +41,64 @@
   --chart-5: rgb(251, 191, 36);
 }
 
+/* Additive tones — single base colors; components derive hover/active/border/soft/
+   ghost from these via color-mix (see Button), and they're exposed as Tailwind color
+   utilities (bg-tone-blue, text-tone-red, …) via this @theme block. Non-inline so the
+   utilities reference var(--color-tone-*) and follow the dark overrides below. Add a
+   tone by adding a token here. */
+@theme {
+  --color-tone-neutral: var(--primary);
+  --color-tone-primary: var(--primary);
+  --color-tone-blue: #1b59d2;
+  --color-tone-green: #2d892d;
+  --color-tone-red: #d9534f;
+  --color-tone-purple: #6f42c1;
+  --color-tone-fuchsia: #ff00ff;
+  --color-tone-yellow: #f0ad4e;
+  --color-tone-cyan: #5bc0de;
+  --color-tone-orange: #e8ab6a;
+  --color-tone-danger: var(--destructive);
+}
+
+@theme {
+  --color-fg: var(--foreground);
+  --color-fg-subtle: #555555;
+  --color-fg-muted: var(--muted-foreground);
+  --color-fg-faint: #999999;
+  --color-fg-ghost: #b0b0b0;
+}
+
 .dark,
 [data-mode='dark'] {
-  --background: rgb(23, 23, 23);
+  --background: rgb(20, 20, 20);
   --foreground: rgb(250, 250, 250);
-  --card: rgb(30, 30, 30);
+  --card: rgb(25, 25, 25);
   --card-foreground: rgb(250, 250, 250);
-  --popover: rgb(10, 10, 10);
+  --popover: rgb(27, 27, 27);
   --popover-foreground: rgb(250, 250, 250);
   --primary: rgb(250, 250, 250);
   --primary-foreground: rgb(10, 10, 10);
-  --secondary: rgb(212, 212, 212);
-  --secondary-foreground: rgb(10, 10, 10);
+  --secondary: rgb(38, 38, 38);
+  --secondary-foreground: rgb(250, 250, 250);
   --muted: rgb(38, 38, 38);
-  --muted-foreground: rgb(163, 163, 163);
-  --accent: rgb(38, 38, 38);
+  --muted-foreground: rgb(190, 190, 190);
+  --accent: rgb(45, 45, 45);
   --accent-foreground: rgb(250, 250, 250);
   --destructive: rgb(185, 28, 28);
   --destructive-foreground: rgb(254, 242, 242);
-  --border: rgb(51, 51, 51);
+  --border: rgb(35, 35, 35);
   --input: rgb(51, 51, 51);
   --ring: rgb(250, 250, 250);
+
+  /* Lift saturated tones for contrast on dark surfaces. */
+  --color-tone-blue: rgb(79, 139, 255);
+  --color-tone-green: rgb(70, 162, 70);
+  --color-tone-red: rgb(224, 107, 103);
+
+  --color-fg-subtle: rgb(163, 163, 163);
+  --color-fg-muted: var(--muted-foreground);
+  --color-fg-faint: rgb(102, 102, 102);
+  --color-fg-ghost: rgb(85, 85, 85);
 }
 
 @theme inline {

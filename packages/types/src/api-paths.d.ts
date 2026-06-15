@@ -2272,8 +2272,12 @@ export interface components {
         JsonSerializableValue: (string | null) | number | boolean | components["schemas"]["JsonSerializableValue"][] | {
             [key: string]: components["schemas"]["JsonSerializableValue"];
         };
-        MobileView: {
+        MobileRoot: {
+            views: components["schemas"]["MobileRootView"][];
+        };
+        MobileRootView: {
             id: string;
+            navRoot?: boolean;
             refreshable?: boolean;
             components: components["schemas"]["MobileComponent"][];
             initialDataModel?: {
@@ -2320,17 +2324,6 @@ export interface components {
                 [key: string]: {
                     fromPath: string;
                 } | components["schemas"]["JsonSerializableValue"];
-            };
-        };
-        MobileRoot: {
-            refreshable?: boolean;
-            components: components["schemas"]["MobileComponent"][];
-            initialDataModel?: {
-                [key: string]: components["schemas"]["JsonSerializableValue"];
-            };
-            initialQueries?: components["schemas"]["MobileQueryBinding"][];
-            actionMap?: {
-                [key: string]: components["schemas"]["MobileQueryBinding"][];
             };
         };
         JsonSchema07Object: {
@@ -3857,39 +3850,6 @@ export interface components {
             folderId: string;
             objectKey?: string;
         };
-        Icon: {
-            /** @constant */
-            source: "builtin";
-            label?: string;
-            name: string;
-        } | ({
-            /** @constant */
-            source: "custom";
-            label?: string;
-            /** @constant */
-            format: "svg";
-            /** @enum {string} */
-            rendering: "template" | "original";
-            assets: {
-                path: string;
-                /** @enum {string} */
-                appearance?: "light" | "dark" | "any";
-            }[];
-        } | {
-            /** @constant */
-            source: "custom";
-            label?: string;
-            /** @constant */
-            format: "png";
-            /** @constant */
-            rendering: "original";
-            assets: {
-                path: string;
-                scale: 1 | 2 | 3;
-                /** @enum {string} */
-                appearance?: "light" | "dark" | "any";
-            }[];
-        });
         TargetLocationContext: {
             /** Format: uuid */
             folderId: string;
@@ -3919,26 +3879,6 @@ export interface components {
             total?: number;
             label?: string;
         };
-        Contributions: {
-            sidebarMenuLinks: components["schemas"]["AppContributedViews"];
-            folderSidebarViews: components["schemas"]["AppContributedViews"];
-            objectSidebarViews: components["schemas"]["AppContributedViews"];
-            objectDetailViews: components["schemas"]["AppContributedViews"];
-            folderDetailViews: components["schemas"]["AppContributedViews"];
-            mobile?: {
-                queries?: {
-                    [key: string]: components["schemas"]["MobileQueryDefinition"];
-                };
-                screens: {
-                    identifier: string;
-                    label: string;
-                    icon?: components["schemas"]["Icon"];
-                    title?: string;
-                    views: components["schemas"]["MobileView"][];
-                }[];
-                root?: components["schemas"]["MobileRoot"];
-            };
-        };
         ExecutorMetadata: {
             /** @constant */
             type: "system";
@@ -3960,6 +3900,19 @@ export interface components {
             type: "runtime";
             metadata: {
                 workerIdentifier: string;
+            };
+        };
+        Contributions: {
+            sidebarMenuLinks: components["schemas"]["AppContributedViews"];
+            folderSidebarViews: components["schemas"]["AppContributedViews"];
+            objectSidebarViews: components["schemas"]["AppContributedViews"];
+            objectDetailViews: components["schemas"]["AppContributedViews"];
+            folderDetailViews: components["schemas"]["AppContributedViews"];
+            mobile?: {
+                queries?: {
+                    [key: string]: components["schemas"]["MobileQueryDefinition"];
+                };
+                root?: components["schemas"]["MobileRoot"];
             };
         };
         Message: {
@@ -4026,6 +3979,39 @@ export interface components {
                 users: components["schemas"]["Author"][];
             }[];
         };
+        Icon: {
+            /** @constant */
+            source: "builtin";
+            label?: string;
+            name: string;
+        } | ({
+            /** @constant */
+            source: "custom";
+            label?: string;
+            /** @constant */
+            format: "svg";
+            /** @enum {string} */
+            rendering: "template" | "original";
+            assets: {
+                path: string;
+                /** @enum {string} */
+                appearance?: "light" | "dark" | "any";
+            }[];
+        } | {
+            /** @constant */
+            source: "custom";
+            label?: string;
+            /** @constant */
+            format: "png";
+            /** @constant */
+            rendering: "original";
+            assets: {
+                path: string;
+                scale: 1 | 2 | 3;
+                /** @enum {string} */
+                appearance?: "light" | "dark" | "any";
+            }[];
+        });
         FolderObject: {
             /** Format: uuid */
             id: string;

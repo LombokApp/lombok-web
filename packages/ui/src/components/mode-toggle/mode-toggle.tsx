@@ -1,10 +1,10 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@lombokapp/ui-toolkit/components/dropdown-menu/dropdown-menu'
+} from '@lombokapp/ui-toolkit/components/dropdown-menu'
 import { MoonIcon, SunIcon } from 'lucide-react'
 
 import { useTheme } from '@/src/contexts/theme'

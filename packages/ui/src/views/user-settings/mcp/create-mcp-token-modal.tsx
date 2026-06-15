@@ -1,11 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 import {
   Form,
   FormControl,
@@ -13,8 +13,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { useQueryClient } from '@tanstack/react-query'
 import { Copy } from 'lucide-react'
 import React from 'react'

@@ -1,6 +1,6 @@
 import type { ServerUsersListRequest } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import { DataTable } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Plus } from 'lucide-react'

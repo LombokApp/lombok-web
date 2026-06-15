@@ -14,15 +14,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@lombokapp/ui-toolkit/components/alert-dialog'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
 import { Checkbox } from '@lombokapp/ui-toolkit/components/checkbox'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { OctagonX } from 'lucide-react'
@@ -206,7 +206,7 @@ export function ServerAppSettingsTab({
             {app.enabled ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive">Disable app</Button>
+                  <Button tone="danger">Disable app</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -231,7 +231,7 @@ export function ServerAppSettingsTab({
             ) : (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive">Enable app</Button>
+                  <Button tone="danger">Enable app</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>

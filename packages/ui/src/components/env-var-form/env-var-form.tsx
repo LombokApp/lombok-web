@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Form,
   FormControl,
@@ -7,8 +7,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -86,7 +86,7 @@ export function EnvVarForm({
             />
             <Button
               type="button"
-              variant="destructive"
+              tone="danger"
               size="sm"
               onClick={() => remove(index)}
             >

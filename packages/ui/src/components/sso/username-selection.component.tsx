@@ -1,9 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Alert,
-  AlertDescription,
-} from '@lombokapp/ui-toolkit/components/alert/alert'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Alert, AlertDescription } from '@lombokapp/ui-toolkit/components/alert'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import { Card, CardContent } from '@lombokapp/ui-toolkit/components/card'
 import {
   Form,
@@ -12,11 +9,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
-import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2/typography-h2'
-import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
+import { TypographyH2 } from '@lombokapp/ui-toolkit/components/typography-h2'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'

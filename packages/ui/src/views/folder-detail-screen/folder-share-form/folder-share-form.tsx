@@ -6,15 +6,15 @@ import type {
   ServerError,
 } from '@lombokapp/types'
 import { FolderPermissionEnum } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Form,
   FormControl,
   FormDescription,
   FormItem,
   FormLabel,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Icons } from '@lombokapp/ui-toolkit/components/icons/icons'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Icons } from '@lombokapp/ui-toolkit/components/icons'
 import {
   Select,
   SelectContent,

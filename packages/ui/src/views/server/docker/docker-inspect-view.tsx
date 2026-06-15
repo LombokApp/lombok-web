@@ -1,9 +1,9 @@
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
 import {
-  Badge,
-  BadgeVariant,
-} from '@lombokapp/ui-toolkit/components/badge/badge'
-import { CardHeader, CardTitle } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+  Card,
+  CardHeader,
+  CardTitle,
+} from '@lombokapp/ui-toolkit/components/card'
 import {
   Collapsible,
   CollapsibleContent,
@@ -214,12 +214,12 @@ function StateSection({ state }: { state: InspectState }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
         {state.OOMKilled && (
-          <Badge variant={BadgeVariant.destructive} className="text-xs">
+          <Badge tone="danger" className="text-xs">
             OOM Killed
           </Badge>
         )}
         {state.Restarting && (
-          <Badge variant={BadgeVariant.outline} className="text-xs">
+          <Badge variant="outline" className="text-xs">
             Restarting
           </Badge>
         )}
@@ -329,11 +329,11 @@ function MountsSection({ mounts }: { mounts: InspectMount[] }) {
             className="flex flex-col gap-0.5 rounded border border-border bg-background px-3 py-2 text-xs"
           >
             <div className="flex items-center gap-2">
-              <Badge variant={BadgeVariant.outline} className="text-[0.6rem]">
+              <Badge variant="outline" className="text-[0.6rem]">
                 {m.Type}
               </Badge>
               {!m.RW && (
-                <Badge variant={BadgeVariant.outline} className="text-[0.6rem]">
+                <Badge variant="outline" className="text-[0.6rem]">
                   read-only
                 </Badge>
               )}
@@ -367,16 +367,12 @@ function SecuritySection({
     <SectionGroup icon={<Shield className="size-3.5" />} title="Security">
       <div className="flex flex-wrap gap-2">
         {privileged && (
-          <Badge variant={BadgeVariant.destructive} className="text-xs">
+          <Badge tone="danger" className="text-xs">
             Privileged
           </Badge>
         )}
         {capAdd?.map((cap) => (
-          <Badge
-            key={cap}
-            variant={BadgeVariant.outline}
-            className="font-mono text-xs"
-          >
+          <Badge key={cap} variant="outline" className="font-mono text-xs">
             {cap}
           </Badge>
         ))}

@@ -1,9 +1,6 @@
-import {
-  Badge,
-  BadgeVariant,
-} from '@lombokapp/ui-toolkit/components/badge/badge'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
-import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table/data-table'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
+import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
 import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-table/data-table-column-header'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import { AlertTriangle, Settings2 } from 'lucide-react'
@@ -91,11 +88,7 @@ export const createContainerTableColumns = (
     ),
     cell: ({ row }) => (
       <Badge
-        variant={
-          row.original.containerType === 'worker'
-            ? BadgeVariant.secondary
-            : BadgeVariant.outline
-        }
+        variant={row.original.containerType === 'worker' ? 'soft' : 'outline'}
         className="text-xs"
       >
         {row.original.containerType === 'worker' ? 'Worker' : 'Standalone'}
@@ -135,7 +128,7 @@ export const createContainerTableColumns = (
     ),
     cell: ({ row }) =>
       row.original.profileId ? (
-        <Badge variant={BadgeVariant.outline} className="text-xs">
+        <Badge variant="outline" className="text-xs">
           {row.original.profileId}
         </Badge>
       ) : (
@@ -165,15 +158,15 @@ export const createContainerTableColumns = (
         )
       }
 
-      const variant =
+      const badgeProps =
         s === 'running'
-          ? BadgeVariant.secondary
+          ? { variant: 'soft' as const }
           : s === 'exited'
-            ? BadgeVariant.destructive
-            : BadgeVariant.outline
+            ? { tone: 'danger' as const }
+            : { variant: 'outline' as const }
 
       return (
-        <Badge variant={variant} className="text-xs capitalize">
+        <Badge {...badgeProps} className="text-xs capitalize">
           {s}
         </Badge>
       )

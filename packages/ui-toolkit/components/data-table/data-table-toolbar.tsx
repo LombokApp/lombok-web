@@ -1,6 +1,5 @@
-import { Cross2Icon } from '@radix-ui/react-icons'
 import type { Table } from '@tanstack/react-table'
-import { Filter } from 'lucide-react'
+import { Filter, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
 import { Button, Input, TypographyH3 } from '../'
@@ -104,7 +103,7 @@ export function DataTableToolbar<TData>({
               className="h-8 px-2 lg:px-3"
             >
               Reset
-              <Cross2Icon className="ml-2 size-4" />
+              <X className="ml-2 size-4" />
             </Button>
           )}
         </div>

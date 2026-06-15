@@ -1,5 +1,5 @@
 import type { IAuthContext } from '@lombokapp/auth-utils'
-import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area/scroll-area'
+import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area'
 import type { LucideIcon } from 'lucide-react'
 import { LogOut } from 'lucide-react'
 import { useLocation } from 'react-router'

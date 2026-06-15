@@ -3,7 +3,7 @@ import type {
   emailProviderSchema,
   ServerSettingsGetResponse,
 } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Card,
   CardContent,
@@ -11,15 +11,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@lombokapp/ui-toolkit/components/card/card'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+} from '@lombokapp/ui-toolkit/components/card'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@lombokapp/ui-toolkit/components/select/select'
+} from '@lombokapp/ui-toolkit/components/select'
 import React from 'react'
 import type z from 'zod'
 

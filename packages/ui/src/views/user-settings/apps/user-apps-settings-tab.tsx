@@ -1,8 +1,7 @@
-import { CardContent } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import { Card, CardContent } from '@lombokapp/ui-toolkit/components/card'
 import { Link } from 'react-router'
 
-import { AppIcon, iconRendersAsGlyph } from '@/src/components/app-icon/app-icon'
+import { AppIcon, iconRendersAsGlyph } from '@/src/components/app-icon'
 import { $api } from '@/src/services/api'
 
 export function UserAppsSettingsTab() {

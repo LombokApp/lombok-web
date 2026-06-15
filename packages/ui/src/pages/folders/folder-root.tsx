@@ -10,7 +10,7 @@ import { FolderObjectDetailScreen } from '../../views/folder-object-detail-scree
 import { FolderSettingsScreen } from '../../views/folder-settings-screen/folder-settings-screen'
 import { FolderTaskDetailScreen } from '../../views/folder-task-detail-screen/folder-task-detail-screen.view'
 import { FolderTasksScreen } from '../../views/folder-tasks-screen/folder-tasks-screen.view'
-import { FocusedFolderObjectContextProvider } from './focused-folder-object.context'
+import { FocusedFolderObjectContextProvider } from './focused-folder-object.provider'
 
 function FolderObjectRootInner() {
   const params = useParams()

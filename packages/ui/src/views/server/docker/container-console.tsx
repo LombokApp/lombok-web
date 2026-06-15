@@ -1,7 +1,7 @@
 import '@xterm/xterm/css/xterm.css'
 
 import { useAuthContext } from '@lombokapp/auth-utils'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import { cn } from '@lombokapp/ui-toolkit/utils'
 import type { BridgeConnection } from '@lombokapp/utils'
 import { createBridgeConnection } from '@lombokapp/utils'

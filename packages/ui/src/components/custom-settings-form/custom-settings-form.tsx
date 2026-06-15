@@ -8,7 +8,7 @@ import type {
   JsonSchema07PrimitiveProperty,
 } from '@lombokapp/types'
 import { Badge } from '@lombokapp/ui-toolkit/components/badge'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Card,
   CardContent,
@@ -57,12 +57,12 @@ function isSecretKey(key: string, pattern: string | null): boolean {
 
 function getSourceBadgeVariant(
   source: CustomSettingsSource,
-): 'default' | 'secondary' | 'outline' {
+): 'solid' | 'soft' | 'outline' {
   switch (source) {
     case 'folder':
-      return 'default'
+      return 'solid'
     case 'user':
-      return 'secondary'
+      return 'soft'
     case 'default':
       return 'outline'
   }

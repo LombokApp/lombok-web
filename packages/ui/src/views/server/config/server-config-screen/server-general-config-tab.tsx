@@ -1,5 +1,5 @@
 import type { ServerSettingsGetResponse } from '@lombokapp/types'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Card,
   CardContent,
@@ -7,16 +7,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@lombokapp/ui-toolkit/components/card/card'
+} from '@lombokapp/ui-toolkit/components/card'
 import { Checkbox } from '@lombokapp/ui-toolkit/components/checkbox'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@lombokapp/ui-toolkit/components/select/select'
+} from '@lombokapp/ui-toolkit/components/select'
 import React from 'react'
 
 import { $api } from '@/src/services/api'

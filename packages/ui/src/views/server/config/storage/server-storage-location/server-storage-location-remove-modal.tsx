@@ -1,11 +1,11 @@
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
+  Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
-import { Dialog } from '@lombokapp/ui-toolkit/components/dialog/dialog'
 
 const ServerStorageLocationRemoveModal = ({
   modalData,
@@ -35,7 +35,7 @@ const ServerStorageLocationRemoveModal = ({
             This will uninstall any apps which rely on server storage.
           </DialogDescription>
         </DialogHeader>
-        <Button variant="destructive" onClick={() => void onConfirm()}>
+        <Button tone="danger" onClick={() => void onConfirm()}>
           Confirm Remove Server Storage Location
         </Button>
       </DialogContent>

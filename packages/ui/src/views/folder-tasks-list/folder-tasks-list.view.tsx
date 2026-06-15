@@ -1,9 +1,12 @@
 import type { FolderGetResponse, TaskSummaryDTO } from '@lombokapp/types'
 import { FolderPushMessage } from '@lombokapp/types'
-import { CardContent, CardHeader } from '@lombokapp/ui-toolkit/components/card'
-import { Card } from '@lombokapp/ui-toolkit/components/card/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from '@lombokapp/ui-toolkit/components/card'
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
-import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3/typography-h3'
+import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { ListChecks } from 'lucide-react'
 import React from 'react'

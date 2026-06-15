@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { StorageProvision } from '@lombokapp/types'
 import { s3LocationSchema } from '@lombokapp/types'
-import { Badge } from '@lombokapp/ui-toolkit/components/badge/badge'
-import { Button } from '@lombokapp/ui-toolkit/components/button/button'
+import { Badge } from '@lombokapp/ui-toolkit/components/badge'
+import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   Form,
   FormControl,
@@ -11,8 +11,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lombokapp/ui-toolkit/components/form/form'
-import { Input } from '@lombokapp/ui-toolkit/components/input/input'
+} from '@lombokapp/ui-toolkit/components/form'
+import { Input } from '@lombokapp/ui-toolkit/components/input'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { safeZodParse } from '@lombokapp/utils'
 import { X } from 'lucide-react'
@@ -349,7 +349,7 @@ export const CreateFolderForm = ({
         </div>
       </div>
       <div className="flex justify-end gap-2">
-        <Button variant={'secondary'} onClick={onCancel}>
+        <Button variant="soft" onClick={onCancel}>
           Cancel
         </Button>
         <Button
