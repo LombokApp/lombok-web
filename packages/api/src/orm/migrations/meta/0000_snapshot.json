@@ -1,5 +1,5 @@
 {
-  "id": "f40d4fb6-82f2-4623-9830-89114fe3c1c4",
+  "id": "1aa29cf6-7a77-4967-924e-c3182dd259d8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2193,6 +2193,48 @@
           "method": "btree",
           "with": {}
         },
+        "events_emitter_created_at_idx": {
+          "name": "events_emitter_created_at_idx",
+          "columns": [
+            {
+              "expression": "emitter_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "events_identifier_created_at_idx": {
+          "name": "events_identifier_created_at_idx",
+          "columns": [
+            {
+              "expression": "event_identifier",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "events_folder_created_at_idx": {
           "name": "events_folder_created_at_idx",
           "columns": [
@@ -2839,6 +2881,27 @@
           "columns": [
             {
               "expression": "emitter_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "log_entries_emitter_created_at_idx": {
+          "name": "log_entries_emitter_created_at_idx",
+          "columns": [
+            {
+              "expression": "emitter_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

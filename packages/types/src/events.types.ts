@@ -10,6 +10,9 @@ export enum CoreEvent {
   serverless_task_enqueued = 'serverless_task_enqueued',
   docker_task_enqueued = 'docker_task_enqueued',
   new_user_registered = 'new_user_registered',
+  // Synthetic activity-telemetry events, emitted on terminal task completion.
+  task_completed = 'task_completed',
+  task_failed = 'task_failed',
 }
 
 export enum EventNotificationAggregationScope {

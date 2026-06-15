@@ -1,5 +1,6 @@
 import {
   CORE_IDENTIFIER,
+  CoreEvent,
   ExecutorMetadata,
   ExecutorStartMetadata,
   JsonSerializableObject,
@@ -1124,12 +1125,50 @@ export class TaskService {
   ) {
     const args = { taskId, completion }
     // If a transaction is already provided, use it directly instead of starting a new one
-    if (options.tx) {
-      return this._registerTaskCompletedInTx(args, options.tx)
+    const updatedTask = options.tx
+      ? await this._registerTaskCompletedInTx(args, options.tx)
+      : await this.ormService.db.transaction(async (tx) => {
+          return this._registerTaskCompletedInTx(args, tx)
+        })
+    // Activity telemetry — fire-and-forget so a failure here can never break
+    // task completion. Emitted after the completion write (outside the inner
+    // tx) for the same reason.
+    void this.emitTaskCompletionTelemetry(updatedTask)
+    return updatedTask
+  }
+
+  /**
+   * Emits a synthetic `task_completed`/`task_failed` event for activity charts.
+   * Only terminal outcomes are counted — requeues (`success === null`) are
+   * skipped so a retried task isn't recorded as failed. Duration lives in
+   * `data` for drill-down only; the duration metric reads it from the tasks
+   * table since event `data` is base64-wrapped and not SQL-queryable.
+   */
+  private async emitTaskCompletionTelemetry(task: Task) {
+    if (task.success === null) {
+      return
     }
-    return this.ormService.db.transaction(async (tx) => {
-      return this._registerTaskCompletedInTx(args, tx)
-    })
+    try {
+      await this.eventService.emitEvent({
+        emitterIdentifier: task.ownerId,
+        eventIdentifier: task.success
+          ? CoreEvent.task_completed
+          : CoreEvent.task_failed,
+        data: {
+          taskIdentifier: task.taskIdentifier,
+          durationMs:
+            task.startedAt && task.completedAt
+              ? task.completedAt.getTime() - task.startedAt.getTime()
+              : null,
+          attemptCount: task.attemptCount,
+        },
+      })
+    } catch (error) {
+      this.logger.warn(
+        `Failed to emit task completion telemetry for task ${task.id}`,
+        error as Error,
+      )
+    }
   }
 
   private async _registerTaskCompletedInTx(

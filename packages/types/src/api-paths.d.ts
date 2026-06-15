@@ -346,6 +346,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/metrics/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a unified activity time-series (events, tasks, task duration, or logs),
+         *     fixed-bucketed over a rolling window and optionally partitioned by app.
+         */
+        get: operations["Server_getServerActivityMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/icon": {
         parameters: {
             query?: never;
@@ -2789,6 +2809,21 @@ export interface components {
             serverEventsEmittedPreviousHour: string;
             folderEventsEmittedPreviousDay: string;
             folderEventsEmittedPreviousHour: string;
+        };
+        ActivityMetricsResponse: {
+            metric: string;
+            /** @enum {string} */
+            granularity: "hour" | "day";
+            from: string;
+            to: string;
+            series: {
+                key: string;
+                label: string;
+                points: {
+                    bucket: string;
+                    value: number;
+                }[];
+            }[];
         };
         StorageProvisionsListResponse: {
             result: components["schemas"]["StorageProvision"][];
@@ -5295,6 +5330,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServerMetricsResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    Server_getServerActivityMetrics: {
+        parameters: {
+            query: {
+                metric: "events" | "tasks" | "task_duration" | "logs";
+                range?: "24h" | "7d" | "30d" | "90d";
+                granularity?: "hour" | "day";
+                groupBy?: "none" | "app" | "type";
+                appId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityMetricsResponse"];
                 };
             };
             /** @description Server Error */

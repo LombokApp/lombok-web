@@ -358,6 +358,20 @@ const ChartLegendContent = React.forwardRef<
 )
 ChartLegendContent.displayName = 'ChartLegend'
 
+// Re-export the recharts primitives consumers compose with, so apps render
+// charts through a single (deduped) recharts instance owned by the toolkit.
+export {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from 'recharts'
+
 export {
   ChartContainer,
   ChartTooltip,

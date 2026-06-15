@@ -20,6 +20,11 @@ export const logEntriesTable = pgTable(
     ),
     index('log_entries_created_at_idx').on(table.createdAt),
     index('log_entries_emitter_id_idx').on(table.emitterId),
+    // Backs app-partitioned log activity time-series.
+    index('log_entries_emitter_created_at_idx').on(
+      table.emitterId,
+      table.createdAt,
+    ),
     index('log_entries_folder_created_at_idx').on(
       table.targetLocationFolderId,
       table.createdAt,

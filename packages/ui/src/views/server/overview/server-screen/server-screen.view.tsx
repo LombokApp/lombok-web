@@ -1,6 +1,7 @@
 import { ScrollArea } from '@lombokapp/ui-toolkit/components/scroll-area'
 import { useNavigate } from 'react-router'
 
+import { ServerAnalyticsScreen } from '../../analytics/server-analytics-screen.view'
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
 import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
 import { ServerBridgeScreen } from '../../bridge/server-bridge-screen.view'
@@ -38,6 +39,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
   const isDockerScreen = serverPage[0] === 'docker' && !serverPage[1]
   const isBridgeScreen =
     serverPage[0] === 'docker' && serverPage[1] === 'bridge' && !serverPage[2]
+  const isAnalyticsScreen = serverPage[0] === 'analytics' && !serverPage[1]
   const isOverviewScreen = serverPage[0] === 'overview' || !serverPage[0]
   const isSettingsScreen = serverPage[0] === 'settings'
   const shouldNotUseScrollContainer = [
@@ -67,6 +69,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
               <div className="container mx-auto h-full">
                 <div className="flex size-full flex-col items-center [&>*:first-child]:!size-full [&>*:first-child]:pb-8">
                   {isOverviewScreen && <ServerOverviewContent />}
+                  {isAnalyticsScreen && <ServerAnalyticsScreen />}
                   {isUsersScreen && <ServerUsersScreen />}
                   {isEventsScreen && <ServerEventsScreen />}
                   {isAppsScreen && <ServerAppsScreen />}

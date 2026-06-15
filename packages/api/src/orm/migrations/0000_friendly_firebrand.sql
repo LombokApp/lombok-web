@@ -484,6 +484,8 @@ CREATE INDEX "events_actor_user_id_idx" ON "events" USING btree ("actor_user_id"
 CREATE INDEX "events_target_user_id_idx" ON "events" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "events_created_at_idx" ON "events" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "events_emitter_id_idx" ON "events" USING btree ("emitter_id");--> statement-breakpoint
+CREATE INDEX "events_emitter_created_at_idx" ON "events" USING btree ("emitter_id","created_at");--> statement-breakpoint
+CREATE INDEX "events_identifier_created_at_idx" ON "events" USING btree ("event_identifier","created_at");--> statement-breakpoint
 CREATE INDEX "events_folder_created_at_idx" ON "events" USING btree ("target_location_folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "events_target_object_key_idx" ON "events" USING btree ("target_location_object_key");--> statement-breakpoint
 CREATE INDEX "events_aggregation_key_idx" ON "events" USING btree ("aggregation_key");--> statement-breakpoint
@@ -501,6 +503,7 @@ CREATE INDEX "folders_metadata_location_id_idx" ON "folders" USING btree ("metad
 CREATE INDEX "log_entries_target_location_folder_id_idx" ON "log_entries" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "log_entries_created_at_idx" ON "log_entries" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "log_entries_emitter_id_idx" ON "log_entries" USING btree ("emitter_id");--> statement-breakpoint
+CREATE INDEX "log_entries_emitter_created_at_idx" ON "log_entries" USING btree ("emitter_id","created_at");--> statement-breakpoint
 CREATE INDEX "log_entries_folder_created_at_idx" ON "log_entries" USING btree ("target_location_folder_id","created_at");--> statement-breakpoint
 CREATE INDEX "log_entries_level_idx" ON "log_entries" USING btree ("level");--> statement-breakpoint
 CREATE INDEX "log_entries_target_object_key_idx" ON "log_entries" USING btree ("target_location_object_key");--> statement-breakpoint

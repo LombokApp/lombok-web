@@ -44,6 +44,13 @@ export const eventsTable = pgTable(
     index('events_target_user_id_idx').on(table.targetLocationFolderId),
     index('events_created_at_idx').on(table.createdAt),
     index('events_emitter_id_idx').on(table.emitterId),
+    // Composite indexes backing app-partitioned and type-partitioned
+    // activity time-series (emitter/identifier filter + created_at range).
+    index('events_emitter_created_at_idx').on(table.emitterId, table.createdAt),
+    index('events_identifier_created_at_idx').on(
+      table.eventIdentifier,
+      table.createdAt,
+    ),
     index('events_folder_created_at_idx').on(
       table.targetLocationFolderId,
       table.createdAt,
