@@ -626,6 +626,144 @@
         ]
       }
     },
+    "/api/v1/user/apps/{appIdentifier}/storage/objects": {
+      "get": {
+        "operationId": "UserApps_listAppStorageObjects",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prefix",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "continuationToken",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAppStorageListResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List objects in the current user's partition of an app's server storage",
+        "tags": [
+          "User Apps"
+        ]
+      }
+    },
+    "/api/v1/user/apps/{appIdentifier}/storage/presigned-urls": {
+      "post": {
+        "operationId": "UserApps_createAppStoragePresignedUrls",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserAppStoragePresignInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAppStoragePresignResponseDTO"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Presign read-only URLs for objects in the current user's app storage partition",
+        "tags": [
+          "User Apps"
+        ]
+      }
+    },
     "/api/v1/user/app-contributions": {
       "get": {
         "operationId": "UserApps_getAppContributions",
@@ -12587,6 +12725,89 @@
         },
         "required": [
           "app"
+        ]
+      },
+      "UserAppStorageListResponseDTO": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "number"
+                },
+                "eTag": {
+                  "type": "string"
+                },
+                "lastModified": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "key",
+                "size",
+                "eTag",
+                "lastModified"
+              ]
+            }
+          },
+          "continuationToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "UserAppStoragePresignInputDTO": {
+        "type": "object",
+        "properties": {
+          "requests": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "objectKey": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "HEAD"
+                  ]
+                }
+              },
+              "required": [
+                "objectKey",
+                "method"
+              ]
+            }
+          }
+        },
+        "required": [
+          "requests"
+        ]
+      },
+      "UserAppStoragePresignResponseDTO": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "urls"
         ]
       },
       "AppContributionsResponse": {

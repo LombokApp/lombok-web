@@ -34,6 +34,7 @@ import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { OctagonX } from 'lucide-react'
 import React from 'react'
 
+import { AppStoragePanel } from '@/src/components/app-storage-panel/app-storage-panel'
 import { UserCustomSettingsPanel } from '@/src/components/custom-settings-form/user-custom-settings-panel'
 import { $api } from '@/src/services/api'
 
@@ -413,6 +414,7 @@ export function UserAppSettingsTab({
         </CardFooter>
       </Card>
       <UserCustomSettingsPanel appIdentifier={appIdentifier} />
+      <AppStoragePanel appIdentifier={appIdentifier} />
     </div>
   )
 }

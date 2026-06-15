@@ -79,6 +79,8 @@ export const getAppStorageSignedUrlsSchema = z.array(
   z.object({
     objectKey: z.string().min(1),
     method: z.enum(SignedURLsRequestMethod),
+    // When set, the URL is signed under that user's partition; otherwise the app's shared partition.
+    userId: z.uuid().optional(),
   }),
 )
 
