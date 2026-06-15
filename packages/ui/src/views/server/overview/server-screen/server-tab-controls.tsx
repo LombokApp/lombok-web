@@ -1,8 +1,12 @@
-import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
-  AppWindow,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '@lombokapp/ui-toolkit/components/tabs'
+import {
   ChartLine,
   FileText,
+  LayoutDashboard,
   LayoutGrid,
   ListChecks,
   Settings,
@@ -16,163 +20,56 @@ interface ServerTabControlsProps {
   navigate: (path: string) => void
 }
 
-const BUTTON_STYLE =
-  'ring-offset-background focus-visible:ring-ring text-muted-foreground ' +
-  'data-[state=active]:bg-card data-[state=active]:brightness-200 data-[state=active]:text-foreground data-[state=active]:shadow-sm' +
-  'inline-flex items-center justify-center whitespace-nowrap rounded-sm ' +
-  'px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none ' +
-  'focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none ' +
-  'disabled:opacity-50 data-[state=active]:shadow-sm'
+const TABS = [
+  {
+    value: 'overview',
+    label: 'Overview',
+    icon: LayoutDashboard,
+    path: '/server',
+  },
+  { value: 'users', label: 'Users', icon: Users, path: '/server/users' },
+  { value: 'apps', label: 'Apps', icon: LayoutGrid, path: '/server/apps' },
+  {
+    value: 'docker',
+    label: 'Docker',
+    icon: DockerIcon,
+    path: '/server/docker',
+  },
+  { value: 'events', label: 'Events', icon: ChartLine, path: '/server/events' },
+  { value: 'tasks', label: 'Tasks', icon: ListChecks, path: '/server/tasks' },
+  { value: 'logs', label: 'Logs', icon: FileText, path: '/server/logs' },
+  {
+    value: 'settings',
+    label: 'Settings',
+    icon: Settings,
+    path: '/server/settings',
+  },
+] as const
 
 export function ServerTabControls({
   serverPage,
   navigate,
 }: ServerTabControlsProps) {
+  const activeTab = serverPage[0] || 'overview'
+
   return (
-    <div
-      role="tablist"
-      aria-orientation="horizontal"
-      className="inline-flex h-10 grow-0 items-center justify-center rounded-md bg-card border p-1 text-muted-foreground"
-      tabIndex={0}
-      data-orientation="horizontal"
-      style={{ outline: 'none' }}
+    <Tabs
+      value={activeTab}
+      onValueChange={(value) => {
+        const tab = TABS.find((t) => t.value === value)
+        if (tab) {
+          navigate(tab.path)
+        }
+      }}
     >
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'overview'}
-        aria-controls="overview-tab-content"
-        data-state={serverPage[0] === 'overview' ? 'active' : 'inactive'}
-        id="overview-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server')}
-      >
-        <div className="flex items-center gap-2">
-          <LayoutGrid className="size-4" />
-          Overview
-        </div>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'users'}
-        aria-controls="users-tab-content"
-        data-state={serverPage[0] === 'users' ? 'active' : 'inactive'}
-        id="users-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server/users')}
-      >
-        <div className="flex items-center gap-2">
-          <Users className="size-4" />
-          Users
-        </div>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'apps'}
-        aria-controls="apps-tab-content"
-        data-state={serverPage[0] === 'apps' ? 'active' : 'inactive'}
-        id="apps-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server/apps')}
-      >
-        <div className="flex items-center gap-2">
-          <AppWindow className="size-4" />
-          Apps
-        </div>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'docker'}
-        aria-controls="docker-tab-content"
-        data-state={serverPage[0] === 'docker' ? 'active' : 'inactive'}
-        id="docker-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server/docker')}
-      >
-        <div className="flex items-center gap-2">
-          <DockerIcon className="size-4" />
-          Docker
-        </div>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'events'}
-        aria-controls="events-tab-content"
-        data-state={serverPage[0] === 'events' ? 'active' : 'inactive'}
-        id="events-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server/events')}
-      >
-        <div className="flex items-center gap-2">
-          <ChartLine className="size-4" />
-          Events
-        </div>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'tasks'}
-        aria-controls="tasks-tab-content"
-        data-state={serverPage[0] === 'tasks' ? 'active' : 'inactive'}
-        id="tasks-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server/tasks')}
-      >
-        <div className="flex items-center gap-2">
-          <ListChecks className="size-4" />
-          Tasks
-        </div>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'logs'}
-        aria-controls="logs-tab-content"
-        data-state={serverPage[0] === 'logs' ? 'active' : 'inactive'}
-        id="logs-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server/logs')}
-      >
-        <div className="flex items-center gap-2">
-          <FileText className="size-4" />
-          Logs
-        </div>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={serverPage[0] === 'settings'}
-        aria-controls="settings-tab-content"
-        data-state={serverPage[0] === 'settings' ? 'active' : 'inactive'}
-        id="settings-tab-trigger"
-        className={cn(BUTTON_STYLE)}
-        tabIndex={-1}
-        data-orientation="horizontal"
-        onClick={() => navigate('/server/settings')}
-      >
-        <div className="flex items-center gap-2">
-          <Settings className="size-4" />
-          Settings
-        </div>
-      </button>
-    </div>
+      <TabsList>
+        {TABS.map(({ value, label, icon: Icon }) => (
+          <TabsTrigger key={value} value={value}>
+            <Icon className="size-4" />
+            {label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 }
