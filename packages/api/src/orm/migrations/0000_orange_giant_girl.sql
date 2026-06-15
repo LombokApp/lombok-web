@@ -249,6 +249,14 @@ CREATE TABLE "folder_shares" (
 	"updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "folder_user_preferences" (
+	"user_id" uuid NOT NULL,
+	"folder_id" uuid NOT NULL,
+	"starred" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "folders" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -437,6 +445,8 @@ ALTER TABLE "docker_standalone_containers" ADD CONSTRAINT "docker_standalone_con
 ALTER TABLE "folder_objects" ADD CONSTRAINT "folder_objects_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "folder_user_preferences" ADD CONSTRAINT "folder_user_preferences_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "folder_user_preferences" ADD CONSTRAINT "folder_user_preferences_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_content_location_id_storage_locations_id_fk" FOREIGN KEY ("content_location_id") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_metadata_location_id_storage_locations_id_fk" FOREIGN KEY ("metadata_location_id") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_owner_id_users_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -497,6 +507,8 @@ CREATE INDEX "folder_objects_object_key_trgm_idx" ON "folder_objects" USING gin 
 CREATE UNIQUE INDEX "folder_objects_folder_id_object_key_unique" ON "folder_objects" USING btree ("folder_id","object_key");--> statement-breakpoint
 CREATE INDEX "folder_shares_user_id_idx" ON "folder_shares" USING btree ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_shares_folder_user_unique" ON "folder_shares" USING btree ("folder_id","user_id");--> statement-breakpoint
+CREATE INDEX "folder_user_preferences_user_id_idx" ON "folder_user_preferences" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "folder_user_preferences_user_folder_unique" ON "folder_user_preferences" USING btree ("user_id","folder_id");--> statement-breakpoint
 CREATE INDEX "folders_owner_id_idx" ON "folders" USING btree ("owner_id");--> statement-breakpoint
 CREATE INDEX "folders_content_location_id_idx" ON "folders" USING btree ("content_location_id");--> statement-breakpoint
 CREATE INDEX "folders_metadata_location_id_idx" ON "folders" USING btree ("metadata_location_id");--> statement-breakpoint

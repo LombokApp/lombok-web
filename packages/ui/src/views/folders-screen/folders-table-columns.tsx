@@ -5,12 +5,14 @@ import { DataTableColumnHeader } from '@lombokapp/ui-toolkit/components/data-tab
 
 import { DateDisplay } from '@/src/components/date-display'
 import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
+import { FolderStarToggle } from '@/src/components/folder-star-toggle/folder-star-toggle'
 
 import { TableLinkColumn } from '../../components/table-link-column/table-link-column'
 
 export const foldersTableColumns: HideableColumnDef<{
   folder: FolderDTO
   permissions: string[]
+  starred: boolean
 }>[] = [
   {
     id: 'link',
@@ -18,6 +20,20 @@ export const foldersTableColumns: HideableColumnDef<{
       <TableLinkColumn to={`/folders/${row.original.folder.id}`} />
     ),
     enableSorting: false,
+    zeroWidth: true,
+  },
+  {
+    id: 'starred',
+    cell: ({ row }) => (
+      <div className="pl-2">
+        <FolderStarToggle
+          folderId={row.original.folder.id}
+          starred={row.original.starred}
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
     zeroWidth: true,
   },
   {

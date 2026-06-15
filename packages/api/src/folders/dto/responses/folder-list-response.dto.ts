@@ -12,6 +12,7 @@ export const folderListResponseSchema = z.object({
     z.object({
       permissions: z.array(FolderPermissionZodEnum),
       folder: folderDTOSchema,
+      starred: z.boolean(),
     }),
   ),
 })

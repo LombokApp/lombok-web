@@ -7,6 +7,7 @@ import { folderDTOSchema } from '../folder.dto'
 export const folderGetResponseSchema = z.object({
   folder: folderDTOSchema,
   permissions: z.array(FolderPermissionZodEnum),
+  starred: z.boolean(),
 })
 
 export class FolderGetResponse extends createZodDto(folderGetResponseSchema) {}

@@ -59,6 +59,10 @@ import {
   folderSharesRelations,
   folderSharesTable,
 } from '../folders/entities/folder-share.entity'
+import {
+  folderUserPreferencesRelations,
+  folderUserPreferencesTable,
+} from '../folders/entities/folder-user-preference.entity'
 import { logEntriesTable } from '../log/entities/log-entry.entity'
 import {
   mcpFolderSettingsRelations,
@@ -89,6 +93,8 @@ export const dbSchema = {
   foldersRelations,
   folderSharesRelations,
   folderObjectsTable,
+  folderUserPreferencesTable,
+  folderUserPreferencesRelations,
   appsTable,
   appInstallSequencesTable,
   appRuntimeTriggersTable,

@@ -53,6 +53,7 @@ import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-i
 import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
 import { FolderShareCreateInputDTO } from '../dto/folder-share-create-input.dto'
 import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
+import { FolderStarInputDTO } from '../dto/folder-star-input.dto'
 import { FolderUpdateInputDTO } from '../dto/folder-update-input.dto'
 import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { FolderCreateResponse } from '../dto/responses/folder-create-response.dto'
@@ -65,6 +66,8 @@ import type { FolderObjectListResponse } from '../dto/responses/folder-object-li
 import { FolderShareGetResponse } from '../dto/responses/folder-share-get-response.dto'
 import { FolderShareListResponse } from '../dto/responses/folder-share-list-response.dto'
 import { FolderShareUserListResponse } from '../dto/responses/folder-share-user-list-response.dto'
+import type { FolderStarResponse } from '../dto/responses/folder-star-response.dto'
+import type { FolderStarredListResponse } from '../dto/responses/folder-starred-list-response.dto'
 import type { FolderUpdateResponseDTO } from '../dto/responses/folder-update-response.dto'
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
@@ -92,6 +95,26 @@ export class FoldersController {
   ) {}
 
   /**
+   * List the current user's starred folders.
+   *
+   * Declared before `/:folderId` so the literal `starred` segment is not
+   * captured by the UUID-parsed folder route.
+   */
+  @Get('/starred')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
+  async listStarredFolders(
+    @Req() req: express.Request,
+  ): Promise<FolderStarredListResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const folders = await this.folderService.listStarredFoldersAsUser(req.user)
+    return { folders }
+  }
+
+  /**
    * Get a folder by id.
    */
   @Get('/:folderId')
@@ -110,7 +133,31 @@ export class FoldersController {
     return {
       folder: transformFolderToDTO(result.folder),
       permissions: result.permissions,
+      starred: result.starred,
     }
+  }
+
+  /**
+   * Star or unstar a folder for the current user.
+   */
+  @Put('/:folderId/starred')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
+  async setFolderStarred(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Body() body: FolderStarInputDTO,
+  ): Promise<FolderStarResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const starred = await this.folderService.setFolderStarredAsUser(
+      req.user,
+      folderId,
+      body.starred,
+    )
+    return { starred }
   }
 
   /**
@@ -179,9 +226,10 @@ export class FoldersController {
       },
     )
     return {
-      result: result.map(({ folder, permissions }) => ({
+      result: result.map(({ folder, permissions, starred }) => ({
         permissions,
         folder: transformFolderToDTO(folder),
+        starred,
       })),
       meta,
     }

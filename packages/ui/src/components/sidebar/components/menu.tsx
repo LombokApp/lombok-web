@@ -4,12 +4,14 @@ import type { LucideIcon } from 'lucide-react'
 import { useLocation } from 'react-router'
 
 import type { AppPathContribution } from '@/src/contexts/server'
+import { $api } from '@/src/services/api'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
 import { NotificationsTrigger } from './notifications-trigger'
 import { SidebarGroup } from './sidebar-group'
 import { SidebarItem } from './sidebar-item'
+import { SidebarStarredSection } from './sidebar-starred-section'
 import { ThemeToggleTrigger } from './theme-toggle-trigger'
 import { UserNav } from './user-nav'
 
@@ -26,6 +28,10 @@ export function Menu({
   sidebarMenuLinkContributions,
 }: { onSignOut: () => Promise<void> } & MenuProps) {
   const location = useLocation()
+  const { data: starredFolders } = $api.useQuery(
+    'get',
+    '/api/v1/folders/starred',
+  )
   const menuList = getMenuList(
     location.pathname,
     viewer,
@@ -36,6 +42,10 @@ export function Menu({
       <ScrollArea className="h-full flex-1 overflow-x-visible [&>div>div[style]]:!block">
         <nav className="size-full py-2">
           <ul className="flex h-full flex-col items-start space-y-1">
+            <SidebarStarredSection
+              folders={starredFolders?.folders ?? []}
+              isOpen={isOpen}
+            />
             {menuList.map(({ groupLabel, menus }, index) => (
               <SidebarGroup key={index} label={groupLabel}>
                 {menus.map(({ href, label, icon, active, submenus }, _index) =>
