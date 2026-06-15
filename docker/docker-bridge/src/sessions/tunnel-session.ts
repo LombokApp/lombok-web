@@ -157,6 +157,8 @@ export class TunnelSessionHandler {
     options: {
       appId: string
       public?: boolean
+      desiredPublicId?: string | null
+      durable?: boolean
     } | null,
   ): Promise<TunnelSession> {
     const session = this.sessionManager.create(
@@ -170,6 +172,8 @@ export class TunnelSessionHandler {
         tty,
         appId: options?.appId ?? null,
         isPublic: options?.public ?? false,
+        desiredPublicId: options?.desiredPublicId ?? null,
+        durable: options?.durable ?? false,
       },
     )
 

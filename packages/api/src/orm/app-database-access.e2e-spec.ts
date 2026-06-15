@@ -30,10 +30,16 @@ function createMockAppPlatformService(
   appIdentifier: string,
 ): IAppPlatformService {
   return {
-    createBridgeTunnel: () => {
+    createDurableTunnel: () => {
       throw new Error('Not implemented in test mock')
     },
-    deleteBridgeTunnel: () => {
+    listDurableTunnels: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    ensureDurableTunnel: () => {
+      throw new Error('Not implemented in test mock')
+    },
+    deleteDurableTunnel: () => {
       throw new Error('Not implemented in test mock')
     },
     patchAppCustomSettings: () => {

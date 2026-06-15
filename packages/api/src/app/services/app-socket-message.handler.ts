@@ -495,9 +495,9 @@ export async function handleAppSocketMessage(
         throw err
       }
     }
-    case 'CREATE_BRIDGE_TUNNEL': {
+    case 'CREATE_DURABLE_TUNNEL': {
       try {
-        const result = await appService.createTunnelSessionAsApp(
+        const result = await appService.createDurableTunnelAsApp(
           requestingAppIdentifier,
           parsedRequest.data,
         )
@@ -512,26 +512,73 @@ export async function handleAppSocketMessage(
             message:
               error instanceof Error
                 ? error.message
-                : 'Bridge tunnel creation failed',
+                : 'Durable tunnel creation failed',
           },
         }
       }
     }
-    case 'DELETE_BRIDGE_TUNNEL': {
+    case 'LIST_DURABLE_TUNNELS': {
       try {
-        await appService.deleteTunnelSessionAsApp(
+        const result = await appService.listDurableTunnelsAsApp(
           requestingAppIdentifier,
-          parsedRequest.data.sessionId,
+          parsedRequest.data,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Durable tunnel listing failed',
+          },
+        }
+      }
+    }
+    case 'ENSURE_DURABLE_TUNNEL': {
+      try {
+        const result = await appService.ensureDurableTunnelAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
+        )
+        return { result }
+      } catch (error: unknown) {
+        return {
+          error: {
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Durable tunnel ensure failed',
+          },
+        }
+      }
+    }
+    case 'DELETE_DURABLE_TUNNEL': {
+      try {
+        await appService.deleteDurableTunnelAsApp(
+          requestingAppIdentifier,
+          parsedRequest.data,
         )
         return { result: { success: true } }
       } catch (error: unknown) {
         return {
           error: {
-            code: 500,
+            code:
+              error instanceof Error && 'statusCode' in error
+                ? (error as { statusCode: number }).statusCode
+                : 500,
             message:
               error instanceof Error
                 ? error.message
-                : 'Bridge tunnel deletion failed',
+                : 'Durable tunnel deletion failed',
           },
         }
       }

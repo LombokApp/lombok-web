@@ -24,6 +24,8 @@ import { DockerBridgeService } from './services/docker-bridge.service'
 import { DockerHostManagementService } from './services/docker-host-management.service'
 import { DockerJobsService } from './services/docker-jobs.service'
 import { DockerWorkerHookService } from './services/docker-worker-hook.service'
+import { DurableTunnelService } from './services/durable-tunnel.service'
+import { TunnelReconcilerService } from './services/tunnel-reconciler.service'
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     RunDockerWorkerTaskProcessor,
     DockerWorkerHookService,
     DockerJobGuard,
+    DurableTunnelService,
+    TunnelReconcilerService,
   ],
   exports: [
     DockerBridgeService,
@@ -59,6 +63,7 @@ import { DockerWorkerHookService } from './services/docker-worker-hook.service'
     RunDockerWorkerTaskProcessor,
     DockerWorkerHookService,
     DockerClientService,
+    DurableTunnelService,
   ],
 })
 export class DockerModule implements OnModuleInit {

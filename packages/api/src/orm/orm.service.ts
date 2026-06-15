@@ -39,6 +39,8 @@ import {
 import { sessionsTable } from '../auth/entities/session.entity'
 import { userIdentitiesTable } from '../auth/entities/user-identity.entity'
 import {
+  dockerBridgeTunnelsRelations,
+  dockerBridgeTunnelsTable,
   dockerHostsRelations,
   dockerHostsTable,
   dockerProfileResourceAssignmentsRelations,
@@ -119,6 +121,8 @@ export const dbSchema = {
   dockerProfileResourceAssignmentsRelations,
   dockerStandaloneContainersTable,
   dockerStandaloneContainersRelations,
+  dockerBridgeTunnelsTable,
+  dockerBridgeTunnelsRelations,
 }
 
 export type LombokDatabase = NodePgDatabase<typeof dbSchema>

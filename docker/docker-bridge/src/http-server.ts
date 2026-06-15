@@ -383,6 +383,8 @@ async function handleRoute(
       options?: {
         app_id: string
         public?: boolean
+        public_id?: string
+        durable?: boolean
       }
     }
 
@@ -408,6 +410,20 @@ async function handleRoute(
         400,
       )
     }
+    if (body.options?.durable === true) {
+      if (!body.options.public_id) {
+        return jsonResponse(
+          { error: 'public_id is required for durable sessions' },
+          400,
+        )
+      }
+      if (!body.options.app_id) {
+        return jsonResponse(
+          { error: 'app_id is required for durable sessions' },
+          400,
+        )
+      }
+    }
 
     const mode = body.mode ?? 'persistent'
     const protocol = body.protocol ?? 'framed'
@@ -426,6 +442,8 @@ async function handleRoute(
         ? {
             appId: body.options.app_id,
             public: body.options.public ?? false,
+            desiredPublicId: body.options.public_id ?? null,
+            durable: body.options.durable ?? false,
           }
         : null,
     )

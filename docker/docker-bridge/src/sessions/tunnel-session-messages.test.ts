@@ -112,7 +112,8 @@ function makeSession(overrides: Partial<TunnelSession> = {}): TunnelSession {
     agentReady: true,
     publicId: 'tunnel-1',
     label: 'preview',
-    appId: 'coder',
+    appId: 'test-app',
+    durable: false,
     ...overrides,
   }
 }

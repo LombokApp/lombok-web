@@ -1145,6 +1145,118 @@ export class DockerClientService {
   }
 
   /**
+   * Create (or idempotently reuse) a durable tunnel session under a stable,
+   * caller-supplied publicId. Always persistent/framed/public. Asserts the
+   * bridge echoed back the same publicId, then mints a fresh token bound to it.
+   */
+  async createDurableTunnelSession(
+    hostId: string,
+    containerId: string,
+    command: string[],
+    label: string,
+    publicId: string,
+    appIdentifier: string,
+  ): Promise<{
+    sessionId: string
+    publicId: string
+    url: string
+    token: string
+  }> {
+    const backendToken = this.dockerBridgeService.getSecret()
+
+    const createResponse = await fetch(`${BRIDGE_HTTP_URL}/sessions/tunnel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${backendToken}`,
+      },
+      body: JSON.stringify({
+        container_id: containerId,
+        command,
+        host_id: hostId,
+        label,
+        mode: 'persistent',
+        protocol: 'framed',
+        options: {
+          app_id: appIdentifier,
+          public: true,
+          public_id: publicId,
+          durable: true,
+        },
+      }),
+    })
+
+    if (!createResponse.ok) {
+      const body = (await createResponse.json().catch(() => ({}))) as {
+        error?: string
+      }
+      throw new Error(
+        `Bridge durable tunnel create failed (${createResponse.status}): ${body.error ?? createResponse.statusText}`,
+      )
+    }
+
+    const session = (await createResponse.json()) as BridgeSessionResponse
+    if (session.public_id !== publicId) {
+      throw new Error(
+        `Bridge returned unexpected public_id (wanted ${publicId}, got ${session.public_id ?? 'null'})`,
+      )
+    }
+
+    const token = await this.mintSessionToken(session.id, backendToken, {
+      publicId,
+      mode: 'persistent',
+      protocol: 'framed',
+    })
+
+    return {
+      sessionId: session.id,
+      publicId,
+      url: this.buildTunnelUrl(publicId, label, appIdentifier),
+      token,
+    }
+  }
+
+  /** Mint a fresh traffic token bound to a durable session's stable publicId. */
+  mintDurableTunnelToken(sessionId: string, publicId: string): Promise<string> {
+    return this.mintSessionToken(
+      sessionId,
+      this.dockerBridgeService.getSecret(),
+      {
+        publicId,
+        mode: 'persistent',
+        protocol: 'framed',
+      },
+    )
+  }
+
+  /** Build the deterministic public tunnel URL for a stable publicId. */
+  buildPublicTunnelUrl(
+    publicId: string,
+    label: string,
+    appIdentifier: string,
+  ): string {
+    return this.buildTunnelUrl(publicId, label, appIdentifier)
+  }
+
+  /**
+   * Fetch a single bridge session by id (drives the durable health check).
+   * Returns null when the session no longer exists (404).
+   */
+  async getSessionById(sessionId: string): Promise<BridgeSessionFull | null> {
+    try {
+      return await this.bridgeRequest<BridgeSessionFull>(
+        'GET',
+        `/sessions/${sessionId}`,
+      )
+    } catch (error: unknown) {
+      if (error instanceof BridgeHttpError && error.statusCode === 404) {
+        return null
+      }
+      throw error
+    }
+  }
+
+  /**
    * List all bridge tunnel sessions (admin observability), optionally filtered.
    * Maps the bridge's snake_case payload to the camelCase DTO.
    */
