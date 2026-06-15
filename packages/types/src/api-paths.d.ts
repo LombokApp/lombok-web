@@ -813,6 +813,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/folders/starred": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the current user's starred folders.
+         *
+         *     Declared before `/:folderId` so the literal `starred` segment is not
+         *     captured by the UUID-parsed folder route.
+         */
+        get: operations["Folders_listStarredFolders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}": {
         parameters: {
             query?: never;
@@ -827,6 +849,23 @@ export interface paths {
         post?: never;
         /** Delete a folder by id. */
         delete: operations["Folders_deleteFolder"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/starred": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Star or unstar a folder for the current user. */
+        put: operations["Folders_setFolderStarred"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2991,6 +3030,14 @@ export interface components {
             /** @description Present only so this class has instance shape; validation uses static schema. */
             _schemaCarrier: Record<string, never>;
         };
+        FolderStarredListResponse: {
+            folders: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                icon?: components["schemas"]["ImageUrls"];
+            }[];
+        };
         Folder: {
             /** Format: uuid */
             id: string;
@@ -3029,6 +3076,13 @@ export interface components {
         FolderGetResponse: {
             folder: components["schemas"]["Folder"];
             permissions: components["schemas"]["FolderPermission"][];
+            starred: boolean;
+        };
+        FolderStarInputDTO: {
+            starred: boolean;
+        };
+        FolderStarResponse: {
+            starred: boolean;
         };
         FolderGetMetadataResponse: {
             totalCount: number;
@@ -3039,6 +3093,7 @@ export interface components {
             result: {
                 permissions: components["schemas"]["FolderPermission"][];
                 folder: components["schemas"]["Folder"];
+                starred: boolean;
             }[];
         };
         StorageLocationInput: {
@@ -6673,6 +6728,43 @@ export interface operations {
             };
         };
     };
+    Folders_listStarredFolders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderStarredListResponse"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
     Folders_getFolder: {
         parameters: {
             query?: never;
@@ -6771,6 +6863,49 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    Folders_setFolderStarred: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderStarInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderStarResponse"];
+                };
             };
             /** @description Server Error */
             "5XX": {

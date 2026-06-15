@@ -55,6 +55,8 @@ import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import type { ImageUrls } from 'src/shared/utils/image-url.util'
+import { buildImageUrls } from 'src/shared/utils/image-url.util'
 import { UserSocketService } from 'src/socket/user/user-socket.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
@@ -80,6 +82,7 @@ import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
 import { folderObjectsTable } from '../entities/folder-object.entity'
 import { folderSharesTable } from '../entities/folder-share.entity'
+import { folderUserPreferencesTable } from '../entities/folder-user-preference.entity'
 import { FolderLocationNotFoundException } from '../exceptions/folder-location-not-found.exception'
 import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-metadata-write-unauthorized.exception'
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
@@ -552,6 +555,7 @@ export class FolderService {
         contentLocation: contentLocationTable,
         metadataLocation: metadataLocationTable,
         folderShares: folderSharesTable,
+        starred: folderUserPreferencesTable.starred,
         totalCount: sql<number>`coalesce(count(*) over(), 0)::int`,
       })
       .from(foldersTable)
@@ -560,6 +564,13 @@ export class FolderService {
         and(
           eq(folderSharesTable.folderId, foldersTable.id),
           eq(folderSharesTable.userId, actor.id),
+        ),
+      )
+      .leftJoin(
+        folderUserPreferencesTable,
+        and(
+          eq(folderUserPreferencesTable.folderId, foldersTable.id),
+          eq(folderUserPreferencesTable.userId, actor.id),
         ),
       )
       .leftJoin(
@@ -584,7 +595,7 @@ export class FolderService {
       .offset(offset ?? 0)
 
     return {
-      result: folders.map(({ totalCount, ...folder }) => ({
+      result: folders.map(({ totalCount, starred, ...folder }) => ({
         folder: {
           ...folder,
           // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -600,6 +611,7 @@ export class FolderService {
           folder.ownerId === actor.id
             ? OWNER_PERMISSIONS
             : (folder.folderShares?.permissions ?? []),
+        starred: starred ?? false,
       })),
       meta: { totalCount: folders[0]?.totalCount ?? 0 },
     }
@@ -765,6 +777,7 @@ export class FolderService {
   ): Promise<{
     folder: Folder
     permissions: FolderPermissionName[]
+    starred: boolean
   }> {
     const folder = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
@@ -778,11 +791,21 @@ export class FolderService {
       throw new FolderNotFoundException()
     }
 
+    const preference =
+      await this.ormService.db.query.folderUserPreferencesTable.findFirst({
+        where: and(
+          eq(folderUserPreferencesTable.folderId, folder.id),
+          eq(folderUserPreferencesTable.userId, actor.id),
+        ),
+      })
+    const starred = preference?.starred ?? false
+
     const isOwner = folder.ownerId === actor.id
     if (isOwner) {
       return {
         folder,
         permissions: OWNER_PERMISSIONS,
+        starred,
       }
     }
 
@@ -801,7 +824,66 @@ export class FolderService {
     return {
       folder,
       permissions: share.permissions,
+      starred,
     }
+  }
+
+  async setFolderStarredAsUser(
+    actor: User,
+    folderId: string,
+    starred: boolean,
+  ): Promise<boolean> {
+    // Ensure the user can access the folder before recording a preference.
+    await this.getFolderAsUser(actor, folderId)
+
+    const now = new Date()
+    await this.ormService.db
+      .insert(folderUserPreferencesTable)
+      .values({
+        userId: actor.id,
+        folderId,
+        starred,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: [
+          folderUserPreferencesTable.userId,
+          folderUserPreferencesTable.folderId,
+        ],
+        set: { starred, updatedAt: now },
+      })
+
+    return starred
+  }
+
+  async listStarredFoldersAsUser(
+    actor: User,
+  ): Promise<{ id: string; name: string; icon?: ImageUrls }[]> {
+    const rows = await this.ormService.db
+      .select({
+        id: foldersTable.id,
+        name: foldersTable.name,
+        iconUpdatedAt: foldersTable.iconUpdatedAt,
+      })
+      .from(folderUserPreferencesTable)
+      .innerJoin(
+        foldersTable,
+        eq(foldersTable.id, folderUserPreferencesTable.folderId),
+      )
+      .where(
+        and(
+          eq(folderUserPreferencesTable.userId, actor.id),
+          eq(folderUserPreferencesTable.starred, true),
+        ),
+      )
+      .orderBy(foldersTable.name)
+
+    return rows.map(({ id, name, iconUpdatedAt }) => ({
+      id,
+      name,
+      icon: buildImageUrls(`/api/v1/folders/${id}/icon`, iconUpdatedAt),
+    }))
   }
 
   async listFolderObjectsAsUser(

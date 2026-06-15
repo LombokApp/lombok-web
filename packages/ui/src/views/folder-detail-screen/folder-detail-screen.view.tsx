@@ -37,6 +37,7 @@ import { EditableTitle } from '@/src/components/editable-title'
 import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
 import { FolderIconModal } from '@/src/components/folder-icon-modal/folder-icon-modal'
 import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
+import { FolderStarToggle } from '@/src/components/folder-star-toggle/folder-star-toggle'
 import {
   ReindexFolderModal,
   type ReindexFolderModalData,
@@ -588,6 +589,11 @@ export const FolderDetailScreen = () => {
                       />
                     </div>
                     <div className="flex items-center justify-start gap-2">
+                      <FolderStarToggle
+                        folderId={folderContext.folderId}
+                        starred={folderContext.starred ?? false}
+                        className="border"
+                      />
                       {serverContext.appContributions
                         .folderDetailViewContributions.all.length > 0 ? (
                         <FolderObjectDetailViewEmbedSelector
@@ -785,6 +791,7 @@ export const FolderDetailScreen = () => {
                       folderAndPermission={{
                         folder: folderContext.folder,
                         permissions: folderContext.folderPermissions,
+                        starred: folderContext.starred ?? false,
                       }}
                     />
                   </div>

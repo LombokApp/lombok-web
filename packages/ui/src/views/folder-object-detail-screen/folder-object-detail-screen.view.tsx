@@ -430,6 +430,7 @@ export const FolderObjectDetailScreen = ({
                   folderContext.folderPermissions && {
                     folder: folderContext.folder,
                     permissions: folderContext.folderPermissions,
+                    starred: folderContext.starred ?? false,
                   }
                 }
                 folder={folderContext.folder}

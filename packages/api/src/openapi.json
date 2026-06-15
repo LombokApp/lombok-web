@@ -3818,6 +3818,53 @@
         ]
       }
     },
+    "/api/v1/folders/starred": {
+      "get": {
+        "operationId": "Folders_listStarredFolders",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderStarredListResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List the current user's starred folders.\n\nDeclared before `/:folderId` so the literal `starred` segment is not\ncaptured by the UUID-parsed folder route.",
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
     "/api/v1/folders/{folderId}": {
       "get": {
         "operationId": "Folders_getFolder",
@@ -3980,6 +4027,72 @@
           }
         ],
         "summary": "Update a folder by id.",
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/starred": {
+      "put": {
+        "operationId": "Folders_setFolderStarred",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolderStarInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderStarResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Star or unstar a folder for the current user.",
         "tags": [
           "Folders"
         ]
@@ -14262,6 +14375,37 @@
           "_schemaCarrier"
         ]
       },
+      "FolderStarredListResponse": {
+        "type": "object",
+        "properties": {
+          "folders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "icon": {
+                  "$ref": "#/components/schemas/ImageUrls"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          }
+        },
+        "required": [
+          "folders"
+        ]
+      },
       "Folder": {
         "type": "object",
         "properties": {
@@ -14405,11 +14549,37 @@
             "items": {
               "$ref": "#/components/schemas/FolderPermission"
             }
+          },
+          "starred": {
+            "type": "boolean"
           }
         },
         "required": [
           "folder",
-          "permissions"
+          "permissions",
+          "starred"
+        ]
+      },
+      "FolderStarInputDTO": {
+        "type": "object",
+        "properties": {
+          "starred": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "starred"
+        ]
+      },
+      "FolderStarResponse": {
+        "type": "object",
+        "properties": {
+          "starred": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "starred"
         ]
       },
       "FolderGetMetadataResponse": {
@@ -14448,11 +14618,15 @@
                 },
                 "folder": {
                   "$ref": "#/components/schemas/Folder"
+                },
+                "starred": {
+                  "type": "boolean"
                 }
               },
               "required": [
                 "permissions",
-                "folder"
+                "folder",
+                "starred"
               ]
             }
           }

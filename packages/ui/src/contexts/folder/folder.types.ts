@@ -27,6 +27,7 @@ export interface IFolderContext {
   folderId: string
   folder?: FolderGetResponse['folder']
   folderPermissions?: FolderGetResponse['permissions']
+  starred?: boolean
   refreshFolder: () => Promise<
     QueryObserverResult<FolderGetResponse, ServerError>
   >

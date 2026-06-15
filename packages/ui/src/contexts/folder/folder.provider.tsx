@@ -108,6 +108,7 @@ export const FolderContextProvider = ({
         folderId,
         folder: folderQuery.data?.folder,
         folderPermissions: folderQuery.data?.permissions,
+        starred: folderQuery.data?.starred,
         refreshFolder: folderQuery.refetch,
         folderMetadata: folderMetadataQuery.data,
         refreshFolderMetadata: folderMetadataQuery.refetch,
