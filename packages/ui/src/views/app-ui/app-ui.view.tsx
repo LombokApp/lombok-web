@@ -34,17 +34,21 @@ export function AppUI({
   React.useEffect(() => {
     const latestParentPathAndQuery = `${window.location.pathname.slice(`/apps/${appIdentifier}`.length)}${window.location.search}`
     if (latestParentPathAndQuery !== paths.child) {
+      const willRelay = Boolean(
+        shouldRelayNavigation && iframeRef.current?.contentWindow,
+      )
       setPaths({
-        child: paths.child,
+        // Only advance `child` when we actually relay the change to the iframe —
+        // after a relay the child IS at the new path, so a later parent nav back
+        // to it (e.g. browser Forward after Back) is correctly seen as a change
+        // and re-relayed. Without this the child stays stale and Forward is
+        // dropped. If we don't relay, the child hasn't moved, so keep it stale.
+        child: willRelay ? latestParentPathAndQuery : paths.child,
         initial: paths.initial,
         parent: latestParentPathAndQuery,
       })
-      if (shouldRelayNavigation && iframeRef.current?.contentWindow) {
-        console.log(
-          'Parent URL changed, relaying navigation reset to iframe:',
-          `"${latestParentPathAndQuery}"`,
-        )
-        iframeRef.current.contentWindow.postMessage(
+      if (willRelay) {
+        iframeRef.current?.contentWindow?.postMessage(
           {
             type: 'PARENT_NAVIGATE_TO',
             payload: { pathAndQuery: latestParentPathAndQuery },
