@@ -4,16 +4,13 @@ import {
   AppWindow,
   ChartLine,
   FileText,
-  Folders,
   LayoutGrid,
   ListChecks,
   Settings,
   Users,
 } from 'lucide-react'
 
-import { AppIcon } from '@/src/components/app-icon/app-icon'
 import { DockerIcon } from '@/src/components/icons/docker-icon'
-import type { AppPathContribution } from '@/src/contexts/server'
 
 interface Submenu {
   href: string
@@ -37,56 +34,11 @@ export interface Group {
   menus: Menu[]
 }
 
-function groupContributionsByApp(
-  contributions: AppPathContribution[],
-  pathname: string | undefined,
-): Group[] {
-  const byApp = new Map<string, { appLabel: string; menus: Menu[] }>()
-
-  for (const item of contributions) {
-    let group = byApp.get(item.appIdentifier)
-    if (!group) {
-      group = { appLabel: item.appLabel, menus: [] }
-      byApp.set(item.appIdentifier, group)
-    }
-    group.menus.push({
-      href: item.href,
-      active: pathname === item.href,
-      label: item.label,
-      icon: (
-        <AppIcon
-          icon={item.icon}
-          appIdentifier={item.appIdentifier}
-          fallbackLabel={item.label}
-          size={16}
-        />
-      ),
-    })
-  }
-
-  return Array.from(byApp.values()).map((group) => ({
-    groupLabel: group.appLabel,
-    menus: group.menus,
-  }))
-}
-
 export function getMenuList(
   pathname: string | undefined,
   viewer: UserDTO,
-  sidebarMenuLinkContributions: AppPathContribution[],
 ): Group[] {
   return [
-    {
-      groupLabel: '',
-      menus: [
-        {
-          href: '/folders',
-          label: 'All Folders',
-          icon: Folders,
-        },
-      ],
-    },
-    ...groupContributionsByApp(sidebarMenuLinkContributions, pathname),
     ...(viewer.isAdmin
       ? [
           {

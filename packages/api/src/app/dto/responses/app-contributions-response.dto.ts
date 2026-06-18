@@ -8,6 +8,7 @@ export const appContributionsResponseSchema = z.record(
     appLabel: z.string(),
     appIdentifier: z.string(),
     icon: iconSchema.optional(),
+    createdAt: z.string(),
     contributions: appContributionsSchema,
   }),
 )

@@ -9,43 +9,43 @@ import { $api } from '@/src/services/api'
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
 import { NotificationsTrigger } from './notifications-trigger'
+import { SidebarAppsSection } from './sidebar-apps-section'
+import { SidebarFoldersSection } from './sidebar-folders-section'
 import { SidebarGroup } from './sidebar-group'
 import { SidebarItem } from './sidebar-item'
-import { SidebarStarredSection } from './sidebar-starred-section'
 import { ThemeToggleTrigger } from './theme-toggle-trigger'
 import { UserNav } from './user-nav'
 
 interface MenuProps {
   isOpen: boolean | undefined
   viewer: NonNullable<IAuthContext['viewer']>
-  sidebarMenuLinkContributions: AppPathContribution[]
+  appEntrypoints: AppPathContribution[]
 }
 
 export function Menu({
   onSignOut,
   isOpen,
   viewer,
-  sidebarMenuLinkContributions,
+  appEntrypoints,
 }: { onSignOut: () => Promise<void> } & MenuProps) {
   const location = useLocation()
   const { data: starredFolders } = $api.useQuery(
     'get',
     '/api/v1/folders/starred',
   )
-  const menuList = getMenuList(
-    location.pathname,
-    viewer,
-    sidebarMenuLinkContributions,
-  )
+  const menuList = getMenuList(location.pathname, viewer)
   return (
     <div className="flex h-full flex-col">
       <ScrollArea className="h-full flex-1 overflow-x-visible [&>div>div[style]]:!block">
         <nav className="size-full py-2">
           <ul className="flex h-full flex-col items-start space-y-1">
-            <SidebarStarredSection
+            {/* Folders (with starred shortcuts) and Apps lead; admin Server
+                groups follow from getMenuList. */}
+            <SidebarFoldersSection
               folders={starredFolders?.folders ?? []}
               isOpen={isOpen}
             />
+            <SidebarAppsSection entrypoints={appEntrypoints} isOpen={isOpen} />
             {menuList.map(({ groupLabel, menus }, index) => (
               <SidebarGroup key={index} label={groupLabel}>
                 {menus.map(({ href, label, icon, active, submenus }, _index) =>

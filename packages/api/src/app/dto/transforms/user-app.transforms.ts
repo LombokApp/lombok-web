@@ -18,7 +18,7 @@ export function transformAppToUserDTO(
     folderScopeEnabledDefault: app.folderScopeEnabledDefault,
     runtimeWorkers: app.runtimeWorkers,
     contributions: app.config.contributions ?? {
-      sidebarMenuLinks: [],
+      uiEntrypoints: [],
       folderSidebarViews: [],
       objectSidebarViews: [],
       objectDetailViews: [],

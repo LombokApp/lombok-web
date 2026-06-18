@@ -2717,6 +2717,7 @@ export interface components {
                 appLabel: string;
                 appIdentifier: string;
                 icon?: components["schemas"]["Icon"];
+                createdAt: string;
                 contributions: components["schemas"]["Contributions"];
             };
         };
@@ -3710,48 +3711,7 @@ export interface components {
             updatedAt: string;
         };
         DockerResourceConfig: {
-            mounts?: ({
-                target: string;
-                readOnly?: boolean;
-                /** @constant */
-                type: "volume";
-                source: string | null;
-                volumeOptions?: {
-                    noCopy?: boolean;
-                    labels?: components["schemas"]["StringMapDTO"];
-                    driverConfig: {
-                        name: string;
-                        options?: components["schemas"]["StringMapDTO"];
-                        createSubpath?: string;
-                    };
-                    subpath?: string;
-                };
-            } | {
-                target: string;
-                readOnly?: boolean;
-                /** @constant */
-                type: "bind";
-                source: string;
-                bindOptions?: {
-                    /** @enum {string} */
-                    propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
-                    nonRecursive?: boolean;
-                    createMountpoint?: boolean;
-                    readOnlyNonRecursive?: boolean;
-                    readOnlyForceRecursive?: boolean;
-                };
-            } | {
-                target: string;
-                readOnly?: boolean;
-                /** @constant */
-                type: "tmpfs";
-                source: unknown;
-                tmpfsOptions?: {
-                    sizeBytes: number;
-                    mode: number;
-                    options?: string[][];
-                };
-            })[];
+            mounts?: components["schemas"]["DockerResourceMount"][];
             env?: components["schemas"]["StringMapDTO"];
             gpus?: {
                 driver: string;
@@ -3804,6 +3764,48 @@ export interface components {
             pidMode?: string;
             cgroupParent?: string;
             runtime?: string;
+        };
+        DockerResourceMount: {
+            target: string;
+            readOnly?: boolean;
+            /** @constant */
+            type: "volume";
+            source: string | null;
+            volumeOptions?: {
+                noCopy?: boolean;
+                labels?: components["schemas"]["StringMapDTO"];
+                driverConfig: {
+                    name: string;
+                    options?: components["schemas"]["StringMapDTO"];
+                    createSubpath?: string;
+                };
+                subpath?: string;
+            };
+        } | {
+            target: string;
+            readOnly?: boolean;
+            /** @constant */
+            type: "bind";
+            source: string;
+            bindOptions?: {
+                /** @enum {string} */
+                propagation: "private" | "rprivate" | "shared" | "rshared" | "slave" | "rslave";
+                nonRecursive?: boolean;
+                createMountpoint?: boolean;
+                readOnlyNonRecursive?: boolean;
+                readOnlyForceRecursive?: boolean;
+            };
+        } | {
+            target: string;
+            readOnly?: boolean;
+            /** @constant */
+            type: "tmpfs";
+            source: unknown;
+            tmpfsOptions?: {
+                sizeBytes: number;
+                mode: number;
+                options?: string[][];
+            };
         };
         DockerProfileAssignmentListResponse: {
             result: components["schemas"]["DockerProfileResourceAssignment"][];
@@ -4055,7 +4057,7 @@ export interface components {
             };
         };
         Contributions: {
-            sidebarMenuLinks: components["schemas"]["AppContributedViews"];
+            uiEntrypoints: components["schemas"]["AppContributedViews"];
             folderSidebarViews: components["schemas"]["AppContributedViews"];
             objectSidebarViews: components["schemas"]["AppContributedViews"];
             objectDetailViews: components["schemas"]["AppContributedViews"];

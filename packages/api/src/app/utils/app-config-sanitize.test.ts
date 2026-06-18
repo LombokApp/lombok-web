@@ -516,11 +516,11 @@ describe('app-config-sanitize', () => {
       }
     })
 
-    it('should reject app config with NUL in contributions sidebarMenuLinks', () => {
+    it('should reject app config with NUL in contributions uiEntrypoints', () => {
       const invalidConfig = {
         ...baseValidConfig,
         contributions: {
-          sidebarMenuLinks: [
+          uiEntrypoints: [
             {
               label: 'Menu\u0000Item',
               path: '/path',
@@ -547,7 +547,7 @@ describe('app-config-sanitize', () => {
       const invalidConfig = {
         ...baseValidConfig,
         contributions: {
-          sidebarMenuLinks: [
+          uiEntrypoints: [
             {
               label: 'Menu Item',
               path: '/path\u0001withControl',
@@ -844,7 +844,7 @@ describe('app-config-sanitize', () => {
           enabled: true,
         },
         contributions: {
-          sidebarMenuLinks: [
+          uiEntrypoints: [
             {
               label: 'Dashboard',
               path: '/dashboard',

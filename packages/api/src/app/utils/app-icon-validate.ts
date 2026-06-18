@@ -22,7 +22,7 @@ const collectCustomSvgIconPaths = (config: AppConfig): string[] => {
   const contributions = config.contributions
   if (contributions) {
     for (const key of [
-      'sidebarMenuLinks',
+      'uiEntrypoints',
       'folderSidebarViews',
       'objectSidebarViews',
       'objectDetailViews',

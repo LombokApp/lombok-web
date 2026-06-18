@@ -1043,7 +1043,7 @@ describe('apps.types', () => {
   describe('appContributionsSchema', () => {
     it('should validate complete contributions object', () => {
       const validContributions = {
-        sidebarMenuLinks: [
+        uiEntrypoints: [
           {
             label: 'Dashboard',
             path: '/dashboard',
@@ -1080,7 +1080,7 @@ describe('apps.types', () => {
 
     it('should allow empty arrays for all contribution sections', () => {
       const validContributions = {
-        sidebarMenuLinks: [],
+        uiEntrypoints: [],
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -1092,7 +1092,7 @@ describe('apps.types', () => {
 
     it('should reject contributions missing a required section', () => {
       const invalidContributions = {
-        // sidebarMenuLinks missing
+        // uiEntrypoints missing
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -1106,7 +1106,7 @@ describe('apps.types', () => {
 
     it('should reject when a section has the wrong type', () => {
       const invalidContributions = {
-        sidebarMenuLinks: {},
+        uiEntrypoints: {},
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -1120,7 +1120,7 @@ describe('apps.types', () => {
 
     it('should accept an optional mobile contributions block', () => {
       const validContributions = {
-        sidebarMenuLinks: [],
+        uiEntrypoints: [],
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -1867,7 +1867,7 @@ describe('apps.types', () => {
         },
       },
       contributions: {
-        sidebarMenuLinks: [],
+        uiEntrypoints: [],
         folderSidebarViews: [],
         objectSidebarViews: [],
         objectDetailViews: [],
@@ -2666,7 +2666,7 @@ describe('apps.types', () => {
           enabled: true,
         },
         contributions: {
-          sidebarMenuLinks: [
+          uiEntrypoints: [
             {
               label: 'Chat',
               icon: {

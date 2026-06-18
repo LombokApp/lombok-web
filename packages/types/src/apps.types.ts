@@ -836,7 +836,7 @@ export const mobileContributionsSchema = z
 
 export const appContributionsSchema = z
   .object({
-    sidebarMenuLinks: appContributedViewsSchema,
+    uiEntrypoints: appContributedViewsSchema,
     folderSidebarViews: appContributedViewsSchema,
     objectSidebarViews: appContributedViewsSchema,
     objectDetailViews: appContributedViewsSchema,
@@ -1306,7 +1306,7 @@ export const appConfigSchema = z
     const contributions = value.contributions
     if (contributions) {
       const linkKeys = [
-        'sidebarMenuLinks',
+        'uiEntrypoints',
         'folderSidebarViews',
         'objectSidebarViews',
         'objectDetailViews',
@@ -1585,7 +1585,7 @@ export const appConfigWithManifestSchema = (
     const contributions = value.contributions
     if (contributions) {
       const linkKeys = [
-        'sidebarMenuLinks',
+        'uiEntrypoints',
         'folderSidebarViews',
         'objectSidebarViews',
         'objectDetailViews',

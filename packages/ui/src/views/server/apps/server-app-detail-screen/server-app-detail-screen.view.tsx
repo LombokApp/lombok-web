@@ -60,14 +60,14 @@ export function ServerAppDetailScreen({
   appIdentifier: string
 }) {
   const appPathContributionTypes = [
-    'sidebarMenuLinks',
+    'uiEntrypoints',
     'folderSidebarViews',
     'objectSidebarViews',
     'objectDetailViews',
     'folderDetailViews',
   ] as const
   const appPathContributionTypeLabels = {
-    sidebarMenuLinks: 'Sidebar menu links',
+    uiEntrypoints: 'UI entrypoints',
     folderSidebarViews: 'Folder sidebar views',
     objectSidebarViews: 'Object sidebar views',
     objectDetailViews: 'Object detail views',
@@ -75,8 +75,8 @@ export function ServerAppDetailScreen({
   } as const
 
   const appPathContributionTypeDescriptions = {
-    sidebarMenuLinks:
-      'App views that are rendered as links in the sidebar menu',
+    uiEntrypoints:
+      'Top-level app views surfaced in the Apps launcher and sidebar',
     folderSidebarViews: 'App views that are rendered in the folder sidebar',
     objectSidebarViews: 'App views that are rendered in the object sidebar',
     objectDetailViews:
@@ -86,7 +86,7 @@ export function ServerAppDetailScreen({
   } as const
 
   const appRouteLinkContributionTypeEmptyMessages = {
-    sidebarMenuLinks: 'No sidebar menu links configured',
+    uiEntrypoints: 'No UI entrypoints configured',
     folderSidebarViews: 'No folder sidebar views available',
     objectSidebarViews: 'No object sidebar views available',
     objectDetailViews: 'No object detail views configured',

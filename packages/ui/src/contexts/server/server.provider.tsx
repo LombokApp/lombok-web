@@ -28,6 +28,7 @@ function formatContributionLinks(
   }>(
     (acc, nextAppIdentifier) => {
       const appLabel = allContributions[nextAppIdentifier]?.appLabel ?? ''
+      const appCreatedAt = allContributions[nextAppIdentifier]?.createdAt
       const appContributions =
         allContributions[nextAppIdentifier]?.contributions
       return {
@@ -38,6 +39,7 @@ function formatContributionLinks(
             path: nextEmbedLink.path,
             appIdentifier: nextAppIdentifier,
             appLabel,
+            appCreatedAt,
           })) ?? [],
         ),
         byApp: acc.byApp,
@@ -49,9 +51,9 @@ function formatContributionLinks(
 
 function formatContributions(allContributions: AppContributionsResponse) {
   return {
-    sidebarMenuContributions: formatContributionLinks(
+    uiEntrypointContributions: formatContributionLinks(
       allContributions,
-      'sidebarMenuLinks',
+      'uiEntrypoints',
     ),
     folderSidebarViewContributions: formatContributionLinks(
       allContributions,
