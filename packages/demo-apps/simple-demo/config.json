@@ -175,7 +175,7 @@
     }
   },
   "contributions": {
-    "sidebarMenuLinks": [
+    "uiEntrypoints": [
       {
         "path": "/",
         "label": "Landing Page",

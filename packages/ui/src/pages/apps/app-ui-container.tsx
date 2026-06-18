@@ -45,7 +45,7 @@ export const AppUIContainer = () => {
 
   if (!appIdentifier) {
     if (serverContext.appsLoaded) {
-      setTimeout(() => void navigate('/folders'), 1)
+      setTimeout(() => void navigate('/apps'), 1)
       throw new Error('Invalid app identifier or route identifier')
     }
     return (

@@ -24,7 +24,7 @@ export function transformAppToDTO(
         app.config.systemRequestRuntimeWorkers?.performSearch ?? [],
     },
     contributions: app.config.contributions ?? {
-      sidebarMenuLinks: [],
+      uiEntrypoints: [],
       folderSidebarViews: [],
       objectSidebarViews: [],
       objectDetailViews: [],

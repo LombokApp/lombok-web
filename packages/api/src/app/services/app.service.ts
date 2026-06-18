@@ -1844,6 +1844,7 @@ export class AppService {
         appLabel: string
         appIdentifier: string
         icon?: Icon
+        createdAt: string
         contributions: AppContributions
       }
     >
@@ -1861,8 +1862,9 @@ export class AppService {
           appLabel: nextApp.label,
           appIdentifier: nextApp.identifier,
           icon: nextApp.config.icon,
+          createdAt: nextApp.createdAt.toISOString(),
           contributions: {
-            sidebarMenuLinks: contributions?.sidebarMenuLinks ?? [],
+            uiEntrypoints: contributions?.uiEntrypoints ?? [],
             folderSidebarViews: contributions?.folderSidebarViews ?? [],
             objectSidebarViews: contributions?.objectSidebarViews ?? [],
             objectDetailViews: contributions?.objectDetailViews ?? [],

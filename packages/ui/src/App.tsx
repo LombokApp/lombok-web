@@ -25,6 +25,7 @@ import { ThemeProvider } from './contexts/theme'
 import { useStore } from './hooks/use-store'
 import { LandingPage } from './pages'
 import { AppUIContainer } from './pages/apps/app-ui-container'
+import { AppsLaunchPage } from './pages/apps/apps-launch'
 import { FolderRoot } from './pages/folders/folder-root'
 import { FoldersPage } from './pages/folders/folders'
 import { Login } from './pages/login'
@@ -57,6 +58,10 @@ const Content = ({ authenticated }: { authenticated: boolean }) => {
       <Route
         path="/folders/*"
         element={authenticated ? <FolderRoot /> : <></>}
+      />
+      <Route
+        path="/apps"
+        element={authenticated ? <AppsLaunchPage /> : <></>}
       />
       <Route
         path="/apps/*"
@@ -119,9 +124,7 @@ const AuthenticatedContent = () => {
         <Sidebar
           onSignOut={authContext.logout}
           authContext={authContext}
-          sidebarMenuLinkContributions={
-            appContributions.sidebarMenuContributions.all
-          }
+          appEntrypoints={appContributions.uiEntrypointContributions.all}
         />
       )}
       <main

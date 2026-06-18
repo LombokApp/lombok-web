@@ -27,6 +27,8 @@ export type AppPathContribution = {
   path: string
   appIdentifier: string
   appLabel: string
+  // App install time (ISO) — used to order entrypoints by recency.
+  appCreatedAt?: string
 } & AppUILink
 
 export interface IServerContext {
@@ -39,7 +41,7 @@ export interface IServerContext {
   >
   getAppIcon: (appIdentifier: string) => Icon | undefined
   appContributions: {
-    sidebarMenuContributions: {
+    uiEntrypointContributions: {
       all: AppPathContribution[]
       byApp: Record<string, AppPathContribution[]>
     }

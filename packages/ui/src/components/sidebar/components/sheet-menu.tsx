@@ -17,11 +17,11 @@ import { Menu } from './menu'
 export function SheetMenu({
   onSignout,
   viewer,
-  sidebarMenuContributions,
+  appEntrypoints,
 }: {
   onSignout: () => Promise<void>
   viewer: NonNullable<IAuthContext['viewer']>
-  sidebarMenuContributions: AppPathContribution[]
+  appEntrypoints: AppPathContribution[]
 }) {
   return (
     <Sheet>
@@ -46,7 +46,7 @@ export function SheetMenu({
         <Menu
           isOpen
           onSignOut={onSignout}
-          sidebarMenuLinkContributions={sidebarMenuContributions}
+          appEntrypoints={appEntrypoints}
           viewer={viewer}
         />
       </SheetContent>
