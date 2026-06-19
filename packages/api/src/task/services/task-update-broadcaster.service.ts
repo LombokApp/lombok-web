@@ -1,3 +1,4 @@
+import type { JsonSerializableObject } from '@lombokapp/types'
 import {
   CORE_IDENTIFIER,
   ReceivedTaskProgressReport,
@@ -11,7 +12,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Task } from 'src/task/entities/task.entity'
 
 import { AppUserSocketService } from '../../socket/app-user/app-user-socket.service'
-import { UserSocketService } from '../../socket/user/user-socket.service'
+import { RealtimeService } from '../../socket/realtime.service'
 
 export function taskUpdateDescriptionForType(
   updateType: TaskUpdateType,
@@ -41,12 +42,21 @@ export const TASK_UPDATE_AUDIENCES_MAP = {
   [TaskUpdateType.task_requeued]: TaskUpdateAudience.system,
 }
 
+// Coalesce window for high-frequency task_progress frames (per task). Terminal
+// states (completed/failed) and lifecycle transitions bypass it and flush now.
+const PROGRESS_THROTTLE_MS = 300
+
 @Injectable()
 export class TaskUpdateBroadcasterService {
   private readonly logger = new Logger(TaskUpdateBroadcasterService.name)
+  // Per-task pending progress timers — latest frame wins within the window.
+  private readonly progressTimers = new Map<
+    string,
+    ReturnType<typeof setTimeout>
+  >()
 
   constructor(
-    private readonly userSocketService: UserSocketService,
+    private readonly realtimeService: RealtimeService,
     private readonly appUserSocketService: AppUserSocketService,
   ) {}
 
@@ -83,21 +93,66 @@ export class TaskUpdateBroadcasterService {
       receivedAt: ts.toISOString(),
     }
 
-    if (task.targetUserId) {
-      const taskUpdateMessage = {
-        code: `${UPDATE_CODE_PREFIX}${updateType}`,
-        data: update,
+    // task_progress is the chatty stream: throttle per task. Everything else
+    // (started/completed/failed/requeued) flushes immediately and cancels any
+    // pending throttled progress so the terminal frame can't arrive out of order.
+    if (updateType === TaskUpdateType.task_progress) {
+      const existing = this.progressTimers.get(task.id)
+      if (existing) {
+        clearTimeout(existing)
       }
-      this.userSocketService.emitUpdate({
-        update: taskUpdateMessage,
-        scope: {
-          targetUserId: task.targetUserId,
-          targetLocationFolderId: task.targetLocationFolderId,
-        },
+      this.progressTimers.set(
+        task.id,
+        setTimeout(() => {
+          this.progressTimers.delete(task.id)
+          this.emit(task, updateType, update)
+        }, PROGRESS_THROTTLE_MS),
+      )
+      return
+    }
+
+    const pending = this.progressTimers.get(task.id)
+    if (pending) {
+      clearTimeout(pending)
+      this.progressTimers.delete(task.id)
+    }
+    this.emit(task, updateType, update)
+  }
+
+  private emit(
+    task: Task,
+    updateType: TaskUpdateType,
+    update: JsonSerializableObject,
+  ): void {
+    // Admin tasks list (server room). task_progress is already throttled upstream;
+    // lifecycle transitions are bounded per task.
+    this.realtimeService.toServer({
+      resource: 'server.task',
+      action: 'updated',
+      id: task.id,
+      data: update,
+    })
+    // Folder-scoped task → folder room; user-targeted → user room. Both deliver
+    // a folder.task:updated envelope keyed by the task id (idempotent on the client).
+    if (task.targetLocationFolderId) {
+      this.realtimeService.toFolder(task.targetLocationFolderId, {
+        resource: 'folder.task',
+        action: 'updated',
+        id: task.id,
+        data: update,
       })
+    }
+    if (task.targetUserId) {
+      this.realtimeService.toUser(task.targetUserId, {
+        resource: 'folder.task',
+        action: 'updated',
+        id: task.id,
+        data: update,
+      })
+      // App-owned tasks also mirror to the app-iframe channel (unchanged).
       if (task.ownerId !== CORE_IDENTIFIER) {
         this.appUserSocketService.emitUpdate({
-          update: taskUpdateMessage,
+          update: { code: `${UPDATE_CODE_PREFIX}${updateType}`, data: update },
           scope: {
             targetUserId: task.targetUserId,
             targetLocationFolderId: task.targetLocationFolderId,

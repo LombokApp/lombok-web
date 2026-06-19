@@ -1,9 +1,5 @@
 import type { ContentMetadataEntry, PreviewMetadata } from '@lombokapp/types'
-import {
-  FolderPermissionEnum,
-  FolderPushMessage,
-  MediaType,
-} from '@lombokapp/types'
+import { FolderPermissionEnum, MediaType } from '@lombokapp/types'
 import { Button, buttonVariants } from '@lombokapp/ui-toolkit/components/button'
 import {
   Select,
@@ -29,6 +25,7 @@ import { useLocation, useNavigate } from 'react-router'
 import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
 import { useFolderContext } from '@/src/contexts/folder'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
+import { useRealtimeEvent } from '@/src/contexts/realtime'
 import type { AppPathContribution } from '@/src/contexts/server'
 import { useServerContext } from '@/src/contexts/server'
 import { $apiClient } from '@/src/services/api'
@@ -164,22 +161,19 @@ export const FolderObjectDetailScreen = ({
     }
   }, [selectedDisplayMode, displayModeOptions, folderObject])
 
-  const messageHandler = React.useCallback(
-    (name: FolderPushMessage, payload: unknown) => {
-      if (
-        [
-          FolderPushMessage.OBJECT_UPDATED,
-          FolderPushMessage.OBJECTS_REMOVED,
-        ].includes(name) &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (payload as any).objectKey === objectKey
-      ) {
-        void refetchFolderObject()
-      }
-    },
-    [refetchFolderObject, objectKey],
-  )
-  const folderContext = useFolderContext(messageHandler)
+  useRealtimeEvent('folder.object', (envelope) => {
+    if (envelope.event.resource !== 'folder.object') {
+      return
+    }
+    const { action, data } = envelope.event
+    if (
+      (action === 'updated' || action === 'removed') &&
+      data.folderObject.objectKey === objectKey
+    ) {
+      void refetchFolderObject()
+    }
+  })
+  const folderContext = useFolderContext()
   const navigate = useNavigate()
   const location = useLocation()
 

@@ -1,6 +1,8 @@
 import type createFetchClient from 'openapi-fetch'
 
-import type { paths } from './api-paths'
+import type { components, paths } from './api-paths'
+
+export type NotificationDTO = components['schemas']['NotificationDTO']
 
 export type LombokApiClient = ReturnType<
   typeof createFetchClient<paths, `${string}/${string}`>

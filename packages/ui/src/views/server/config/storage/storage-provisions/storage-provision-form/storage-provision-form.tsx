@@ -26,6 +26,8 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { useDirtyAwareRefresh } from '@/src/hooks/use-dirty-aware-refresh'
+
 export type MutationType = 'CREATE' | 'UPDATE'
 
 const formSchema = z.object({
@@ -128,10 +130,14 @@ export const StorageProvisionForm = (props: StorageProvisionFormProps) => {
     defaultValues: toFormValues(props),
   })
 
-  React.useEffect(() => {
-    form.reset(toFormValues(props))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input.values, mutationType])
+  // Load server values into the form, but don't clobber unsaved edits: if the
+  // values change underneath a dirty form, hold the update and prompt instead.
+  const { hasIncomingChange, acceptIncoming, dismissIncoming } =
+    useDirtyAwareRefresh({
+      isDirty: form.formState.isDirty,
+      serverData: input.values,
+      onApply: () => form.reset(toFormValues(props)),
+    })
 
   const handleSubmit = React.useCallback(
     (values: StorageProvisionFormValues) => {
@@ -184,6 +190,29 @@ export const StorageProvisionForm = (props: StorageProvisionFormProps) => {
           }}
           className="space-y-4"
         >
+          {hasIncomingChange && (
+            <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/60 px-3 py-2 text-sm">
+              <span className="text-muted-foreground">
+                This record changed elsewhere.
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="font-medium text-primary hover:underline"
+                  onClick={acceptIncoming}
+                >
+                  Reload
+                </button>
+                <button
+                  type="button"
+                  className="font-medium text-muted-foreground hover:underline"
+                  onClick={dismissIncoming}
+                >
+                  Keep my changes
+                </button>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <FormField

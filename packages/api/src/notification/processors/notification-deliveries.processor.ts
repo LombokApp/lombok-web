@@ -1,10 +1,10 @@
-import { CORE_IDENTIFIER, UserPushMessage } from '@lombokapp/types'
+import { CORE_IDENTIFIER } from '@lombokapp/types'
 import { Injectable } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { getUtcTimestampBucket } from 'src/shared/utils/timestamp.util'
-import { UserSocketService } from 'src/socket/user/user-socket.service'
+import { RealtimeService } from 'src/socket/realtime.service'
 import { BaseCoreTaskProcessor } from 'src/task/base.processor'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskName } from 'src/task/task.constants'
@@ -23,7 +23,7 @@ export class NotificationDeliveriesProcessor extends BaseCoreTaskProcessor<CoreT
     private readonly notificationRecipientService: NotificationRecipientService,
     private readonly notificationSettingsService: NotificationSettingsService,
     private readonly notificationDeliveryService: NotificationDeliveryService,
-    private readonly userSocketService: UserSocketService,
+    private readonly realtimeService: RealtimeService,
   ) {
     super(CoreTaskName.BuildNotificationDeliveries, async (task) => {
       const { notificationId } = task.data
@@ -91,11 +91,12 @@ export class NotificationDeliveriesProcessor extends BaseCoreTaskProcessor<CoreT
             ...notification,
             readAt: null,
           })
-          this.userSocketService.sendToUserRoom(
-            userId,
-            UserPushMessage.NOTIFICATION_DELIVERED,
-            { notification: notificationDTO },
-          )
+          this.realtimeService.toUser(userId, {
+            resource: 'user.notification',
+            action: 'delivered',
+            id: notification.id,
+            data: { notification: notificationDTO },
+          })
         }
       }
 

@@ -6,14 +6,8 @@ import type {
   ServerSettingsListResponse,
 } from '@lombokapp/types'
 import type { QueryObserverResult } from '@tanstack/react-query'
-import type { Socket } from 'socket.io-client'
 
 import type { LogLevel } from '../logging'
-
-export type SocketMessageHandler = (
-  name: string,
-  msg: Record<string, unknown>,
-) => void
 
 export interface Notification {
   level: LogLevel
@@ -63,8 +57,4 @@ export interface IServerContext {
     }
   }
   settings?: ServerSettingsListResponse['settings']
-  subscribeToMessages: (handler: SocketMessageHandler) => void
-  unsubscribeFromMessages: (handler: SocketMessageHandler) => void
-  socketConnected: boolean
-  socket: Socket | undefined
 }

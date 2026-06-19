@@ -5,7 +5,6 @@ import {
   CoreEvent,
   eventIdentifierSchema,
   EventNotificationAggregationScope,
-  FolderPushMessage,
   JsonSerializableObject,
   ScheduleTaskTriggerConfig,
 } from '@lombokapp/types'
@@ -42,7 +41,7 @@ import { buildAggregationKey } from 'src/notification/util/aggregation-key.util'
 import { OrmService } from 'src/orm/orm.service'
 import { getUtcTimestampBucket } from 'src/shared/utils/timestamp.util'
 import { AppUserSocketService } from 'src/socket/app-user/app-user-socket.service'
-import { UserSocketService } from 'src/socket/user/user-socket.service'
+import { RealtimeService } from 'src/socket/realtime.service'
 import {
   CORE_EVENT_TRIGGERS_TO_TASKS_MAP,
   CORE_TASKS,
@@ -77,8 +76,8 @@ export class EventService {
   get folderService(): FolderService {
     return this._folderService as FolderService
   }
-  get userSocketService(): UserSocketService {
-    return this._userSocketService as UserSocketService
+  get realtimeService(): RealtimeService {
+    return this._realtimeService as RealtimeService
   }
   get appUserSocketService(): AppUserSocketService {
     return this._appUserSocketService as AppUserSocketService
@@ -96,8 +95,8 @@ export class EventService {
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => CoreTaskService))
     private readonly _coreTaskService,
-    @Inject(forwardRef(() => UserSocketService))
-    private readonly _userSocketService,
+    @Inject(forwardRef(() => RealtimeService))
+    private readonly _realtimeService,
     @Inject(forwardRef(() => AppUserSocketService))
     private readonly _appUserSocketService,
     @Inject(forwardRef(() => FolderService)) private readonly _folderService,
@@ -611,22 +610,34 @@ export class EventService {
       // notify folder rooms of new tasks
       tasks.forEach((_task) => {
         if (_task.targetLocationFolderId) {
-          this.userSocketService.sendToFolderRoom(
-            _task.targetLocationFolderId,
-            FolderPushMessage.TASK_ADDED,
-            { task: _task },
-          )
+          this.realtimeService.toFolder(_task.targetLocationFolderId, {
+            resource: 'folder.task',
+            action: 'created',
+            id: _task.id,
+            data: { taskIdentifier: _task.taskIdentifier },
+          })
         }
       })
     }
-    // Emit EVENT_CREATED to folder room if folderId is present
+    // Emit folder.event:created to folder room if folderId is present
     if (targetLocation?.folderId) {
-      this.userSocketService.sendToFolderRoom(
-        targetLocation.folderId,
-        FolderPushMessage.EVENT_CREATED as FolderPushMessage,
-        { event },
-      )
+      this.realtimeService.toFolder(targetLocation.folderId, {
+        resource: 'folder.event',
+        action: 'created',
+        id: event.id,
+        data: { eventIdentifier: event.eventIdentifier },
+      })
     }
+    // Coalesced nudge to the admin events list (every event, throttled).
+    this.realtimeService.nudgeServer(
+      {
+        resource: 'server.event',
+        action: 'created',
+        id: event.id,
+        data: { eventIdentifier: event.eventIdentifier },
+      },
+      { key: 'server.event' },
+    )
 
     // Broadcast app-emitted, user-targeted events on the app-user socket channel.
     if (appIdentifier && targetUserId) {

@@ -5,6 +5,7 @@ import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 import { useSearchParams } from 'react-router'
 
+import { LiveTableBanner } from '@/src/components/live-updates-banner/live-table-banner'
 import { useFolderContext } from '@/src/contexts/folder'
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
@@ -161,7 +162,21 @@ export function FolderTasksScreen() {
         <h1 className="text-3xl font-bold tracking-tight">Folder Tasks</h1>
         <p className="text-muted-foreground">Folder: {folder?.name}</p>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+        <LiveTableBanner
+          resources={['folder.task']}
+          match={(envelope) =>
+            envelope.scope.kind === 'folder' &&
+            envelope.scope.folderId === folderId
+          }
+          queryKey={[
+            'get',
+            '/api/v1/folders/{folderId}/tasks',
+            { params: { path: { folderId } } },
+          ]}
+          noun="task"
+          enabled={!!folderId}
+        />
         <DataTable
           enableSearch={true}
           filters={filters}

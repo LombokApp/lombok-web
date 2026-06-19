@@ -10,6 +10,7 @@ import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
+import { RealtimeService } from 'src/socket/realtime.service'
 import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -34,6 +35,7 @@ export class LogEntryService {
   constructor(
     private readonly ormService: OrmService,
     private readonly folderService: FolderService,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
   async emitLog({
@@ -62,6 +64,18 @@ export class LogEntryService {
       data,
     }
     await this.ormService.db.insert(logEntriesTable).values([logEntry])
+
+    // Coalesced nudge to the admin logs list. Logs are the highest-volume stream,
+    // so this is a throttled "tail changed" hint, never a per-line firehose.
+    this.realtimeService.nudgeServer(
+      {
+        resource: 'server.log',
+        action: 'created',
+        id: logEntry.id,
+        data: { level },
+      },
+      { key: 'server.log' },
+    )
   }
 
   async getFolderLogAsUser(

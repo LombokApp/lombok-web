@@ -23,6 +23,7 @@ import { AppSocketGateway } from './app/app-socket.gateway'
 import { AppSocketService } from './app/app-socket.service'
 import { AppUserSocketGateway } from './app-user/app-user-socket.gateway'
 import { AppUserSocketService } from './app-user/app-user-socket.service'
+import { RealtimeService } from './realtime.service'
 import { UserSocketGateway } from './user/user-socket.gateway'
 import { UserSocketService } from './user/user-socket.service'
 
@@ -50,6 +51,7 @@ import { UserSocketService } from './user/user-socket.service'
     AppUserSocketGateway,
     UserSocketService,
     AppUserSocketService,
+    RealtimeService,
     DockerClientService,
     FolderService,
     EventService,
@@ -58,6 +60,7 @@ import { UserSocketService } from './user/user-socket.service'
   ],
   exports: [
     UserSocketService,
+    RealtimeService,
     UserSocketGateway,
     AppSocketService,
     AppSocketGateway,

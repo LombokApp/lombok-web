@@ -5,6 +5,7 @@ import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 import { useSearchParams } from 'react-router'
 
+import { LiveTableBanner } from '@/src/components/live-updates-banner/live-table-banner'
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
@@ -132,7 +133,12 @@ export function ServerTasksScreen() {
   })
   const events = listServerTasksQuery.data
   return (
-    <div>
+    <div className="flex flex-col gap-2">
+      <LiveTableBanner
+        resources={['server.task']}
+        queryKey={['get', '/api/v1/server/tasks']}
+        noun="task"
+      />
       <DataTable
         title="Tasks"
         enableSearch={true}

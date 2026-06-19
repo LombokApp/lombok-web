@@ -1,5 +1,6 @@
 export * from './collection.util'
 export * from './date.util'
+export * from './debounce.util'
 export * from './promise.util'
 export * from './string.util'
 export * from './address.util'

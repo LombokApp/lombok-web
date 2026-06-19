@@ -1,16 +1,10 @@
-import { FolderPushMessage } from '@lombokapp/types'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import React from 'react'
 
-import type { PushMessage } from '../../hooks/use-websocket'
-import { useWebsocket } from '../../hooks/use-websocket'
 import { $api } from '../../services/api'
 import { LogLevel } from '../logging'
-import type {
-  IFolderContext,
-  Notification,
-  SocketMessageHandler,
-} from './folder.types'
+import { useLiveQuery, useRealtime, useRealtimeRoom } from '../realtime'
+import type { IFolderContext, Notification } from './folder.types'
 
 const FolderContext = React.createContext<IFolderContext>({} as IFolderContext)
 
@@ -32,41 +26,24 @@ export const FolderContextProvider = ({
     },
   )
   const { toast } = useToast()
+  const { connected } = useRealtime()
 
-  const messageHandler = React.useCallback(
-    (message: PushMessage, _payload: Record<string, unknown>) => {
-      if (
-        (
-          [
-            FolderPushMessage.OBJECTS_ADDED,
-            FolderPushMessage.OBJECTS_REMOVED,
-            FolderPushMessage.OBJECT_ADDED,
-            FolderPushMessage.OBJECT_REMOVED,
-          ] as PushMessage[]
-        ).includes(message)
-      ) {
-        void folderQuery.refetch()
-        void folderMetadataQuery.refetch()
-      } else if (FolderPushMessage.OBJECT_UPDATED === message) {
-        void folderQuery.refetch()
-      }
-    },
-    [folderQuery, folderMetadataQuery],
-  )
-  const { socket } = useWebsocket('user', messageHandler)
+  // Join this folder's room (ref-counted, ACL-gated server-side).
+  useRealtimeRoom(folderId)
 
-  // Subscribe to folder scope after socket connects
-  React.useEffect(() => {
-    if (!socket?.connected || !folderId) {
-      return
-    }
-
-    socket.emit('subscribe', { folderId })
-
-    return () => {
-      socket.emit('unsubscribe', { folderId })
-    }
-  }, [socket?.connected, socket, folderId])
+  // Keep folder metadata (object counts → empty-state) fresh as objects change.
+  // The object grid patches its own items; this only refreshes aggregate counts.
+  useLiveQuery({
+    resources: ['folder.object'],
+    match: (envelope) =>
+      envelope.scope.kind === 'folder' && envelope.scope.folderId === folderId,
+    queryKey: [
+      'get',
+      '/api/v1/folders/{folderId}/metadata',
+      { params: { path: { folderId } } },
+    ],
+    mode: 'invalidate',
+  })
 
   const showNotification = React.useCallback(
     (notification: Notification) => {
@@ -77,14 +54,6 @@ export const FolderContextProvider = ({
     },
     [toast],
   )
-
-  const subscribeToMessages = (handler: SocketMessageHandler) => {
-    socket?.onAny(handler)
-  }
-
-  const unsubscribeFromMessages = (handler: SocketMessageHandler) => {
-    socket?.offAny(handler)
-  }
 
   const deleteFolderObjectMutation = $api.useMutation(
     'delete',
@@ -113,10 +82,7 @@ export const FolderContextProvider = ({
         folderMetadata: folderMetadataQuery.data,
         refreshFolderMetadata: folderMetadataQuery.refetch,
         showNotification,
-        socketConnected: socket?.connected ?? false,
-        subscribeToMessages,
-        unsubscribeFromMessages,
-        socket,
+        socketConnected: connected,
         deleteFolderObject,
       }}
     >
