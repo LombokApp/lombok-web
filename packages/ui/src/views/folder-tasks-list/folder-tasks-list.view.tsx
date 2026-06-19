@@ -1,5 +1,4 @@
 import type { FolderGetResponse, TaskSummaryDTO } from '@lombokapp/types'
-import { FolderPushMessage } from '@lombokapp/types'
 import {
   Card,
   CardContent,
@@ -9,11 +8,11 @@ import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
 import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import { ListChecks } from 'lucide-react'
-import React from 'react'
 import { Link } from 'react-router'
 
 import { DateDisplay } from '@/src/components/date-display'
 import { useFolderContext } from '@/src/contexts/folder'
+import { useLiveQuery } from '@/src/contexts/realtime'
 import { $api } from '@/src/services/api'
 
 const TASK_PREVIEW_LENGTH = 5
@@ -127,20 +126,19 @@ export const FolderTasksList = ({
     { enabled: !!resolvedFolderId && (!objectKey || !!objectKey) },
   )
 
-  const messageHandler = React.useCallback(
-    (name: FolderPushMessage, _payload: unknown) => {
-      if (
-        [FolderPushMessage.TASK_ADDED, FolderPushMessage.TASK_UPDATED].includes(
-          name,
-        )
-      ) {
-        void listFolderTasksQuery.refetch()
-      }
-    },
-    [listFolderTasksQuery],
-  )
-
-  useFolderContext(messageHandler)
+  useLiveQuery({
+    resources: ['folder.task'],
+    match: (envelope) =>
+      envelope.scope.kind === 'folder' &&
+      envelope.scope.folderId === resolvedFolderId,
+    queryKey: [
+      'get',
+      '/api/v1/folders/{folderId}/tasks',
+      { params: { path: { folderId: resolvedFolderId } } },
+    ],
+    mode: 'invalidate',
+    enabled: !!resolvedFolderId,
+  })
 
   const tasks = listFolderTasksQuery.data?.result ?? []
   const totalCount = listFolderTasksQuery.data?.meta.totalCount ?? 0

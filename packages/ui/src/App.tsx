@@ -20,6 +20,7 @@ import { SIDEBAR_PAGES, UNAUTHENTICATED_PAGES } from './constants'
 import { LocalFileCacheContextProvider } from './contexts/local-file-cache'
 import { LoggingContextProvider } from './contexts/logging'
 import { PublicSettingsContextProvider } from './contexts/public-settings'
+import { RealtimeProvider } from './contexts/realtime'
 import { ServerContextProvider, useServerContext } from './contexts/server'
 import { ThemeProvider } from './contexts/theme'
 import { useStore } from './hooks/use-store'
@@ -149,12 +150,14 @@ const AuthStateRouter = () => {
   return (
     <div className="size-full overflow-hidden">
       {authState.isAuthenticated && authState.isLoaded ? (
-        <LocalFileCacheContextProvider>
-          <ServerContextProvider>
-            <AuthenticatedContent />
-            <SearchCommandPalette />
-          </ServerContextProvider>
-        </LocalFileCacheContextProvider>
+        <RealtimeProvider>
+          <LocalFileCacheContextProvider>
+            <ServerContextProvider>
+              <AuthenticatedContent />
+              <SearchCommandPalette />
+            </ServerContextProvider>
+          </LocalFileCacheContextProvider>
+        </RealtimeProvider>
       ) : (
         <UnauthenticatedContent />
       )}

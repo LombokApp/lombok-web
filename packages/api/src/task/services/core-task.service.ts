@@ -1,15 +1,11 @@
-import {
-  CORE_IDENTIFIER,
-  FolderPushMessage,
-  SystemLogEntry,
-} from '@lombokapp/types'
+import { CORE_IDENTIFIER, SystemLogEntry } from '@lombokapp/types'
 import { AsyncWorkError, buildUnexpectedError } from '@lombokapp/worker-utils'
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common'
 import { and, count, eq, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { runWithThreadContext } from 'src/shared/thread-context'
-import { UserSocketService } from 'src/socket/user/user-socket.service'
+import { RealtimeService } from 'src/socket/realtime.service'
 import { CoreTaskName, MAX_TASK_ATTEMPTS } from 'src/task/task.constants'
 
 import type { CoreTask } from '../base.processor'
@@ -29,7 +25,7 @@ export class CoreTaskService {
   runningTasksCount = 0
   draining: Promise<{ completed: number; pending: number }> | undefined
 
-  userSocketService: UserSocketService
+  realtimeService: RealtimeService
   taskService: TaskService
   appService: AppService
   constructor(
@@ -38,10 +34,10 @@ export class CoreTaskService {
     _appService,
     @Inject(forwardRef(() => TaskService))
     _taskService,
-    @Inject(forwardRef(() => UserSocketService))
-    _userSocketService,
+    @Inject(forwardRef(() => RealtimeService))
+    _realtimeService,
   ) {
-    this.userSocketService = _userSocketService as UserSocketService
+    this.realtimeService = _realtimeService as RealtimeService
     this.taskService = _taskService as TaskService
     this.appService = _appService as AppService
   }
@@ -188,11 +184,12 @@ export class CoreTaskService {
 
       if (startedTask.targetLocationFolderId) {
         // notify folder rooms of updated task
-        this.userSocketService.sendToFolderRoom(
-          startedTask.targetLocationFolderId,
-          FolderPushMessage.TASK_UPDATED,
-          { task: startedTask },
-        )
+        this.realtimeService.toFolder(startedTask.targetLocationFolderId, {
+          resource: 'folder.task',
+          action: 'updated',
+          id: startedTask.id,
+          data: { taskIdentifier: startedTask.taskIdentifier },
+        })
       }
       // we have secured the task, so perform execution
       const processorName = startedTask.taskIdentifier as CoreTaskName
@@ -246,11 +243,13 @@ export class CoreTaskService {
             // send a folder socket message to the frontend that the task status was updated
             if (startedTask.targetLocationFolderId) {
               // notify folder rooms of updated task
-              this.userSocketService.sendToFolderRoom(
+              this.realtimeService.toFolder(
                 startedTask.targetLocationFolderId,
-                FolderPushMessage.TASK_UPDATED,
                 {
-                  updatedTask,
+                  resource: 'folder.task',
+                  action: 'updated',
+                  id: startedTask.id,
+                  data: { taskIdentifier: startedTask.taskIdentifier },
                 },
               )
             }

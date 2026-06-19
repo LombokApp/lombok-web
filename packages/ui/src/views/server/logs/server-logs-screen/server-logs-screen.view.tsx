@@ -5,6 +5,7 @@ import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'
 import { useSearchParams } from 'react-router'
 
+import { LiveTableBanner } from '@/src/components/live-updates-banner/live-table-banner'
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
@@ -126,7 +127,12 @@ export function ServerLogsScreen() {
   })
   const logs = listServerLogsQuery.data
   return (
-    <div>
+    <div className="flex flex-col gap-2">
+      <LiveTableBanner
+        resources={['server.log']}
+        queryKey={['get', '/api/v1/server/logs']}
+        noun="log"
+      />
       <DataTable
         title="Logs"
         enableSearch={true}

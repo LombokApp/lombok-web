@@ -9,6 +9,7 @@ import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'
 
+import { useDirtyAwareRefresh } from '@/src/hooks/use-dirty-aware-refresh'
 import { $api } from '@/src/services/api'
 
 interface PermissionState {
@@ -85,20 +86,23 @@ export function McpUserPermissionsForm() {
 
   const [isDirty, setIsDirty] = React.useState(false)
 
-  React.useEffect(() => {
-    if (!settingsQuery.data) {
-      return
-    }
-    const data = settingsQuery.data
-    // null means allowed (sparse storage model)
-    setPermissions({
-      canRead: data.canRead !== false,
-      canWrite: data.canWrite !== false,
-      canDelete: data.canDelete !== false,
-      canMove: data.canMove !== false,
+  // Apply server data when clean; if a background refresh lands mid-edit, hold it
+  // and surface a non-destructive prompt instead of clobbering unsaved toggles.
+  const { hasIncomingChange, acceptIncoming, dismissIncoming } =
+    useDirtyAwareRefresh({
+      isDirty,
+      serverData: settingsQuery.data,
+      onApply: (data) => {
+        // null means allowed (sparse storage model)
+        setPermissions({
+          canRead: data.canRead !== false,
+          canWrite: data.canWrite !== false,
+          canDelete: data.canDelete !== false,
+          canMove: data.canMove !== false,
+        })
+        setIsDirty(false)
+      },
     })
-    setIsDirty(false)
-  }, [settingsQuery.data])
 
   const handleToggle = (key: keyof PermissionState, value: boolean) => {
     setPermissions((prev) => ({ ...prev, [key]: value }))
@@ -168,6 +172,29 @@ export function McpUserPermissionsForm() {
         </div>
       </CardHeader>
       <CardContent>
+        {hasIncomingChange && (
+          <div className="mb-4 flex items-center justify-between gap-2 rounded-md border border-border bg-muted/60 px-3 py-2 text-sm">
+            <span className="text-muted-foreground">
+              These settings changed elsewhere.
+            </span>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="font-medium text-primary hover:underline"
+                onClick={acceptIncoming}
+              >
+                Reload
+              </button>
+              <button
+                type="button"
+                className="font-medium text-muted-foreground hover:underline"
+                onClick={dismissIncoming}
+              >
+                Keep my changes
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col gap-4">
           {PERMISSION_FIELDS.map(({ key, label, description }) => (
             <div

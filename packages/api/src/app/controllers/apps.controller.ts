@@ -24,6 +24,7 @@ import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { normalizeSortParam } from 'src/core/utils/sort.util'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
+import { RealtimeService } from 'src/socket/realtime.service'
 
 import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
@@ -42,7 +43,32 @@ import { UpdateAppAccessSettingsInputDTO } from '../dto/update-app-access-settin
 @ApiBearerAuth()
 @ApiStandardErrorResponses()
 export class AppsController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly realtimeService: RealtimeService,
+  ) {}
+
+  /**
+   * App install/enable/uninstall changes every user's contributions (sidebar
+   * entrypoints), so nudge all users to refetch, and notify admins for the apps
+   * list/detail views.
+   */
+  private notifyAppChanged(
+    appIdentifier: string,
+    action: 'installed' | 'enabled' | 'disabled' | 'updated' | 'uninstalled',
+  ): void {
+    this.realtimeService.toServer({
+      resource: 'server.app',
+      action,
+      id: appIdentifier,
+      data: {},
+    })
+    this.realtimeService.broadcastAll({
+      resource: 'user.apps',
+      action: 'changed',
+      data: {},
+    })
+  }
 
   @Post('/apps/install')
   @UseInterceptors(FileInterceptor('file'))
@@ -83,6 +109,7 @@ export class AppsController {
       { mode: 'install' },
     )
     const connectedAppWorkers = this.appService.getWorkerConnections()
+    this.notifyAppChanged(app.identifier, 'installed')
 
     return {
       app: transformAppToDTO(app, connectedAppWorkers[app.identifier] ?? []),
@@ -133,6 +160,7 @@ export class AppsController {
       { mode: 'upgrade', appIdentifier },
     )
     const connectedAppWorkers = this.appService.getWorkerConnections()
+    this.notifyAppChanged(app.identifier, 'updated')
 
     return {
       app: transformAppToDTO(app, connectedAppWorkers[app.identifier] ?? []),
@@ -184,6 +212,7 @@ export class AppsController {
       appIdentifier,
       enabled,
     )
+    this.notifyAppChanged(app.identifier, enabled ? 'enabled' : 'disabled')
     const connectedExternalAppWorkers = this.appService.getWorkerConnections()
     return {
       app: transformAppToDTO(
@@ -277,5 +306,6 @@ export class AppsController {
       throw new NotFoundException()
     }
     await this.appService.uninstallApp(app)
+    this.notifyAppChanged(appIdentifier, 'uninstalled')
   }
 }

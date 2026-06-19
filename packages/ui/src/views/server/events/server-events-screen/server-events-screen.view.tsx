@@ -4,6 +4,7 @@ import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 import { useSearchParams } from 'react-router'
 
+import { LiveTableBanner } from '@/src/components/live-updates-banner/live-table-banner'
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
@@ -124,7 +125,12 @@ export function ServerEventsScreen() {
   })
   const events = listServerEventsQuery.data
   return (
-    <div>
+    <div className="flex flex-col gap-2">
+      <LiveTableBanner
+        resources={['server.event']}
+        queryKey={['get', '/api/v1/server/events']}
+        noun="event"
+      />
       <DataTable
         title="Events"
         enableSearch={true}

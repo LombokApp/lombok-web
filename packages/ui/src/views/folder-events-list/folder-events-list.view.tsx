@@ -1,5 +1,5 @@
 import type { EventDTO, FolderGetResponse } from '@lombokapp/types'
-import { CORE_IDENTIFIER, FolderPushMessage } from '@lombokapp/types'
+import { CORE_IDENTIFIER } from '@lombokapp/types'
 import {
   Card,
   CardContent,
@@ -8,11 +8,11 @@ import {
 import { Skeleton } from '@lombokapp/ui-toolkit/components/skeleton'
 import { TypographyH3 } from '@lombokapp/ui-toolkit/components/typography-h3'
 import { ActivityIcon } from 'lucide-react'
-import React from 'react'
 import { Link } from 'react-router'
 
 import { DateDisplay } from '@/src/components/date-display'
 import { useFolderContext } from '@/src/contexts/folder'
+import { useLiveQuery } from '@/src/contexts/realtime'
 import { $api } from '@/src/services/api'
 
 const EVENT_PREVIEW_LENGTH = 5
@@ -73,32 +73,34 @@ export const FolderEventsList = ({
 }) => {
   const { folder } = folderAndPermission ?? {}
   const { folderId } = useFolderContext()
-  const {
-    data: listFolderEventsQuery,
-    refetch,
-    isLoading,
-  } = $api.useQuery('get', '/api/v1/folders/{folderId}/events', {
-    params: {
-      path: {
-        folderId,
-      },
-      query: {
-        sort: 'createdAt-desc',
-        limit: EVENT_PREVIEW_LENGTH,
+  const { data: listFolderEventsQuery, isLoading } = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/events',
+    {
+      params: {
+        path: {
+          folderId,
+        },
+        query: {
+          sort: 'createdAt-desc',
+          limit: EVENT_PREVIEW_LENGTH,
+        },
       },
     },
-  })
-
-  const messageHandler = React.useCallback(
-    (name: FolderPushMessage, _payload: unknown) => {
-      if ([FolderPushMessage.EVENT_CREATED].includes(name)) {
-        void refetch()
-      }
-    },
-    [refetch],
   )
 
-  useFolderContext(messageHandler)
+  useLiveQuery({
+    resources: ['folder.event'],
+    match: (envelope) =>
+      envelope.scope.kind === 'folder' && envelope.scope.folderId === folderId,
+    queryKey: [
+      'get',
+      '/api/v1/folders/{folderId}/events',
+      { params: { path: { folderId } } },
+    ],
+    mode: 'invalidate',
+    enabled: !!folderId,
+  })
 
   return (
     <Card className="h-auto">

@@ -1,8 +1,5 @@
-import type {
-  FolderPushMessage,
-  JsonSerializableObject,
-  UserPushMessage,
-} from '@lombokapp/types'
+import type { RealtimeEnvelope, RealtimeScope } from '@lombokapp/types'
+import { REALTIME_EVENT } from '@lombokapp/types'
 import { safeZodParse } from '@lombokapp/utils'
 import {
   forwardRef,
@@ -55,40 +52,56 @@ export class UserSocketService {
     return `folder:${folderId}`
   }
 
+  getServerRoomName(): string {
+    return 'server'
+  }
+
+  /**
+   * Authenticate (JWT + DB `isAdmin` re-read) and stamp `socket.data`. Registered
+   * as connection middleware (see the gateway); room joins stay in handleConnection
+   * because joining from middleware isn't durable.
+   */
+  async authenticateSocket(socket: Socket): Promise<void> {
+    const auth = socket.handshake.auth
+    if (!safeZodParse(auth, UserAuthPayload)) {
+      throw new UnauthorizedException()
+    }
+    const verifiedToken = AccessTokenJWT.parse(
+      await this.jwtService.verifyUserJWT(auth.token),
+    )
+    if (!verifiedToken.sub.startsWith(USER_JWT_SUB_PREFIX)) {
+      throw new UnauthorizedException()
+    }
+    const userId = verifiedToken.sub.split(':')[1]
+    if (!userId) {
+      throw new UnauthorizedException()
+    }
+    // Same source of truth the AuthGuard uses: re-read isAdmin from the DB rather
+    // than trusting the JWT (admin can be revoked mid-session).
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userId),
+      columns: { id: true, isAdmin: true },
+    })
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+    ;(socket.data as Record<string, unknown>).userId = userId
+    ;(socket.data as Record<string, unknown>).isAdmin = user.isAdmin
+  }
+
   async handleConnection(socket: Socket): Promise<void> {
     this.logger.debug(
       `UserSocketService handleConnection: [${socket.nsp.name}]`,
     )
-
-    const auth = socket.handshake.auth
-    if (safeZodParse(auth, UserAuthPayload)) {
-      const token = auth.token
-      if (typeof token !== 'string') {
-        throw new UnauthorizedException()
-      }
-      try {
-        const verifiedToken = AccessTokenJWT.parse(
-          await this.jwtService.verifyUserJWT(token),
-        )
-        if (verifiedToken.sub.startsWith(USER_JWT_SUB_PREFIX)) {
-          const userId = verifiedToken.sub.split(':')[1]
-          if (!userId) {
-            throw new UnauthorizedException()
-          }
-          ;(socket.data as Record<string, unknown>).userId = userId
-          await socket.join(this.getUserRoomName(userId))
-        } else {
-          throw new UnauthorizedException()
-        }
-      } catch (error: unknown) {
-        this.logger.error('Socket error:', error)
-        socket.conn.close()
-      }
-    } else {
-      // auth payload does not match expected
-      this.logger.error('Bad auth payload:', auth)
+    const data = socket.data as Record<string, unknown>
+    const userId = data.userId as string | undefined
+    if (!userId) {
       socket.disconnect(true)
-      throw new UnauthorizedException()
+      return
+    }
+    await socket.join(this.getUserRoomName(userId))
+    if (data.isAdmin) {
+      await socket.join(this.getServerRoomName())
     }
   }
 
@@ -108,17 +121,10 @@ export class UserSocketService {
     }
 
     try {
-      const user = await this.ormService.db.query.usersTable.findFirst({
-        where: eq(usersTable.id, userId),
-      })
-      if (!user) {
-        socket.emit('subscribe_error', {
-          folderId: data.folderId,
-          error: 'Access denied',
-        })
-        return
-      }
-      await this.folderService.getFolderAsUser(user, data.folderId)
+      // getFolderAsUser resolves ownership/shares from actor.id alone, so the
+      // userId verified at connect is enough — no need to re-fetch the user row.
+      // A since-deleted user owns nothing and has no shares → access denied.
+      await this.folderService.getFolderAsUser({ id: userId }, data.folderId)
 
       await socket.join(this.getFolderRoomName(data.folderId))
       this.logger.debug(
@@ -146,67 +152,35 @@ export class UserSocketService {
     )
   }
 
-  sendToUserRoom(userId: string, name: UserPushMessage, msg: unknown) {
-    if (this.namespace) {
-      this.namespace.to(this.getUserRoomName(userId)).emit(name, msg)
-    } else {
-      this.logger.warn('Namespace not yet set when sending user room message.')
-    }
-  }
-
-  sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: unknown) {
-    this.logger.debug(
-      `UserSocketService.sendToFolderRoom folderId=${folderId} name=${name}`,
-    )
-    if (this.namespace) {
-      this.namespace.to(this.getFolderRoomName(folderId)).emit(name, msg)
-    } else {
-      this.logger.warn(
-        'Namespace not yet set when sending folder room message.',
-      )
-    }
-  }
-
-  emitUpdate({
-    update,
-    scope,
-  }: {
-    update: {
-      code: string
-      data: JsonSerializableObject
-    }
-    scope: {
-      targetUserId: string
-      targetLocationFolderId: string | null
-    }
-  }): void {
+  /** Resolve an envelope's scope to its room and emit it under the single REALTIME_EVENT name. */
+  emitEnvelope(envelope: RealtimeEnvelope): void {
     if (!this.namespace) {
-      this.logger.warn('Namespace not yet set when emitting update.')
+      this.logger.warn('Namespace not yet set when emitting realtime envelope.')
       return
     }
+    const room = this.scopeToRoom(envelope.scope)
+    this.namespace.to(room).emit(REALTIME_EVENT, envelope)
+  }
 
-    const rooms: string[] = []
-    if (scope.targetUserId) {
-      rooms.push(this.getUserRoomName(scope.targetUserId))
-    }
-    if (scope.targetLocationFolderId) {
-      rooms.push(this.getFolderRoomName(scope.targetLocationFolderId))
-    }
-
-    if (rooms.length === 0) {
-      this.logger.debug(
-        'emitAsyncUpdate called with no target rooms, skipping emit.',
+  /** Emit to every connected user socket. Narrow use only: non-sensitive "refetch" nudges. */
+  broadcastEnvelope(envelope: RealtimeEnvelope): void {
+    if (!this.namespace) {
+      this.logger.warn(
+        'Namespace not yet set when broadcasting realtime envelope.',
       )
       return
     }
+    this.namespace.emit(REALTIME_EVENT, envelope)
+  }
 
-    // Chain .to() calls so socket.io deduplicates if a socket is in multiple rooms
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    let emitter = this.namespace.to(rooms[0]!)
-    for (let i = 1; i < rooms.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      emitter = emitter.to(rooms[i]!)
+  private scopeToRoom(scope: RealtimeScope): string {
+    switch (scope.kind) {
+      case 'user':
+        return this.getUserRoomName(scope.userId)
+      case 'folder':
+        return this.getFolderRoomName(scope.folderId)
+      case 'server':
+        return this.getServerRoomName()
     }
-    emitter.emit(update.code, update.data)
   }
 }

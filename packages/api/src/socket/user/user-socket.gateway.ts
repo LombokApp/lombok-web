@@ -30,6 +30,16 @@ export class UserSocketGateway implements OnGatewayConnection, OnGatewayInit {
 
   afterInit(namespace: Namespace) {
     this.userSocketService.setNamespace(namespace)
+    // Authenticate before the connection is established, so socket.data is set
+    // before the client can emit anything (e.g. an eager folder subscribe).
+    namespace.use((socket, next) => {
+      this.userSocketService
+        .authenticateSocket(socket)
+        .then(() => next())
+        .catch((error: unknown) =>
+          next(error instanceof Error ? error : new Error('Unauthorized')),
+        )
+    })
   }
 
   async handleConnection(socket: Socket): Promise<void> {

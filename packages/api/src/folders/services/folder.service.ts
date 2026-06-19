@@ -12,7 +12,6 @@ import {
   CORE_IDENTIFIER,
   CoreEvent,
   FolderPermissionEnum,
-  FolderPushMessage,
   MediaType,
   previewMetadataSchema,
   SignedURLsRequestMethod,
@@ -54,11 +53,12 @@ import { coreConfig } from 'src/core/config'
 import { parseSort } from 'src/core/utils/sort.util'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
+import { transformFolderObjectToDTO } from 'src/folders/dto/transforms/folder-object.transforms'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import type { ImageUrls } from 'src/shared/utils/image-url.util'
 import { buildImageUrls } from 'src/shared/utils/image-url.util'
-import { UserSocketService } from 'src/socket/user/user-socket.service'
+import { RealtimeService } from 'src/socket/realtime.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
@@ -175,7 +175,7 @@ export class FolderService {
   taskService: TaskService
   s3Service: S3Service
   coreTaskService: CoreTaskService
-  userSocketService: UserSocketService
+  realtimeService: RealtimeService
   coreConfig: nestjsConfig.ConfigType<typeof coreConfig>
 
   constructor(
@@ -185,8 +185,8 @@ export class FolderService {
     _appService,
     @Inject(forwardRef(() => EventService))
     _eventService,
-    @Inject(forwardRef(() => UserSocketService))
-    _userSocketService,
+    @Inject(forwardRef(() => RealtimeService))
+    _realtimeService,
     @Inject(forwardRef(() => CoreTaskService))
     _coreTaskService,
     @Inject(forwardRef(() => TaskService))
@@ -198,7 +198,7 @@ export class FolderService {
   ) {
     this.s3Service = _s3Service as S3Service
     this.coreTaskService = _coreTaskService as CoreTaskService
-    this.userSocketService = _userSocketService as UserSocketService
+    this.realtimeService = _realtimeService as RealtimeService
     this.eventService = _eventService as EventService
     this.appService = _appService as AppService
     this.taskService = _taskService as TaskService
@@ -710,11 +710,12 @@ export class FolderService {
       .delete(folderObjectsTable)
       .where(eq(folderObjectsTable.id, folderObject.id))
 
-    this.userSocketService.sendToFolderRoom(
-      folderId,
-      FolderPushMessage.OBJECT_REMOVED,
-      { folderObject },
-    )
+    this.realtimeService.toFolder(folderId, {
+      resource: 'folder.object',
+      action: 'removed',
+      id: folderObject.id,
+      data: { folderObject: transformFolderObjectToDTO(folderObject) },
+    })
 
     return true
   }
@@ -772,7 +773,7 @@ export class FolderService {
   }
 
   async getFolderAsUser(
-    actor: User,
+    actor: Pick<User, 'id'>,
     folderId: string,
   ): Promise<{
     folder: Folder
@@ -1486,13 +1487,12 @@ export class FolderService {
     // Decide event type based on createdAt vs updatedAt: insert sets both to now, update changes only updatedAt
     const wasAdded = record.createdAt.getTime() === record.updatedAt.getTime()
 
-    this.userSocketService.sendToFolderRoom(
-      folderId,
-      wasAdded
-        ? FolderPushMessage.OBJECT_ADDED
-        : FolderPushMessage.OBJECT_UPDATED,
-      { folderObject: record },
-    )
+    this.realtimeService.toFolder(folderId, {
+      resource: 'folder.object',
+      action: wasAdded ? 'created' : 'updated',
+      id: record.id,
+      data: { folderObject: transformFolderObjectToDTO(record) },
+    })
 
     await this.eventService.emitEvent({
       emitterIdentifier: CORE_IDENTIFIER,
@@ -1591,11 +1591,14 @@ export class FolderService {
           .returning()
       )[0]
 
-      this.userSocketService.sendToFolderRoom(
-        folderId,
-        FolderPushMessage.OBJECT_UPDATED,
-        updatedObject,
-      )
+      if (updatedObject) {
+        this.realtimeService.toFolder(folderId, {
+          resource: 'folder.object',
+          action: 'updated',
+          id: updatedObject.id,
+          data: { folderObject: transformFolderObjectToDTO(updatedObject) },
+        })
+      }
     }
   }
   async getFolderShare(

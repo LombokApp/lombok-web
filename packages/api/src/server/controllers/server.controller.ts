@@ -23,6 +23,7 @@ import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 import { MAX_IMAGE_UPLOAD_BYTES } from 'src/shared/utils'
+import { RealtimeService } from 'src/socket/realtime.service'
 
 import { ActivityMetricsQueryDTO } from '../dto/activity-metrics-query.dto'
 import { ActivityMetricsResponse } from '../dto/responses/activity-metrics-response.dto'
@@ -48,6 +49,7 @@ export class ServerController {
     private readonly serverMetricsService: ServerMetricsService,
     private readonly activityMetricsService: ActivityMetricsService,
     private readonly serverIconService: ServerIconService,
+    private readonly realtimeService: RealtimeService,
   ) {}
 
   @Get('/settings')
@@ -78,6 +80,11 @@ export class ServerController {
       settingKey,
       settingValue.value,
     )
+    this.realtimeService.toServer({
+      resource: 'server.settings',
+      action: 'updated',
+      data: { settingKey },
+    })
     return {
       settingKey,
       settingValue: settingValue.value as never,
@@ -98,6 +105,12 @@ export class ServerController {
     )
     const newSettings =
       await this.serverConfigurationService.getServerSettingsAsAdmin(req.user)
+
+    this.realtimeService.toServer({
+      resource: 'server.settings',
+      action: 'updated',
+      data: { settingKey },
+    })
 
     return { settingKey, settingValue: newSettings[settingKey] as never }
   }

@@ -11,6 +11,7 @@ import { AppModule } from 'src/app/app.module'
 import { coreConfig } from 'src/core/config'
 import { DockerModule } from 'src/docker/docker.module'
 import { LogModule } from 'src/log/log.module'
+import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
 
 import { PublicController } from './controllers/public.controller'
@@ -30,6 +31,7 @@ import { ServerMetricsService } from './services/server-metrics.service'
     forwardRef(() => AppModule),
     forwardRef(() => LogModule),
     forwardRef(() => DockerModule),
+    forwardRef(() => SocketModule),
   ],
   controllers: [
     PublicController,

@@ -2,7 +2,7 @@ import type {
   FolderObjectsListRequest,
   FolderPermissionName,
 } from '@lombokapp/types'
-import { FolderPermissionEnum, FolderPushMessage, isOk } from '@lombokapp/types'
+import { FolderPermissionEnum, isOk } from '@lombokapp/types'
 import { Button } from '@lombokapp/ui-toolkit/components/button'
 import {
   type ColumnFilterOptions,
@@ -16,7 +16,6 @@ import {
 } from '@lombokapp/ui-toolkit/components/dropdown-menu'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
-import { useQueryClient } from '@tanstack/react-query'
 import type { SortingState } from '@tanstack/table-core'
 import {
   CloudUpload,
@@ -38,6 +37,7 @@ import { EntityAvatar } from '@/src/components/entity-avatar/entity-avatar'
 import { FolderIconModal } from '@/src/components/folder-icon-modal/folder-icon-modal'
 import { FolderObjectDetailViewEmbedSelector } from '@/src/components/folder-object-detail-view-selector/folder-object-detail-view-embed-selector'
 import { FolderStarToggle } from '@/src/components/folder-star-toggle/folder-star-toggle'
+import { LiveUpdatesBanner } from '@/src/components/live-updates-banner/live-updates-banner'
 import {
   ReindexFolderModal,
   type ReindexFolderModalData,
@@ -48,6 +48,7 @@ import {
 } from '@/src/components/upload-modal/upload-modal'
 import { useFolderContext } from '@/src/contexts/folder'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache'
+import { useLiveQuery } from '@/src/contexts/realtime'
 import type { AppPathContribution } from '@/src/contexts/server'
 import { useServerContext } from '@/src/contexts/server'
 import { useFocusedFolderObjectContext } from '@/src/pages/folders/focused-folder-object.context'
@@ -102,7 +103,6 @@ export const FolderDetailScreen = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
-  const queryClient = useQueryClient()
   const serverContext = useServerContext()
 
   const folderUpdateMutation = $api.useMutation(
@@ -228,26 +228,21 @@ export const FolderDetailScreen = () => {
     }
   }, [filtersAndSorting])
 
-  const messageHandler = React.useCallback(
-    (name: FolderPushMessage, _payload: unknown) => {
-      if (
-        [
-          FolderPushMessage.OBJECTS_ADDED,
-          FolderPushMessage.OBJECTS_REMOVED,
-          FolderPushMessage.OBJECT_ADDED,
-          FolderPushMessage.OBJECT_REMOVED,
-          FolderPushMessage.OBJECT_UPDATED,
-        ].includes(name)
-      ) {
-        void queryClient.invalidateQueries({
-          queryKey: ['folders.objects', folderId],
-          exact: false,
-        })
-      }
-    },
-    [queryClient, folderId],
-  )
-  const folderContext = useFolderContext(messageHandler)
+  // The object grid owns its own virtualized cursor-paginated store, so blindly
+  // refetching would lose scroll position. Instead surface a "N changes — refresh"
+  // banner; applying reloads the grid via fetchParamsKey while leaving scroll
+  // intact until the user opts in.
+  const liveObjects = useLiveQuery({
+    resources: ['folder.object'],
+    match: (envelope) =>
+      envelope.scope.kind === 'folder' && envelope.scope.folderId === folderId,
+    mode: 'pending',
+  })
+  const applyLiveObjects = React.useCallback(() => {
+    liveObjects.apply()
+    updateFetchParamsKey()
+  }, [liveObjects, updateFetchParamsKey])
+  const folderContext = useFolderContext()
 
   const reindexFolderMutation = $api.useMutation(
     'post',
@@ -757,7 +752,16 @@ export const FolderDetailScreen = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex min-h-0 max-w-full flex-1 flex-col">
+                  <div className="flex min-h-0 max-w-full flex-1 flex-col gap-2">
+                    <LiveUpdatesBanner
+                      pendingCount={liveObjects.pendingCount}
+                      paused={liveObjects.paused}
+                      onPauseToggle={() =>
+                        liveObjects.setPaused(!liveObjects.paused)
+                      }
+                      onRefresh={applyLiveObjects}
+                      noun="change"
+                    />
                     <JustifiedObjectsGrid
                       onCursorChange={handleCursorChange}
                       onFetchPage={handleFetchPage}
@@ -781,10 +785,7 @@ export const FolderDetailScreen = () => {
                             params: { path: { folderId } },
                           },
                         )
-                        void queryClient.invalidateQueries({
-                          queryKey: ['folders.objects', folderId],
-                          exact: false,
-                        })
+                        updateFetchParamsKey()
                         await folderContext.refreshFolder()
                       }}
                       folderMetadata={folderContext.folderMetadata}
