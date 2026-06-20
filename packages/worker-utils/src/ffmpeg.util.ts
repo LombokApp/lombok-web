@@ -10,6 +10,13 @@ import { scaleImage } from './image.util'
 
 export const ffmpeg = ffmpegBase
 
+const parseDurationSeconds = (
+  value: string | number | undefined,
+): number | undefined => {
+  const seconds = typeof value === 'number' ? value : parseFloat(value ?? '')
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined
+}
+
 export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
   return new Promise<{ width: number; height: number; durationMs: number }>(
     (resolve, reject) => {
@@ -29,19 +36,21 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
         } else if (!videoStream.width || !videoStream.height) {
           reject(new Error('No video width or height found'))
           return
-        } else if (!videoStream.duration) {
+        }
+
+        // matroska/webm carry duration on the container, not the stream (N/A)
+        const durationSeconds =
+          parseDurationSeconds(videoStream.duration) ??
+          parseDurationSeconds(probeResult.format.duration)
+        if (durationSeconds === undefined) {
           reject(new Error('No video duration found'))
           return
         }
 
-        const durationMs = videoStream.duration
-          ? parseInt(videoStream.duration, 10) * 1000
-          : 0
-
         resolve({
           width: videoStream.width,
           height: videoStream.height,
-          durationMs: durationMs > 0 ? durationMs : 0,
+          durationMs: Math.round(durationSeconds * 1000),
         })
       })
     },
