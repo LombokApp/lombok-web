@@ -237,3 +237,17 @@ describe('generateVideoPreviews', () => {
     })
   })
 })
+
+describe('getMediaDimensionsWithFFMpeg', () => {
+  const fixturesDir = path.join(__dirname, '__tests__', 'fixtures')
+
+  // regression: matroska/webm carry duration on the container, not the stream (N/A)
+  it('resolves duration from the container when the stream reports N/A', async () => {
+    const webmPath = path.join(fixturesDir, 'sample-webm-noduration.webm')
+    const dimensions = await getMediaDimensionsWithFFMpeg(webmPath)
+
+    expect(dimensions.width).toBeGreaterThan(0)
+    expect(dimensions.height).toBeGreaterThan(0)
+    expect(dimensions.durationMs).toBeGreaterThan(0)
+  })
+})
