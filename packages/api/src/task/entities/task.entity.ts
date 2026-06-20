@@ -88,6 +88,14 @@ export const tasksTable = pgTable(
       code: string
       name: string
       message: string
+      stack?: string
+      cause?: {
+        code: string
+        name: string
+        message: string
+        stack?: string
+        details?: JsonSerializableObject
+      }
       details?: JsonSerializableObject
     }>(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull(),

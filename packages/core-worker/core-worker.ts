@@ -389,7 +389,7 @@ const handleCoreRequest = async (message: CoreWorkerIncomingRequestMessage) => {
     }
     throw buildUnexpectedError({
       code: 'UNEXPECTED_ERROR_DURING_CORE_REQUEST_HANDLING',
-      message: 'Unexpected error during core reuqest handling',
+      message: 'Unexpected error during core request handling',
       error,
       details: {
         action: message.action,
