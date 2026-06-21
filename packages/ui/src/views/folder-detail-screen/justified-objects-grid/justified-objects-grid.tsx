@@ -705,7 +705,22 @@ function JustifiedGridItem({
           displayConfig={displayConfig}
           folderObject={folderObject}
           objectKey={folderObject.objectKey}
+          renderDocumentContent={false}
         />
+
+        {/* Minimal always-visible filename label (hidden on hover, where the full overlay takes over) */}
+        <div
+          className={cn(
+            'pointer-events-none absolute inset-x-0 bottom-0',
+            'bg-gradient-to-t from-black/60 to-transparent px-2 pb-1.5 pt-4',
+            'transition-opacity duration-200',
+            isHovered ? 'opacity-0' : 'opacity-100',
+          )}
+        >
+          <div className="truncate text-xs font-medium text-white/90 drop-shadow-md">
+            {fileName}
+          </div>
+        </div>
 
         {/* Enhanced gradient overlay */}
         <div

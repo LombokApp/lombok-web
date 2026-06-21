@@ -26,7 +26,7 @@ export const folderObjectsListQueryParamsSchema = z.object({
   includeVideo: z.literal('true').optional(),
   includeAudio: z.literal('true').optional(),
   includeDocument: z.literal('true').optional(),
-  includeUnknown: z.literal('true').optional(),
+  includeOther: z.literal('true').optional(),
 })
 
 export class FolderObjectsListQueryParamsDTO extends createZodDto(

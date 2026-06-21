@@ -900,7 +900,7 @@ export class FolderService {
       includeVideo,
       includeAudio,
       includeDocument,
-      includeUnknown,
+      includeOther,
     }: {
       folderId: string
       search?: string
@@ -912,7 +912,7 @@ export class FolderService {
       includeVideo?: string
       includeAudio?: string
       includeDocument?: string
-      includeUnknown?: string
+      includeOther?: string
     },
   ) {
     const { folder } = await this.getFolderAsUser(actor, folderId)
@@ -939,8 +939,8 @@ export class FolderService {
     if (includeDocument) {
       mediaTypeFilters.push(MediaType.DOCUMENT)
     }
-    if (includeUnknown) {
-      mediaTypeFilters.push(MediaType.UNKNOWN)
+    if (includeOther) {
+      mediaTypeFilters.push(MediaType.OTHER)
     }
 
     if (mediaTypeFilters.length > 0) {
@@ -1423,22 +1423,21 @@ export class FolderService {
       : ''
 
     // Resolve media type from the provided MIME type first, then fall back
-    // to extension-based resolution to gracefully handle MIME-types that are
-    // not in our known MIME-type lists and otherwise produce UNKNOWN
-    // classification even though the extension maps to a recognised type.
+    // to extension-based resolution to gracefully handle MIME-types that
+    // classify as OTHER even though the extension maps to a recognised type.
     const mediaTypeFromProvidedMime = updateRecord.mimeType
       ? mediaTypeFromMimeType(updateRecord.mimeType)
-      : MediaType.UNKNOWN
+      : MediaType.OTHER
     const mediaTypeFromExt = extension
       ? mediaTypeFromMimeType(mimeTypeFromExtension)
-      : MediaType.UNKNOWN
+      : MediaType.OTHER
 
     const insertMediaType =
-      mediaTypeFromProvidedMime !== MediaType.UNKNOWN
+      mediaTypeFromProvidedMime !== MediaType.OTHER
         ? mediaTypeFromProvidedMime
         : mediaTypeFromExt
     const insertMimeType =
-      mediaTypeFromProvidedMime !== MediaType.UNKNOWN
+      mediaTypeFromProvidedMime !== MediaType.OTHER
         ? (updateRecord.mimeType ?? mimeTypeFromExtension)
         : mimeTypeFromExtension || (updateRecord.mimeType ?? '')
 

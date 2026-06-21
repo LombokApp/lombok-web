@@ -9,6 +9,7 @@ import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
   contentIdentifier,
   documentLabelFromMimeType,
+  DocumentMediaMimeTypes,
   isRenderableDocumentMimeType,
   isRenderableTextMimeType,
   mediaTypeFromMimeType,
@@ -53,7 +54,8 @@ export const FolderObjectPreview = ({
   displayMode = 'object-contain',
   folderObject,
   showExplanation = false,
-  maxRenderSizeBytes = 100 * 1024,
+  maxRenderSizeBytes = 256 * 1024,
+  renderDocumentContent = true,
 }: {
   folderId: string
   objectKey: string
@@ -62,6 +64,8 @@ export const FolderObjectPreview = ({
   maxRenderSizeBytes?: number
   showExplanation?: boolean
   folderObject: FolderObjectDTO
+  // When false, document bodies collapse to the type icon — for compact thumbnails.
+  renderDocumentContent?: boolean
 }) => {
   const fileName = objectKey.split('/').at(-1)
   const { getPresignedDownloadUrl } = useLocalFileCacheContext()
@@ -152,16 +156,21 @@ export const FolderObjectPreview = ({
         resolveRenderedVersion()
       const isRenderableDocument = isRenderableDocumentMimeType(mimeType)
       const isTextRenderableDocument = isRenderableTextMimeType(mimeType)
-      await getPresignedDownloadUrl(folderId, renderedContentKey).then(
-        async ({ url }) => {
-          if (isTextRenderableDocument) {
-            const contents = await fetch(url)
-            srcUrl = await contents.text()
-          } else {
-            srcUrl = url
-          }
-        },
-      )
+      // Suppressed document thumbnails render the icon — no need to fetch the body.
+      const skipDocumentBody =
+        !renderDocumentContent && mediaType === MediaType.DOCUMENT
+      if (!skipDocumentBody) {
+        await getPresignedDownloadUrl(folderId, renderedContentKey).then(
+          async ({ url }) => {
+            if (isTextRenderableDocument) {
+              const contents = await fetch(url)
+              srcUrl = await contents.text()
+            } else {
+              srcUrl = url
+            }
+          },
+        )
+      }
       setToRender({
         srcUrl: srcUrl ?? '',
         mimeType,
@@ -171,13 +180,17 @@ export const FolderObjectPreview = ({
         isTextRenderableDocument,
       })
     })()
-  }, [getPresignedDownloadUrl, folderId, objectKey, resolveRenderedVersion])
+  }, [
+    getPresignedDownloadUrl,
+    folderId,
+    objectKey,
+    resolveRenderedVersion,
+    renderDocumentContent,
+  ])
 
   const isCoverView =
     displayMode === 'object-cover' || toRender?.mediaType === MediaType.DOCUMENT
-  const IconComponent = iconForMediaType(
-    toRender?.mediaType ?? MediaType.UNKNOWN,
-  )
+  const IconComponent = iconForMediaType(toRender?.mediaType ?? MediaType.OTHER)
   const overlayLabel = React.useMemo<string | undefined>(() => {
     if (toRender?.mediaType === MediaType.DOCUMENT) {
       return documentLabelFromMimeType(toRender.mimeType)
@@ -276,7 +289,8 @@ export const FolderObjectPreview = ({
               src={toRender.srcUrl}
             />
           </div>
-        ) : toRender?.srcUrl &&
+        ) : renderDocumentContent &&
+          toRender?.srcUrl &&
           toRender.mediaType === MediaType.DOCUMENT &&
           toRender.isTextRenderableDocument ? (
           <div className="size-full overflow-hidden">
@@ -284,9 +298,10 @@ export const FolderObjectPreview = ({
               {toRender.srcUrl}
             </pre>
           </div>
-        ) : toRender?.srcUrl &&
+        ) : renderDocumentContent &&
+          toRender?.srcUrl &&
           toRender.mediaType === MediaType.DOCUMENT &&
-          toRender.mimeType === 'application/pdf' ? (
+          toRender.mimeType === String(DocumentMediaMimeTypes.PDF) ? (
           <React.Suspense fallback={null}>
             <LazyPDFViewer className="size-full" dataURL={toRender.srcUrl} />
           </React.Suspense>

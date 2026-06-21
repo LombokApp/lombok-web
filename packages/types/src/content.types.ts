@@ -5,7 +5,7 @@ export enum MediaType {
   VIDEO = 'VIDEO',
   AUDIO = 'AUDIO',
   DOCUMENT = 'DOCUMENT',
-  UNKNOWN = 'UNKNOWN',
+  OTHER = 'OTHER',
 }
 
 export const mediaTypeSchema = z.enum(MediaType)

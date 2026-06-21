@@ -1,4 +1,5 @@
 import type { FolderObjectDTO } from '@lombokapp/types'
+import { isRenderableDocumentMimeType } from '@lombokapp/utils'
 
 export function canRenderOriginal(
   folderObject: FolderObjectDTO,
@@ -26,7 +27,7 @@ export function canRenderOriginal(
   }
 
   if (folderObject.mediaType === 'DOCUMENT') {
-    if (folderObject.mimeType === 'application/pdf') {
+    if (isRenderableDocumentMimeType(folderObject.mimeType)) {
       return { result: true }
     }
   }

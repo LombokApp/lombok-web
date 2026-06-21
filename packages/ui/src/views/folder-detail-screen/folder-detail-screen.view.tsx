@@ -86,7 +86,7 @@ const FILTER_OPTIONS: Record<string, ColumnFilterOptions> = {
       { label: 'Videos', value: 'VIDEO' },
       { label: 'Audio', value: 'AUDIO' },
       { label: 'Documents', value: 'DOCUMENT' },
-      { label: 'Unknown', value: 'UNKNOWN' },
+      { label: 'Other', value: 'OTHER' },
     ],
   },
 }
@@ -429,10 +429,8 @@ export const FolderDetailScreen = () => {
               ) && {
                 includeDocument: 'true',
               }),
-              ...(filtersAndSorting.filters['mediaType']?.includes(
-                'UNKNOWN',
-              ) && {
-                includeUnknown: 'true',
+              ...(filtersAndSorting.filters['mediaType']?.includes('OTHER') && {
+                includeOther: 'true',
               }),
               ...{
                 sort: (filtersAndSorting.sorting.length > 0

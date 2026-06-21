@@ -4179,7 +4179,7 @@ export interface components {
             sizeBytes: number;
             mimeType: string;
             /** @enum {string} */
-            mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
+            mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER";
             contentMetadata: {
                 [key: string]: {
                     [key: string]: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
@@ -7146,7 +7146,7 @@ export interface operations {
                 includeVideo?: "true";
                 includeAudio?: "true";
                 includeDocument?: "true";
-                includeUnknown?: "true";
+                includeOther?: "true";
             };
             header?: never;
             path: {
@@ -10828,7 +10828,7 @@ export interface operations {
                 offset?: number;
                 limit?: number;
                 sort?: ("relevance-desc" | "name-asc" | "name-desc" | "sizeBytes-asc" | "sizeBytes-desc" | "lastModified-asc" | "lastModified-desc")[] | ("relevance-desc" | "name-asc" | "name-desc" | "sizeBytes-asc" | "sizeBytes-desc" | "lastModified-asc" | "lastModified-desc");
-                mediaType?: ("IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN")[] | ("IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN");
+                mediaType?: ("IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER")[] | ("IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "OTHER");
             };
             header?: never;
             path?: never;

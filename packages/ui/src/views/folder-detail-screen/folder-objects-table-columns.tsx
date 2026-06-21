@@ -52,6 +52,7 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
               displayConfig={displayConfig}
               folderObject={row.original}
               objectKey={row.original.objectKey}
+              renderDocumentContent={false}
             />
           </div>
           <div className="flex min-w-0 flex-1 pt-2">
