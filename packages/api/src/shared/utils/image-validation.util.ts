@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common'
-import sharp from 'sharp'
+import sharp, { type Metadata } from 'sharp'
 
 export const MAX_IMAGE_UPLOAD_BYTES = 1024 * 1024
 export const MIN_IMAGE_DIMENSION_PX = 250
@@ -43,7 +43,7 @@ export async function validateImageUpload(
     })
   }
 
-  let metadata: sharp.Metadata
+  let metadata: Metadata
   try {
     metadata = await sharp(file.buffer, { failOn: 'warning' }).metadata()
   } catch {
