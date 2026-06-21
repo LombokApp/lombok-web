@@ -19,6 +19,24 @@ import type z from 'zod'
 
 import { analyzeContent } from './analyze-content'
 
+// Null-byte heuristic over the first 8KB — the same check git uses for text vs binary.
+const BINARY_SNIFF_BYTES = 8192
+const sniffIsBinary = async (filePath: string): Promise<boolean> => {
+  const handle = await fs.promises.open(filePath, 'r')
+  try {
+    const buffer = Buffer.alloc(BINARY_SNIFF_BYTES)
+    const { bytesRead } = await handle.read(buffer, 0, BINARY_SNIFF_BYTES, 0)
+    for (let i = 0; i < bytesRead; i++) {
+      if (buffer[i] === 0) {
+        return true
+      }
+    }
+    return false
+  } finally {
+    await handle.close()
+  }
+}
+
 export const analyzeObject = async (
   folderId: string,
   objectKey: string,
@@ -88,8 +106,9 @@ export const analyzeObject = async (
     }
 
     const originalContentHash = await hashLocalFile(inFilePath)
+    const isBinary = await sniffIsBinary(inFilePath)
     const mediaType =
-      folderObject.mediaType !== MediaType.UNKNOWN
+      folderObject.mediaType !== MediaType.OTHER
         ? folderObject.mediaType
         : mediaTypeFromMimeType(folderObject.mimeType)
     const metadataFilePath = path.join(
@@ -117,6 +136,12 @@ export const analyzeObject = async (
       type: 'inline',
       sizeBytes: Buffer.from(JSON.stringify(mediaType)).length,
       content: JSON.stringify(mediaType),
+      mimeType: 'application/json',
+    }
+    metadataDescription.isBinary = {
+      type: 'inline',
+      sizeBytes: Buffer.from(JSON.stringify(isBinary)).length,
+      content: JSON.stringify(isBinary),
       mimeType: 'application/json',
     }
 

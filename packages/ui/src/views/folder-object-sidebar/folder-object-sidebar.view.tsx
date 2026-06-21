@@ -335,9 +335,11 @@ export const FolderObjectSidebar = ({
                                           `${metadataKey}-${metadataEntry.hash.slice(
                                             0,
                                             8,
-                                          )}.${extensionFromMimeType(
-                                            metadataEntry.mimeType,
-                                          )}`,
+                                          )}.${
+                                            extensionFromMimeType(
+                                              metadataEntry.mimeType,
+                                            ) ?? 'bin'
+                                          }`,
                                         )
                                       }}
                                     >

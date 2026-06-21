@@ -38,7 +38,7 @@ const getMediaTypeIcon = (mediaType: MediaType) => {
       return <Music className="size-4" />
     case MediaType.DOCUMENT:
       return <FileText className="size-4" />
-    case MediaType.UNKNOWN: {
+    case MediaType.OTHER: {
       return <FileIcon className="size-4" />
     }
     default:

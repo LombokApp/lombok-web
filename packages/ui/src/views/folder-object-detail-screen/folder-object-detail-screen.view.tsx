@@ -79,7 +79,7 @@ export const FolderObjectDetailScreen = ({
     [folderObject?.contentMetadata, folderObject?.hash],
   )
   const IconComponent = iconForMediaType(
-    (folderObject?.mediaType as MediaType | undefined) ?? MediaType.UNKNOWN,
+    (folderObject?.mediaType as MediaType | undefined) ?? MediaType.OTHER,
   )
 
   const previews = React.useMemo(

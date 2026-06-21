@@ -17,6 +17,9 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 ./dx reload api           # Reload the NestJS API (triggers bun watch reload)
 ./dx restart api          # Fully restart the NestJS API (loads new env)
 ./dx restart ui           # Restart the Vite frontend dev server
+./dx restart proxies      # Regenerate app frontend proxy overrides and reload nginx
+./dx restart bridge       # Restart the docker bridge server
+./dx restart container    # Restart the whole container (Postgres, MinIO, Vite, API)
 ./dx db seed              # Seed the database with dev data
 ./dx db reset             # Drop all tables and re-migrate
 ./dx db reset:seed        # Drop all tables, re-migrate, and re-seed
@@ -27,6 +30,7 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 ./dx e2e api              # Run API end-to-end tests
 ./dx e2e ui               # Run UI end-to-end tests
 ./dx e2e core-worker      # Run core worker end-to-end tests
+./dx integration core-worker  # Run core worker integration tests
 ./dx e2e down             # Stop the e2e container (docker compose down)
 ./dx e2e kill             # Force-kill the e2e container
 ./dx e2e purge            # Tear down and remove all e2e docker resources
@@ -42,11 +46,13 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 ```bash
 ./dx up                   # Start the dev environment (docker compose up)
 ./dx up -d                # Start in detached/daemon mode
+./dx up:rebuild           # Start the dev environment, rebuilding the image
 ./dx down                 # Stop the dev environment (docker compose down)
 ./dx kill                 # Force-kill the dev environment
 ./dx install              # Force-reinstall deps on host and in container
 ./dx purge db             # Tear down and remove the Postgres data volume
 ./dx purge minio          # Tear down and remove the MinIO data volume
+./dx purge minio:truncate # Empty the MinIO object data in place (no teardown, no restart)
 ./dx purge all            # Tear down and remove all volumes, images, and orphans
 ```
 
@@ -62,8 +68,8 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 ## Code lint auto-fix
 
 ```bash
-./dx check eslint fix     # Run eslint fix across all packages
-./dx check prettier fix   # Run prettier fix across all packages
+./dx fix eslint           # Run eslint fix across all packages
+./dx fix prettier         # Run prettier fix across all packages
 ```
 
 ## Environment
@@ -74,14 +80,16 @@ The `DEV_SEED_FILE` env var controls which seed file runs on first startup (defa
 
 ## Building release images
 
+A version argument is required (e.g. `1.2.1-beta-rc3`).
+
 ### Standalone image (includes postgres)
 
 ```bash
-./dx release standalone
+./dx release standalone <version>
 ```
 
 ### Separate DB image (does not include postgres)
 
 ```bash
-./dx release separate-db
+./dx release separate-db <version>
 ```

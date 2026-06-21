@@ -2,73 +2,87 @@ import { Mime } from 'mime'
 import otherTypes from 'mime/types/other.js'
 import standardTypes from 'mime/types/standard.js'
 
+import { MediaType } from '../../types'
+import { DocumentMediaMimeTypes } from './constants'
+
 const mime = new Mime({
   ...standardTypes,
   ...otherTypes,
   'video/mp2t': [''],
   'text/typescript': ['ts'],
+  // RAW photo types missing from mime-db; adding them lets ext→mime resolve and
+  // the image/ prefix rule classify them.
+  'image/x-sony-arw': ['arw'],
+  'image/x-dcraw': ['raw'],
+  'image/x-canon-cr2': ['cr2'],
+  'image/x-nikon-nef': ['nef'],
 })
+
+// Force-pin canonical extensions; without this getExtension returns mime-db's
+// first alias (e.g. audio/mpeg → 'mpga' instead of 'mp3').
+mime.define(
+  {
+    'audio/mpeg': ['mp3', 'mpga', 'mp2', 'mp2a', 'm2a', 'm3a'],
+    'image/jpeg': ['jpg', 'jpeg', 'jpe'],
+  },
+  true,
+)
+
+// Curated application/* document types. text/* is handled by the prefix rule.
+const APPLICATION_DOCUMENT_MIME_TYPES = new Set<string>([
+  ...Object.values(DocumentMediaMimeTypes).filter((m) =>
+    m.startsWith('application/'),
+  ),
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.oasis.opendocument.text',
+  'application/vnd.oasis.opendocument.spreadsheet',
+  'application/vnd.oasis.opendocument.presentation',
+  'application/rtf',
+])
 
 export const mimeFromExtension = (extension: string) => {
   return mime.getType(extension)
 }
 
-import { MediaType } from '../../types'
-import type {
-  AudioMediaMimeTypes,
-  ImageMediaMimeTypes,
-  VideoMediaMimeTypes,
-} from './constants'
-import {
-  AUDIO_MEDIA_MIME_TYPES,
-  DOCUMENT_MEDIA_MIME_TYPES,
-  DocumentMediaMimeTypes,
-  EXTENSION_TO_MIME_TYPE_MAP,
-  IMAGE_MEDIA_MIME_TYPES,
-  MIME_TYPE_TO_EXTENSION_MAP,
-  VIDEO_MEDIA_MIME_TYPES,
-} from './constants'
-
-export const mediaTypeFromMimeType = (mimeType: string) => {
-  if (IMAGE_MEDIA_MIME_TYPES.includes(mimeType as ImageMediaMimeTypes)) {
+export const mediaTypeFromMimeType = (mimeType: string): MediaType => {
+  const normalized = mimeType.split(';')[0]?.trim().toLowerCase() ?? ''
+  const slash = normalized.indexOf('/')
+  if (slash < 0) {
+    return MediaType.OTHER
+  }
+  const topLevel = normalized.slice(0, slash)
+  if (topLevel === 'image') {
     return MediaType.IMAGE
-  } else if (VIDEO_MEDIA_MIME_TYPES.includes(mimeType as VideoMediaMimeTypes)) {
+  }
+  if (topLevel === 'video') {
     return MediaType.VIDEO
-  } else if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
+  }
+  if (topLevel === 'audio') {
     return MediaType.AUDIO
-  } else if (
-    DOCUMENT_MEDIA_MIME_TYPES.includes(mimeType as DocumentMediaMimeTypes)
-  ) {
+  }
+  if (topLevel === 'text') {
     return MediaType.DOCUMENT
   }
-  return MediaType.UNKNOWN
-}
-
-export const mediaTypeFromExtension = (extension: string) => {
-  const mimeType = EXTENSION_TO_MIME_TYPE_MAP[extension.toLowerCase()]
-  if (!mimeType) {
-    return MediaType.UNKNOWN
-  }
-  if (IMAGE_MEDIA_MIME_TYPES.includes(mimeType as ImageMediaMimeTypes)) {
-    return MediaType.IMAGE
-  } else if (VIDEO_MEDIA_MIME_TYPES.includes(mimeType as VideoMediaMimeTypes)) {
-    return MediaType.VIDEO
-  } else if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
-    return MediaType.AUDIO
-  } else if (
-    DOCUMENT_MEDIA_MIME_TYPES.includes(mimeType as DocumentMediaMimeTypes)
-  ) {
+  if (APPLICATION_DOCUMENT_MIME_TYPES.has(normalized)) {
     return MediaType.DOCUMENT
   }
-  return MediaType.UNKNOWN
+  return MediaType.OTHER
 }
+
+export const mediaTypeFromExtension = (extension: string): MediaType =>
+  mediaTypeFromMimeType(mimeFromExtension(extension) ?? '')
 
 export const isRenderableTextMimeType = (mimeType: string) => {
   // Check specific document types that are renderable
   if (
     mimeType === String(DocumentMediaMimeTypes.TXT) ||
     mimeType === String(DocumentMediaMimeTypes.HTML) ||
-    mimeType === String(DocumentMediaMimeTypes.JSON)
+    mimeType === String(DocumentMediaMimeTypes.JSON) ||
+    mimeType === String(DocumentMediaMimeTypes.CSV) ||
+    mimeType === String(DocumentMediaMimeTypes.TSV) ||
+    mimeType === String(DocumentMediaMimeTypes.MPD) ||
+    mimeType === String(DocumentMediaMimeTypes.M3U8)
   ) {
     return true
   }
@@ -83,7 +97,11 @@ export const isRenderableDocumentMimeType = (mimeType: string) => {
     mimeType === String(DocumentMediaMimeTypes.TXT) ||
     mimeType === String(DocumentMediaMimeTypes.HTML) ||
     mimeType === String(DocumentMediaMimeTypes.JSON) ||
-    mimeType === String(DocumentMediaMimeTypes.PDF)
+    mimeType === String(DocumentMediaMimeTypes.PDF) ||
+    mimeType === String(DocumentMediaMimeTypes.CSV) ||
+    mimeType === String(DocumentMediaMimeTypes.TSV) ||
+    mimeType === String(DocumentMediaMimeTypes.MPD) ||
+    mimeType === String(DocumentMediaMimeTypes.M3U8)
   ) {
     return true
   }
@@ -91,11 +109,8 @@ export const isRenderableDocumentMimeType = (mimeType: string) => {
   return false
 }
 
-export const extensionFromMimeType = (mimeType: string): string | undefined => {
-  return MIME_TYPE_TO_EXTENSION_MAP[
-    mimeType as keyof typeof MIME_TYPE_TO_EXTENSION_MAP
-  ]
-}
+export const extensionFromMimeType = (mimeType: string): string | undefined =>
+  mime.getExtension(mimeType) ?? undefined
 
 export const documentLabelFromMimeType = (
   mimeType: string | undefined,

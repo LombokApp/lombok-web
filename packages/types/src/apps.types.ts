@@ -404,6 +404,19 @@ export const mobileQueryBindingSchema = z
   .strict()
   .meta({ id: 'MobileQueryBinding' })
 
+// Re-runs `query` every `intervalSeconds` while `whilePath` stays truthy, writing
+// each result to `targetPath`. Drives live progress (e.g. a download) without push.
+export const mobilePollBindingSchema = z
+  .object({
+    query: mobileQueryRefSchema,
+    targetPath: z.string().nonempty(),
+    loadingPath: z.string().nonempty().optional(),
+    intervalSeconds: z.number().positive(),
+    whilePath: z.string().nonempty(),
+  })
+  .strict()
+  .meta({ id: 'MobilePollBinding' })
+
 // Collects the component ids referenced by another component's child wiring.
 // Child references live in freeform props, so we read them defensively:
 // `children` is either a string-array (Column/Row) or a List template
@@ -484,6 +497,7 @@ export const mobileRootViewSchema = z
     actionMap: z
       .record(z.string(), z.array(mobileQueryBindingSchema))
       .optional(),
+    pollQueries: z.array(mobilePollBindingSchema).optional(),
   })
   .strict()
   .superRefine((view, ctx) => {

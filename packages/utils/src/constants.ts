@@ -1,48 +1,12 @@
-export enum ImageMediaMimeTypes {
-  JPEG = 'image/jpeg',
-  PNG = 'image/png',
-  GIF = 'image/gif',
-  HEIC = 'image/heic',
-  BMP = 'image/bmp',
-  AVIF = 'image/avif',
-  TIFF = 'image/tiff',
-  SVG = 'image/svg+xml',
-  WEBP = 'image/webp',
-  RAW = 'image/x-dcraw',
-  SONY_RAW = 'image/x-sony-arw',
-}
-
-export enum VideoMediaMimeTypes {
-  MKV = 'video/x-matroska',
-  FLV = 'video/x-flv',
-  MP4 = 'video/mp4',
-  AVI = 'video/x-msvideo',
-  MOV = 'video/quicktime',
-  WEBM = 'video/webm',
-  MPEG = 'video/mpeg',
-  THREEGPP = 'video/3gpp',
-  THREEGPP2 = 'video/3gpp2',
-}
-
-export enum AudioMediaMimeTypes {
-  AAC = 'audio/aac',
-  WAV = 'audio/wav',
-  MP4 = 'audio/mp4',
-  XM4A = 'audio/x-m4a',
-  XWAV = 'audio/x-wav',
-  WEBM = 'audio/webm',
-  MIDI = 'audio/midi',
-  MPEG = 'audio/mpeg',
-  OGG = 'audio/ogg',
-  THREEGPP = 'audio/3gpp',
-  THREEGPP2 = 'audio/3gpp2',
-}
-
 export enum DocumentMediaMimeTypes {
   TXT = 'text/plain',
   PDF = 'application/pdf',
   EPUB = 'application/epub+zip',
   JSON = 'application/json',
+  CSV = 'text/csv',
+  TSV = 'text/tab-separated-values',
+  MPD = 'application/dash+xml',
+  M3U8 = 'application/vnd.apple.mpegurl',
   XLS = 'application/vnd.ms-excel',
   XML = 'application/xml',
   XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -50,115 +14,3 @@ export enum DocumentMediaMimeTypes {
   DOC = 'application/msword',
   DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 }
-
-export const IMAGE_MEDIA_MIME_TYPES = [
-  ImageMediaMimeTypes.JPEG,
-  ImageMediaMimeTypes.PNG,
-  ImageMediaMimeTypes.HEIC,
-  ImageMediaMimeTypes.GIF,
-  ImageMediaMimeTypes.BMP,
-  ImageMediaMimeTypes.AVIF,
-  ImageMediaMimeTypes.TIFF,
-  ImageMediaMimeTypes.SVG,
-  ImageMediaMimeTypes.WEBP,
-]
-export const VIDEO_MEDIA_MIME_TYPES = [
-  VideoMediaMimeTypes.FLV,
-  VideoMediaMimeTypes.MKV,
-  VideoMediaMimeTypes.MP4,
-  VideoMediaMimeTypes.AVI,
-  VideoMediaMimeTypes.MOV,
-  VideoMediaMimeTypes.WEBM,
-  VideoMediaMimeTypes.MPEG,
-  VideoMediaMimeTypes.THREEGPP,
-  VideoMediaMimeTypes.THREEGPP2,
-]
-export const AUDIO_MEDIA_MIME_TYPES = [
-  AudioMediaMimeTypes.AAC,
-  AudioMediaMimeTypes.WAV,
-  AudioMediaMimeTypes.MP4,
-  AudioMediaMimeTypes.XM4A,
-  AudioMediaMimeTypes.XWAV,
-  AudioMediaMimeTypes.WEBM,
-  AudioMediaMimeTypes.MIDI,
-  AudioMediaMimeTypes.MPEG,
-  AudioMediaMimeTypes.OGG,
-  AudioMediaMimeTypes.THREEGPP,
-  AudioMediaMimeTypes.THREEGPP2,
-]
-export const DOCUMENT_MEDIA_MIME_TYPES = [
-  DocumentMediaMimeTypes.TXT,
-  DocumentMediaMimeTypes.PDF,
-  DocumentMediaMimeTypes.XLS,
-  DocumentMediaMimeTypes.XML,
-  DocumentMediaMimeTypes.EPUB,
-  DocumentMediaMimeTypes.XLSX,
-  DocumentMediaMimeTypes.HTML,
-  DocumentMediaMimeTypes.DOC,
-  DocumentMediaMimeTypes.JSON,
-  DocumentMediaMimeTypes.DOCX,
-]
-
-export const MIME_TYPE_TO_EXTENSION_MAP = {
-  [ImageMediaMimeTypes.JPEG]: 'jpeg',
-  [ImageMediaMimeTypes.BMP]: 'bmp',
-  [ImageMediaMimeTypes.GIF]: 'gif',
-  [ImageMediaMimeTypes.HEIC]: 'heic',
-  [ImageMediaMimeTypes.PNG]: 'png',
-  [ImageMediaMimeTypes.AVIF]: 'avif',
-  [ImageMediaMimeTypes.RAW]: 'raw',
-  [ImageMediaMimeTypes.SONY_RAW]: 'arw',
-  [ImageMediaMimeTypes.TIFF]: 'tiff',
-  [ImageMediaMimeTypes.WEBP]: 'webp',
-
-  [VideoMediaMimeTypes.AVI]: 'avi',
-  [VideoMediaMimeTypes.MKV]: 'mkv',
-  [VideoMediaMimeTypes.MP4]: 'mp4',
-  [VideoMediaMimeTypes.FLV]: 'flv',
-  [VideoMediaMimeTypes.MOV]: 'mov',
-  [VideoMediaMimeTypes.MPEG]: 'mpeg',
-  [VideoMediaMimeTypes.WEBM]: 'webm',
-  [VideoMediaMimeTypes.THREEGPP]: '3ggp',
-  [VideoMediaMimeTypes.THREEGPP2]: '3ggp2',
-
-  [AudioMediaMimeTypes.AAC]: 'aac',
-  [AudioMediaMimeTypes.MIDI]: 'midi',
-  [AudioMediaMimeTypes.MPEG]: 'mp3',
-  [AudioMediaMimeTypes.MP4]: 'm4a',
-  [AudioMediaMimeTypes.XM4A]: 'm4a',
-  [AudioMediaMimeTypes.OGG]: 'ogg',
-  [AudioMediaMimeTypes.WAV]: 'wav',
-  [AudioMediaMimeTypes.XWAV]: 'wav',
-  [AudioMediaMimeTypes.WEBM]: 'webm',
-  [AudioMediaMimeTypes.THREEGPP]: '3gpp',
-  [AudioMediaMimeTypes.THREEGPP2]: '3gpp2',
-
-  [DocumentMediaMimeTypes.TXT]: 'txt',
-  [DocumentMediaMimeTypes.PDF]: 'pdf',
-  [DocumentMediaMimeTypes.XLS]: 'xls',
-  [DocumentMediaMimeTypes.XML]: 'xml',
-  [DocumentMediaMimeTypes.XLSX]: 'xlsx',
-  [DocumentMediaMimeTypes.EPUB]: 'epub',
-  [DocumentMediaMimeTypes.HTML]: 'html',
-  [DocumentMediaMimeTypes.DOC]: 'doc',
-  [DocumentMediaMimeTypes.DOCX]: 'docx',
-  [DocumentMediaMimeTypes.JSON]: 'json',
-}
-
-export const EXTENSION_TO_MIME_TYPE_MAP: Record<
-  string,
-  | ImageMediaMimeTypes
-  | VideoMediaMimeTypes
-  | AudioMediaMimeTypes
-  | DocumentMediaMimeTypes
-> = Object.keys(MIME_TYPE_TO_EXTENSION_MAP).reduce(
-  (acc, next) => {
-    return {
-      ...acc,
-      [MIME_TYPE_TO_EXTENSION_MAP[
-        next as keyof typeof MIME_TYPE_TO_EXTENSION_MAP
-      ]]: next,
-    }
-  },
-  { jpg: ImageMediaMimeTypes.JPEG },
-)

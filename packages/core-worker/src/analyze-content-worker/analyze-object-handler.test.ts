@@ -231,6 +231,12 @@ describe('Analyze Object Handler', () => {
           content: '"IMAGE"',
           mimeType: 'application/json',
         },
+        isBinary: {
+          type: 'inline',
+          sizeBytes: 4,
+          content: 'true',
+          mimeType: 'application/json',
+        },
         embeddedMetadata: {
           type: 'external',
           sizeBytes: 2,
