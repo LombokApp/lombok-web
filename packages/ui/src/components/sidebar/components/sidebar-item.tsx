@@ -10,8 +10,10 @@ import type { LucideIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router'
 
-interface SidebarItemProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+interface SidebarItemProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'children'
+> {
   icon: LucideIcon | React.ReactNode
   label: string
   isOpen: boolean | undefined

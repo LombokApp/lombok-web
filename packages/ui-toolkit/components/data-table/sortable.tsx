@@ -513,8 +513,7 @@ const SortableItem = React.forwardRef<HTMLDivElement, SortableItemProps>(
 )
 SortableItem.displayName = ITEM_NAME
 
-interface SortableItemHandleProps
-  extends React.ComponentPropsWithoutRef<'button'> {
+interface SortableItemHandleProps extends React.ComponentPropsWithoutRef<'button'> {
   asChild?: boolean
 }
 
@@ -574,8 +573,10 @@ const dropAnimation: DropAnimation = {
   }),
 }
 
-interface SortableOverlayProps
-  extends Omit<React.ComponentPropsWithoutRef<typeof DragOverlay>, 'children'> {
+interface SortableOverlayProps extends Omit<
+  React.ComponentPropsWithoutRef<typeof DragOverlay>,
+  'children'
+> {
   container?: Element | DocumentFragment | null
   children?:
     | ((params: { value: UniqueIdentifier }) => React.ReactNode)

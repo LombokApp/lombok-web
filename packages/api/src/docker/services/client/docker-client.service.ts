@@ -1373,15 +1373,13 @@ interface DockerHostContainerStateBase {
   createdAt: string
 }
 
-export interface DockerHostWorkerContainerState
-  extends DockerHostContainerStateBase {
+export interface DockerHostWorkerContainerState extends DockerHostContainerStateBase {
   containerType: 'worker'
   profileId: string
   profileHash: string
 }
 
-export interface DockerHostStandaloneContainerState
-  extends DockerHostContainerStateBase {
+export interface DockerHostStandaloneContainerState extends DockerHostContainerStateBase {
   containerType: 'standalone'
   standaloneContainerId: string
 }

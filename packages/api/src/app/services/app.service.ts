@@ -132,8 +132,10 @@ export type MetadataUploadUrlsResponse = {
   url: string
 }[]
 
-export interface AppInstallBundle
-  extends Omit<NewApp, 'id' | 'identifier' | 'createdAt' | 'updatedAt'> {
+export interface AppInstallBundle extends Omit<
+  NewApp,
+  'id' | 'identifier' | 'createdAt' | 'updatedAt'
+> {
   migrationFiles: { filename: string; content: string }[]
 }
 

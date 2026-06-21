@@ -809,9 +809,8 @@ describe('MCP', () => {
 
   describe('Permission Resolution', () => {
     it('should resolve all-true when no settings exist', async () => {
-      const { McpPermissionsService } = await import(
-        './services/mcp-permissions.service'
-      )
+      const { McpPermissionsService } =
+        await import('./services/mcp-permissions.service')
       const permissionsService = await testModule!.resolveDep(
         McpPermissionsService,
       )
@@ -847,9 +846,8 @@ describe('MCP', () => {
     })
 
     it('should use user-level settings as defaults', async () => {
-      const { McpPermissionsService } = await import(
-        './services/mcp-permissions.service'
-      )
+      const { McpPermissionsService } =
+        await import('./services/mcp-permissions.service')
       const permissionsService = await testModule!.resolveDep(
         McpPermissionsService,
       )
@@ -892,9 +890,8 @@ describe('MCP', () => {
     })
 
     it('should let folder-level settings fully override user-level', async () => {
-      const { McpPermissionsService } = await import(
-        './services/mcp-permissions.service'
-      )
+      const { McpPermissionsService } =
+        await import('./services/mcp-permissions.service')
       const permissionsService = await testModule!.resolveDep(
         McpPermissionsService,
       )
@@ -945,9 +942,8 @@ describe('MCP', () => {
     })
 
     it('should treat null folder permissions as allowed', async () => {
-      const { McpPermissionsService } = await import(
-        './services/mcp-permissions.service'
-      )
+      const { McpPermissionsService } =
+        await import('./services/mcp-permissions.service')
       const permissionsService = await testModule!.resolveDep(
         McpPermissionsService,
       )

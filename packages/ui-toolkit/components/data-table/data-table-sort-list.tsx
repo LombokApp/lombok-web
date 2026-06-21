@@ -37,8 +37,9 @@ const sortOrders = [
   { label: 'Desc', value: 'desc' as const },
 ]
 
-interface DataTableSortListProps<TData>
-  extends React.ComponentProps<typeof PopoverContent> {
+interface DataTableSortListProps<TData> extends React.ComponentProps<
+  typeof PopoverContent
+> {
   table: Table<TData>
 }
 
