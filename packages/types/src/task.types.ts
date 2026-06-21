@@ -548,6 +548,16 @@ export const taskErrorResponseSchema = z.object({
     name: z.string().optional(),
     code: z.string(),
     message: z.string(),
+    stack: z.string().optional(),
+    cause: z
+      .object({
+        code: z.string(),
+        name: z.string(),
+        message: z.string(),
+        stack: z.string().optional(),
+        details: jsonSerializableObjectSchema.optional(),
+      })
+      .optional(),
     details: jsonSerializableObjectSchema.optional(),
   }),
   requeueDelayMs: requeueSchema.optional(),

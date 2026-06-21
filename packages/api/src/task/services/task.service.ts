@@ -1185,6 +1185,12 @@ export class TaskService {
                   code: completion.error.code,
                   name: completion.error.name ?? 'Error',
                   message: completion.error.message,
+                  ...(completion.error.stack
+                    ? { stack: completion.error.stack }
+                    : {}),
+                  ...(completion.error.cause
+                    ? { cause: completion.error.cause }
+                    : {}),
                   details: completion.error.details,
                 },
                 ...(shouldRequeue
