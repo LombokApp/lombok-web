@@ -55,7 +55,7 @@
     "globals": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "css-loader": "^6.11.0",
-    "postcss": "^8.5.2",
+    "postcss": "^8.5.15",
     "postcss-loader": "^8.1.1",
     "style-loader": "^3.3.4",
     "prettier": "catalog:",
@@ -64,7 +64,7 @@
     "storybook": "^8.4.7",
     "storybook-addon-react-docgen": "1.2.44",
     "typescript-eslint": "catalog:",
-    "ts-loader": "^9.5.2",
+    "ts-loader": "^9.6.1",
     "tsconfig-paths": "catalog:",
     "tsconfig-paths-webpack-plugin": "^4.2.0",
     "tscpaths": "^0.0.9",
@@ -117,7 +117,7 @@
     "react-image-crop": "catalog:",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.0",
-    "tailwind-merge": "^3.3.1",
+    "tailwind-merge": "^3.6.0",
     "vaul": "^1.1.2",
     "zod": "catalog:"
   }
