@@ -55,9 +55,9 @@ APP_NAME="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$SCRIPT_DIR/$APP_NAME"
 
-# Validate app directory exists
-if [ ! -d "$APP_DIR" ]; then
-  echo "Error: App directory '$APP_DIR' does not exist"
+# Validate app directory exists (resolves symlinks, since APP_DIR may be one)
+if [ ! -f "$APP_DIR/config.json" ]; then
+  echo "Error: App directory '$APP_DIR' does not contain a config.json"
   exit 1
 fi
 
