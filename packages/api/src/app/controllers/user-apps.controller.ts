@@ -12,7 +12,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AppService } from 'src/app/services/app.service'
@@ -47,6 +47,7 @@ export class UserAppsController {
   ) {}
 
   @Get('/apps')
+  @ApiOperation({ summary: 'List enabled apps available for the current user' })
   async listApps(@Req() req: express.Request): Promise<UserAppListResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
@@ -64,6 +65,9 @@ export class UserAppsController {
   }
 
   @Get('/apps/:appIdentifier')
+  @ApiOperation({
+    summary: 'Get an enabled app by identifier for the current user',
+  })
   async getApp(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -79,6 +83,10 @@ export class UserAppsController {
   }
 
   @Get('/apps/:appIdentifier/storage/objects')
+  @ApiOperation({
+    summary:
+      "List objects in the current user's partition of an app's server storage",
+  })
   async listAppStorageObjects(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -96,6 +104,10 @@ export class UserAppsController {
   }
 
   @Post('/apps/:appIdentifier/storage/presigned-urls')
+  @ApiOperation({
+    summary:
+      "Presign read-only URLs for objects in the current user's app storage partition",
+  })
   async createAppStoragePresignedUrls(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -113,6 +125,7 @@ export class UserAppsController {
   }
 
   @Get('/app-contributions')
+  @ApiOperation({ summary: 'Get app contributions' })
   async getAppContributions(
     @Req() req: express.Request,
   ): Promise<AppContributionsResponse> {
@@ -124,6 +137,7 @@ export class UserAppsController {
   }
 
   @Post('/apps/:appIdentifier/access-token')
+  @ApiOperation({ summary: 'Generate app user access token' })
   async generateAppUserAccessToken(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -147,6 +161,7 @@ export class UserAppsController {
   }
 
   @Get('/apps/:appIdentifier/settings')
+  @ApiOperation({ summary: 'Get app user settings for the current user' })
   async getAppUserSettings(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -162,6 +177,9 @@ export class UserAppsController {
   }
 
   @Post('/apps/:appIdentifier/settings')
+  @ApiOperation({
+    summary: 'Create or update app user settings for the current user',
+  })
   async upsertAppUserSettings(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -182,6 +200,7 @@ export class UserAppsController {
   }
 
   @Delete('/apps/:appIdentifier/settings')
+  @ApiOperation({ summary: 'Remove app user settings for the current user' })
   async removeAppUserSettings(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -193,6 +212,9 @@ export class UserAppsController {
   }
 
   @Get('/apps/:appIdentifier/custom-settings')
+  @ApiOperation({
+    summary: 'Get resolved custom settings for the current user',
+  })
   async getUserCustomSettings(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -210,6 +232,12 @@ export class UserAppsController {
 
   // Absent keys preserved, explicit `null` deletes; writes are per-key atomic so concurrent disjoint-key patches don't race.
   @Patch('/apps/:appIdentifier/custom-settings')
+  @ApiOperation({
+    summary:
+      'Patch custom settings for the current user. Keys not present are\n' +
+      'preserved; explicit `null` values delete the key. Writes are atomic per\n' +
+      'key, so concurrent patches on disjoint keys do not race.',
+  })
   async patchUserCustomSettings(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -229,6 +257,9 @@ export class UserAppsController {
 
   // Revert the user's custom settings to defaults.
   @Delete('/apps/:appIdentifier/custom-settings')
+  @ApiOperation({
+    summary: 'Remove custom settings for the current user (revert to defaults)',
+  })
   async deleteUserCustomSettings(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,

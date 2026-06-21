@@ -24,6 +24,7 @@ import {
   ApiBearerAuth,
   ApiConsumes,
   ApiExtraModels,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger'
 import express from 'express'
@@ -96,6 +97,13 @@ export class FoldersController {
 
   // Declared before `/:folderId` so `starred` isn't captured by the UUID-parsed folder route.
   @Get('/starred')
+  @ApiOperation({
+    summary:
+      "List the current user's starred folders.\n" +
+      '\n' +
+      'Declared before `/:folderId` so the literal `starred` segment is not\n' +
+      'captured by the UUID-parsed folder route.',
+  })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -110,6 +118,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId')
+  @ApiOperation({ summary: 'Get a folder by id.' })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -130,6 +139,7 @@ export class FoldersController {
   }
 
   @Put('/:folderId/starred')
+  @ApiOperation({ summary: 'Star or unstar a folder for the current user.' })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -150,6 +160,7 @@ export class FoldersController {
   }
 
   @Post('/:folderId/check-access')
+  @ApiOperation({ summary: 'Check S3 access and update folder accessError' })
   async checkFolderAccess(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -170,6 +181,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId/metadata')
+  @ApiOperation({ summary: 'Get the metadata for a folder by id.' })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -188,6 +200,7 @@ export class FoldersController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'List folders.' })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -216,6 +229,7 @@ export class FoldersController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a folder.' })
   async createFolder(
     @Req() req: express.Request,
     @Body() body: FolderCreateInputDTO,
@@ -234,6 +248,7 @@ export class FoldersController {
   }
 
   @Delete('/:folderId')
+  @ApiOperation({ summary: 'Delete a folder by id.' })
   async deleteFolder(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -245,6 +260,10 @@ export class FoldersController {
   }
 
   @Post('/:folderId/reindex')
+  @ApiOperation({
+    summary:
+      'Scan the underlying S3 location and update our local representation of it.',
+  })
   async reindexFolder(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -266,6 +285,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId/objects')
+  @ApiOperation({ summary: 'List folder objects by folderId.' })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -293,6 +313,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId/objects/:objectKey')
+  @ApiOperation({ summary: 'Get a folder object by folderId and objectKey.' })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -314,6 +335,9 @@ export class FoldersController {
   }
 
   @Delete('/:folderId/objects/:objectKey')
+  @ApiOperation({
+    summary: 'Delete a folder object by folderId and objectKey.',
+  })
   async deleteFolderObject(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -329,6 +353,7 @@ export class FoldersController {
   }
 
   @Post('/:folderId/presigned-urls')
+  @ApiOperation({ summary: 'Create presigned urls for objects in a folder.' })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -348,6 +373,10 @@ export class FoldersController {
   }
 
   @Post('/:folderId/objects/:objectKey/refresh')
+  @ApiOperation({
+    summary:
+      'Scan the object again in the underlying storage, and update its state in our db.',
+  })
   @AuthGuardConfig({
     allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
   })
@@ -371,6 +400,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId/shares/:userId')
+  @ApiOperation({ summary: 'Get folder share for a user' })
   async getFolderShares(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -388,6 +418,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId/shares')
+  @ApiOperation({ summary: 'List folder shares' })
   async listFolderShares(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -401,6 +432,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId/user-share-options')
+  @ApiOperation({ summary: 'List prospective folder share users' })
   async listFolderShareUsers(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -418,6 +450,7 @@ export class FoldersController {
   }
 
   @Post('/:folderId/shares/:userId')
+  @ApiOperation({ summary: 'Add or update a folder share' })
   async upsertFolderShare(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -438,6 +471,7 @@ export class FoldersController {
   }
 
   @Delete('/:folderId/shares/:userId')
+  @ApiOperation({ summary: 'Remove a folder share' })
   async removeFolderShare(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -450,6 +484,7 @@ export class FoldersController {
   }
 
   @Put('/:folderId')
+  @ApiOperation({ summary: 'Update a folder by id.' })
   async updateFolder(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -469,6 +504,7 @@ export class FoldersController {
   }
 
   @Post('/:folderId/icon')
+  @ApiOperation({ summary: 'Upload (or replace) a folder icon image.' })
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
   )
@@ -502,6 +538,7 @@ export class FoldersController {
 
   @Delete('/:folderId/icon')
   @HttpCode(204)
+  @ApiOperation({ summary: 'Remove a folder icon.' })
   async deleteFolderIcon(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -513,6 +550,7 @@ export class FoldersController {
   }
 
   @Get('/:folderId/app-settings')
+  @ApiOperation({ summary: 'Get all app settings for a folder' })
   async getFolderAppSettings(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -528,6 +566,7 @@ export class FoldersController {
   }
 
   @Patch('/:folderId/app-settings')
+  @ApiOperation({ summary: 'Bulk update app settings for a folder' })
   async updateFolderAppSettings(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -545,6 +584,9 @@ export class FoldersController {
   }
 
   @Get('/:folderId/apps/:appIdentifier/custom-settings')
+  @ApiOperation({
+    summary: 'Get resolved custom settings for an app on a folder',
+  })
   async getFolderCustomSettings(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -564,6 +606,12 @@ export class FoldersController {
 
   // Absent keys preserved, explicit `null` deletes; writes are per-key atomic so concurrent disjoint-key patches don't race.
   @Patch('/:folderId/apps/:appIdentifier/custom-settings')
+  @ApiOperation({
+    summary:
+      'Patch custom settings for an app on a folder. Keys not present are\n' +
+      'preserved; explicit `null` values delete the key. Writes are atomic per\n' +
+      'key, so concurrent patches on disjoint keys do not race.',
+  })
   async patchFolderCustomSettings(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
@@ -589,6 +637,10 @@ export class FoldersController {
 
   // Revert folder custom settings to user-level.
   @Delete('/:folderId/apps/:appIdentifier/custom-settings')
+  @ApiOperation({
+    summary:
+      'Remove custom settings for an app on a folder (revert to user-level)',
+  })
   async deleteFolderCustomSettings(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
