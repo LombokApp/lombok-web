@@ -43,7 +43,7 @@
     "tailwindcss": "4.3.1",
     "@tailwindcss/postcss": "4.3.1",
     "@tailwindcss/vite": "4.3.1",
-    "@vitejs/plugin-react-swc": "4.2.3",
+    "@vitejs/plugin-react-swc": "4.3.1",
     "drizzle-orm": "0.45.2",
     "drizzle-kit": "0.31.10",
     "jiti": "2.7.0",
@@ -75,7 +75,7 @@
     "resend": "4.0.1",
     "utility-types": "3.11.0",
     "tsconfig-paths": "4.2.0",
-    "tsup": "8.5.0",
+    "tsup": "8.5.1",
     "jexpr": "1.0.0-pre.9",
     "jose": "6.2.3",
     "cron-parser": "5.6.0",
@@ -98,7 +98,7 @@
     "eslint-plugin-simple-import-sort": "catalog:",
     "eslint-plugin-storybook": "catalog:",
     "globals": "catalog:",
-    "tar-fs": "3.1.1",
+    "tar-fs": "3.1.2",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   }

@@ -23,7 +23,7 @@
   ],
   "devDependencies": {
     "@types/bun": "catalog:",
-    "@types/fluent-ffmpeg": "2.1.27",
+    "@types/fluent-ffmpeg": "2.1.28",
     "eslint": "catalog:",
     "@eslint/js": "catalog:",
     "jiti": "catalog:",
