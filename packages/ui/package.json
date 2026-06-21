@@ -21,7 +21,7 @@
     "@lombokapp/types": "workspace:*",
     "@lombokapp/ui-toolkit": "workspace:*",
     "@lombokapp/utils": "workspace:*",
-    "@radix-ui/react-dropdown-menu": "2.1.16",
+    "@radix-ui/react-dropdown-menu": "2.1.18",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-table": "8.21.3",
     "@tanstack/table-core": "catalog:",
@@ -42,7 +42,7 @@
     "socket.io-client": "catalog:",
     "use-local-storage-state": "19.5.0",
     "zod": "catalog:",
-    "zustand": "5.0.3"
+    "zustand": "5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/vite": "catalog:",
