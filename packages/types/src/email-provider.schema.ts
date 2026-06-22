@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { redactedSecret } from './redacted-secret.schema'
+
 export const resendConfigSchema = z.object({
   apiKey: z.string().min(1),
 })
@@ -12,11 +14,11 @@ export const smtpConfigSchema = z.object({
 })
 
 export const smtpConfigObfuscatedSchema = smtpConfigSchema.extend({
-  password: z.null(),
+  password: redactedSecret(),
 })
 
 export const resendConfigObfuscatedSchema = resendConfigSchema.extend({
-  apiKey: z.null(),
+  apiKey: redactedSecret(),
 })
 
 export const resendEmailProviderSchema = z.object({

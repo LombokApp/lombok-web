@@ -1,13 +1,64 @@
 # Upgrading openapi-fetch 0.15 → 0.17 (and openapi-react-query 0.5.1 → 0.5.4)
 
-Status: **blocked / deferred.** This document captures the full investigation so the
-next attempt can start from the conclusions instead of rediscovering them.
+Status: **LANDED.** This document captures the full investigation; the resolution
+that shipped is summarised immediately below, with the original analysis preserved
+underneath.
+
+## Resolution (what shipped)
+
+The bump touched ~38 `tsc` sites across `@lombokapp/api` and `@lombokapp/ui`. The
+breakage came entirely from openapi-fetch@0.17's `Writable<T>`/`Readable<T>` mapped
+types (via `openapi-typescript-helpers@0.1.0`), which mangle three of our generated
+type shapes. Each was fixed at the layer that owns it:
+
+1. **Recursion → explosion (Mechanism A, ~23 sites).** `Writable<T>` degenerates on
+   the self-recursive `JsonSerializableValue` request bodies. Fixed with a generator
+   transform `breakRecursiveJsonValueSchemas` that flattens the self-`$ref`s in the
+   `JsonSerializableValue` / `PgSafeJsonSerializableValue` component schemas to
+   `unknown` leaves (cuts recursion, keeps the union shape). Server Zod stays
+   recursive — only the generated client type flattens. See `generate-metadata.ts`.
+
+2. **`null`-only properties dropped (Mechanism B-1, ~8 sites).** `Readable`/`Writable`
+   key-filter is `NonNullable<T[K]> extends $… ? never : K`; for a property typed
+   exactly `null`, `NonNullable<null>` is `never`, which vacuously matches, so the
+   property is dropped from the client type (named generated type keeps it → every
+   bridging site fails). The five affected properties are all **redacted secrets**
+   (`secretAccessKey` ×2, `password`, `apiKey`, `clientSecret`). Fixed with a shared
+   `redactedSecret()` schema helper —
+   `z.string().nullable().refine((v): boolean => v === null)`. The `string | null`
+   inferred type survives openapi-fetch (it only drops props typed *exactly* `null`),
+   while the `.refine` keeps the **output serializer guard**: a leaked (non-null)
+   secret fails serialization rather than shipping. The explicit `: boolean` return
+   stops Zod 4 from inferring the refine as a type guard (which would narrow the type
+   back to `null` and reintroduce the drop). This is `z.infer`-/spec-invariant vs the
+   plain `z.string().nullable()` — the generated client is byte-identical — so it adds
+   the guard with zero client-type churn. Runtime redaction is unchanged (the
+   transforms still emit `null`), is unit-tested on the helper, and is guarded
+   comprehensively by `no-secret-leakage.e2e-spec.ts`, which asserts `.toBeNull()` on
+   every redacted field on every endpoint.
+
+3. **Tuples widened to arrays (Mechanism B-2 + the flatten bridge).** `Readable`
+   maps tuples to arrays (`["string","null"]` → `("string"|"null")[]`), which the
+   custom-settings JSON-schema type (`nullableType`) and the app manifest embed. The
+   form internals are built around the tuple type, so the few sites that pass query
+   data into them (the two custom-settings panels, the server-apps table) narrow the
+   Readable-widened query payload back to the raw generated type (`CustomSettingsData`
+   / `AppDTO`) — the runtime payload genuinely matches. The custom-settings request
+   bodies and the task-result display view were likewise typed to the generated
+   (flattened) request/`unknown` shapes.
+
+`./dx generate openapi` remains deterministic (the new transform sits after
+`collapseRegisteredIdCopies`); the only generated-type changes vs the prior commit
+are the `JsonSerializableValue` flatten and the five redacted secrets widening to
+`string | null`. Full `./dx check all` green; api e2e green.
+
+---
 
 The bump is small on paper (catalog `openapi-fetch` and `openapi-react-query`, plus
 the `simple-demo/ui` copy of `openapi-react-query`). In practice it fails `tsc` in
-both `@lombokapp/api` and `@lombokapp/ui`, and the clean fix is gated behind an
-unrelated, larger problem: the OpenAPI **generator no longer reproduces its own
-committed output**. Details below.
+both `@lombokapp/api` and `@lombokapp/ui`, and the clean fix was gated behind an
+unrelated, larger problem (now resolved): the OpenAPI **generator no longer
+reproduced its own committed output**. Details below.
 
 ## TL;DR
 
@@ -276,26 +327,30 @@ Three changes in `packages/api/script/generate-metadata.ts`:
    leaves inside tuple `prefixItems` (those only resolve once the bare component exists).
 
 `./dx generate openapi` now deterministically reproduces the committed
-`openapi.json` and `api-paths.d.ts` (zero diff). `breakRecursiveJsonValueSchemas`
-(Mechanism A's fix) was *not* needed for the drift and is not applied — it remains
-the proposed Mechanism A fix for when M2 is picked up.
+`openapi.json` and `api-paths.d.ts`. `breakRecursiveJsonValueSchemas` (Mechanism A's
+fix) was not needed for the drift; it was added later as part of landing M2 (see
+"Resolution" at the top) and runs after `collapseRegisteredIdCopies`.
 
-## How to make progress on M2 (ordered)
+## How M2 was landed (ordered)
 
 1. ~~Fix the generator import~~ — **done** (`6ed1ddb41`).
 2. ~~Reconcile the generator drift~~ — **done** (`6ed1ddb41`); `./dx generate openapi`
-   now reproduces the committed spec deterministically.
-3. **Land Mechanism A's fix** — add `breakRecursiveJsonValueSchemas` (it must run
-   *after* `collapseRegisteredIdCopies`, when the bare `JsonSerializableValue` /
-   `PgSafeJsonSerializableValue` exist, and target those bare names), regenerate,
-   confirm the recursive-record `tsc` sites in api/ui clear. Bump the three deps
-   (catalog `openapi-fetch`→0.17, `openapi-react-query`→0.5.4, demo `openapi-react-query`).
-4. **Re-measure Mechanism B** — with A fixed and regen working, check whether the
-   `secretAccessKey` / `HideableColumnDef` cluster disappears (cascade) or remains.
-   If it remains, isolate it: re-bump `openapi-fetch` only (keep `openapi-react-query`
-   at 0.5.1) to determine whether it's an `openapi-react-query@0.5.4` change.
-5. **Full e2e** — `bun --cwd packages/api ci:e2e:api` (the upgrade touches request
-   bodies on real api routes; the image must be rebuilt for the dep to take effect).
+   reproduces the committed spec deterministically.
+3. ~~Bump the three deps~~ — **done** (`openapi-fetch`→0.17, `openapi-react-query`→0.5.4,
+   demo `openapi-react-query`→0.5.4).
+4. ~~Land Mechanism A's fix~~ — **done**; `breakRecursiveJsonValueSchemas` runs after
+   `collapseRegisteredIdCopies` and flattens the bare `JsonSerializableValue` /
+   `PgSafeJsonSerializableValue` schemas. Cleared the recursive-record sites.
+5. ~~Resolve Mechanism B~~ — **done**; it was three independent things, not the
+   single `secretAccessKey`/`HideableColumnDef` cluster originally guessed (see
+   "Resolution" at the top): the `null`-only-property drop (fixed by widening the five
+   redacted-secret Zod schemas to `string | null`), the tuple→array widening, and the
+   flatten bridge from (4). The `HideableColumnDef` errors were *symptoms* of the
+   first two (a column's row type diverging from the Readable-mangled query data) and
+   resolved once those were fixed.
+6. ~~Full e2e~~ — **done**; `bun --cwd packages/api ci:e2e:api` (the upgrade touches
+   request bodies and the redacted-secret responses on real routes; the image is
+   rebuilt for the deps to take effect).
 
 ## Reproduction notes / gotchas
 

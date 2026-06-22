@@ -1,4 +1,4 @@
-import type { ServerAppsListRequest } from '@lombokapp/types'
+import type { AppDTO, ServerAppsListRequest } from '@lombokapp/types'
 import { DataTable } from '@lombokapp/ui-toolkit/components/data-table'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
@@ -144,7 +144,9 @@ export function ServerAppsScreen() {
         }}
         onColumnFiltersChange={onFiltersChange}
         rowCount={apps?.meta.totalCount}
-        data={apps?.result ?? []}
+        // Readable widens the embedded settings-schema tuples in the manifest;
+        // the runtime rows are AppDTO, so narrow back to align with the columns.
+        data={(apps?.result ?? []) as AppDTO[]}
         columns={serverAppsTableColumns}
         sorting={sorting}
         pagination={pagination}

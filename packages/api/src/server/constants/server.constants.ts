@@ -1,6 +1,7 @@
 import {
   emailProviderObfuscatedSchema,
   emailProviderSchema,
+  redactedSecret,
   serverStorageSchema,
   serverStorageSchemaWithSecret,
   storageProvisionSchema,
@@ -20,7 +21,7 @@ export const googleOAuthConfigSchema = z.object({
 
 export const googleOAuthConfigObfuscatedSchema = googleOAuthConfigSchema.extend(
   {
-    clientSecret: z.null(),
+    clientSecret: redactedSecret(),
   },
 )
 

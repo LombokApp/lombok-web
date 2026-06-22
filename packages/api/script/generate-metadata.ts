@@ -340,6 +340,57 @@ function collapseRegisteredIdCopies(
   }
 }
 
+// The recursive JSON-value schemas (`JsonSerializableValue` /
+// `PgSafeJsonSerializableValue`) self-`$ref` to model arbitrary JSON. That is
+// faithful, but `openapi-fetch@0.17`'s `Writable<T>` is a recursive mapped type
+// that degenerates when applied to a self-referential body type, collapsing
+// every request body typed `Record<string, JsonSerializableValue>` to the
+// unsatisfiable `{ [x: string]: any } & { [x: string]: undefined }`. Cut the
+// recursion in the *generated client types only* by replacing each self-`$ref`
+// with an open schema (`{}` → `unknown`); the union shape is preserved, so the
+// type stays `(string|null)|number|boolean|unknown[]|{ [k]:unknown }`. Server
+// Zod schemas are untouched (they come from Zod, not the spec), so nothing
+// ripples into server types. Must run AFTER collapseRegisteredIdCopies, when the
+// bare `<Id>` components exist (earlier they are per-DTO-prefixed copies).
+function breakRecursiveJsonValueSchemas(
+  document: OpenAPIObject,
+): OpenAPIObject {
+  const schemas = document.components?.schemas
+  if (!schemas) {
+    return document
+  }
+  const newSchemas: Record<string, SchemaObject | ReferenceObject> = {
+    ...schemas,
+  }
+  for (const name of ['JsonSerializableValue', 'PgSafeJsonSerializableValue']) {
+    const schema = schemas[name]
+    if (!schema) {
+      continue
+    }
+    const selfRef = `#/components/schemas/${name}`
+    const stripSelfRef = (node: unknown): unknown => {
+      if (Array.isArray(node)) {
+        return node.map(stripSelfRef)
+      }
+      if (node !== null && typeof node === 'object') {
+        const obj = node as Record<string, unknown>
+        if (obj.$ref === selfRef) {
+          return {}
+        }
+        return Object.fromEntries(
+          Object.entries(obj).map(([k, v]) => [k, stripSelfRef(v)]),
+        )
+      }
+      return node
+    }
+    newSchemas[name] = stripSelfRef(schema) as SchemaObject
+  }
+  return {
+    ...document,
+    components: { ...document.components, schemas: newSchemas },
+  }
+}
+
 // nestjs-zod's cleanupOpenApiDoc hoists Zod `$defs` into components.schemas and
 // rewrites refs to them — but its rewriter skips tuple `prefixItems`, leaving
 // dangling `#/$defs/X` refs inside tuples. Rewrite any such ref to the hoisted
@@ -1225,11 +1276,19 @@ async function main() {
   const collapseDefsNormalizedDocument =
     rewriteDefsRefsToComponents(idCollapsedDocument)
 
+  // Flatten the self-recursive JSON-value schemas so openapi-fetch@0.17's
+  // recursive `Writable<T>` doesn't degenerate on request bodies typed
+  // `Record<string, JsonSerializableValue>`. Runs here, after the collapse has
+  // materialised the bare `<Id>` components this targets.
+  const jsonValueFlattenedDocument = breakRecursiveJsonValueSchemas(
+    collapseDefsNormalizedDocument,
+  )
+
   // Drop the top-level `id` annotation nestjs-zod attaches when a Zod schema
   // is tagged via `.meta({ id })` — the name lives in components.schemas.<key>
   // and the duplicate id field just adds noise.
   const idStrippedDocument = stripSchemaIdAnnotations(
-    collapseDefsNormalizedDocument,
+    jsonValueFlattenedDocument,
   )
 
   // Collapse structurally-equivalent top-level schemas that differ only by the

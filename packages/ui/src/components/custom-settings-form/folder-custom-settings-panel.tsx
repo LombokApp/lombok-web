@@ -1,3 +1,7 @@
+import type {
+  CustomSettingsData,
+  CustomSettingsPatchInput,
+} from '@lombokapp/types'
 import { useToast } from '@lombokapp/ui-toolkit/hooks'
 
 import { CustomSettingsForm } from './custom-settings-form'
@@ -37,7 +41,9 @@ export function FolderCustomSettingsPanel({
     )
   }
 
-  const settings = query.data?.settings
+  // openapi-fetch@0.17's Readable widens the schema's nullable `type` tuples to
+  // arrays; the runtime payload matches CustomSettingsData, so narrow back to it.
+  const settings = query.data?.settings as CustomSettingsData | undefined
   if (!settings?.schema) {
     return null
   }
@@ -78,8 +84,9 @@ export function FolderCustomSettingsPanel({
         updateMutation.mutate(
           {
             params: { path: { folderId, appIdentifier } },
+            // Writable narrows the arbitrary-JSON body; form values are valid JSON.
             body: {
-              values,
+              values: values as CustomSettingsPatchInput['values'],
             },
           },
           {
