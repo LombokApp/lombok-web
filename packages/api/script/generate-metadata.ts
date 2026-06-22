@@ -6,7 +6,6 @@ import type {
   ReferenceObject,
   SchemaObject,
 } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
-import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
 import { cleanupOpenApiDoc } from 'nestjs-zod'
 import * as path from 'path'
@@ -282,6 +281,63 @@ function rewriteAllRefs(node: unknown, rename: Map<string, string>): unknown {
     result[k] = rewriteAllRefs(v, rename)
   }
   return result
+}
+
+// nestjs-zod's cleanupOpenApiDoc extracts a *per-DTO* copy of every recursive
+// `.meta({ id })` schema used in multiple DTOs, naming each copy `<DTOName><Id>`
+// (e.g. `AppGetResponseJsonSerializableValue`) instead of sharing a single `<Id>`
+// entry. This fragments the spec into dozens of byte-identical copies — no
+// behavioural change (openapi-typescript inlines them identically, so the emitted
+// api-paths.d.ts is unaffected), but a large, noisy diff on every regeneration.
+//
+// Collapse each `<prefix><Id>` copy back into one shared `<Id>`, where `<Id>` is an
+// authoritative schema id from the Zod global registry. The longest matching id
+// wins so `<…>PgSafeJsonSerializableValue` collapses to `PgSafeJsonSerializableValue`,
+// not `JsonSerializableValue`. Matching only against registered ids (the exact
+// names nestjs-zod suffixes its per-DTO copies with) keeps real DTOs untouched;
+// the generated api-paths.d.ts is invariant under this pass, which is the guardrail
+// that a collapse never alters a public type.
+function collapseRegisteredIdCopies(
+  document: OpenAPIObject,
+  registeredIds: Set<string>,
+): OpenAPIObject {
+  const schemas = document.components?.schemas
+  if (!schemas) {
+    return document
+  }
+  const idsLongestFirst = [...registeredIds].sort((a, b) => b.length - a.length)
+  const rename = new Map<string, string>()
+  for (const name of Object.keys(schemas)) {
+    if (registeredIds.has(name)) {
+      continue
+    }
+    const id = idsLongestFirst.find(
+      (candidate) => name.length > candidate.length && name.endsWith(candidate),
+    )
+    if (id !== undefined) {
+      rename.set(name, id)
+    }
+  }
+  if (rename.size === 0) {
+    return document
+  }
+  const rewritten = rewriteAllRefs(document, rename) as OpenAPIObject
+  const rewrittenSchemas = rewritten.components?.schemas ?? {}
+  const newSchemas: Record<string, SchemaObject | ReferenceObject> = {}
+  for (const [name, schema] of Object.entries(rewrittenSchemas)) {
+    const target = rename.get(name)
+    if (target === undefined) {
+      newSchemas[name] = schema
+    } else if (newSchemas[target] === undefined) {
+      // First copy for this id becomes the shared entry; its internal self-refs
+      // were just rewritten by rewriteAllRefs to point at `target`.
+      newSchemas[target] = schema
+    }
+  }
+  return {
+    ...rewritten,
+    components: { ...rewritten.components, schemas: newSchemas },
+  }
 }
 
 // nestjs-zod's cleanupOpenApiDoc hoists Zod `$defs` into components.schemas and
@@ -1085,6 +1141,14 @@ async function main() {
 
   const app = await NestFactory.create(CoreModule, { preview: true })
 
+  // Resolve ReadonlyVisitor at runtime through the exports-mapped `/plugin`
+  // entry (bun honours the exports map and blocks the deep `dist/plugin` path),
+  // but type it via `dist/plugin`, which the classic-resolution type-checker
+  // resolves. Importing the value from `/plugin` directly would leave it `any`.
+  const { ReadonlyVisitor } =
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- the runtime (/plugin) and type (dist/plugin) specifiers differ by design; see comment above
+    (await import('@nestjs/swagger/plugin')) as typeof import('@nestjs/swagger/dist/plugin')
+
   const visitor = new ReadonlyVisitor({
     introspectComments: true,
     pathToSource: path.join(projectRoot, 'src'),
@@ -1142,10 +1206,31 @@ async function main() {
   // Patch z.record() DTOs that NestJS Swagger can't introspect
   const patchedDocument = patchEmptyRecordSchemas(defsNormalizedDocument)
 
+  // Collapse nestjs-zod's per-DTO copies of recursive `.meta({ id })` schemas
+  // (e.g. `<DTO>JsonSerializableValue`) back into a single shared `<Id>` entry.
+  const registeredIds = new Set<string>(
+    (
+      (z.globalRegistry as unknown as { _idmap?: Map<string, unknown> })
+        ._idmap ?? new Map<string, unknown>()
+    ).keys(),
+  )
+  const idCollapsedDocument = collapseRegisteredIdCopies(
+    patchedDocument,
+    registeredIds,
+  )
+
+  // Re-resolve `#/$defs/<Id>` refs (e.g. in tuple prefixItems) now that the
+  // collapse above has materialised the bare `<Id>` components they point at —
+  // the first pass ran before those components existed.
+  const collapseDefsNormalizedDocument =
+    rewriteDefsRefsToComponents(idCollapsedDocument)
+
   // Drop the top-level `id` annotation nestjs-zod attaches when a Zod schema
   // is tagged via `.meta({ id })` — the name lives in components.schemas.<key>
   // and the duplicate id field just adds noise.
-  const idStrippedDocument = stripSchemaIdAnnotations(patchedDocument)
+  const idStrippedDocument = stripSchemaIdAnnotations(
+    collapseDefsNormalizedDocument,
+  )
 
   // Collapse structurally-equivalent top-level schemas that differ only by the
   // $ref anchor names of their extracted subschemas. Fixes the per-DTO
