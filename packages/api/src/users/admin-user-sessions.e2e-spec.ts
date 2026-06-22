@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 const TEST_MODULE_KEY = 'adm_usr_sess'
 
@@ -30,7 +30,7 @@ describe('Admin User Sessions Listing', () => {
   it('should require authentication', async () => {
     const res = await apiClient().GET(
       '/api/v1/server/users/{userId}/sessions',
-      { params: { path: { userId: uuidV4() } } },
+      { params: { path: { userId: crypto.randomUUID() } } },
     )
     expect(res.response.status).toBe(401)
   })
@@ -92,7 +92,7 @@ describe('Admin User Sessions Listing', () => {
 
     const res = await apiClient(accessToken).GET(
       '/api/v1/server/users/{userId}/sessions',
-      { params: { path: { userId: uuidV4() } } },
+      { params: { path: { userId: crypto.randomUUID() } } },
     )
     expect([400, 404]).toContain(res.response.status)
   })

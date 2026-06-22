@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 import { notificationsTable } from './entities/notification.entity'
 import { notificationDeliveriesTable } from './entities/notification-delivery.entity'
@@ -21,8 +21,8 @@ async function seedNotification(
   userId: string,
   overrides: Partial<typeof notificationsTable.$inferInsert> = {},
 ) {
-  const notificationId = uuidV4()
-  const eventId = uuidV4()
+  const notificationId = crypto.randomUUID()
+  const eventId = crypto.randomUUID()
   const now = new Date()
 
   await testModule.services.ormService.db.insert(notificationsTable).values({
@@ -170,7 +170,7 @@ describe('Notifications', () => {
 
     const response = await apiClient(accessToken).GET(
       '/api/v1/notifications/{notificationId}',
-      { params: { path: { notificationId: uuidV4() } } },
+      { params: { path: { notificationId: crypto.randomUUID() } } },
     )
     expect(response.response.status).toEqual(404)
   })
@@ -217,7 +217,7 @@ describe('Notifications', () => {
 
     const response = await apiClient(accessToken).PATCH(
       '/api/v1/notifications/{id}/read',
-      { params: { path: { id: uuidV4() } } },
+      { params: { path: { id: crypto.randomUUID() } } },
     )
     expect(response.response.status).toEqual(404)
   })

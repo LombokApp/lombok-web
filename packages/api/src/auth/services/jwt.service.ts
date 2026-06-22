@@ -23,7 +23,6 @@ import { AuthDurationSeconds } from 'src/auth/constants/duration.constants'
 import type { Session } from 'src/auth/entities/session.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { usersTable } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
 import { coreConfig } from '../../core/config'
@@ -161,7 +160,7 @@ export class JWTService {
       .setProtectedHeader({ alg: HS_ALGORITHM })
       .setAudience(this._coreConfig.platformHost)
       .setSubject(`${USER_JWT_SUB_PREFIX}${session.userId}`)
-      .setJti(`${session.id}:${uuidV4()}`)
+      .setJti(`${session.id}:${crypto.randomUUID()}`)
       .setIssuedAt()
       .setExpirationTime(`${AuthDurationSeconds.SessionSliding}s`)
       .sign(this.keyDerivationService.getHsSecretBytes())
@@ -231,7 +230,7 @@ export class JWTService {
       {
         subject: `${APP_JWT_SUB_PREFIX}${appIdentifier}`,
         audience: appIdentifier,
-        jwtid: uuidV4(),
+        jwtid: crypto.randomUUID(),
         expiresInSec: AuthDurationSeconds.AppActorAccessToken,
       },
     )
@@ -275,7 +274,7 @@ export class JWTService {
       {
         subject: `${APP_USER_JWT_SUB_PREFIX}${params.session.userId}:${params.appIdentifier}`,
         audience: params.appIdentifier,
-        jwtid: `${params.session.id}:${uuidV4()}`,
+        jwtid: `${params.session.id}:${crypto.randomUUID()}`,
         expiresInSec:
           params.accessTokenExpiresInSec ??
           AuthDurationSeconds.AppUserActorAccessToken,
@@ -407,7 +406,7 @@ export class JWTService {
       .setIssuer(EMAIL_VERIFY_ISS)
       .setAudience(EMAIL_VERIFY_AUD)
       .setSubject(userId)
-      .setJti(uuidV4())
+      .setJti(crypto.randomUUID())
       .setIssuedAt()
       .setExpirationTime(`${AuthDurationSeconds.EmailVerification}s`)
     return builder.sign(key)

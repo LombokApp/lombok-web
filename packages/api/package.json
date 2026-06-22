@@ -68,7 +68,6 @@
     "sharp": "catalog:",
     "socket.io": "catalog:",
     "utility-types": "catalog:",
-    "uuid": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

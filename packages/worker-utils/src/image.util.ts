@@ -1,9 +1,9 @@
 import { spawn } from 'bun'
+import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import sharp from 'sharp'
-import { v4 as uuidV4 } from 'uuid'
 
 import { calculateOutputDimensions } from './dimension.util'
 import { hashLocalFile } from './file.util'
@@ -111,7 +111,7 @@ export const scaleImage = async ({
 
   const tempConvertedImageDir = path.join(
     os.tmpdir(),
-    `lombok_scaled_image_${uuidV4()}`,
+    `lombok_scaled_image_${crypto.randomUUID()}`,
   )
   if (mimeType === 'image/heic') {
     finalInFilePath = path.join(tempConvertedImageDir, `__converted.jpg`)

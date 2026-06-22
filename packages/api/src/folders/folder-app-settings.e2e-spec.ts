@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestFolder,
   createTestUser,
 } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 const TEST_MODULE_KEY = 'folder_appsett'
 
@@ -107,7 +107,7 @@ describe('Folder App Settings', () => {
 
     const res = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/app-settings',
-      { params: { path: { folderId: uuidV4() } } },
+      { params: { path: { folderId: crypto.randomUUID() } } },
     )
     expect([403, 404]).toContain(res.response.status)
   })

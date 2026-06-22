@@ -17,6 +17,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import crypto from 'crypto'
 import {
   and,
   arrayContains,
@@ -52,7 +53,6 @@ import { CoreTaskName } from 'src/task/task.constants'
 import { getUtcScheduleBucket } from 'src/task/util/schedule-bucket.util'
 import { withTaskIdempotencyKey } from 'src/task/util/task-idempotency-key.util'
 import { User } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 
 import type { Event } from '../entities/event.entity'
 import { eventsTable } from '../entities/event.entity'
@@ -166,7 +166,7 @@ export class EventService {
           this.resolveTaskHandler(taskDefinition)
 
         const newTask = withTaskIdempotencyKey({
-          id: uuidV4(),
+          id: crypto.randomUUID(),
           invocation: {
             kind: 'schedule',
             invokeContext: {
@@ -381,7 +381,7 @@ export class EventService {
       .insert(eventsTable)
       .values([
         {
-          id: uuidV4(),
+          id: crypto.randomUUID(),
           eventIdentifier,
           emitterId: emitterIdentifier,
           targetLocationFolderId: targetLocation?.folderId,
@@ -457,7 +457,7 @@ export class EventService {
       }
 
       const task: NewTask = withTaskIdempotencyKey({
-        id: uuidV4(),
+        id: crypto.randomUUID(),
         invocation: {
           ...trigger,
           invokeContext: this.buildEventInvocation(

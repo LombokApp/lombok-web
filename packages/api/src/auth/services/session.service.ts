@@ -1,11 +1,11 @@
 import { JsonSerializableObject } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
+import crypto from 'crypto'
 import { and, eq } from 'drizzle-orm'
 import type { AccessTokenJWT } from 'src/auth/services/jwt.service'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { User } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 
 import type { NewSession, Session } from '../entities/session.entity'
 import { sessionsTable } from '../entities/session.entity'
@@ -27,7 +27,7 @@ export class SessionService {
 
     const now = new Date()
     const newSession: NewSession = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       userId: user.id,
       hash: hashedTokenHelper.createHash(secret),
       type: 'user',
@@ -74,7 +74,7 @@ export class SessionService {
       ...(extra ? { extra } : {}),
     }
     const newSession: NewSession = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       userId: user.id,
       hash: hashedTokenHelper.createHash(secret),
       type: 'app_user',

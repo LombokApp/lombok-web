@@ -6,9 +6,9 @@ import {
   SignedURLsRequestMethod,
 } from '@lombokapp/types'
 import { beforeAll, describe, expect, it, mock } from 'bun:test'
+import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
-import { v4 as uuidV4 } from 'uuid'
 
 import { analyzeObject } from './analyze-object-handler'
 
@@ -22,7 +22,7 @@ describe('Analyze Object Handler', () => {
 
   beforeAll(() => {
     // Create test image file
-    testFolderId = uuidV4()
+    testFolderId = crypto.randomUUID()
     testObjectKey = 'test-image.png'
     testImagePath = path.join(__dirname, '../__tests__/fixtures/test-image.png')
 
@@ -46,7 +46,7 @@ describe('Analyze Object Handler', () => {
   it('should complete analyze object task successfully', async () => {
     // Create mock TaskDTO for analyze_object
     const analyzeTask = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       taskIdentifier: 'analyze_object',
       data: {} as JsonSerializableObject,
       targetLocation: {
@@ -57,7 +57,7 @@ describe('Analyze Object Handler', () => {
       trigger: {
         kind: 'event' as const,
         invokeContext: {
-          eventId: uuidV4(),
+          eventId: crypto.randomUUID(),
           emitterIdentifier: CORE_IDENTIFIER,
           eventIdentifier: CoreEvent.object_added,
           eventTriggerConfigIndex: 0,
@@ -122,9 +122,9 @@ describe('Analyze Object Handler', () => {
           folderId: analyzeTask.targetLocation.folderId,
           objectKey: analyzeTask.targetLocation.objectKey,
           contentMetadata: {},
-          id: uuidV4(),
+          id: crypto.randomUUID(),
           lastModified: new Date().getTime(),
-          eTag: uuidV4(),
+          eTag: crypto.randomUUID(),
           sizeBytes: 100,
           mimeType: 'image/png',
           mediaType: MediaType.IMAGE,

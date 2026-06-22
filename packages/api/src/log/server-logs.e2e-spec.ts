@@ -1,8 +1,8 @@
 import { LogEntryLevel } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 import { logEntriesTable } from './entities/log-entry.entity'
 
@@ -12,7 +12,7 @@ async function seedLogEntry(
   testModule: TestModule,
   overrides: Partial<typeof logEntriesTable.$inferInsert> = {},
 ) {
-  const id = uuidV4()
+  const id = crypto.randomUUID()
   const now = new Date()
 
   await testModule.services.ormService.db.insert(logEntriesTable).values({
@@ -115,7 +115,7 @@ describe('Server Logs', () => {
 
     const response = await apiClient(accessToken).GET(
       '/api/v1/server/logs/{logId}',
-      { params: { path: { logId: uuidV4() } } },
+      { params: { path: { logId: crypto.randomUUID() } } },
     )
     expect(response.response.status).toEqual(404)
   })

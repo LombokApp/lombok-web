@@ -13,7 +13,6 @@ import { and, eq } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { coreConfig } from 'src/core/config'
 import { OrmService } from 'src/orm/orm.service'
-import { v4 as uuidV4 } from 'uuid'
 
 import {
   type DockerHost,
@@ -109,7 +108,7 @@ export class DockerHostManagementService {
     enabled?: boolean
   }): Promise<DockerHost> {
     const now = new Date()
-    const id = uuidV4()
+    const id = crypto.randomUUID()
 
     if (input.isDefault) {
       await this.clearDefaultHost()
@@ -244,7 +243,7 @@ export class DockerHostManagementService {
     const [cred] = await this.ormService.db
       .insert(dockerRegistryCredentialsTable)
       .values({
-        id: uuidV4(),
+        id: crypto.randomUUID(),
         ...input,
         createdAt: now,
         updatedAt: now,
@@ -362,7 +361,7 @@ export class DockerHostManagementService {
 
     const now = new Date()
     const configHashes = computeConfigHashes(input.config)
-    const newId = uuidV4()
+    const newId = crypto.randomUUID()
 
     await this.ormService.db
       .insert(dockerProfileResourceAssignmentsTable)
@@ -468,7 +467,7 @@ export class DockerHostManagementService {
 
     const now = new Date()
     const configHashes = computeConfigHashes(input.config)
-    const databaseId = uuidV4()
+    const databaseId = crypto.randomUUID()
     const desiredStatus = input.desiredStatus ?? 'stopped'
     const tag = input.tag ?? 'latest'
     const fullImage = `${input.image}:${tag}`

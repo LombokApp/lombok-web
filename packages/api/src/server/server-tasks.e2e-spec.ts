@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 const TEST_MODULE_KEY = 'server_tasks'
 
@@ -79,7 +79,7 @@ describe('Server Tasks', () => {
 
     const response = await apiClient(accessToken).GET(
       '/api/v1/server/tasks/{taskId}',
-      { params: { path: { taskId: uuidV4() } } },
+      { params: { path: { taskId: crypto.randomUUID() } } },
     )
     expect(response.response.status).toEqual(404)
   })

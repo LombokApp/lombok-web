@@ -12,6 +12,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import crypto from 'crypto'
 import { eq, inArray } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { OrmService } from 'src/orm/orm.service'
@@ -22,7 +23,6 @@ import { SearchWorkerUnauthorizedException } from 'src/search/exceptions/search-
 import { buildImageUrls } from 'src/shared/utils'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { User } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
 import {
@@ -295,7 +295,7 @@ export class ServerConfigurationService {
 
     const locationWithId = {
       ...storageProvision,
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       accessKeyHashId: buildAccessKeyHashId({
         accessKeyId: storageProvision.accessKeyId,
         secretAccessKey: storageProvision.secretAccessKey,

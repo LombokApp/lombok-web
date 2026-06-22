@@ -5,9 +5,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import crypto from 'crypto'
 import { and, eq, sql } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
-import { v4 as uuidV4 } from 'uuid'
 
 import { appsTable } from '../entities/app.entity'
 import {
@@ -88,7 +88,7 @@ export class AppRuntimeTriggerService {
     }
 
     const now = new Date()
-    const triggerId = uuidV4()
+    const triggerId = crypto.randomUUID()
     try {
       await this.ormService.db.insert(appRuntimeTriggersTable).values({
         id: triggerId,

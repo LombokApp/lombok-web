@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
+import crypto from 'crypto'
 import { and, count, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { getApp } from 'src/shared/app-helper'
-import { v4 as uuidV4 } from 'uuid'
 
 import { CORE_IDENTIFIER, CoreEvent } from '../../../../types'
 import { UserCreateInputDTO } from '../dto/user-create-input.dto'
@@ -184,7 +184,7 @@ export class UserService {
 
     const passwordSalt = authHelper.createPasswordSalt()
     const newUser: NewUser = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       name: userPayload.name,
       email: userPayload.email,
       isAdmin: userPayload.isAdmin,

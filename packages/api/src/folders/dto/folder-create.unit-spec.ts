@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import { storageLocationInputDTOSchema } from 'src/storage/dto/storage-location-input.dto'
-import { v4 as uuidV4 } from 'uuid'
 
 describe('StorageLocationInputDto object validation', () => {
   it('validates a custom location successfully', () => {
@@ -17,7 +17,7 @@ describe('StorageLocationInputDto object validation', () => {
 
   it('validates a storageProvisionId successfully', () => {
     const result = storageLocationInputDTOSchema.safeParse({
-      storageProvisionId: uuidV4(),
+      storageProvisionId: crypto.randomUUID(),
     })
     expect(result.success).toBe(true)
   })

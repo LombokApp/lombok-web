@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 const TEST_MODULE_KEY = 'sp_detail'
 
@@ -113,7 +113,7 @@ describe('Storage Provisions List & Detail', () => {
 
     const res = await apiClient(accessToken).GET(
       '/api/v1/server/storage-provisions/{storageProvisionId}',
-      { params: { path: { storageProvisionId: uuidV4() } } },
+      { params: { path: { storageProvisionId: crypto.randomUUID() } } },
     )
     expect(res.response.status).toBe(404)
   })

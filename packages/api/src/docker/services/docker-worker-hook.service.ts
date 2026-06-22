@@ -16,6 +16,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import crypto from 'crypto'
 import { and, eq, inArray } from 'drizzle-orm'
 import * as jose from 'jose'
 import { appsTable } from 'src/app/entities/app.entity'
@@ -30,7 +31,6 @@ import { OrmService } from 'src/orm/orm.service'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
-import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
 import { dockerJobResultSchema } from '../dto/docker-job-complete-request.dto'
@@ -204,7 +204,7 @@ export class DockerWorkerHookService {
       .setProtectedHeader({ alg: HS_ALGORITHM })
       .setAudience(this._coreConfig.platformHost)
       .setSubject(`${DOCKER_WORKER_JOB_JWT_SUB_PREFIX}${params.jobId}`)
-      .setJti(uuidV4())
+      .setJti(crypto.randomUUID())
       .setIssuedAt()
       .setExpirationTime(`${WORKER_JOB_TOKEN_EXPIRY_SECONDS}s`)
       .sign(this.keyDerivationService.getHsSecretBytes())
