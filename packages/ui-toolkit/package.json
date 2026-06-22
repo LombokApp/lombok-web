@@ -115,7 +115,7 @@
     "react-dropzone": "catalog:",
     "react-hook-form": "catalog:",
     "react-image-crop": "catalog:",
-    "react-resizable-panels": "^2.1.7",
+    "react-resizable-panels": "^4.11.2",
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.6.0",
     "vaul": "^1.1.2",

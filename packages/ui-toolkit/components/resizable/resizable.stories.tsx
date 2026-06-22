@@ -15,7 +15,7 @@ export const BasicUsage: Story = {
   args: {},
   render: () => (
     <ResizablePanelGroup
-      direction="horizontal"
+      orientation="horizontal"
       className="max-w-md rounded-lg border md:min-w-[450px]"
     >
       <ResizablePanel defaultSize={50}>
@@ -25,7 +25,7 @@ export const BasicUsage: Story = {
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel defaultSize={50}>
-        <ResizablePanelGroup direction="vertical">
+        <ResizablePanelGroup orientation="vertical">
           <ResizablePanel defaultSize={25}>
             <div className="flex h-full items-center justify-center p-6">
               <span className="font-semibold">Two</span>
@@ -47,7 +47,7 @@ export const Vertical: Story = {
   args: {},
   render: () => (
     <ResizablePanelGroup
-      direction="vertical"
+      orientation="vertical"
       className="min-h-[200px] max-w-md rounded-lg border md:min-w-[450px]"
     >
       <ResizablePanel defaultSize={25}>
@@ -69,7 +69,7 @@ export const Handle: Story = {
   args: {},
   render: () => (
     <ResizablePanelGroup
-      direction="horizontal"
+      orientation="horizontal"
       className="min-h-[200px] max-w-md rounded-lg border md:min-w-[450px]"
     >
       <ResizablePanel defaultSize={25}>
