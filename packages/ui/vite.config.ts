@@ -22,14 +22,31 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'ui-toolkit': ['@lombokapp/ui-toolkit'],
-            query: ['@tanstack/react-query', 'openapi-react-query'],
-            'lombok-sdk': [
-              '@lombokapp/sdk',
-              '@lombokapp/types',
-              '@lombokapp/auth-utils',
-            ],
+          // Vite 8 / Rolldown only accepts the function form of manualChunks.
+          // Workspace deps are aliased to source, so match by path too.
+          manualChunks(id) {
+            if (
+              id.includes('@lombokapp/ui-toolkit') ||
+              id.includes('/packages/ui-toolkit/')
+            ) {
+              return 'ui-toolkit'
+            }
+            if (
+              id.includes('@tanstack/react-query') ||
+              id.includes('openapi-react-query')
+            ) {
+              return 'query'
+            }
+            if (
+              id.includes('@lombokapp/sdk') ||
+              id.includes('@lombokapp/types') ||
+              id.includes('@lombokapp/auth-utils') ||
+              id.includes('/packages/sdk/') ||
+              id.includes('/packages/types/') ||
+              id.includes('/packages/auth-utils/')
+            ) {
+              return 'lombok-sdk'
+            }
           },
         },
       },
