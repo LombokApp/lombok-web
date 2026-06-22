@@ -32,7 +32,7 @@
     "lucide-react": "catalog:",
     "openapi-fetch": "catalog:",
     "openapi-react-query": "catalog:",
-    "pdfjs-dist": "5.4.54",
+    "pdfjs-dist": "6.0.227",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-dropzone": "catalog:",
