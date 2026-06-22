@@ -1070,6 +1070,7 @@ async function parseRequestBody(request: Request): Promise<unknown> {
       `Failed to parse request body (Content-Type: ${contentType}): ${
         error instanceof Error ? error.message : String(error)
       }`,
+      { cause: error },
     )
   }
 }

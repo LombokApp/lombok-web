@@ -228,7 +228,7 @@ export class FolderService {
       storageProvisionType: StorageProvisionType,
       locationInput: StorageLocationInputDTO,
     ): Promise<StorageLocation> => {
-      let location: StorageLocation | undefined = undefined
+      let location: StorageLocation | undefined
       if (safeZodParse(locationInput, customLocationPayloadSchema)) {
         // user has input a custom location
         location = (

@@ -1732,7 +1732,7 @@ export class AppService {
 
     // Find the app directory (could be root of zip or in a subdirectory)
     // Check if extractDir contains config.json directly
-    let appRoot: string | undefined = undefined
+    let appRoot: string | undefined
 
     if (checkForConfigJson(extractDir)) {
       appRoot = extractDir

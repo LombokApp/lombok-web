@@ -168,7 +168,7 @@ async function spawnPreviewServer(
     // block the next test-file's spawn attempt.
     await killPreviewServer({ proc, drainOutput })
     const message = err instanceof Error ? err.message : String(err)
-    throw new Error(`${message}\n${drainOutput()}`)
+    throw new Error(`${message}\n${drainOutput()}`, { cause: err })
   }
 
   return { proc, drainOutput }

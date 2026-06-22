@@ -156,6 +156,7 @@ export function convertUnknownToJsonSerializableValue<
       if (throwErrors) {
         throw new Error(
           `Failed to convert value to JsonSerializableValue in strict mode: ${error instanceof Error ? error.message : String(error)}`,
+          { cause: error },
         )
       }
       return undefined as R
