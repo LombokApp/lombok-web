@@ -83,7 +83,7 @@
     "@types/express": "5.0.6",
     "@types/nodemailer": "catalog:",
     "@types/pg": "catalog:",
-    "@types/supertest": "6.0.3",
+    "@types/supertest": "7.2.0",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "drizzle-kit": "catalog:",
     "eslint": "catalog:",
