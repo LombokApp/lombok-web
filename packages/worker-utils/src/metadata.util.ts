@@ -56,9 +56,12 @@ export async function readFileMetadata(
   // an unsupported file type (e.g., PDF). Return empty metadata instead of throwing.
   if (exitCode !== 0) {
     const errorMessage = stderrText.trim()
-    // Only throw if there's an actual error message. Empty stderr with non-zero
-    // exit code typically means unsupported file type, which we handle gracefully.
-    if (errorMessage) {
+    // exiv2 can't parse vector/unrecognized formats (e.g. SVG) and reports them
+    // as an "unknown image type" — same as the empty-stderr case below, just noisier.
+    const isUnsupportedFormat =
+      !errorMessage || /unknown image type/i.test(errorMessage)
+    // Only throw on genuine errors (e.g. unreadable file), not unsupported formats.
+    if (!isUnsupportedFormat) {
       throw new Error(`exiv2 error: ${errorMessage}`)
     }
     // Unsupported file type - return empty metadata
