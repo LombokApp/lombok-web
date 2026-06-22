@@ -106,9 +106,8 @@ export const LocalFileCacheContextProvider = ({
             const oldResolve = pendingPresignedDownloadUrlRequests.current[
               folderIdAndKey
             ].resolve as (blob: unknown) => void
-            const oldReject = pendingPresignedDownloadUrlRequests.current[
-              folderIdAndKey
-            ].reject as (e: unknown) => void
+            const oldReject =
+              pendingPresignedDownloadUrlRequests.current[folderIdAndKey].reject
 
             const fetchingContext =
               pendingPresignedDownloadUrlRequests.current[folderIdAndKey]

@@ -142,9 +142,7 @@ export function validateSvg(input: string): SvgValidateResult {
 
   let doc: { documentElement?: XmlNode | null }
   try {
-    doc = parser.parseFromString(input, 'image/svg+xml') as unknown as {
-      documentElement?: XmlNode | null
-    }
+    doc = parser.parseFromString(input, 'image/svg+xml')
   } catch (err) {
     return {
       ok: false,

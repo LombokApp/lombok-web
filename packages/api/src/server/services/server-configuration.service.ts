@@ -125,7 +125,7 @@ export class ServerConfigurationService {
       }
 
       return acc
-    }, {}) as SettingsDTO
+    }, {})
   }
 
   getServerConfigurationAsUser(actor: User, configurationKey: string) {

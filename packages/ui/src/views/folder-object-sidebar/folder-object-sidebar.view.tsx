@@ -66,8 +66,7 @@ export const FolderObjectSidebar = ({
   const serverContext = useServerContext()
 
   const metadata = folderObject.hash
-    ? (folderObject.contentMetadata[folderObject.hash] ??
-      ({} as ContentMetadataType))
+    ? (folderObject.contentMetadata[folderObject.hash] ?? {})
     : ({} as ContentMetadataType)
 
   const previews =

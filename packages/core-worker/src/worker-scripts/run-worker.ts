@@ -1802,11 +1802,7 @@ export async function runWorker(
         console.log('[run-worker-script]', 'Handling streaming response')
       }
       const response = handleStreamingResponse(
-        responseData as {
-          status: number
-          statusText: string
-          headers: Record<string, string>
-        },
+        responseData,
         requestId,
         workerMessageRouter,
         () => completeRequest?.(),

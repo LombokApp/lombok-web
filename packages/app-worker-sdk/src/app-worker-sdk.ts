@@ -233,6 +233,7 @@ export const buildAppClient = (
       } as SocketResponse<K>
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- collapses an otherwise too-complex union (TS2590)
     return parsedResponse.data as SocketResponse<K>
   }
 

@@ -269,7 +269,7 @@ export const FolderObjectPreview = ({
               src={toRender.srcUrl}
             />
           </div>
-        ) : toRender && toRender.mediaType === MediaType.VIDEO ? (
+        ) : toRender?.srcUrl && toRender.mediaType === MediaType.VIDEO ? (
           <div className="flex size-full justify-center">
             <VideoPlayer
               className={cn(

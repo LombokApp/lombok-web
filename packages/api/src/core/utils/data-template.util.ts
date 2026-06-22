@@ -116,7 +116,7 @@ async function resolveTemplateExpression(
             .map((rawArg) => {
               const stringMatch = rawArg.match(STRING_LITERAL)
               if (stringMatch?.groups?.literal !== undefined) {
-                return stringMatch.groups.literal as JsonSerializableValue
+                return stringMatch.groups.literal
               }
 
               // For function arguments, try to evaluate as expression first, then fall back to path lookup

@@ -378,19 +378,20 @@ export class DockerJobsService {
           params.hostId,
           params.containerId,
         )
-        if (
-          foundContainer &&
-          foundContainer.labels[DOCKER_LABELS.CONTAINER_TYPE] ===
-            DOCKER_CONTAINER_TYPES.WORKER &&
-          foundContainer.labels[DOCKER_LABELS.PLATFORM_HOST] ===
-            this._coreConfig.platformHost
-        ) {
-          await this.dockerClientService.removeContainer(
-            params.hostId,
-            params.containerId,
-            { force: true },
-          )
-          return 1
+        if (foundContainer) {
+          if (
+            foundContainer.labels[DOCKER_LABELS.CONTAINER_TYPE] ===
+              DOCKER_CONTAINER_TYPES.WORKER &&
+            foundContainer.labels[DOCKER_LABELS.PLATFORM_HOST] ===
+              this._coreConfig.platformHost
+          ) {
+            await this.dockerClientService.removeContainer(
+              params.hostId,
+              params.containerId,
+              { force: true },
+            )
+            return 1
+          }
         }
         return 0
       } catch {

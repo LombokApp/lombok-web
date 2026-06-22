@@ -23,7 +23,6 @@ export default [
       parserOptions: {
         tsconfigRootDir: __dirname,
         projectService: true,
-        project: ['./tsconfig.eslint.json'],
       },
     },
   },
@@ -35,7 +34,6 @@ export default [
       },
       parserOptions: {
         tsconfigRootDir: __dirname,
-        project: ['./tsconfig.json'],
       },
     },
   },

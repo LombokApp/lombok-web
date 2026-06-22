@@ -1,4 +1,4 @@
-import { CORE_IDENTIFIER, type JsonSerializableObject } from '@lombokapp/types'
+import { CORE_IDENTIFIER } from '@lombokapp/types'
 import { describe, expect, it } from 'bun:test'
 
 import type { Event } from '../entities/event.entity'
@@ -19,7 +19,7 @@ const baseEvent: Event = {
     appIdentifier: 'demo-app',
     workerIdentifier: 'worker-1',
     nested: { value: 'nested' },
-  } as JsonSerializableObject,
+  },
   createdAt: new Date(),
 }
 

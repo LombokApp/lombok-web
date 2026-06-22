@@ -53,10 +53,7 @@ export function UserCustomSettingsPanel({
           {
             params: { path: { appIdentifier } },
             body: {
-              values: values as Record<
-                string,
-                string | number | boolean | unknown[] | null
-              >,
+              values,
             },
           },
           {

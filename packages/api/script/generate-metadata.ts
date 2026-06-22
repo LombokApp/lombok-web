@@ -1116,7 +1116,7 @@ async function main() {
   const metadata = require('../src/nestjs-metadata').default
 
   await SwaggerModule.loadPluginMetadata(
-    metadata as unknown as () => Promise<Record<string, unknown>>,
+    metadata as () => Promise<Record<string, unknown>>,
   )
   const options = new DocumentBuilder()
     .setOpenAPIVersion('3.1.0')

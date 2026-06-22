@@ -151,7 +151,7 @@ export function ServerDockerHostDetailScreen({ hostId }: { hostId: string }) {
       image: sc.image,
       tag: sc.tag,
       desiredStatus: sc.desiredStatus,
-      config: sc.config as Record<string, unknown>,
+      config: sc.config,
     }
   }, [editContainerId, standaloneRecords])
 

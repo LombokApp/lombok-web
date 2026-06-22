@@ -70,9 +70,7 @@ export function ProfileAssignmentDialog({
     setSelectedHostId(currentHostId ?? UNASSIGNED)
     setError(null)
     setConfigState(
-      currentConfig
-        ? loadConfigState(currentConfig as Record<string, unknown>)
-        : EMPTY_CONFIG_STATE,
+      currentConfig ? loadConfigState(currentConfig) : EMPTY_CONFIG_STATE,
     )
   }, [open, currentHostId, currentConfig])
 

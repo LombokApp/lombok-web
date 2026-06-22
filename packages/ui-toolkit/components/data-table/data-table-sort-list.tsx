@@ -207,6 +207,7 @@ export function DataTableSortList<TData>({
       }
 
       const label: string =
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- ColumnMeta is augmented under projectService but not in this package's tsconfig
         (column.columnDef.meta as { label?: string } | undefined)?.label ??
         column.id
       labels.set(column.id, label)

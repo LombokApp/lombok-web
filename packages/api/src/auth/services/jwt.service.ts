@@ -426,7 +426,7 @@ export class JWTService {
         audience: EMAIL_VERIFY_AUD,
         issuer: EMAIL_VERIFY_ISS,
       })
-      payload = result.payload as typeof payload
+      payload = result.payload
     } catch (error) {
       mapJoseError(token, error)
     }

@@ -2,7 +2,6 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   InlineMetadataEntry,
-  JsonSerializableObject,
   JsonSerializableValue,
   PreviewMetadata,
   S3ObjectInternal,
@@ -1504,7 +1503,7 @@ export class FolderService {
       },
       data: {
         ...record,
-        contentMetadata: record.contentMetadata as JsonSerializableObject,
+        contentMetadata: record.contentMetadata,
         createdAt: record.createdAt.toISOString(),
         updatedAt: record.updatedAt.toISOString(),
       },

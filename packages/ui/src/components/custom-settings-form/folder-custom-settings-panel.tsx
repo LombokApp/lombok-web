@@ -79,10 +79,7 @@ export function FolderCustomSettingsPanel({
           {
             params: { path: { folderId, appIdentifier } },
             body: {
-              values: values as Record<
-                string,
-                string | number | boolean | unknown[] | null
-              >,
+              values,
             },
           },
           {

@@ -63,15 +63,13 @@ export function UserNotificationSettingsTab() {
     // Overlay with any explicit settings returned from the API
     for (const setting of data.settings) {
       const key = `${setting.emitterIdentifier}:${setting.eventIdentifier}`
-      const existing =
-        initialMap.get(key) ??
-        ({
-          eventIdentifier: setting.eventIdentifier,
-          emitterIdentifier: setting.emitterIdentifier,
-          web: true,
-          email: false,
-          mobile: false,
-        } as EventSettingsRow)
+      const existing = initialMap.get(key) ?? {
+        eventIdentifier: setting.eventIdentifier,
+        emitterIdentifier: setting.emitterIdentifier,
+        web: true,
+        email: false,
+        mobile: false,
+      }
 
       if (setting.channel === 'web') {
         existing.web = setting.enabled
@@ -121,26 +119,35 @@ export function UserNotificationSettingsTab() {
     }
 
     const payload = {
-      settings: rows.flatMap((row) => [
-        {
-          eventIdentifier: row.eventIdentifier,
-          emitterIdentifier: row.emitterIdentifier,
-          channel: 'web' as Channel,
-          enabled: row.web,
-        },
-        {
-          eventIdentifier: row.eventIdentifier,
-          emitterIdentifier: row.emitterIdentifier,
-          channel: 'email' as Channel,
-          enabled: row.email,
-        },
-        {
-          eventIdentifier: row.eventIdentifier,
-          emitterIdentifier: row.emitterIdentifier,
-          channel: 'mobile' as Channel,
-          enabled: row.mobile,
-        },
-      ]),
+      settings: rows.flatMap(
+        (
+          row,
+        ): {
+          eventIdentifier: string
+          emitterIdentifier: string
+          channel: Channel
+          enabled: boolean
+        }[] => [
+          {
+            eventIdentifier: row.eventIdentifier,
+            emitterIdentifier: row.emitterIdentifier,
+            channel: 'web',
+            enabled: row.web,
+          },
+          {
+            eventIdentifier: row.eventIdentifier,
+            emitterIdentifier: row.emitterIdentifier,
+            channel: 'email',
+            enabled: row.email,
+          },
+          {
+            eventIdentifier: row.eventIdentifier,
+            emitterIdentifier: row.emitterIdentifier,
+            channel: 'mobile',
+            enabled: row.mobile,
+          },
+        ],
+      ),
     }
 
     await updateMutation.mutateAsync({ body: payload })
