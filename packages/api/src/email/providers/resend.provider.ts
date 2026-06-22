@@ -26,7 +26,7 @@ export function createResendProvider(apiKey: string): EmailProvider {
             : JSON.stringify(resendResponse.error)
         throw new ServiceUnavailableException(message)
       }
-      return { messageId: resendResponse.data?.id }
+      return { messageId: resendResponse.data.id }
     },
   }
 }
