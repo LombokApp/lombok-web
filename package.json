@@ -64,7 +64,7 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-hook-form": "7.80.0",
-    "react-dropzone": "14.3.5",
+    "react-dropzone": "15.0.0",
     "react-image-crop": "11.1.2",
     "react-router": "8.0.1",
     "lucide-react": "1.21.0",
