@@ -20,7 +20,10 @@ export interface ImageOperationOutput {
 export async function getMediaDimensionsWithSharp(
   filePath: string,
 ): Promise<{ width: number; height: number }> {
-  const metadata = await sharp(filePath).metadata()
+  // `unlimited` relaxes libheif's security limits (e.g. the 16-reference iref
+  // box cap in sharp 0.35+), which legitimate iPhone HEIC files exceed. Safe
+  // here: metadata() only parses headers, it never decodes pixels.
+  const metadata = await sharp(filePath, { unlimited: true }).metadata()
 
   if (!metadata.width || !metadata.height) {
     throw new Error('Failed to get image dimensions')
@@ -33,7 +36,10 @@ export async function getMediaDimensionsWithSharp(
 }
 
 export async function convertHeicToJpeg(input: string, output: string) {
-  const child = spawn(['heif-dec', input, output], {
+  // --disable-limits relaxes libheif's security limits (e.g. the 16-reference
+  // iref box cap) that legitimate iPhone HEIC files exceed; libheif 1.21 has no
+  // granular flag. Decode runs inside the sandboxed worker (memory-capped).
+  const child = spawn(['heif-dec', '--disable-limits', input, output], {
     stdout: 'pipe',
     stderr: 'pipe',
   })
