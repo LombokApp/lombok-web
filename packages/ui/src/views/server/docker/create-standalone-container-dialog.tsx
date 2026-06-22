@@ -92,7 +92,7 @@ export function CreateStandaloneContainerDialog({
     }
   }, [open, resetForm])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
     setSubmitting(true)

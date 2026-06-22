@@ -958,6 +958,9 @@ export function JustifiedObjectsGrid({
 
       // Determine the first row entirely within the container bounds and update the active cursor
       const rowsContainerEl = rowContainerRef.current
+      if (!rowsContainerEl) {
+        return
+      }
       const children = Array.from(rowsContainerEl.children) as HTMLElement[]
       let highestVisibleRowId: string | null = null
       for (const childEl of children) {

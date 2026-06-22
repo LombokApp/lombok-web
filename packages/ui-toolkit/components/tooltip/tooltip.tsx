@@ -11,7 +11,7 @@ const TooltipTrigger = TooltipPrimitive.Trigger
 
 // Portal the content so its fixed popper escapes transformed/overflow ancestors that would otherwise trap it in their scroll subtree.
 const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
 >(({ className, sideOffset = 4, ...props }, ref) => (
   <TooltipPrimitive.Portal>
