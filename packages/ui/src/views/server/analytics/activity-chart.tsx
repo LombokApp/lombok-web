@@ -116,7 +116,7 @@ export function ActivityChart({
     safeFormat(value, granularity === 'hour' ? 'HH:mm' : 'MMM d')
   // ChartTooltipContent only forwards the x-value when it's a config key, so resolve the bucket from the hovered row.
   const formatLabel = (
-    items: { payload?: { bucket?: string } }[] | undefined,
+    items: readonly { payload?: { bucket?: string } }[] | undefined,
   ) =>
     safeFormat(
       items?.[0]?.payload?.bucket,
