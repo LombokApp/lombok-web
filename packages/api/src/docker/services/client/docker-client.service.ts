@@ -552,7 +552,7 @@ export class DockerClientService {
         if (destroyed || ws.readyState !== WebSocket.OPEN) {
           return
         }
-        ws.send(typeof data === 'string' ? data : data)
+        ws.send(data as string | BufferSource)
       },
       onStdout: (handler: (data: Buffer) => void) => {
         stdoutHandlers.push(handler)
@@ -996,7 +996,7 @@ export class DockerClientService {
         if (destroyed || ws.readyState !== WebSocket.OPEN) {
           return
         }
-        ws.send(data)
+        ws.send(data as string | BufferSource)
       },
 
       onData: (handler: (data: Buffer) => void) => {

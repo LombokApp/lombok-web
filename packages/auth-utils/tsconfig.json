@@ -13,10 +13,10 @@
     "noFallthroughCasesInSwitch": true,
     "module": "preserve",
     "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "@lombokapp/types": ["../types/src"],

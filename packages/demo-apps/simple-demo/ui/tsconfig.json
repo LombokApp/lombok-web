@@ -24,7 +24,6 @@
     "noUncheckedIndexedAccess": true,
 
     /* Path mapping */
-    "baseUrl": ".",
     "paths": {
       "@/src/*": ["./src/*"],
       "@lombokapp/app-browser-sdk": ["../../../app-browser-sdk/src"],

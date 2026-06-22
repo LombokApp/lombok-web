@@ -1,17 +1,25 @@
 import { PluginMetadataPrinter } from '@nestjs/cli/lib/compiler/plugins/plugin-metadata-printer'
 import { NestFactory } from '@nestjs/core'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import type {
-  OpenAPIObject,
-  ReferenceObject,
-  SchemaObject,
-} from '@nestjs/swagger/dist/interfaces/open-api-spec.interface'
+import {
+  DocumentBuilder,
+  type OpenAPIObject,
+  SwaggerModule,
+} from '@nestjs/swagger'
 import * as fs from 'fs'
 import { cleanupOpenApiDoc } from 'nestjs-zod'
 import * as path from 'path'
 import { CoreModule } from 'src/core/core.module'
 import ts from 'typescript'
 import { z } from 'zod'
+
+// SchemaObject / ReferenceObject aren't re-exported from @nestjs/swagger's public
+// entry, so derive them from the public OpenAPIObject rather than deep-importing
+// dist/ (which bundler resolution blocks via the package exports map).
+type SchemaOrReference = NonNullable<
+  NonNullable<NonNullable<OpenAPIObject['components']>['schemas']>[string]
+>
+type ReferenceObject = Extract<SchemaOrReference, { $ref: string }>
+type SchemaObject = Exclude<SchemaOrReference, ReferenceObject>
 
 // Look up a DTO class by name from loaded modules. createZodDto() stores
 // the Zod schema as a static `schema` property on the class.
@@ -1192,13 +1200,9 @@ async function main() {
 
   const app = await NestFactory.create(CoreModule, { preview: true })
 
-  // Resolve ReadonlyVisitor at runtime through the exports-mapped `/plugin`
-  // entry (bun honours the exports map and blocks the deep `dist/plugin` path),
-  // but type it via `dist/plugin`, which the classic-resolution type-checker
-  // resolves. Importing the value from `/plugin` directly would leave it `any`.
-  const { ReadonlyVisitor } =
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- the runtime (/plugin) and type (dist/plugin) specifiers differ by design; see comment above
-    (await import('@nestjs/swagger/plugin')) as typeof import('@nestjs/swagger/dist/plugin')
+  // bundler resolution honours @nestjs/swagger's exports map, so the public
+  // `/plugin` entry resolves straight to its real types (ReadonlyVisitor).
+  const { ReadonlyVisitor } = await import('@nestjs/swagger/plugin')
 
   const visitor = new ReadonlyVisitor({
     introspectComments: true,
@@ -1218,13 +1222,16 @@ async function main() {
   }
 
   printer.print(
-    pluginMetadata,
+    // @nestjs/swagger's printer is typed against the typescript@5.9.3 copy that
+    // @nestjs/cli pins, while we import typescript@6.0.3; the ts.Node shapes are
+    // structurally identical at runtime, so cast across the two version views.
+    pluginMetadata as Parameters<typeof printer.print>[0],
     visitor.typeImports,
     {
       outputDir: __dirname,
       filename: '../src/nestjs-metadata.ts',
     },
-    ts,
+    ts as unknown as Parameters<typeof printer.print>[3],
   )
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
