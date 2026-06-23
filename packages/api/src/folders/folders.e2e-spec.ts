@@ -571,12 +571,18 @@ describe('Folders', () => {
 
     const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.lombok_folder_content_${folderCreateResponse.data?.folder.id}/someobjectkey?`
     expect(
-      presignedUrls.data?.urls[0]?.slice(0, expectedContentUrlPrefix.length),
+      presignedUrls.data?.urls[0]?.url.slice(
+        0,
+        expectedContentUrlPrefix.length,
+      ),
     ).toBe(expectedContentUrlPrefix)
 
     const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.lombok_folder_metadata_${folderCreateResponse.data?.folder.id}/someobjectkey/somehash`
     expect(
-      presignedUrls.data?.urls[1]?.slice(0, expectedMetadataUrlPrefix.length),
+      presignedUrls.data?.urls[1]?.url.slice(
+        0,
+        expectedMetadataUrlPrefix.length,
+      ),
     ).toBe(expectedMetadataUrlPrefix)
   })
 
@@ -642,12 +648,18 @@ describe('Folders', () => {
 
     const expectedContentUrlPrefix = `${userPresignConfig.endpoint}/${userPresignContentBucket}/content_prefix/someobjectkey`
     expect(
-      presignedUrls.data?.urls[0]?.slice(0, expectedContentUrlPrefix.length),
+      presignedUrls.data?.urls[0]?.url.slice(
+        0,
+        expectedContentUrlPrefix.length,
+      ),
     ).toBe(expectedContentUrlPrefix)
 
     const expectedMetadataUrlPrefix = `${userPresignConfig.endpoint}/${userPresignMetadataBucket}/metadata_prefix/someobjectkey/somehash?`
     expect(
-      presignedUrls.data?.urls[1]?.slice(0, expectedMetadataUrlPrefix.length),
+      presignedUrls.data?.urls[1]?.url.slice(
+        0,
+        expectedMetadataUrlPrefix.length,
+      ),
     ).toBe(expectedMetadataUrlPrefix)
   })
 
@@ -709,11 +721,17 @@ describe('Folders', () => {
 
     const expectedContentUrlPrefix = `${sepConfig.endpoint}/${sepContentBucket}/someobjectkey?`
     expect(
-      presignedUrls.data?.urls[0]?.slice(0, expectedContentUrlPrefix.length),
+      presignedUrls.data?.urls[0]?.url.slice(
+        0,
+        expectedContentUrlPrefix.length,
+      ),
     ).toBe(expectedContentUrlPrefix)
     const expectedMetadataUrlPrefix = `${sepConfig.endpoint}/${sepMetadataBucket}/someobjectkey/somehash?`
     expect(
-      presignedUrls.data?.urls[1]?.slice(0, expectedMetadataUrlPrefix.length),
+      presignedUrls.data?.urls[1]?.url.slice(
+        0,
+        expectedMetadataUrlPrefix.length,
+      ),
     ).toBe(expectedMetadataUrlPrefix)
   })
 

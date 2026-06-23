@@ -27,12 +27,13 @@ import { DockerClientService } from 'src/docker/services/client/docker-client.se
 import { DockerWorkerHookService } from 'src/docker/services/docker-worker-hook.service'
 import { buildMockDockerClientService } from 'src/docker/tests/docker.e2e-mocks'
 import { EventService } from 'src/event/services/event.service'
+import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { getLogLevelsFromMinimum } from 'src/shared/logger-levels.util'
 import { runWithThreadContext } from 'src/shared/thread-context'
-import { configureS3Client } from 'src/storage/s3.service'
+import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
@@ -171,6 +172,8 @@ export async function buildTestModule({
     coreTaskService: await app.resolve(CoreTaskService),
     eventService: await app.resolve(EventService),
     taskService: await app.resolve(TaskService),
+    folderService: await app.resolve(FolderService),
+    s3Service: await app.resolve(S3Service),
     ormService: await app.resolve(OrmService),
     kvService: await app.resolve(KVService),
   }

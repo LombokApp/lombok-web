@@ -2,7 +2,7 @@ import { type FolderObjectDTO } from '@lombokapp/types'
 import { MediaType } from '@lombokapp/types'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
 import {
-  encodeS3ObjectKey,
+  encodeObjectKeyPreservingSlashes,
   formatBytes,
   mediaTypeFromMimeType,
 } from '@lombokapp/utils'
@@ -678,7 +678,7 @@ function JustifiedGridItem({
 
   return (
     <Link
-      to={`/folders/${folderObject.folderId}/objects/${encodeS3ObjectKey(folderObject.objectKey)}`}
+      to={`/folders/${folderObject.folderId}/objects/${encodeObjectKeyPreservingSlashes(folderObject.objectKey)}`}
       className={cn(
         'group relative block overflow-hidden rounded-lg bg-card transition-all duration-200',
         'hover:shadow-xl hover:shadow-black/10 hover:-translate-y-1',

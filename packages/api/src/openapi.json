@@ -14831,64 +14831,74 @@
       "FolderCreateSignedUrlInputDTO": {
         "type": "array",
         "items": {
-          "type": "object",
-          "properties": {
-            "objectIdentifier": {
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "const": "content"
-                    },
-                    "objectKey": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "objectKey"
-                  ]
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "objectIdentifier": {
+                  "$ref": "#/components/schemas/ObjectIdentifier"
                 },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kind": {
-                      "type": "string",
-                      "const": "metadata"
-                    },
-                    "objectKey": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "metadataHash": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "required": [
-                    "kind",
-                    "objectKey",
-                    "metadataHash"
-                  ]
+                "method": {
+                  "type": "string",
+                  "const": "PUT"
+                },
+                "dontReplaceEncodedForwardSlashes": {
+                  "type": "boolean"
                 }
+              },
+              "required": [
+                "objectIdentifier",
+                "method"
               ]
             },
-            "method": {
-              "type": "string",
-              "enum": [
-                "PUT",
-                "DELETE",
-                "GET",
-                "HEAD"
+            {
+              "type": "object",
+              "properties": {
+                "objectIdentifier": {
+                  "$ref": "#/components/schemas/ObjectIdentifier"
+                },
+                "method": {
+                  "type": "string",
+                  "const": "GET"
+                }
+              },
+              "required": [
+                "objectIdentifier",
+                "method"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "objectIdentifier": {
+                  "$ref": "#/components/schemas/ObjectIdentifier"
+                },
+                "method": {
+                  "type": "string",
+                  "const": "HEAD"
+                }
+              },
+              "required": [
+                "objectIdentifier",
+                "method"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "objectIdentifier": {
+                  "$ref": "#/components/schemas/ObjectIdentifier"
+                },
+                "method": {
+                  "type": "string",
+                  "const": "DELETE"
+                }
+              },
+              "required": [
+                "objectIdentifier",
+                "method"
               ]
             }
-          },
-          "required": [
-            "objectIdentifier",
-            "method"
           ]
         }
       },
@@ -14898,7 +14908,19 @@
           "urls": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                },
+                "objectKey": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url",
+                "objectKey"
+              ]
             }
           }
         },
@@ -18539,6 +18561,49 @@
           "folderDetailViews"
         ],
         "additionalProperties": false
+      },
+      "ObjectIdentifier": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "content"
+              },
+              "objectKey": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "kind",
+              "objectKey"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "metadata"
+              },
+              "objectKey": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metadataHash": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "kind",
+              "objectKey",
+              "metadataHash"
+            ]
+          }
+        ]
       },
       "Message": {
         "type": "object",

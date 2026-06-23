@@ -3140,22 +3140,29 @@ export interface components {
         FolderObjectGetResponse: {
             folderObject: components["schemas"]["FolderObject"];
         };
-        FolderCreateSignedUrlInputDTO: {
-            objectIdentifier: {
-                /** @constant */
-                kind: "content";
-                objectKey: string;
-            } | {
-                /** @constant */
-                kind: "metadata";
-                objectKey: string;
-                metadataHash: string;
-            };
-            /** @enum {string} */
-            method: "PUT" | "DELETE" | "GET" | "HEAD";
-        }[];
+        FolderCreateSignedUrlInputDTO: ({
+            objectIdentifier: components["schemas"]["ObjectIdentifier"];
+            /** @constant */
+            method: "PUT";
+            dontReplaceEncodedForwardSlashes?: boolean;
+        } | {
+            objectIdentifier: components["schemas"]["ObjectIdentifier"];
+            /** @constant */
+            method: "GET";
+        } | {
+            objectIdentifier: components["schemas"]["ObjectIdentifier"];
+            /** @constant */
+            method: "HEAD";
+        } | {
+            objectIdentifier: components["schemas"]["ObjectIdentifier"];
+            /** @constant */
+            method: "DELETE";
+        })[];
         FolderCreateSignedUrlsResponse: {
-            urls: string[];
+            urls: {
+                url: string;
+                objectKey: string;
+            }[];
         };
         FolderShareGetResponse: {
             share: components["schemas"]["Share"];
@@ -4076,6 +4083,16 @@ export interface components {
                 };
                 root?: components["schemas"]["MobileRoot"];
             };
+        };
+        ObjectIdentifier: {
+            /** @constant */
+            kind: "content";
+            objectKey: string;
+        } | {
+            /** @constant */
+            kind: "metadata";
+            objectKey: string;
+            metadataHash: string;
         };
         Message: {
             /** @enum {string} */

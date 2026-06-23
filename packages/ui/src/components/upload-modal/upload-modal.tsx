@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
+import { sanitizeUploadFilename } from '@lombokapp/utils'
 import React from 'react'
 import type { FileRejection } from 'react-dropzone'
 
@@ -49,13 +50,16 @@ const UploadModal = ({
     }
   }, [modalData.isOpen])
 
-  // Keep track of files that have progress data
+  // Keep track of files that have progress data. Progress is reported under the
+  // sanitized (resolved) key, so match dropped files by their sanitized name.
   React.useEffect(() => {
     // Only add files from progress that aren't already in uploadingFiles
     const filesFromProgress = Object.keys(modalData.uploadingProgress)
       .filter((filename) => {
         // Check if this file is already in uploadingFiles
-        return !uploadingFiles.some((file) => file.name === filename)
+        return !uploadingFiles.some(
+          (file) => sanitizeUploadFilename(file.name) === filename,
+        )
       })
       .map((filename) => {
         // Create a File-like object for display purposes
@@ -94,27 +98,28 @@ const UploadModal = ({
             <div className="mt-4 flex flex-col gap-3 rounded-md border border-gray-200 p-3">
               <h3 className="text-sm font-medium">Uploading files</h3>
               <div className="flex max-h-[200px] flex-col gap-3 overflow-y-auto pr-1">
-                {uploadingFiles.map((uploadingFile, i) => (
-                  <div key={`${uploadingFile.name}_${i}`} className="text-sm">
-                    <div className="mb-1 flex justify-between">
-                      <span className="max-w-[80%] truncate">
-                        {uploadingFile.name}
-                      </span>
-                      <span
-                        className="ml-2 whitespace-nowrap text-xs font-medium text-muted-foreground"
-                        data-testid="upload-progress-percent"
-                      >
-                        {`${Math.round(modalData.uploadingProgress[uploadingFile.name] ?? 0)}%`}
-                      </span>
+                {uploadingFiles.map((uploadingFile, i) => {
+                  // The upload pipeline sanitizes the filename ("/" and "%2F" →
+                  // "_"); display and look up progress under that resolved name.
+                  const displayName = sanitizeUploadFilename(uploadingFile.name)
+                  const progress = modalData.uploadingProgress[displayName] ?? 0
+                  return (
+                    <div key={`${displayName}_${i}`} className="text-sm">
+                      <div className="mb-1 flex justify-between">
+                        <span className="max-w-[80%] truncate">
+                          {displayName}
+                        </span>
+                        <span
+                          className="ml-2 whitespace-nowrap text-xs font-medium text-muted-foreground"
+                          data-testid="upload-progress-percent"
+                        >
+                          {`${Math.round(progress)}%`}
+                        </span>
+                      </div>
+                      <ProgressBar progress={progress} className="h-2" />
                     </div>
-                    <ProgressBar
-                      progress={
-                        modalData.uploadingProgress[uploadingFile.name] ?? 0
-                      }
-                      className="h-2"
-                    />
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

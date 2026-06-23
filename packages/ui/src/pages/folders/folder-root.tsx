@@ -1,4 +1,4 @@
-import { useParams } from 'react-router'
+import { useLocation, useParams } from 'react-router'
 
 import { FolderContextProvider, useFolderContext } from '@/src/contexts/folder'
 
@@ -11,15 +11,17 @@ import { FolderSettingsScreen } from '../../views/folder-settings-screen/folder-
 import { FolderTaskDetailScreen } from '../../views/folder-task-detail-screen/folder-task-detail-screen.view'
 import { FolderTasksScreen } from '../../views/folder-tasks-screen/folder-tasks-screen.view'
 import { FocusedFolderObjectContextProvider } from './focused-folder-object.provider'
+import { recoverObjectKey } from './object-key-url'
 
 function FolderObjectRootInner() {
   const params = useParams()
+  const { pathname } = useLocation()
   const pathParts = params['*']?.split('/') ?? []
   const isFolderObjectDetailPage =
     pathParts.length > 2 && pathParts[1] === 'objects'
   const folderContext = useFolderContext()
   const focusedFolderObjectKey = isFolderObjectDetailPage
-    ? pathParts.slice(2).join('/')
+    ? recoverObjectKey(pathname)
     : undefined
   return focusedFolderObjectKey ? (
     <FocusedFolderObjectContextProvider
@@ -38,12 +40,13 @@ function FolderObjectRootInner() {
 
 function FolderRootInner() {
   const params = useParams()
+  const { pathname } = useLocation()
   const pathParts = params['*']?.split('/') ?? []
   const isFolderDetailPage = pathParts.length === 1
   const isFolderObjectDetailPage =
     pathParts.length > 2 && pathParts[1] === 'objects'
   const focusedFolderObjectKey = isFolderObjectDetailPage
-    ? pathParts.slice(2).join('/')
+    ? recoverObjectKey(pathname)
     : undefined
 
   const isTaskListPage = pathParts.length === 2 && pathParts[1] === 'tasks'

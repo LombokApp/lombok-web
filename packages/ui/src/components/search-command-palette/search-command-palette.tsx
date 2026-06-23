@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@lombokapp/ui-toolkit/components/dialog'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
-import { encodeS3ObjectKey, formatBytes } from '@lombokapp/utils'
+import { encodeObjectKeyPreservingSlashes, formatBytes } from '@lombokapp/utils'
 import {
   FileIcon,
   FileQuestion,
@@ -118,7 +118,7 @@ export function SearchCommandPalette() {
   const handleResultSelect = React.useCallback(
     (folderId: string, objectKey: string) => {
       void navigate(
-        `/folders/${folderId}/objects/${encodeS3ObjectKey(objectKey)}`,
+        `/folders/${folderId}/objects/${encodeObjectKeyPreservingSlashes(objectKey)}`,
       )
       handleOpenChange(false)
     },

@@ -1,6 +1,6 @@
 import type { FolderObjectDTO } from '@lombokapp/types'
 import type { HideableColumnDef } from '@lombokapp/ui-toolkit/components/data-table'
-import { encodeS3ObjectKey } from '@lombokapp/utils'
+import { encodeObjectKeyPreservingSlashes } from '@lombokapp/utils'
 import React from 'react'
 
 import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
@@ -12,7 +12,7 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
     id: 'link',
     cell: ({ row }) => (
       <TableLinkColumn
-        to={`/folders/${row.original.folderId}/objects/${encodeS3ObjectKey(row.original.objectKey)}`}
+        to={`/folders/${row.original.folderId}/objects/${encodeObjectKeyPreservingSlashes(row.original.objectKey)}`}
       />
     ),
     enableSorting: false,

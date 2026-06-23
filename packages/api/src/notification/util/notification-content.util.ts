@@ -1,5 +1,5 @@
 import { CoreEvent } from '@lombokapp/types'
-import { encodeS3ObjectKey } from '@lombokapp/utils'
+import { encodeObjectKeyPreservingSlashes } from '@lombokapp/utils'
 import type { Event } from 'src/event/entities/event.entity'
 
 const DEFAULT_EVENT_TITLES: Record<string, string> = {
@@ -127,7 +127,7 @@ export function buildNotificationPath(
   const objectKey = event.targetLocationObjectKey
   if (folderId) {
     if (objectKey != null && objectKey.length > 0 && !events) {
-      return `/folders/${folderId}/objects/${encodeS3ObjectKey(objectKey)}`
+      return `/folders/${folderId}/objects/${encodeObjectKeyPreservingSlashes(objectKey)}`
     }
     return `/folders/${folderId}`
   }

@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from '@lombokapp/ui-toolkit/components/card'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
+import { encodeObjectKeyPreservingSlashes } from '@lombokapp/utils'
 import { Link } from 'react-router'
 
 import { DateDisplay } from '@/src/components/date-display'
@@ -195,7 +196,7 @@ export function EventDetailUI({
                               Object:{' '}
                               {isFolderOwner ? (
                                 <Link
-                                  to={`/folders/${eventData.targetLocation.folderId}/objects/${eventData.targetLocation.objectKey}`}
+                                  to={`/folders/${eventData.targetLocation.folderId}/objects/${encodeObjectKeyPreservingSlashes(eventData.targetLocation.objectKey)}`}
                                   className="text-primary hover:underline"
                                 >
                                   {eventData.targetLocation.objectKey}
