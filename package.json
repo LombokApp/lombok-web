@@ -59,7 +59,7 @@
     "openapi-react-query": "0.5.4",
     "pg": "8.22.0",
     "@hookform/resolvers": "5.4.0",
-    "globals": "17.6.0",
+    "globals": "17.7.0",
     "autoprefixer": "10.4.20",
     "react": "19.2.7",
     "react-dom": "19.2.7",
