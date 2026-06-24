@@ -101,6 +101,13 @@ ChartContainer.displayName = 'Chart'
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+// recharts 3 widens dataKey to string | number | fn; chart payload dataKeys are always string|number
+function dataKeyToString(dataKey: unknown): string | undefined {
+  return typeof dataKey === 'string' || typeof dataKey === 'number'
+    ? String(dataKey)
+    : undefined
+}
+
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
   config: ChartConfig,
@@ -124,15 +131,13 @@ function getPayloadConfigFromPayload(
     key in payload &&
     typeof payload[key as keyof typeof payload] === 'string'
   ) {
-    configLabelKey = payload[key as keyof typeof payload] as string
+    configLabelKey = payload[key as keyof typeof payload]
   } else if (
     payloadPayload &&
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
   ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string
+    configLabelKey = payloadPayload[key as keyof typeof payloadPayload]
   }
 
   return configLabelKey in config ? config[configLabelKey] : config[key]
@@ -147,7 +152,13 @@ const ChartTooltipContent = React.forwardRef<
       indicator?: 'line' | 'dot' | 'dashed'
       nameKey?: string
       labelKey?: string
-    }
+    } & Omit<
+      RechartsPrimitive.DefaultTooltipContentProps<
+        RechartsPrimitive.TooltipValueType,
+        number | string
+      >,
+      'accessibilityLayer'
+    >
 >(
   (
     {
@@ -175,7 +186,7 @@ const ChartTooltipContent = React.forwardRef<
       }
 
       const item = payload[0]
-      const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
+      const key = `${labelKey || dataKeyToString(item?.dataKey) || item?.name || 'value'}`
       const itemConfig = getPayloadConfigFromPayload(config, item, key)
       const value =
         !labelKey && typeof label === 'string' && label in config
@@ -222,14 +233,14 @@ const ChartTooltipContent = React.forwardRef<
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
           {payload.map((item, index) => {
-            const key = `${nameKey || item.name || item.dataKey || 'value'}`
+            const key = `${nameKey || item.name || dataKeyToString(item.dataKey) || 'value'}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             const indicatorColor = color || item.payload.fill || item.color
 
             return (
               <div
-                key={item.dataKey}
+                key={dataKeyToString(item.dataKey) ?? index}
                 className={cn(
                   '[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:size-2.5',
                   indicator === 'dot' && 'items-center',
@@ -301,7 +312,7 @@ const ChartLegend = RechartsPrimitive.Legend
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'div'> &
-    Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
+    RechartsPrimitive.DefaultLegendContentProps & {
       hideIcon?: boolean
       nameKey?: string
     }
@@ -332,7 +343,6 @@ const ChartLegendContent = React.forwardRef<
 
           return (
             <div
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               key={item.value}
               className={cn(
                 '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:size-3',

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { redactedSecret } from './redacted-secret.schema'
+
 export enum SignedURLsRequestMethod {
   PUT = 'PUT',
   DELETE = 'DELETE',
@@ -38,7 +40,7 @@ export const s3LocationSchema = z.object({
 })
 
 export const accessKeySchema = z.object({
-  secretAccessKey: z.null(),
+  secretAccessKey: redactedSecret(),
   accessKeyId: z.string(),
   accessKeyHashId: z.string(),
   endpoint: z.string(),
@@ -70,7 +72,7 @@ export type StorageProvisionWithSecret = z.infer<
 >
 
 export const storageProvisionSchema = storageProvisionWithSecretSchema.extend({
-  secretAccessKey: z.null(),
+  secretAccessKey: redactedSecret(),
 })
 
 export const serverStorageSchema = z.object({

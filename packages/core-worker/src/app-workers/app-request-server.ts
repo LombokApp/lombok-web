@@ -224,7 +224,7 @@ export const buildAppRequestServer = ({
         return new Response('Internal server error', { status: 500 })
       }
     }
-    let targetPath = ''
+    let targetPath: string
     if (pathname in manifest) {
       targetPath = pathname
     } else if (path.join(pathname, 'index.html') in manifest) {

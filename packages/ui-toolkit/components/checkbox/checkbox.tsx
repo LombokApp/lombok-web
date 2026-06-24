@@ -7,7 +7,7 @@ import { cn } from '../../utils'
 // Colors route through CSS variables so consumers can override via className,
 // e.g. `[--checkbox-color:var(--color-tone-blue)]`.
 const Checkbox = React.forwardRef<
-  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
 >(({ className, ...props }, ref) => (
   <CheckboxPrimitive.Root

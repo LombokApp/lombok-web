@@ -1,9 +1,9 @@
 import { spawn } from 'bun'
+import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import sharp from 'sharp'
-import { v4 as uuidV4 } from 'uuid'
 
 import { calculateOutputDimensions } from './dimension.util'
 import { hashLocalFile } from './file.util'
@@ -20,7 +20,10 @@ export interface ImageOperationOutput {
 export async function getMediaDimensionsWithSharp(
   filePath: string,
 ): Promise<{ width: number; height: number }> {
-  const metadata = await sharp(filePath).metadata()
+  // `unlimited` relaxes libheif's security limits (e.g. the 16-reference iref
+  // box cap in sharp 0.35+), which legitimate iPhone HEIC files exceed. Safe
+  // here: metadata() only parses headers, it never decodes pixels.
+  const metadata = await sharp(filePath, { unlimited: true }).metadata()
 
   if (!metadata.width || !metadata.height) {
     throw new Error('Failed to get image dimensions')
@@ -33,7 +36,10 @@ export async function getMediaDimensionsWithSharp(
 }
 
 export async function convertHeicToJpeg(input: string, output: string) {
-  const child = spawn(['heif-dec', input, output], {
+  // --disable-limits relaxes libheif's security limits (e.g. the 16-reference
+  // iref box cap) that legitimate iPhone HEIC files exceed; libheif 1.21 has no
+  // granular flag. Decode runs inside the sandboxed worker (memory-capped).
+  const child = spawn(['heif-dec', '--disable-limits', input, output], {
     stdout: 'pipe',
     stderr: 'pipe',
   })
@@ -105,7 +111,7 @@ export const scaleImage = async ({
 
   const tempConvertedImageDir = path.join(
     os.tmpdir(),
-    `lombok_scaled_image_${uuidV4()}`,
+    `lombok_scaled_image_${crypto.randomUUID()}`,
   )
   if (mimeType === 'image/heic') {
     finalInFilePath = path.join(tempConvertedImageDir, `__converted.jpg`)

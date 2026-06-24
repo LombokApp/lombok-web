@@ -26,7 +26,7 @@ export const LocalFileCacheContextProvider = ({
   const [uploadingProgress, setUploadingProgress] = React.useState<
     Record<string, number>
   >({})
-  const workerRef = React.useRef<Worker>()
+  const workerRef = React.useRef<Worker | undefined>(undefined)
 
   const postMessage = React.useRef((message: WorkerMessage) => {
     workerRef.current?.postMessage(message)
@@ -106,9 +106,8 @@ export const LocalFileCacheContextProvider = ({
             const oldResolve = pendingPresignedDownloadUrlRequests.current[
               folderIdAndKey
             ].resolve as (blob: unknown) => void
-            const oldReject = pendingPresignedDownloadUrlRequests.current[
-              folderIdAndKey
-            ].reject as (e: unknown) => void
+            const oldReject =
+              pendingPresignedDownloadUrlRequests.current[folderIdAndKey].reject
 
             const fetchingContext =
               pendingPresignedDownloadUrlRequests.current[folderIdAndKey]

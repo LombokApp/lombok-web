@@ -9,6 +9,7 @@ import {
   Injectable,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import crypto from 'crypto'
 import { and, eq, or, sql } from 'drizzle-orm'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -19,7 +20,6 @@ import { getApp } from 'src/shared/app-helper'
 import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 
 import { authConfig } from '../config'
 import { AuthDurationMilliseconds } from '../constants/duration.constants'
@@ -134,11 +134,11 @@ export class AuthService {
     const now = new Date()
     const passwordSalt = authHelper.createPasswordSalt()
     const newUser: NewUser = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       email: data.email,
       isAdmin: false,
       emailVerified: false,
-      emailVerificationKey: data.email ? uuidV4() : null,
+      emailVerificationKey: data.email ? crypto.randomUUID() : null,
       username: data.username,
       passwordHash: authHelper
         .createPasswordHash(data.password, passwordSalt)
@@ -332,7 +332,7 @@ export class AuthService {
     // Create new user
     const now = new Date()
     const newUser: NewUser = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       username,
       email: providerUserInfo.email,
       passwordHash: null, // No password for SSO-only users
@@ -418,7 +418,7 @@ export class AuthService {
   ) {
     const now = new Date()
     const newIdentity: NewUserIdentity = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       userId,
       provider,
       providerUserId: providerUserInfo.id,

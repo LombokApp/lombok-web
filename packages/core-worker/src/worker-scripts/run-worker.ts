@@ -1070,6 +1070,7 @@ async function parseRequestBody(request: Request): Promise<unknown> {
       `Failed to parse request body (Content-Type: ${contentType}): ${
         error instanceof Error ? error.message : String(error)
       }`,
+      { cause: error },
     )
   }
 }
@@ -1802,11 +1803,7 @@ export async function runWorker(
         console.log('[run-worker-script]', 'Handling streaming response')
       }
       const response = handleStreamingResponse(
-        responseData as {
-          status: number
-          statusText: string
-          headers: Record<string, string>
-        },
+        responseData,
         requestId,
         workerMessageRouter,
         () => completeRequest?.(),

@@ -2268,8 +2268,8 @@ export interface components {
         UserScopeAppPermission: "CREATE_FOLDERS" | "READ_FOLDERS" | "UPDATE_FOLDERS" | "DELETE_FOLDERS" | "READ_USER";
         /** @enum {string} */
         FolderScopeAppPermission: "READ_OBJECTS" | "WRITE_OBJECTS" | "WRITE_OBJECTS_METADATA" | "WRITE_FOLDER_METADATA" | "REINDEX_FOLDER";
-        PgSafeJsonSerializableValue: (string | null) | number | boolean | components["schemas"]["PgSafeJsonSerializableValue"][] | {
-            [key: string]: components["schemas"]["PgSafeJsonSerializableValue"];
+        PgSafeJsonSerializableValue: (string | null) | number | boolean | unknown[] | {
+            [key: string]: unknown;
         };
         TaskOnCompleteConfig: {
             taskIdentifier: string;
@@ -2362,8 +2362,8 @@ export interface components {
         } | {
             $not: components["schemas"]["MobileQueryTransformCondition"];
         };
-        JsonSerializableValue: (string | null) | number | boolean | components["schemas"]["JsonSerializableValue"][] | {
-            [key: string]: components["schemas"]["JsonSerializableValue"];
+        JsonSerializableValue: (string | null) | number | boolean | unknown[] | {
+            [key: string]: unknown;
         };
         MobileRoot: {
             views: components["schemas"]["MobileRootView"][];
@@ -2799,13 +2799,13 @@ export interface components {
                 GOOGLE_OAUTH_CONFIG: {
                     enabled: boolean;
                     clientId: string;
-                    clientSecret: null;
+                    clientSecret: string | null;
                 } | null;
                 EMAIL_PROVIDER_CONFIG: ({
                     /** @constant */
                     provider: "resend";
                     config: {
-                        apiKey: null;
+                        apiKey: string | null;
                     };
                     from: string;
                 } | {
@@ -2815,7 +2815,7 @@ export interface components {
                         host: string;
                         port: number;
                         username: string;
-                        password: null;
+                        password: string | null;
                     };
                     from: string;
                 }) | null;
@@ -4202,7 +4202,7 @@ export interface components {
             bucket: string;
             region: string;
             accessKeyId: string;
-            secretAccessKey: null;
+            secretAccessKey: string | null;
             prefix: string | null;
             provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
             label: string;
@@ -4366,7 +4366,7 @@ export interface components {
             expiresAt: string;
         };
         AccessKey: {
-            secretAccessKey: null;
+            secretAccessKey: string | null;
             accessKeyId: string;
             accessKeyHashId: string;
             endpoint: string;

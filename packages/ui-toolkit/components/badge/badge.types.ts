@@ -5,7 +5,8 @@ import type { Tone } from '../../utils/tone'
 import type { badgeVariants } from './badge.util'
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {
   /** Color axis — named additive tone. */
   tone?: Tone

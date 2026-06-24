@@ -101,7 +101,7 @@ export async function readFileMetadata(
     return metadata
   } catch (err) {
     const details = err instanceof Error ? err.message : String(err)
-    throw new Error(`Failed to parse exif2 output: ${details}`)
+    throw new Error(`Failed to parse exif2 output: ${details}`, { cause: err })
   }
 }
 

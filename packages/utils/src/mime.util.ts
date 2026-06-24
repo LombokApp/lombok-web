@@ -1,8 +1,8 @@
+import { MediaType } from '@lombokapp/types'
 import { Mime } from 'mime'
 import otherTypes from 'mime/types/other.js'
 import standardTypes from 'mime/types/standard.js'
 
-import { MediaType } from '../../types'
 import { DocumentMediaMimeTypes } from './constants'
 
 const mime = new Mime({

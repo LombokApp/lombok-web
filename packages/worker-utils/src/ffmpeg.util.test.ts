@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { v4 as uuidV4 } from 'uuid'
 
 import {
   generateVideoPreviews,
@@ -20,7 +20,7 @@ describe('generateVideoPreviews', () => {
   // eslint-disable-next-line @typescript-eslint/require-await
   beforeAll(async () => {
     // Create test output directory
-    testOutputDir = path.join(os.tmpdir(), `ffmpeg-test-${uuidV4()}`)
+    testOutputDir = path.join(os.tmpdir(), `ffmpeg-test-${crypto.randomUUID()}`)
     fs.mkdirSync(testOutputDir, { recursive: true })
     cleanupPaths.push(testOutputDir)
 

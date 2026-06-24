@@ -15,12 +15,12 @@ import {
   it,
   mock,
 } from 'bun:test'
+import crypto from 'crypto'
 import fs from 'fs'
 import { createServer } from 'http'
 import os from 'os'
 import path from 'path'
 import { Server as IOServer } from 'socket.io'
-import { v4 as uuidV4 } from 'uuid'
 
 import { buildTestServerClient } from '../../test/test-server-client.mock'
 import { buildRunWorkerScriptTaskHandler } from './app-worker-task-executor'
@@ -40,7 +40,7 @@ describe('Run Worker Script Task Handler', () => {
   beforeAll(async () => {
     fixturesDir = path.join(
       os.tmpdir(),
-      `core-worker-test-fixtures-${uuidV4()}`,
+      `core-worker-test-fixtures-${crypto.randomUUID()}`,
     )
     workerSrcDir = path.join(fixturesDir, 'worker-src')
     fs.mkdirSync(workerSrcDir, { recursive: true })
@@ -232,16 +232,16 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
     const dummyWorkerHash = 'test-worker-hash'
     // Mock run_serverless_worker task and the underlying worker script task
     const workerScriptTask = {
-      id: uuidV4(),
-      ownerId: uuidV4(),
+      id: crypto.randomUUID(),
+      ownerId: crypto.randomUUID(),
       ownerIdentifier: 'core-worker',
       invocation: {
         kind: 'event' as const,
         invokeContext: {
           eventIdentifier: CoreEvent.object_added,
           eventTriggerConfigIndex: 0,
-          eventId: uuidV4(),
-          emitterId: uuidV4(),
+          eventId: crypto.randomUUID(),
+          emitterId: crypto.randomUUID(),
           eventData: {} as JsonSerializableObject,
         },
       },
@@ -251,7 +251,7 @@ export const handleTask: TaskHandler = async function handleTask(task, { serverC
       taskIdentifier: 'object_added_task',
       data: {} as JsonSerializableObject,
       targetLocation: {
-        folderId: uuidV4(),
+        folderId: crypto.randomUUID(),
         objectKey: 'test-object-key',
       },
       createdAt: new Date().toISOString(),

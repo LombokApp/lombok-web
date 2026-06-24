@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 const TEST_MODULE_KEY = 'user_sessions'
 
@@ -31,7 +31,7 @@ describe('User Sessions (Admin)', () => {
     const res = await apiClient().GET(
       '/api/v1/server/users/{userId}/sessions',
       {
-        params: { path: { userId: uuidV4() } },
+        params: { path: { userId: crypto.randomUUID() } },
       },
     )
     expect(res.response.status).toBe(401)
@@ -99,7 +99,7 @@ describe('User Sessions (Admin)', () => {
 
     const res = await apiClient(accessToken).GET(
       '/api/v1/server/users/{userId}/sessions',
-      { params: { path: { userId: uuidV4() } } },
+      { params: { path: { userId: crypto.randomUUID() } } },
     )
     expect([404, 400]).toContain(res.response.status)
   })

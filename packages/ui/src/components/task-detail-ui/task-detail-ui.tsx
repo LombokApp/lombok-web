@@ -911,7 +911,9 @@ function TaskTimeline({ entries }: { entries: TimelineEntry[] }) {
 function TaskResultView({
   result,
 }: {
-  result?: JsonSerializableObject | undefined
+  // Display-only (JSON.stringify); accepts the openapi-fetch client's flattened
+  // arbitrary-JSON object type, which isn't the recursive JsonSerializableObject.
+  result?: Record<string, unknown> | undefined
 }) {
   const hasResult = result !== undefined && Object.keys(result).length > 0
 

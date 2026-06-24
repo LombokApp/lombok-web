@@ -1,6 +1,6 @@
+import { MediaType } from '@lombokapp/types'
 import { describe, expect, it } from 'bun:test'
 
-import { MediaType } from '../../types'
 import {
   extensionFromMimeType,
   mediaTypeFromExtension,

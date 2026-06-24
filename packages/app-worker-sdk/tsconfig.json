@@ -9,9 +9,9 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "@lombokapp/types": ["../types/src"],

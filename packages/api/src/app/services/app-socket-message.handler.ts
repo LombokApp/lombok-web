@@ -93,7 +93,7 @@ function appExceptionToError(
       response &&
       typeof response === 'object' &&
       'code' in response &&
-      typeof (response as { code: unknown }).code === 'string'
+      typeof response.code === 'string'
     ) {
       const body = response as { code: string; message?: string }
       return {

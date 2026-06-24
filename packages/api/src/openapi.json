@@ -11049,18 +11049,14 @@
           },
           {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PgSafeJsonSerializableValue"
-            }
+            "items": {}
           },
           {
             "type": "object",
             "propertyNames": {
               "type": "string"
             },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/PgSafeJsonSerializableValue"
-            }
+            "additionalProperties": {}
           }
         ]
       },
@@ -11523,18 +11519,14 @@
           },
           {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonSerializableValue"
-            }
+            "items": {}
           },
           {
             "type": "object",
             "propertyNames": {
               "type": "string"
             },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonSerializableValue"
-            }
+            "additionalProperties": {}
           }
         ]
       },
@@ -13437,7 +13429,10 @@
                     "type": "string"
                   },
                   "clientSecret": {
-                    "type": "null"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -13461,7 +13456,10 @@
                             "type": "object",
                             "properties": {
                               "apiKey": {
-                                "type": "null"
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
                               }
                             },
                             "required": [
@@ -13503,7 +13501,10 @@
                                 "minLength": 1
                               },
                               "password": {
-                                "type": "null"
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
                               }
                             },
                             "required": [
@@ -19063,7 +19064,10 @@
             "type": "string"
           },
           "secretAccessKey": {
-            "type": "null"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "prefix": {
             "type": [
@@ -19723,7 +19727,10 @@
         "type": "object",
         "properties": {
           "secretAccessKey": {
-            "type": "null"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "accessKeyId": {
             "type": "string"

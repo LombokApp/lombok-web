@@ -20,7 +20,7 @@ const extractSuccessResult = (
         typeof result === 'object' &&
         !Array.isArray(result)
       ) {
-        return result as JsonSerializableObject
+        return result
       }
       return undefined
     }

@@ -16,7 +16,7 @@ type SwitchProps = React.ComponentPropsWithoutRef<
 // Colors route through CSS variables so consumers can override via className,
 // e.g. `[--switch-bg-checked:var(--color-tone-blue)] [--switch-border:var(--border)]`.
 const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentRef<typeof SwitchPrimitives.Root>,
   SwitchProps
 >(
   (

@@ -40,9 +40,7 @@ export function FolderMcpSettingsTab({ folderId }: FolderMcpSettingsTabProps) {
     '/api/v1/folders/{folderId}/mcp/settings',
   )
 
-  const serverPermissions = settingsQuery.data as
-    | FolderMcpPermissions
-    | undefined
+  const serverPermissions = settingsQuery.data
 
   const [permissions, setPermissions] = React.useState<FolderMcpPermissions>({
     canRead: null,

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "ES2022",
+    "module": "preserve",
     "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "types": ["bun"],
@@ -9,10 +9,10 @@
     "skipLibCheck": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "@lombokapp/types": ["../types/src"],

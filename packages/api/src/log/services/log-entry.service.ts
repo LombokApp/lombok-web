@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import crypto from 'crypto'
 import { and, count, eq, ilike, inArray, or, SQL } from 'drizzle-orm'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -12,7 +13,6 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { RealtimeService } from 'src/socket/realtime.service'
 import { User } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 
 import type { LogEntry, NewLogEntry } from '../entities/log-entry.entity'
 import { logEntriesTable } from '../entities/log-entry.entity'
@@ -54,7 +54,7 @@ export class LogEntryService {
     const now = new Date()
 
     const logEntry: NewLogEntry = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       emitterId: emitterIdentifier,
       level,
       targetLocationFolderId: targetLocation?.folderId,

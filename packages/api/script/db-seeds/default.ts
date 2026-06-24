@@ -1,4 +1,5 @@
 import type { StorageProvisionWithSecret } from '@lombokapp/types'
+import crypto from 'crypto'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import type { LombokDatabase } from 'src/orm/orm.service'
 import {
@@ -11,7 +12,6 @@ import type { NewStorageLocation } from 'src/storage/entities/storage-location.e
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import type { NewUser } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 
 if (
   !process.env.DEV_S3_ACCESS_KEY_ID ||
@@ -74,7 +74,7 @@ export async function seed(db: LombokDatabase): Promise<void> {
     prefix = '',
   ): NewStorageLocation {
     return {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       ...S3_CREDENTIALS,
       bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
       endpoint: process.env.DEV_S3_ENDPOINT ?? '',
@@ -172,7 +172,7 @@ export async function seed(db: LombokDatabase): Promise<void> {
   // add server storage provisions
   const storageProvision: StorageProvisionWithSecret = {
     ...S3_CREDENTIALS,
-    id: uuidV4(),
+    id: crypto.randomUUID(),
     bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
     description:
       "An special dev only S3 location. Don't store anything sensitive here.",

@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import sharp from 'sharp'
-import { v4 as uuidV4 } from 'uuid'
 
 import { getMediaDimensionsWithSharp, scaleImage } from './image.util'
 
@@ -14,7 +14,7 @@ describe('image.util scaleImage', () => {
   let inputWidePng: string
 
   beforeAll(async () => {
-    tempDir = path.join(os.tmpdir(), `image-util-test-${uuidV4()}`)
+    tempDir = path.join(os.tmpdir(), `image-util-test-${crypto.randomUUID()}`)
     fs.mkdirSync(tempDir, { recursive: true })
     cleanupPaths.push(tempDir)
 
@@ -69,7 +69,7 @@ describe('image.util scaleImage', () => {
   })
 
   it('scales within maxDimension while preserving aspect ratio', async () => {
-    const outPath = path.join(tempDir, `out-max-${uuidV4()}.png`)
+    const outPath = path.join(tempDir, `out-max-${crypto.randomUUID()}.png`)
     cleanupPaths.push(outPath)
 
     const result = await scaleImage({
@@ -91,7 +91,10 @@ describe('image.util scaleImage', () => {
   }, 20000)
 
   it('does not upscale when maxDimension is larger than image', async () => {
-    const outPath = path.join(tempDir, `out-no-upscale-${uuidV4()}.png`)
+    const outPath = path.join(
+      tempDir,
+      `out-no-upscale-${crypto.randomUUID()}.png`,
+    )
     cleanupPaths.push(outPath)
 
     const result = await scaleImage({
@@ -119,7 +122,7 @@ describe('image.util scaleImage', () => {
   }, 20000)
 
   it('resizes to exact size using cover (center crop)', async () => {
-    const outPath = path.join(tempDir, `out-cover-${uuidV4()}.png`)
+    const outPath = path.join(tempDir, `out-cover-${crypto.randomUUID()}.png`)
     cleanupPaths.push(outPath)
 
     const result = await scaleImage({
@@ -140,7 +143,7 @@ describe('image.util scaleImage', () => {
   }, 20000)
 
   it('resizes to exact size using contain (letterbox, transparent fill)', async () => {
-    const outPath = path.join(tempDir, `out-contain-${uuidV4()}.png`)
+    const outPath = path.join(tempDir, `out-contain-${crypto.randomUUID()}.png`)
     cleanupPaths.push(outPath)
 
     const result = await scaleImage({
@@ -161,7 +164,7 @@ describe('image.util scaleImage', () => {
   }, 20000)
 
   it('throws on invalid size inputs', () => {
-    const outPath = path.join(tempDir, `out-invalid-${uuidV4()}.png`)
+    const outPath = path.join(tempDir, `out-invalid-${crypto.randomUUID()}.png`)
     cleanupPaths.push(outPath)
 
     expect(

@@ -2,7 +2,6 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   InlineMetadataEntry,
-  JsonSerializableObject,
   JsonSerializableValue,
   PreviewMetadata,
   S3ObjectInternal,
@@ -33,6 +32,7 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import crypto from 'crypto'
 import {
   aliasedTable,
   and,
@@ -73,7 +73,6 @@ import { TaskService } from 'src/task/services/task.service'
 import { CoreTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
-import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
 import { FolderShareDTO } from '../dto/folder-share.dto'
@@ -223,13 +222,13 @@ export class FolderService {
     // create the ID ahead of time so we can also include
     // it in the prefix of the folders data location
     // (in the case of a Server provided location for a user folder)
-    const prospectiveFolderId = uuidV4()
+    const prospectiveFolderId = crypto.randomUUID()
     const now = new Date()
     const buildLocation = async (
       storageProvisionType: StorageProvisionType,
       locationInput: StorageLocationInputDTO,
     ): Promise<StorageLocation> => {
-      let location: StorageLocation | undefined = undefined
+      let location: StorageLocation | undefined
       if (safeZodParse(locationInput, customLocationPayloadSchema)) {
         // user has input a custom location
         location = (
@@ -245,7 +244,7 @@ export class FolderService {
                 endpoint: locationInput.endpoint,
               }),
               prefix: locationInput.prefix ?? '',
-              id: uuidV4(),
+              id: crypto.randomUUID(),
               label: `${locationInput.endpoint} - ${locationInput.accessKeyId}`,
               providerType: 'USER',
               userId,
@@ -269,7 +268,7 @@ export class FolderService {
             await this.ormService.db
               .insert(storageLocationsTable)
               .values({
-                id: uuidV4(),
+                id: crypto.randomUUID(),
                 label: existingLocation.label,
                 providerType: 'USER',
                 userId,
@@ -316,7 +315,7 @@ export class FolderService {
           await this.ormService.db
             .insert(storageLocationsTable)
             .values({
-              id: uuidV4(),
+              id: crypto.randomUUID(),
               label: `SERVER:${storageProvision.id}`,
               providerType: 'SERVER',
               userId,
@@ -1442,7 +1441,7 @@ export class FolderService {
         : mimeTypeFromExtension || (updateRecord.mimeType ?? '')
 
     const insertValues = {
-      id: uuidV4(),
+      id: crypto.randomUUID(),
       folderId,
       objectKey,
       filename: objectKey.split('/').pop() ?? objectKey,
@@ -1504,7 +1503,7 @@ export class FolderService {
       },
       data: {
         ...record,
-        contentMetadata: record.contentMetadata as JsonSerializableObject,
+        contentMetadata: record.contentMetadata,
         createdAt: record.createdAt.toISOString(),
         updatedAt: record.updatedAt.toISOString(),
       },

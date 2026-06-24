@@ -70,7 +70,10 @@ export type WorkerApiActor =
 
 export const appSocketMessageSchema = z.object({
   name: AppSocketMessage,
-  data: z.unknown(),
+  // `.optional()` is required: zod v4.4 makes `z.unknown()` object fields
+  // mandatory (v4.3 treated them as implicitly optional). Payload-less
+  // messages (e.g. GET_LATEST_DB_CREDENTIALS) omit `data` over the wire.
+  data: z.unknown().optional(),
 })
 
 export type AppSocketApiRequest = z.infer<typeof appSocketMessageSchema>

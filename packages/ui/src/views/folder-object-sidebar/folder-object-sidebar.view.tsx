@@ -1,5 +1,4 @@
 import type {
-  ContentMetadataType,
   FolderDTO,
   FolderGetResponse,
   FolderObjectDTO,
@@ -66,9 +65,8 @@ export const FolderObjectSidebar = ({
   const serverContext = useServerContext()
 
   const metadata = folderObject.hash
-    ? (folderObject.contentMetadata[folderObject.hash] ??
-      ({} as ContentMetadataType))
-    : ({} as ContentMetadataType)
+    ? (folderObject.contentMetadata[folderObject.hash] ?? {})
+    : {}
 
   const previews =
     metadata.previews?.type === 'inline'

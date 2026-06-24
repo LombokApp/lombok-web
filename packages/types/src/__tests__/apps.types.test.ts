@@ -537,7 +537,7 @@ describe('apps.types', () => {
       const result = taskTriggerConfigSchema.safeParse({
         kind: 'event',
         eventIdentifier: 'core:object_added',
-      } as unknown)
+      })
 
       expectZodFailure(result)
     })
@@ -1098,9 +1098,7 @@ describe('apps.types', () => {
         objectDetailViews: [],
         folderDetailViews: [],
       }
-      const result = appContributionsSchema.safeParse(
-        invalidContributions as unknown,
-      )
+      const result = appContributionsSchema.safeParse(invalidContributions)
       expectZodFailure(result)
     })
 
@@ -1112,9 +1110,7 @@ describe('apps.types', () => {
         objectDetailViews: [],
         folderDetailViews: [],
       }
-      const result = appContributionsSchema.safeParse(
-        invalidContributions as unknown,
-      )
+      const result = appContributionsSchema.safeParse(invalidContributions)
       expectZodFailure(result)
     })
 
@@ -1560,7 +1556,7 @@ describe('apps.types', () => {
 
     it('should reject unknown fields on a view', () => {
       const invalid = { root: { views: [navRootView({ extra: 'nope' })] } }
-      expectZodFailure(mobileContributionsSchema.safeParse(invalid as unknown))
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
     })
 
     it('should reject an empty views array', () => {
@@ -1833,7 +1829,7 @@ describe('apps.types', () => {
 
     it('rejects unknown fields on root', () => {
       const invalid = { root: { views: [navRootView()], extra: 'nope' } }
-      expectZodFailure(mobileContributionsSchema.safeParse(invalid as unknown))
+      expectZodFailure(mobileContributionsSchema.safeParse(invalid))
     })
 
     it('accepts a refreshable flag on a root view', () => {

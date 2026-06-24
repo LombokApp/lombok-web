@@ -292,7 +292,10 @@ export class DurableTunnelService {
       await this.ormService.db.query.dockerBridgeTunnelsTable.findFirst({
         where: eq(dockerBridgeTunnelsTable.id, tunnelId),
       })
-    if (!row || row.appId !== scope.appId || row.userId !== scope.userId) {
+    if (!row) {
+      throw new NotFoundException(`Durable tunnel not found: ${tunnelId}`)
+    }
+    if (row.appId !== scope.appId || row.userId !== scope.userId) {
       throw new NotFoundException(`Durable tunnel not found: ${tunnelId}`)
     }
     return row

@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 import { eventsTable } from './entities/event.entity'
 
@@ -11,7 +11,7 @@ async function seedEvent(
   testModule: TestModule,
   overrides: Partial<typeof eventsTable.$inferInsert> = {},
 ) {
-  const id = uuidV4()
+  const id = crypto.randomUUID()
   await testModule.services.ormService.db.insert(eventsTable).values({
     id,
     eventIdentifier: 'object_added',
@@ -109,7 +109,7 @@ describe('Server Events', () => {
 
     const response = await apiClient(accessToken).GET(
       '/api/v1/server/events/{eventId}',
-      { params: { path: { eventId: uuidV4() } } },
+      { params: { path: { eventId: crypto.randomUUID() } } },
     )
     expect(response.response.status).toEqual(404)
   })

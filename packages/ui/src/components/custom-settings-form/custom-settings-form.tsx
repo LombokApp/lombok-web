@@ -162,10 +162,7 @@ function buildDefaultValue(property: CustomSettingsSchemaProperty): unknown {
     return property.default ?? []
   }
   if (property.type === 'object') {
-    const obj = property as Extract<
-      JsonSchema07ObjectItemProperty,
-      { type: 'object' }
-    >
+    const obj = property
     if (obj.default !== undefined) {
       return obj.default
     }
@@ -177,7 +174,7 @@ function buildDefaultValue(property: CustomSettingsSchemaProperty): unknown {
     }
     return result
   }
-  const prim = property as JsonSchema07PrimitiveProperty
+  const prim = property
   if (prim.default !== undefined) {
     return prim.default
   }
@@ -670,10 +667,7 @@ function singleSecretObjectField(
   if (property.type !== 'object') {
     return null
   }
-  const objectProp = property as Extract<
-    JsonSchema07ObjectItemProperty,
-    { type: 'object' }
-  >
+  const objectProp = property
   const entries = Object.entries(objectProp.properties ?? {})
   const entry = entries[0]
   if (entries.length !== 1 || !entry) {
@@ -762,7 +756,7 @@ function FieldInput({
     return (
       <PrimitiveFieldInput
         id={fieldId}
-        property={{ type: 'string' } as JsonSchema07PrimitiveProperty}
+        property={{ type: 'string' }}
         value={wrapField ? objValue?.[wrapField] : value}
         isSecret
         isSecretModified={isSecretModified}
@@ -777,12 +771,7 @@ function FieldInput({
     return (
       <ObjectFieldInput
         fieldId={fieldId}
-        property={
-          property as Extract<
-            JsonSchema07ObjectItemProperty,
-            { type: 'object' }
-          >
-        }
+        property={property}
         value={value}
         secretKeyPattern={secretKeyPattern}
         onChange={onChange}
@@ -794,7 +783,7 @@ function FieldInput({
     return (
       <PrimitiveFieldInput
         id={fieldId}
-        property={property as JsonSchema07PrimitiveProperty}
+        property={property}
         value={value}
         isSecret={isSecret}
         isSecretModified={isSecretModified}
@@ -808,9 +797,7 @@ function FieldInput({
       <DiscriminatedObjectArrayFieldInput
         fieldId={fieldId}
         value={value}
-        itemSchema={
-          property.items as unknown as JsonSchema07DiscriminatedObjectItem
-        }
+        itemSchema={property.items}
         secretKeyPattern={secretKeyPattern}
         onChange={onChange}
       />
@@ -822,7 +809,7 @@ function FieldInput({
       <ObjectArrayFieldInput
         fieldId={fieldId}
         value={value}
-        itemSchema={property.items as JsonSchema07ObjectItem}
+        itemSchema={property.items}
         secretKeyPattern={secretKeyPattern}
         onChange={onChange}
       />

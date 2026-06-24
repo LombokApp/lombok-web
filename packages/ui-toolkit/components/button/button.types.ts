@@ -4,7 +4,8 @@ import type { Tone } from '../../utils/tone'
 import type { buttonVariants } from './button.util'
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
   /** Color axis — named additive tone. */

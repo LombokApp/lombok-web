@@ -3,7 +3,6 @@
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "types": ["bun"],
-    "outDir": "dist",
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -11,6 +10,12 @@
     "allowSyntheticDefaultImports": true,
     "module": "ES2022",
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "./",
+    "paths": {
+      "@lombokapp/types": ["../types/src"],
+      "@lombokapp/types/*": ["../types/src/*"]
+    },
     "resolveJsonModule": true,
     "isolatedModules": true,
 

@@ -21,7 +21,6 @@
     "noUncheckedIndexedAccess": true,
 
     /* Path mapping */
-    "baseUrl": ".",
     "paths": {
       "@/src/*": ["./src/*"],
       "@lombokapp/app-worker-sdk": ["../../../app-worker-sdk/src"],

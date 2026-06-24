@@ -3,11 +3,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import crypto from 'crypto'
 import { and, desc, eq } from 'drizzle-orm'
 import { sessionsTable } from 'src/auth/entities/session.entity'
 import { hashedTokenHelper } from 'src/auth/utils/hashed-token-helper'
 import { OrmService } from 'src/orm/orm.service'
-import { v4 as uuidV4 } from 'uuid'
 
 @Injectable()
 export class McpTokenService {
@@ -24,7 +24,7 @@ export class McpTokenService {
   }> {
     const secret = hashedTokenHelper.createSecretKey()
     const now = new Date()
-    const sessionId = uuidV4()
+    const sessionId = crypto.randomUUID()
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const session = (

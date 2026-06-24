@@ -10,10 +10,7 @@ export type LinkProps = Omit<React.ComponentPropsWithoutRef<'a'>, 'href'> & {
 // child (e.g. TabsTrigger), which relies on passing down `data-state`, role,
 // and event handlers.
 export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
-  function Link(
-    { to, children, className = '', style, onClick, ...rest },
-    ref,
-  ) {
+  ({ to, children, className = '', style, onClick, ...rest }, ref) => {
     const { navigateTo, parentBasePath } = useAppBrowserSdk()
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -40,3 +37,4 @@ export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
     )
   },
 )
+Link.displayName = 'Link'

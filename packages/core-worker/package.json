@@ -41,7 +41,6 @@
     "socket.io": "catalog:",
     "openapi-fetch": "catalog:",
     "prettier": "catalog:",
-    "uuid": "catalog:",
     "tsup": "catalog:"
   },
   "dependencies": {

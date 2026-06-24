@@ -1,80 +1,20 @@
-import type { StorybookConfig } from '@storybook/react-webpack5'
-import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin'
+import type { StorybookConfig } from '@storybook/react-vite'
 
-import { join, dirname } from 'path'
-
-/**
- * This function is used to resolve the absolute path of a package.
- * It is needed in projects that use Yarn PnP or are set up within a monorepo.
- */
-function getAbsolutePath(value: string): any {
-  return dirname(require.resolve(join(value, 'package.json')))
-}
 const config: StorybookConfig = {
   stories: [
     '../components/**/*.mdx',
     '../components/**/*.stories.@(js|jsx|mjs|ts|tsx)',
   ],
-  addons: [
-    getAbsolutePath('@storybook/addon-webpack5-compiler-swc'),
-    getAbsolutePath('@storybook/addon-outline'),
-    {
-      name: getAbsolutePath('@storybook/addon-styling-webpack'),
-      options: {
-        rules: [
-          {
-            test: /\.css$/,
-            sideEffects: true,
-            use: [
-              require.resolve('style-loader'),
-              {
-                loader: require.resolve('css-loader'),
-                options: {
-                  importLoaders: 1,
-                },
-              },
-              {
-                loader: require.resolve('postcss-loader'),
-                options: {
-                  implementation: require.resolve('postcss'),
-                },
-              },
-            ],
-          },
-        ],
-      },
-    },
-    getAbsolutePath('@storybook/addon-toolbars'),
-    getAbsolutePath('@storybook/addon-measure'),
-    getAbsolutePath('@storybook/addon-themes'),
-    getAbsolutePath('@storybook/addon-docs'),
-  ],
+  addons: ['@storybook/addon-docs', '@storybook/addon-themes'],
   framework: {
-    name: getAbsolutePath('@storybook/react-webpack5'),
-    options: {
-      builder: {
-        useSWC: true,
-      },
-    },
+    name: '@storybook/react-vite',
+    options: {},
   },
-  webpackFinal(config) {
-    // @ts-ignore
-    config.resolve.plugins = [new TsconfigPathsPlugin()]
-    // Add TypeScript loader
-    config.module?.rules?.push({
-      test: /\.tsx?$/,
-      use: [
-        {
-          loader: 'ts-loader',
-          options: {
-            transpileOnly: true, // Speeds up builds by skipping type checking
-          },
-        },
-      ],
-      exclude: /node_modules/, // Exclude node_modules
-    })
-
-    return config
+  // react-docgen-typescript reads prop types from our TS interfaces so the
+  // Controls/args tables stay populated (the Vite builder's default react-docgen
+  // is shallower for the Radix-derived component props).
+  typescript: {
+    reactDocgen: 'react-docgen-typescript',
   },
   core: {
     disableTelemetry: true,

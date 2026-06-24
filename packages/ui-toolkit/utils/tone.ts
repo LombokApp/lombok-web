@@ -71,5 +71,5 @@ export function toneStyle(
     ...(color ? { [`--${scope}-color`]: color } : {}),
     ...(resolvedFg ? { [`--${scope}-fg`]: resolvedFg } : {}),
     ...style,
-  } as CSSProperties
+  }
 }

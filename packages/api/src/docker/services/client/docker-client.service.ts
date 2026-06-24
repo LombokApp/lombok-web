@@ -552,7 +552,7 @@ export class DockerClientService {
         if (destroyed || ws.readyState !== WebSocket.OPEN) {
           return
         }
-        ws.send(typeof data === 'string' ? data : data)
+        ws.send(data as string | BufferSource)
       },
       onStdout: (handler: (data: Buffer) => void) => {
         stdoutHandlers.push(handler)
@@ -996,7 +996,7 @@ export class DockerClientService {
         if (destroyed || ws.readyState !== WebSocket.OPEN) {
           return
         }
-        ws.send(data)
+        ws.send(data as string | BufferSource)
       },
 
       onData: (handler: (data: Buffer) => void) => {
@@ -1373,15 +1373,13 @@ interface DockerHostContainerStateBase {
   createdAt: string
 }
 
-export interface DockerHostWorkerContainerState
-  extends DockerHostContainerStateBase {
+export interface DockerHostWorkerContainerState extends DockerHostContainerStateBase {
   containerType: 'worker'
   profileId: string
   profileHash: string
 }
 
-export interface DockerHostStandaloneContainerState
-  extends DockerHostContainerStateBase {
+export interface DockerHostStandaloneContainerState extends DockerHostContainerStateBase {
   containerType: 'standalone'
   standaloneContainerId: string
 }

@@ -11,10 +11,10 @@ import {
   readFileMetadata,
   uploadFile,
 } from '@lombokapp/worker-utils'
+import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { v4 as uuidV4 } from 'uuid'
 import type z from 'zod'
 
 import { analyzeContent } from './analyze-content'
@@ -83,7 +83,7 @@ export const analyzeObject = async (
     const metadataOutFileDirectory = path.join(tempDir, 'metadata')
     await fs.promises.mkdir(metadataOutFileDirectory)
 
-    const fileUUID = uuidV4()
+    const fileUUID = crypto.randomUUID()
     const inFilePath = path.join(tempDir, fileUUID)
 
     const [contentUrl] = await getContentSignedUrls({

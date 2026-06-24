@@ -1,12 +1,12 @@
 import { LogEntryLevel } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import crypto from 'crypto'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestFolder,
   createTestUser,
 } from 'src/test/test.util'
-import { v4 as uuidV4 } from 'uuid'
 
 import { logEntriesTable } from './entities/log-entry.entity'
 
@@ -17,7 +17,7 @@ async function seedFolderLogEntry(
   folderId: string,
   overrides: Partial<typeof logEntriesTable.$inferInsert> = {},
 ) {
-  const id = uuidV4()
+  const id = crypto.randomUUID()
   const now = new Date()
 
   await testModule.services.ormService.db.insert(logEntriesTable).values({
@@ -53,7 +53,7 @@ describe('Folder Logs', () => {
 
   it('should require authentication', async () => {
     const response = await apiClient().GET('/api/v1/folders/{folderId}/logs', {
-      params: { path: { folderId: uuidV4() } },
+      params: { path: { folderId: crypto.randomUUID() } },
     })
     expect(response.response.status).toEqual(401)
   })
@@ -178,7 +178,7 @@ describe('Folder Logs', () => {
 
     const response = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}/logs/{logId}',
-      { params: { path: { folderId: folder.id, logId: uuidV4() } } },
+      { params: { path: { folderId: folder.id, logId: crypto.randomUUID() } } },
     )
     expect(response.response.status).toEqual(404)
   })

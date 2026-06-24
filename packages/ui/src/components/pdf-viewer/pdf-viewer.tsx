@@ -59,11 +59,7 @@ export function PDFViewer({
     void loadingTask.promise
       .then((pdfDocument) => {
         if (cancelled) {
-          try {
-            void pdfDocument.destroy()
-          } catch {
-            // ignore
-          }
+          void loadingTask.destroy()
           return
         }
         linkService.setDocument(pdfDocument)
@@ -86,14 +82,7 @@ export function PDFViewer({
     return () => {
       cancelled = true
       window.removeEventListener('resize', handleResize)
-      try {
-        const pdfDocument = (
-          viewer as unknown as { _pdfDocument?: { destroy: () => void } }
-        )._pdfDocument
-        pdfDocument?.destroy()
-      } catch {
-        // ignore
-      }
+      void loadingTask.destroy()
       viewerNode.replaceChildren()
       Array.from(containerNode.children).forEach((child) => {
         if (child !== viewerNode) {

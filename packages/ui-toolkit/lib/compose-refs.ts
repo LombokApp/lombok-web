@@ -48,8 +48,7 @@ function composeRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
         for (let i = 0; i < cleanups.length; i++) {
           const cleanup = cleanups[i]
           if (typeof cleanup === 'function') {
-            // eslint-disable-next-line no-extra-semi
-            ;(cleanup as () => void)()
+            cleanup()
           } else {
             setRef(refs[i], null)
           }

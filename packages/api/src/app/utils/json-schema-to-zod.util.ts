@@ -136,14 +136,7 @@ function objectItemPropertyToZod(
   if (prop.type === 'array') {
     let itemZod: z.ZodType
     if (prop.items.type === 'object') {
-      itemZod = nestedObjectToZod(
-        prop.items as {
-          type: 'object'
-          properties?: Record<string, unknown>
-          additionalProperties?: unknown
-          required?: string[]
-        },
-      )
+      itemZod = nestedObjectToZod(prop.items)
     } else {
       itemZod = primitivePropertyToZod({
         type: prop.items.type,
