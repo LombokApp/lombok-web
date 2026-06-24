@@ -94,29 +94,17 @@ echo "================================================"
 printenv
 echo ""
 
-# ── MinIO ───────────────────────────────────────────────────
+# ── Garage (S3) ─────────────────────────────────────────────
 echo "================================================"
-echo "MinIO"
+echo "Garage"
 echo "================================================"
-export MINIO_DATA='/var/lib/minio/data'
-export MINIO_ROOT_USER=minioadmin
-export MINIO_ROOT_PASSWORD=minioadmin
-
-mkdir -p "$MINIO_DATA"
-chown -R "$APP_USER":"$APP_USER" "$MINIO_DATA"
-su-exec "$APP_USER" minio server "$MINIO_DATA" > /dev/stdout 2>&1 &
-
-echo "Waiting for MinIO to be ready..."
-until curl -sf http://127.0.0.1:9000/minio/health/live; do
-  sleep 1
-done
-echo "MinIO is ready."
-
-mc alias set localminio http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" --quiet
-mc mb --ignore-existing "localminio/${DEV_S3_BUCKET_NAME}"
-mc admin user add localminio "${DEV_S3_ACCESS_KEY_ID}" "${DEV_S3_SECRET_ACCESS_KEY}" 2>/dev/null || true
-mc admin policy attach localminio readwrite --user "${DEV_S3_ACCESS_KEY_ID}" 2>/dev/null || true
-echo "MinIO bucket and user setup complete."
+APP_USER="$APP_USER" \
+GARAGE_S3_ACCESS_KEY_ID="${DEV_S3_ACCESS_KEY_ID}" \
+GARAGE_S3_SECRET_KEY="${DEV_S3_SECRET_ACCESS_KEY}" \
+GARAGE_S3_BUCKET="${DEV_S3_BUCKET_NAME}" \
+GARAGE_S3_KEY_NAME="lombokdev" \
+GARAGE_LOG_LEVEL="${DEV_S3_LOG_LEVEL:-error}" \
+  sh ./packages/api/cmd/garage-provision.sh
 echo ""
 echo "================================================"
 echo "Install dependencies"

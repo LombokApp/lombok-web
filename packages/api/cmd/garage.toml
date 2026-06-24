@@ -1,0 +1,18 @@
+# Garage config for the dev + e2e containers (single-node, local only).
+# Not for production — rpc_secret below is a throwaway dev value.
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+
+replication_factor = 1
+
+rpc_bind_addr = "127.0.0.1:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "0000000000000000000000000000000000000000000000000000000000000000"
+
+[s3_api]
+# "auto" matches the SigV4 region the app already signs presigned URLs with
+# (DEV_S3_REGION / test harness both use "auto"), so no app-side region change.
+s3_region = "auto"
+# Bind on 9000 so DEV_S3_ENDPOINT=http://<host>:9000 is unchanged from MinIO.
+api_bind_addr = "[::]:9000"

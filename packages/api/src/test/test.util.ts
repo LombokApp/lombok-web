@@ -1,5 +1,16 @@
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
+
+import {
+  DeleteBucketCommand,
+  DeleteObjectCommand,
+  ListObjectsV2Command,
+  type ListObjectsV2CommandOutput,
+  PutBucketCorsCommand,
+} from '@aws-sdk/client-s3'
 import type { FolderDTO } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
+import { mimeFromExtension } from '@lombokapp/utils'
 import type { Type } from '@nestjs/common'
 import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -48,11 +59,21 @@ import { NoPrefixConsoleLogger } from '../shared/no-prefix-console-logger'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
 
-const MINIO_LOCAL_PATH = process.env.MINIO_DATA ?? ''
-const MINIO_ACCESS_KEY_ID = process.env.MINIO_ROOT_USER ?? ''
-const MINIO_SECRET_ACCESS_KEY = process.env.MINIO_ROOT_PASSWORD ?? ''
-const MINIO_ENDPOINT = 'http://127.0.0.1:9000'
-const MINIO_REGION = 'auto'
+export const TEST_S3_ACCESS_KEY_ID = process.env.TEST_S3_ACCESS_KEY_ID ?? ''
+export const TEST_S3_SECRET_ACCESS_KEY =
+  process.env.TEST_S3_SECRET_ACCESS_KEY ?? ''
+export const TEST_S3_ENDPOINT = 'http://127.0.0.1:9000'
+export const TEST_S3_REGION = 'auto'
+
+const execFileAsync = promisify(execFile)
+
+// Create test buckets via the Garage CLI (global alias) rather than the S3
+// CreateBucket API (key-local alias). Garage resolves a bucket's CORS rule for
+// *unsigned* requests — i.e. the browser's CORS preflight — only through the
+// global namespace, so a key-local bucket returns no Access-Control-Allow-*
+// headers and the browser blocks the direct presigned upload.
+const garageCli = (...args: string[]) =>
+  execFileAsync('garage', args, { timeout: 10_000 })
 
 const mockDockerClientService = buildMockDockerClientService()
 
@@ -78,7 +99,47 @@ export async function buildTestModule({
     )
   }
   const dbName = `test_db_${testModuleKey}`
-  const bucketPathsToRemove: string[] = []
+  const bucketsToRemove: string[] = []
+
+  const testS3AdminClient = () =>
+    configureS3Client({
+      accessKeyId: TEST_S3_ACCESS_KEY_ID,
+      secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+      endpoint: TEST_S3_ENDPOINT,
+      region: TEST_S3_REGION,
+    })
+
+  // Empty + drop test buckets over S3 (Garage storage is opaque — no fs rm).
+  // Best-effort: bucket names are unique per call, so failures never collide.
+  const removeTestBuckets = async (bucketNames: string[]) => {
+    const s3Client = testS3AdminClient()
+    await Promise.all(
+      bucketNames.map(async (bucketName) => {
+        try {
+          let continuationToken: string | undefined = undefined
+          do {
+            const listed: ListObjectsV2CommandOutput = await s3Client.send(
+              new ListObjectsV2Command({
+                Bucket: bucketName,
+                ContinuationToken: continuationToken,
+              }),
+            )
+            await Promise.all(
+              (listed.Contents ?? []).map((obj) =>
+                s3Client.send(
+                  new DeleteObjectCommand({ Bucket: bucketName, Key: obj.Key }),
+                ),
+              ),
+            )
+            continuationToken = listed.NextContinuationToken
+          } while (continuationToken)
+          await s3Client.send(new DeleteBucketCommand({ Bucket: bucketName }))
+        } catch {
+          // best-effort teardown
+        }
+      }),
+    )
+  }
   let httpServer: Server | undefined = undefined
 
   // Stable, suite-unique starting position for app install sequences. Hashing
@@ -185,22 +246,48 @@ export async function buildTestModule({
     createFiles: { objectKey: string; content: Buffer | string }[] = [],
   ) {
     const bucketName = `test-bucket-${(Math.random() + 1).toString(36).substring(7)}`
-    const bucketPath = path.join(MINIO_LOCAL_PATH, bucketName)
-    bucketPathsToRemove.push(bucketPath)
+    bucketsToRemove.push(bucketName)
 
-    if (fs.existsSync(bucketPath)) {
-      throw new Error('Test bucket somehow already exists.')
-    }
+    // Global-alias bucket via the CLI (see garageCli) + grant the test key
+    // full access, mirroring how the dev/e2e default bucket is provisioned.
+    await garageCli('bucket', 'create', bucketName)
+    await garageCli(
+      'bucket',
+      'allow',
+      '--read',
+      '--write',
+      '--owner',
+      bucketName,
+      '--key',
+      TEST_S3_ACCESS_KEY_ID,
+    )
 
-    fs.mkdirSync(bucketPath)
+    // Garage (unlike MinIO) has no permissive default CORS, and the app runs a
+    // CORS preflight before browser uploads — so each test bucket needs a rule.
+    await testS3AdminClient().send(
+      new PutBucketCorsCommand({
+        Bucket: bucketName,
+        CORSConfiguration: {
+          CORSRules: [
+            {
+              AllowedOrigins: ['*'],
+              AllowedMethods: ['GET', 'PUT', 'HEAD', 'DELETE'],
+              AllowedHeaders: ['*'],
+              ExposeHeaders: ['ETag'],
+              MaxAgeSeconds: 3600,
+            },
+          ],
+        },
+      }),
+    )
 
     const uploadUrls = createS3PresignedUrls(
       createFiles.map(({ objectKey }) => {
         return {
-          accessKeyId: MINIO_ACCESS_KEY_ID,
-          secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-          endpoint: MINIO_ENDPOINT,
-          region: MINIO_REGION,
+          accessKeyId: TEST_S3_ACCESS_KEY_ID,
+          secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+          endpoint: TEST_S3_ENDPOINT,
+          region: TEST_S3_REGION,
           bucket: bucketName,
           expirySeconds: 3000,
           method: SignedURLsRequestMethod.PUT,
@@ -213,8 +300,16 @@ export async function buildTestModule({
       uploadUrls.map((uploadUrl, i) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const createFile = createFiles[i]!
+        // Send a Content-Type like the browser does. Garage stores exactly the
+        // header it receives (no application/octet-stream default), and the
+        // analyze worker requires a content-type on the GET to hash the object.
         return fetch(uploadUrl, {
           method: 'PUT',
+          headers: {
+            'Content-Type':
+              mimeFromExtension(createFile.objectKey) ??
+              'application/octet-stream',
+          },
           body:
             typeof createFile.content === 'string'
               ? createFile.content
@@ -232,10 +327,10 @@ export async function buildTestModule({
         isAdmin: true,
       } as User,
       {
-        accessKeyId: MINIO_ACCESS_KEY_ID,
-        secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-        endpoint: MINIO_ENDPOINT,
-        region: MINIO_REGION,
+        accessKeyId: TEST_S3_ACCESS_KEY_ID,
+        secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+        endpoint: TEST_S3_ENDPOINT,
+        region: TEST_S3_REGION,
         bucket: bucketName,
         prefix: null,
       },
@@ -325,24 +420,15 @@ export async function buildTestModule({
     },
     apiClient: buildSupertestApiClient(app),
     shutdown: async () => {
-      // remove created minio buckets
-      for (const p of bucketPathsToRemove) {
-        fs.rmSync(p, { recursive: true })
-      }
-
-      // shutdown the app
+      await removeTestBuckets(bucketsToRemove.splice(0))
       if (httpServer) {
         httpServer.close()
       }
       await app.close()
     },
     cleanupMinioTestBuckets: () => {
-      for (const p of bucketPathsToRemove) {
-        if (fs.existsSync(p)) {
-          fs.rmSync(p, { recursive: true })
-        }
-      }
-      bucketPathsToRemove.length = 0
+      // Fire-and-forget: this caller can't await.
+      void removeTestBuckets(bucketsToRemove.splice(0))
     },
     resolveDep<T extends Type>(token: T) {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -353,17 +439,17 @@ export async function buildTestModule({
       await services.ormService.resetTestDb()
     },
     testS3ClientConfig: () => ({
-      accessKeyId: MINIO_ACCESS_KEY_ID,
-      secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-      endpoint: MINIO_ENDPOINT,
-      region: MINIO_REGION,
+      accessKeyId: TEST_S3_ACCESS_KEY_ID,
+      secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+      endpoint: TEST_S3_ENDPOINT,
+      region: TEST_S3_REGION,
     }),
     testS3Client: () =>
       configureS3Client({
-        accessKeyId: MINIO_ACCESS_KEY_ID,
-        secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-        endpoint: MINIO_ENDPOINT,
-        region: MINIO_REGION,
+        accessKeyId: TEST_S3_ACCESS_KEY_ID,
+        secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+        endpoint: TEST_S3_ENDPOINT,
+        region: TEST_S3_REGION,
       }),
     /**
      * Compute the identifier (composed `<slug>-<id>` form) of the first app
@@ -448,10 +534,10 @@ export async function buildTestModule({
     ) => {
       return createS3PresignedUrls(
         presignedRequests.map((presignedRequest) => ({
-          endpoint: MINIO_ENDPOINT,
-          accessKeyId: MINIO_ACCESS_KEY_ID,
-          secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-          region: MINIO_REGION,
+          endpoint: TEST_S3_ENDPOINT,
+          accessKeyId: TEST_S3_ACCESS_KEY_ID,
+          secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+          region: TEST_S3_REGION,
           bucket: presignedRequest.bucket,
           objectKey: presignedRequest.objectKey,
           method: presignedRequest.method,
@@ -591,11 +677,11 @@ export function testS3Location({
   prefix?: string | null
 }) {
   return {
-    accessKeyId: MINIO_ACCESS_KEY_ID,
-    secretAccessKey: MINIO_SECRET_ACCESS_KEY,
-    endpoint: MINIO_ENDPOINT,
+    accessKeyId: TEST_S3_ACCESS_KEY_ID,
+    secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+    endpoint: TEST_S3_ENDPOINT,
     bucket: bucketName,
-    region: MINIO_REGION,
+    region: TEST_S3_REGION,
     prefix,
   }
 }

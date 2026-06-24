@@ -4,6 +4,10 @@ import {
   buildTestModule,
   createTestFolder,
   createTestUser,
+  TEST_S3_ACCESS_KEY_ID,
+  TEST_S3_ENDPOINT,
+  TEST_S3_REGION,
+  TEST_S3_SECRET_ACCESS_KEY,
 } from 'src/test/test.util'
 
 import { buildAccessKeyHashId } from './access-key.utils'
@@ -55,14 +59,14 @@ describe('Access Keys', () => {
     expect(listAccessKeysResponse.data.result.length).toEqual(1)
     expect(listAccessKeysResponse.data.result[0]?.accessKeyHashId).toEqual(
       buildAccessKeyHashId({
-        accessKeyId: 'lomboktestadmin',
-        secretAccessKey: 'lomboktestadmin',
-        region: 'auto',
-        endpoint: 'http://127.0.0.1:9000',
+        accessKeyId: TEST_S3_ACCESS_KEY_ID,
+        secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
+        region: TEST_S3_REGION,
+        endpoint: TEST_S3_ENDPOINT,
       }),
     )
     expect(listAccessKeysResponse.data.result[0]?.accessKeyId).toEqual(
-      'lomboktestadmin',
+      TEST_S3_ACCESS_KEY_ID,
     )
     expect(listAccessKeysResponse.data.result[0]?.endpointDomain).toEqual(
       '127.0.0.1:9000',

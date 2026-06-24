@@ -1,8 +1,10 @@
 export function downloadData(downloadURL: string, name: string) {
-  // Try to fetch the file as a Blob so we can trigger a download
-  // without navigating and while preserving the provided filename.
-  // If this fails due to CORS, fall back to using a hidden iframe.
-  void fetch(downloadURL, { credentials: 'include' })
+  // Fetch the file as a Blob so we can trigger a download without navigating
+  // and while preserving the provided filename. The URL is a presigned S3 URL
+  // (auth is in the signature), so the request must be non-credentialed: a
+  // cross-origin credentialed fetch is rejected against a wildcard CORS origin,
+  // which is what S3 backends like Garage return.
+  void fetch(downloadURL)
     .then((response) => {
       if (!response.ok) {
         throw new Error('Failed to fetch download URL')

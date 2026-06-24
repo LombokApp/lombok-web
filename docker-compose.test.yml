@@ -9,6 +9,8 @@ services:
       target: test
     environment:
       PLAYWRIGHT_SHOULD_SAVE_SCREENSHOTS: false
+      # Garage daemon verbosity; quiet by default, raise via `GARAGE_LOG_LEVEL=debug ./dx e2e api`.
+      GARAGE_LOG_LEVEL: ${GARAGE_LOG_LEVEL:-error}
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules

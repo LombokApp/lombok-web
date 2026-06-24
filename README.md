@@ -21,7 +21,7 @@ Lombok is a **free, open-source, and self-hostable** storage and compute platfor
 ### ✨ Key Features
 
 - **🏠 Self-Hosted**: Deploy on your own hardware or cloud infrastructure
-- **☁️ S3-Compatible**: Use any combination of S3-compatible storage backends at the same time (AWS S3, Cloudflare R2, SeaweedFS, MinIO, etc.)
+- **☁️ S3-Compatible**: Use any combination of S3-compatible storage backends at the same time (AWS S3, Cloudflare R2, SeaweedFS, Garage, MinIO, etc.)
 - **⚡ Custom Apps**: Run custom apps on your data, with worker scripts and embedded UIs
 - **🏗️ Simple Architecture**: Doesn't require deep expertise to run or extend the system
 - **📦 Docker Ready**: Easy deployment with Docker containers (as little as a single Docker run command)
