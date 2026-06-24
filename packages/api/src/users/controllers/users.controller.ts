@@ -18,10 +18,13 @@ import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { SessionService } from 'src/auth/services/session.service'
 import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { OrmService } from 'src/orm/orm.service'
 import { UserGetResponse } from 'src/server/dto/responses/user-get-response.dto'
 import { UserListResponse } from 'src/server/dto/responses/user-list-response.dto'
 import { UserSessionListResponse } from 'src/server/dto/responses/user-session-list-response.dto'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
+import { StagingUploadService } from 'src/storage/staging-upload.service'
+import { UserAvatarService } from 'src/users/services/user-avatar.service'
 import { UserService } from 'src/users/services/users.service'
 
 import { transformUserToDTO } from '../dto/transforms/user.transforms'
@@ -39,6 +42,9 @@ export class UsersController {
   constructor(
     private readonly userService: UserService,
     private readonly sessionService: SessionService,
+    private readonly userAvatarService: UserAvatarService,
+    private readonly stagingUploadService: StagingUploadService,
+    private readonly ormService: OrmService,
   ) {}
 
   /**
@@ -52,7 +58,34 @@ export class UsersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const user = await this.userService.createUserAsAdmin(req.user, body)
+    const actor = req.user
+    // Fetch the staged avatar first so a bad reference fails before any writes.
+    // User creation + avatar application run in one transaction so an avatar
+    // failure rolls the user back; the staged object is deleted only once
+    // everything commits.
+    const stagedAvatar = body.avatarStagingKey
+      ? await this.stagingUploadService.fetchStagedUpload(
+          actor.id,
+          body.avatarStagingKey,
+          'user-avatar',
+        )
+      : undefined
+
+    const user = await this.ormService.db.transaction(async (tx) => {
+      const created = await this.userService.createUserAsAdmin(actor, body, tx)
+      if (stagedAvatar) {
+        await this.userAvatarService.setAvatar(created.id, stagedAvatar, tx)
+      }
+      return created
+    })
+
+    if (body.avatarStagingKey) {
+      await this.stagingUploadService.deleteStagedUpload(
+        actor.id,
+        body.avatarStagingKey,
+        'user-avatar',
+      )
+    }
 
     return {
       user: transformUserToDTO(user),
@@ -71,11 +104,35 @@ export class UsersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
+    const actor = req.user
 
-    const user = await this.userService.updateUserAsAdmin(req.user, {
-      userId,
-      updatePayload: body,
+    const stagedAvatar = body.avatarStagingKey
+      ? await this.stagingUploadService.fetchStagedUpload(
+          actor.id,
+          body.avatarStagingKey,
+          'user-avatar',
+        )
+      : undefined
+
+    const user = await this.ormService.db.transaction(async (tx) => {
+      const updated = await this.userService.updateUserAsAdmin(
+        actor,
+        { userId, updatePayload: body },
+        tx,
+      )
+      if (stagedAvatar) {
+        await this.userAvatarService.setAvatar(userId, stagedAvatar, tx)
+      }
+      return updated
     })
+
+    if (body.avatarStagingKey) {
+      await this.stagingUploadService.deleteStagedUpload(
+        actor.id,
+        body.avatarStagingKey,
+        'user-avatar',
+      )
+    }
 
     return {
       user: transformUserToDTO(user),

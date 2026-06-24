@@ -375,7 +375,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload (or replace) the server icon shown across the platform. */
+        /** Set (or replace) the server icon from a staged upload. */
         post: operations["Server_setServerIcon"];
         /** Remove the server icon. */
         delete: operations["Server_deleteServerIcon"];
@@ -1052,7 +1052,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload (or replace) a folder icon image. */
+        /** Set (or replace) a folder icon from a staged upload. */
         post: operations["Folders_setFolderIcon"];
         /** Remove a folder icon. */
         delete: operations["Folders_deleteFolderIcon"];
@@ -1248,6 +1248,23 @@ export interface paths {
         get: operations["ServerAccessKeys_listServerAccessKeyBuckets"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/staging-uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a presigned staging upload for a given purpose (which fixes the size tier); reference the returned stagingKey in a follow-up create/update request. */
+        post: operations["StagingUpload_createStagingUpload"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2845,6 +2862,10 @@ export interface components {
                 }[];
             }[];
         };
+        StagingKeyInputDTO: {
+            /** Format: uuid */
+            stagingKey: string;
+        };
         StorageProvisionsListResponse: {
             result: components["schemas"]["StorageProvision"][];
         };
@@ -3105,6 +3126,8 @@ export interface components {
             name: string;
             metadataLocation: components["schemas"]["StorageTargetInput"];
             contentLocation: components["schemas"]["StorageTargetInput"];
+            /** Format: uuid */
+            iconStagingKey?: string;
         };
         FolderCreateResponse: {
             folder: components["schemas"]["Folder"];
@@ -3222,6 +3245,14 @@ export interface components {
                 /** Format: date-time */
                 createdDate?: string;
             }[];
+        };
+        StagingUploadInputDTO: {
+            /** @enum {string} */
+            purpose: "folder-icon" | "user-avatar" | "server-icon";
+        };
+        StagingUploadResponse: {
+            stagingKey: string;
+            uploadUrl: string;
         };
         TaskGetResponse: {
             task: {
@@ -3453,6 +3484,8 @@ export interface components {
             username: string;
             password: string;
             permissions?: string[];
+            /** Format: uuid */
+            avatarStagingKey?: string;
         };
         UserGetResponse: {
             user: components["schemas"]["User"];
@@ -3464,6 +3497,8 @@ export interface components {
             username?: string;
             password?: string;
             permissions?: string[];
+            /** Format: uuid */
+            avatarStagingKey?: string;
         };
         UserListResponse: {
             meta: components["schemas"]["Meta"];
@@ -5473,7 +5508,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StagingKeyInputDTO"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -7450,7 +7489,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StagingKeyInputDTO"];
+            };
+        };
         responses: {
             201: {
                 headers: {
@@ -8043,6 +8086,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessKeyBucketsListResponseDTO"];
+                };
+            };
+            /** @description Server Error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+            /** @description Client Error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
+                };
+            };
+        };
+    };
+    StagingUpload_createStagingUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StagingUploadInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StagingUploadResponse"];
                 };
             };
             /** @description Server Error */
@@ -8968,7 +9052,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StagingKeyInputDTO"];
+            };
+        };
         responses: {
             201: {
                 headers: {

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -11,24 +10,17 @@ import {
   Query,
   Req,
   UnauthorizedException,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
   UsePipes,
 } from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
-import {
-  ApiBearerAuth,
-  ApiConsumes,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
-import { MAX_IMAGE_UPLOAD_BYTES } from 'src/shared/utils'
 import { RealtimeService } from 'src/socket/realtime.service'
+import { StagingKeyInputDTO } from 'src/storage/dto/staging-upload.dto'
+import { StagingUploadService } from 'src/storage/staging-upload.service'
 
 import { ActivityMetricsQueryDTO } from '../dto/activity-metrics-query.dto'
 import { ActivityMetricsResponse } from '../dto/responses/activity-metrics-response.dto'
@@ -55,6 +47,7 @@ export class ServerController {
     private readonly activityMetricsService: ActivityMetricsService,
     private readonly serverIconService: ServerIconService,
     private readonly realtimeService: RealtimeService,
+    private readonly stagingUploadService: StagingUploadService,
   ) {}
 
   @Get('/settings')
@@ -163,31 +156,26 @@ export class ServerController {
 
   @Post('/icon')
   @ApiOperation({
-    summary: 'Upload (or replace) the server icon shown across the platform.',
+    summary: 'Set (or replace) the server icon from a staged upload.',
   })
-  @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
-  )
-  @ApiConsumes('multipart/form-data')
   async setServerIcon(
     @Req() req: express.Request,
-    @UploadedFile()
-    file: { buffer?: Buffer; mimetype: string; size: number } | undefined,
+    @Body() body: StagingKeyInputDTO,
   ): Promise<{ updatedAt: string }> {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    if (!file?.buffer) {
-      throw new BadRequestException({
-        code: 'image_upload_empty',
-        message: 'No file was uploaded',
-      })
-    }
-    const updatedAt = await this.serverIconService.setIcon({
-      mimetype: file.mimetype,
-      size: file.size,
-      buffer: file.buffer,
-    })
+    const file = await this.stagingUploadService.fetchStagedUpload(
+      req.user.id,
+      body.stagingKey,
+      'server-icon',
+    )
+    const updatedAt = await this.serverIconService.setIcon(file)
+    await this.stagingUploadService.deleteStagedUpload(
+      req.user.id,
+      body.stagingKey,
+      'server-icon',
+    )
     return { updatedAt: updatedAt.toISOString() }
   }
 

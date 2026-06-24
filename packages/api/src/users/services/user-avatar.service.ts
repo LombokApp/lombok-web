@@ -1,9 +1,8 @@
-import { SignedURLsRequestMethod } from '@lombokapp/types'
 import {
-  Injectable,
-  NotFoundException,
-  NotImplementedException,
-} from '@nestjs/common'
+  ServerStorageWithSecret,
+  SignedURLsRequestMethod,
+} from '@lombokapp/types'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { StorageProvisionService } from 'src/server/services/storage-provision.service'
@@ -14,20 +13,12 @@ import {
   validateImageUpload,
 } from 'src/shared/utils'
 import { S3Service } from 'src/storage/s3.service'
+import { requireServerStorage } from 'src/storage/server-storage.util'
 
 import { usersTable } from '../entities/user.entity'
 
-interface ServerStorage {
-  accessKeyId: string
-  secretAccessKey: string
-  endpoint: string
-  bucket: string
-  region: string
-  prefix: string | null
-}
-
 function buildAvatarKey(
-  serverStorage: ServerStorage,
+  serverStorage: ServerStorageWithSecret,
   userId: string,
   size: ImageSize,
 ): string {
@@ -48,20 +39,15 @@ export class UserAvatarService {
     private readonly s3Service: S3Service,
   ) {}
 
-  private async requireServerStorage(): Promise<ServerStorage> {
-    const serverStorage = await this.storageProvisionService.getServerStorage()
-    if (!serverStorage) {
-      throw new NotImplementedException('Server storage not configured')
-    }
-    return serverStorage
-  }
-
   async setAvatar(
     userId: string,
     file: { mimetype: string; size: number; buffer: Buffer },
+    tx?: OrmService['db'],
   ): Promise<Date> {
     await validateImageUpload(file)
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     const resized = await cropAndResizeImage(file.buffer)
 
     const uploads = IMAGE_SIZES.map(async (size) => {
@@ -96,7 +82,7 @@ export class UserAvatarService {
     await Promise.all(uploads)
 
     const now = new Date()
-    await this.ormService.db
+    await (tx ?? this.ormService.db)
       .update(usersTable)
       .set({ avatarUpdatedAt: now, updatedAt: now })
       .where(eq(usersTable.id, userId))
@@ -104,7 +90,9 @@ export class UserAvatarService {
   }
 
   async deleteAvatar(userId: string): Promise<void> {
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     await Promise.all(
       IMAGE_SIZES.map((size) =>
         this.s3Service.s3DeleteBucketObject({
@@ -131,7 +119,9 @@ export class UserAvatarService {
     if (!user?.avatarUpdatedAt) {
       throw new NotFoundException('Avatar not set')
     }
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     const [url] = this.s3Service.createS3PresignedUrls([
       {
         accessKeyId: serverStorage.accessKeyId,

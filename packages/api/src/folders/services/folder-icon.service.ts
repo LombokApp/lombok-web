@@ -1,9 +1,9 @@
-import { FolderPermissionEnum, SignedURLsRequestMethod } from '@lombokapp/types'
 import {
-  Injectable,
-  NotFoundException,
-  NotImplementedException,
-} from '@nestjs/common'
+  FolderPermissionEnum,
+  ServerStorageWithSecret,
+  SignedURLsRequestMethod,
+} from '@lombokapp/types'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { StorageProvisionService } from 'src/server/services/storage-provision.service'
@@ -14,23 +14,15 @@ import {
   validateImageUpload,
 } from 'src/shared/utils'
 import { S3Service } from 'src/storage/s3.service'
+import { requireServerStorage } from 'src/storage/server-storage.util'
 import type { User } from 'src/users/entities/user.entity'
 
 import { foldersTable } from '../entities/folder.entity'
 import { FolderOperationForbiddenException } from '../exceptions/folder-operation-forbidden.exception'
 import { FolderService } from './folder.service'
 
-interface ServerStorage {
-  accessKeyId: string
-  secretAccessKey: string
-  endpoint: string
-  bucket: string
-  region: string
-  prefix: string | null
-}
-
 function buildIconKey(
-  serverStorage: ServerStorage,
+  serverStorage: ServerStorageWithSecret,
   folderId: string,
   size: ImageSize,
 ): string {
@@ -52,14 +44,10 @@ export class FolderIconService {
     private readonly s3Service: S3Service,
   ) {}
 
-  private async requireServerStorage(): Promise<ServerStorage> {
-    const serverStorage = await this.storageProvisionService.getServerStorage()
-    if (!serverStorage) {
-      throw new NotImplementedException('Server storage not configured')
-    }
-    return serverStorage
-  }
-
+  /**
+   * Set a folder icon on behalf of `actor` — checks edit permission, then
+   * applies. Used by the standalone set-icon endpoint on an existing folder.
+   */
   async setIcon(
     actor: User,
     folderId: string,
@@ -72,9 +60,26 @@ export class FolderIconService {
     if (!permissions.includes(FolderPermissionEnum.FOLDER_EDIT)) {
       throw new FolderOperationForbiddenException()
     }
+    return this.applyIcon(folderId, file)
+  }
 
+  /**
+   * Resize + upload the icon assets and stamp `iconUpdatedAt`. No permission
+   * check — the folder-create path calls this inside its transaction (the actor
+   * owns the just-inserted folder, and a re-read would not see the uncommitted
+   * row). `tx` threads the create transaction so a failure here rolls the folder
+   * back. Note: the S3 PUTs are not transactional, so a rollback can leave
+   * orphaned (reapable) icon objects.
+   */
+  async applyIcon(
+    folderId: string,
+    file: { mimetype: string; size: number; buffer: Buffer },
+    tx?: OrmService['db'],
+  ): Promise<Date> {
     await validateImageUpload(file)
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     const resized = await cropAndResizeImage(file.buffer)
 
     await Promise.all(
@@ -111,7 +116,7 @@ export class FolderIconService {
     )
 
     const now = new Date()
-    await this.ormService.db
+    await (tx ?? this.ormService.db)
       .update(foldersTable)
       .set({ iconUpdatedAt: now, updatedAt: now })
       .where(eq(foldersTable.id, folderId))
@@ -126,7 +131,9 @@ export class FolderIconService {
     if (!permissions.includes(FolderPermissionEnum.FOLDER_EDIT)) {
       throw new FolderOperationForbiddenException()
     }
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     await Promise.all(
       IMAGE_SIZES.map((size) =>
         this.s3Service.s3DeleteBucketObject({
@@ -153,7 +160,9 @@ export class FolderIconService {
     if (!folder?.iconUpdatedAt) {
       throw new NotFoundException('Icon not set')
     }
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     const [url] = this.s3Service.createS3PresignedUrls([
       {
         accessKeyId: serverStorage.accessKeyId,

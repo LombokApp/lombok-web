@@ -157,10 +157,12 @@ grants the key full access on all of them, and applies CORS (`garage-set-cors.ts
 to the **browser-facing** ones (`provisions`, `uploads`, extras) — `server-storage`
 is server-side only, so it gets no CORS rule. (Garage, unlike MinIO, is not
 permissive by default, so browser-direct presigned uploads/downloads need an
-explicit rule.) The `uploads` bucket is reserved for presigned **staged uploads**;
-that feature lands on a separate branch, so here the bucket is provisioned (and
-CORS'd) ahead of it but not yet consumed. The e2e key is also granted
-`createBucket` so the harness can mint per-suite namespaced buckets over S3.
+explicit rule.) The `uploads` bucket backs the presigned **staged uploads**
+pipeline (the client PUTs bytes to a presigned URL, then references the staged
+key in a follow-up create/update request); the provisioner also applies a 1-day
+expiry lifecycle so abandoned staged objects are reaped. The e2e key is also
+granted `createBucket` so the harness can mint per-suite namespaced buckets over
+S3.
 
 ### 3. Entrypoint — start Garage and export credentials
 

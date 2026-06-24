@@ -1574,6 +1574,16 @@
       "post": {
         "operationId": "Server_setServerIcon",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StagingKeyInputDTO"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": ""
@@ -1604,7 +1614,7 @@
             "bearer": []
           }
         ],
-        "summary": "Upload (or replace) the server icon shown across the platform.",
+        "summary": "Set (or replace) the server icon from a staged upload.",
         "tags": [
           "Server"
         ]
@@ -5037,6 +5047,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StagingKeyInputDTO"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -5074,7 +5094,7 @@
             "bearer": []
           }
         ],
-        "summary": "Upload (or replace) a folder icon image.",
+        "summary": "Set (or replace) a folder icon from a staged upload.",
         "tags": [
           "Folders"
         ]
@@ -6026,6 +6046,63 @@
         "summary": "List buckets for an access key.",
         "tags": [
           "ServerAccessKeys"
+        ]
+      }
+    },
+    "/api/v1/staging-uploads": {
+      "post": {
+        "operationId": "StagingUpload_createStagingUpload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StagingUploadInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StagingUploadResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Client Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a presigned staging upload for a given purpose (which fixes the size tier); reference the returned stagingKey in a follow-up create/update request.",
+        "tags": [
+          "Staging Uploads"
         ]
       }
     },
@@ -7481,6 +7558,16 @@
       "post": {
         "operationId": "Viewer_setViewerAvatar",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StagingKeyInputDTO"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -13578,6 +13665,19 @@
           "series"
         ]
       },
+      "StagingKeyInputDTO": {
+        "type": "object",
+        "properties": {
+          "stagingKey": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "stagingKey"
+        ]
+      },
       "StorageProvisionsListResponse": {
         "type": "object",
         "properties": {
@@ -14609,6 +14709,11 @@
           },
           "contentLocation": {
             "$ref": "#/components/schemas/StorageTargetInput"
+          },
+          "iconStagingKey": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
         "required": [
@@ -15137,6 +15242,37 @@
         },
         "required": [
           "result"
+        ]
+      },
+      "StagingUploadInputDTO": {
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "folder-icon",
+              "user-avatar",
+              "server-icon"
+            ]
+          }
+        },
+        "required": [
+          "purpose"
+        ]
+      },
+      "StagingUploadResponse": {
+        "type": "object",
+        "properties": {
+          "stagingKey": {
+            "type": "string"
+          },
+          "uploadUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stagingKey",
+          "uploadUrl"
         ]
       },
       "TaskGetResponse": {
@@ -16048,6 +16184,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "avatarStagingKey": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
         "required": [
@@ -16099,6 +16240,11 @@
             "items": {
               "type": "string"
             }
+          },
+          "avatarStagingKey": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         }
       },

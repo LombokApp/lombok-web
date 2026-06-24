@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'
 
 import { $apiClient } from '@/src/services/api'
+import { stageUpload } from '@/src/services/staging-upload'
 
 import type { ImageUrls } from '../entity-avatar/entity-avatar'
 import { ImageUploader } from '../image-uploader/image-uploader'
@@ -45,13 +46,12 @@ export function FolderIconModal({
 
   const handleUpload = React.useCallback(
     async (file: File) => {
-      const formData = new FormData()
-      formData.append('file', file)
+      const stagingKey = await stageUpload(file, 'folder-icon')
       const { response } = await $apiClient.POST(
         '/api/v1/folders/{folderId}/icon',
         {
           params: { path: { folderId } },
-          body: formData as unknown as undefined,
+          body: { stagingKey },
         },
       )
       if (!response.ok) {

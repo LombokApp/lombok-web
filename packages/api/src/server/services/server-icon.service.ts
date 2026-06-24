@@ -1,9 +1,8 @@
-import { SignedURLsRequestMethod } from '@lombokapp/types'
 import {
-  Injectable,
-  NotFoundException,
-  NotImplementedException,
-} from '@nestjs/common'
+  ServerStorageWithSecret,
+  SignedURLsRequestMethod,
+} from '@lombokapp/types'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import {
@@ -13,22 +12,14 @@ import {
   validateImageUpload,
 } from 'src/shared/utils'
 import { S3Service } from 'src/storage/s3.service'
+import { requireServerStorage } from 'src/storage/server-storage.util'
 
 import { SERVER_ICON_CONFIG } from '../constants/server.constants'
 import { serverSettingsTable } from '../entities/server-configuration.entity'
 import { StorageProvisionService } from './storage-provision.service'
 
-interface ServerStorage {
-  accessKeyId: string
-  secretAccessKey: string
-  endpoint: string
-  bucket: string
-  region: string
-  prefix: string | null
-}
-
 function buildServerIconKey(
-  serverStorage: ServerStorage,
+  serverStorage: ServerStorageWithSecret,
   size: ImageSize,
 ): string {
   const parts: string[] = []
@@ -47,14 +38,6 @@ export class ServerIconService {
     private readonly storageProvisionService: StorageProvisionService,
     private readonly s3Service: S3Service,
   ) {}
-
-  private async requireServerStorage(): Promise<ServerStorage> {
-    const serverStorage = await this.storageProvisionService.getServerStorage()
-    if (!serverStorage) {
-      throw new NotImplementedException('Server storage not configured')
-    }
-    return serverStorage
-  }
 
   async getIconUpdatedAt(): Promise<Date | null> {
     const row = await this.ormService.db.query.serverSettingsTable.findFirst({
@@ -76,7 +59,9 @@ export class ServerIconService {
     buffer: Buffer
   }): Promise<Date> {
     await validateImageUpload(file)
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     const resized = await cropAndResizeImage(file.buffer)
 
     await Promise.all(
@@ -135,7 +120,9 @@ export class ServerIconService {
   }
 
   async deleteIcon(): Promise<void> {
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     await Promise.all(
       IMAGE_SIZES.map((size) =>
         this.s3Service.s3DeleteBucketObject({
@@ -158,7 +145,9 @@ export class ServerIconService {
     if (!updatedAt) {
       throw new NotFoundException('Server icon not set')
     }
-    const serverStorage = await this.requireServerStorage()
+    const serverStorage = await requireServerStorage(
+      this.storageProvisionService,
+    )
     const [url] = this.s3Service.createS3PresignedUrls([
       {
         accessKeyId: serverStorage.accessKeyId,

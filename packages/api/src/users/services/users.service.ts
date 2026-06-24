@@ -159,14 +159,19 @@ export class UserService {
     return this.getUserById({ id: userId })
   }
 
-  async createUserAsAdmin(actor: User, userPayload: UserCreateInputDTO) {
+  async createUserAsAdmin(
+    actor: User,
+    userPayload: UserCreateInputDTO,
+    tx?: OrmService['db'],
+  ) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
+    const db = tx ?? this.ormService.db
 
     // Check for existing username case-insensitively
     if (userPayload.username) {
-      const existingByUsername = await this.ormService.db
+      const existingByUsername = await db
         .select()
         .from(usersTable)
         .where(
@@ -199,24 +204,29 @@ export class UserService {
       updatedAt: now,
     }
     try {
-      const [createdUser] = await this.ormService.db
+      const [createdUser] = await db
         .insert(usersTable)
         .values(newUser)
         .returning()
 
       if (newUser.email) {
+        // Thread `tx` so the registration event rolls back with the user if a
+        // downstream step (e.g. avatar set) fails inside the same transaction.
         await (
           await this.eventService()
-        ).emitEvent({
-          eventIdentifier: CoreEvent.new_user_registered,
-          emitterIdentifier: CORE_IDENTIFIER,
-          targetUserId: newUser.id,
-          data: {
-            userId: newUser.id,
-            userEmail: newUser.email,
-            userEmailVerified: newUser.emailVerified ?? false,
+        ).emitEvent(
+          {
+            eventIdentifier: CoreEvent.new_user_registered,
+            emitterIdentifier: CORE_IDENTIFIER,
+            targetUserId: newUser.id,
+            data: {
+              userId: newUser.id,
+              userEmail: newUser.email,
+              userEmailVerified: newUser.emailVerified ?? false,
+            },
           },
-        })
+          { tx },
+        )
       }
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return createdUser!
@@ -247,15 +257,17 @@ export class UserService {
       userId: string
       updatePayload: UserUpdateInputDTO
     },
+    tx?: OrmService['db'],
   ) {
     const now = new Date()
 
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
+    const db = tx ?? this.ormService.db
 
     // TODO: input validation
-    const existingUser = await this.ormService.db.query.usersTable.findFirst({
+    const existingUser = await db.query.usersTable.findFirst({
       where: eq(usersTable.id, userId),
     })
 
@@ -291,7 +303,7 @@ export class UserService {
     if ('username' in updatePayload) {
       // Check for existing username case-insensitively (excluding current user)
       if (updatePayload.username) {
-        const existingByUsername = await this.ormService.db
+        const existingByUsername = await db
           .select()
           .from(usersTable)
           .where(
@@ -320,7 +332,7 @@ export class UserService {
     }
 
     const updatedUser = (
-      await this.ormService.db
+      await db
         .update(usersTable)
         .set(updates)
         .where(eq(usersTable.id, existingUser.id))

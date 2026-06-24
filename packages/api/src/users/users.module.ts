@@ -4,6 +4,7 @@ import { AuthModule } from 'src/auth/auth.module'
 import { coreConfig } from 'src/core/config'
 import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import { S3Service } from 'src/storage/s3.service'
+import { StorageModule } from 'src/storage/storage.module'
 
 import { UserAvatarController } from './controllers/user-avatar.controller'
 import { UsersController } from './controllers/users.controller'
@@ -21,7 +22,11 @@ import { UserService } from './services/users.service'
     StorageProvisionService,
   ],
   exports: [UserService, UserAvatarService],
-  imports: [forwardRef(() => AuthModule), ConfigModule.forFeature(coreConfig)],
+  imports: [
+    forwardRef(() => AuthModule),
+    ConfigModule.forFeature(coreConfig),
+    StorageModule,
+  ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class UsersModule {}
