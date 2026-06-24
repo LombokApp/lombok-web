@@ -27,13 +27,14 @@ services:
       - CREATE_DATABASE=true
       - RUN_MIGRATIONS=true
       - INITIAL_USER=${INITIAL_USER:-dev}
-      - DEV_S3_ACCESS_KEY_ID=${DEV_S3_ACCESS_KEY_ID:-lombokdevaccesskey}
-      - DEV_S3_SECRET_ACCESS_KEY=${DEV_S3_SECRET_ACCESS_KEY:-lombokdevsecretaccesskey}
+      # Garage requires GK-prefixed access keys + 64-hex secrets (these are dev throwaways).
+      - DEV_S3_ACCESS_KEY_ID=${DEV_S3_ACCESS_KEY_ID:-GKdeadbeefdeadbeefdeadbeef}
+      - DEV_S3_SECRET_ACCESS_KEY=${DEV_S3_SECRET_ACCESS_KEY:-deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef}
       - DEV_S3_BUCKET_NAME=${DEV_S3_BUCKET_NAME:-lombokdevbucket}
       - DEV_S3_PREFIX=${DEV_S3_PREFIX:-dev-local}
       - DEV_S3_REGION=${DEV_S3_REGION:-auto}
       - DEV_S3_ENDPOINT=http://${PLATFORM_HOST:-lombok.localhost}:9000
-      - DEV_S3_LABEL=${DEV_S3_LABEL:-MinioDEV}
+      - DEV_S3_LABEL=${DEV_S3_LABEL:-GarageDEV}
       - PRINT_CORE_WORKER_OUTPUT=${PRINT_CORE_WORKER_OUTPUT:-true}
       - PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT=${PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT:-true}
       - LOMBOK_WORKER_LOG=${LOMBOK_WORKER_LOG:-daemon=info,ipc=warn,timing=off,http=info,task=info,user=debug}
@@ -55,7 +56,7 @@ services:
       - /usr/src/app/packages/ui-toolkit/node_modules
       - ${LOCAL_DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       - ${PGDATA_DIR:-pgdata}:/var/lib/postgresql/data
-      - ${MINIO_DATA_DIR:-miniodata}:/var/lib/minio/data
+      - ${GARAGE_DATA_DIR:-garagedata}:/var/lib/garage
       # Worktree fix: a worktree's `.git` file points to an absolute host path
       # under the parent repo's `.git` dir; mount that path verbatim so `git`
       # inside the container resolves worktree refs. Falls through to a no-op
@@ -64,7 +65,7 @@ services:
     ports:
       - ${HOST_PLATFORM_PORT:-8080}:8080
       - ${HOST_DB_PORT:-5432}:5432
-      - ${HOST_MINIO_PORT:-9000}:9000
+      - ${HOST_S3_PORT:-9000}:9000
     cap_drop: [ALL]
     cap_add:
       - SETUID
@@ -83,4 +84,4 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  garagedata:

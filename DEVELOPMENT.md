@@ -1,11 +1,11 @@
 # Running for development
 
 1. `bun install` -- install dependencies
-2. `./dx up` -- build and start the dev container (includes backend, frontend, PostgreSQL, and MinIO)
+2. `./dx up` -- build and start the dev container (includes backend, frontend, PostgreSQL, and Garage)
 3. Add `lombok.localhost` to your /etc/hosts file (pointing at 127.0.0.1)
 4. Visit <http://localhost:5173>
 
-Everything runs inside a single Docker container. The dev entrypoint automatically starts PostgreSQL, MinIO, the Vite frontend dev server (port 5173), and the NestJS backend (port 3000).
+Everything runs inside a single Docker container. The dev entrypoint automatically starts PostgreSQL, Garage (S3), the Vite frontend dev server (port 5173), and the NestJS backend (port 3000).
 
 After the first build, `./dx up` starts without rebuilding.
 
@@ -19,7 +19,7 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 ./dx restart ui           # Restart the Vite frontend dev server
 ./dx restart proxies      # Regenerate app frontend proxy overrides and reload nginx
 ./dx restart bridge       # Restart the docker bridge server
-./dx restart container    # Restart the whole container (Postgres, MinIO, Vite, API)
+./dx restart container    # Restart the whole container (Postgres, Garage, Vite, API)
 ./dx db seed              # Seed the database with dev data
 ./dx db reset             # Drop all tables and re-migrate
 ./dx db reset:seed        # Drop all tables, re-migrate, and re-seed
@@ -51,8 +51,8 @@ Run `./dx` or `./dx help` to see all available commands. Most commands execute i
 ./dx kill                 # Force-kill the dev environment
 ./dx install              # Force-reinstall deps on host and in container
 ./dx purge db             # Tear down and remove the Postgres data volume
-./dx purge minio          # Tear down and remove the MinIO data volume
-./dx purge minio:truncate # Empty the MinIO object data in place (no teardown, no restart)
+./dx purge garage         # Tear down and remove the Garage data volume
+./dx purge garage:truncate # Empty the dev bucket in place over S3 (no teardown, no restart)
 ./dx purge all            # Tear down and remove all volumes, images, and orphans
 ```
 

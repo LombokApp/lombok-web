@@ -111,27 +111,24 @@ echo "================================================"
 printenv
 echo ""
 
-# ── MinIO ───────────────────────────────────────────────────
+# ── Garage (S3) ─────────────────────────────────────────────
 echo ""
 echo "================================================"
-echo "MinIO"
+echo "Garage"
 echo "================================================"
-export MINIO_DATA='/var/lib/minio/data'
-export MINIO_BROWSER='off'
-export MINIO_ROOT_USER=lomboktestadmin
-export MINIO_ROOT_PASSWORD=lomboktestadmin
+# Fixed test credentials (Garage requires GK-prefixed keys + 64-hex secrets).
+# The harness mints per-suite buckets over S3, so the key is granted createBucket.
+export TEST_S3_ACCESS_KEY_ID="GKcafebabecafebabecafebabe"
+export TEST_S3_SECRET_ACCESS_KEY="cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe"
 
-mkdir -p "$MINIO_DATA"
-chmod -R 777 "$MINIO_DATA"
-su-exec "$APP_USER" minio server "$MINIO_DATA" > /dev/stdout 2>&1 &
-echo "Minio started."
-
-echo "Waiting for MinIO to be ready..."
-until curl -sf http://127.0.0.1:9000/minio/health/live; do
-  echo "MinIO not ready yet, waiting..."
-  sleep 2
-done
-echo "MinIO is ready."
+APP_USER="$APP_USER" \
+GARAGE_S3_ACCESS_KEY_ID="$TEST_S3_ACCESS_KEY_ID" \
+GARAGE_S3_SECRET_KEY="$TEST_S3_SECRET_ACCESS_KEY" \
+GARAGE_S3_BUCKET="lomboktestbucket" \
+GARAGE_S3_KEY_NAME="lomboktest" \
+GARAGE_KEY_CREATE_BUCKET="1" \
+GARAGE_LOG_LEVEL="${GARAGE_LOG_LEVEL:-error}" \
+  sh ./packages/api/cmd/garage-provision.sh
 
 # ── Tests ───────────────────────────────────────────────────
 echo ""

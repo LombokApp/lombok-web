@@ -109,7 +109,7 @@ Commands:
   restart ui           Restart the Vite frontend dev server
   restart proxies      Regenerate app frontend proxy overrides and reload nginx
   restart bridge       Restart the docker bridge server
-  restart container    Restart the whole container (Postgres, MinIO, Vite, API)
+  restart container    Restart the whole container (Postgres, Garage, Vite, API)
   db seed              Seed the database with dev data
   db reset             Drop all tables and re-migrate
   db reset:seed        Drop all tables, re-migrate, and re-seed
@@ -128,8 +128,8 @@ Commands:
   kill                 Force-kill the dev environment (docker compose kill)
   purge all            Tear down and remove all volumes, images, and orphans
   purge db             Tear down and remove the Postgres data volume
-  purge minio          Tear down and remove the MinIO data volume
-  purge minio:truncate  Empty the MinIO object data in place (no teardown, no restart)
+  purge garage         Tear down and remove the Garage data volume
+  purge garage:truncate  Empty the dev bucket in place over S3 (no teardown, no restart)
   generate openapi     Generate the OpenAPI spec
   generate metadata    Generate NestJS metadata
   release standalone <version>   Build the standalone release image (e.g. 1.2.1-beta-rc3)
@@ -196,7 +196,7 @@ case "${1:-help}" in
         echo "Sent kill signal to docker-bridge. The API service will restart it automatically."
         ;;
       container)
-        # Restart the whole container (Postgres, MinIO, Vite, and the API).
+        # Restart the whole container (Postgres, Garage, Vite, and the API).
         docker compose restart api
         ;;
       *)
@@ -334,22 +334,17 @@ case "${1:-help}" in
       db)
         docker compose down && docker volume rm "${COMPOSE_PROJECT_NAME}_pgdata"
         ;;
-      minio:truncate)
+      garage:truncate)
         require_container
-        # Empty each bucket's contents in place; the */ glob skips hidden .minio.sys
-        # so the drive stays formatted and buckets keep existing — no heal, no restart.
-        docker compose exec -T -u root api sh -c '
-          for d in /var/lib/minio/data/*/; do
-            [ -d "$d" ] || continue
-            find "$d" -mindepth 1 -delete
-          done
-        '
+        # Empty the dev bucket in place over S3 (Garage's store is opaque, so
+        # there's no file tree to rm) — bucket keeps existing, no restart.
+        docker compose exec -T api bun /usr/src/app/packages/api/cmd/garage-truncate-bucket.ts
         ;;
-      minio)
-        docker compose down && docker volume rm "${COMPOSE_PROJECT_NAME}_miniodata"
+      garage)
+        docker compose down && docker volume rm "${COMPOSE_PROJECT_NAME}_garagedata"
         ;;
       *)
-        echo "Usage: ./dx purge <all|db|minio|minio:truncate>" >&2
+        echo "Usage: ./dx purge <all|db|garage|garage:truncate>" >&2
         exit 1
         ;;
     esac

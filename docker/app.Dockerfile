@@ -1,5 +1,4 @@
-FROM cgr.dev/chainguard/minio:latest AS minio
-FROM cgr.dev/chainguard/minio-client:latest AS mc
+FROM dxflrs/garage:v2.3.0 AS garage
 
 FROM oven/bun:1.3.14-alpine AS base
 
@@ -26,8 +25,8 @@ RUN apk add --no-cache \
   postgresql-pgvector && \
   rm -rf /var/cache/apk/*
 
-COPY --from=minio /usr/bin/minio /usr/local/bin/minio
-COPY --from=mc /usr/bin/mc /usr/local/bin/mc
+COPY --from=garage /garage /usr/local/bin/garage
+COPY packages/api/cmd/garage.toml /etc/garage.toml
 
 # Set up PostgreSQL
 RUN mkdir -p /var/lib/postgresql/data && \
@@ -36,9 +35,9 @@ RUN mkdir -p /var/lib/postgresql/data && \
   chown -R postgres:postgres /run/postgresql && \
   su-exec postgres initdb -D /var/lib/postgresql/data
 
-# Set up MinIO data directory
-RUN mkdir -p /var/lib/minio/data && \
-  chown -R bun:bun /var/lib/minio
+# Set up Garage data directories
+RUN mkdir -p /var/lib/garage/meta /var/lib/garage/data && \
+  chown -R bun:bun /var/lib/garage
 
 RUN chown -R bun:bun . && su-exec bun bun install --frozen-lockfile
 
