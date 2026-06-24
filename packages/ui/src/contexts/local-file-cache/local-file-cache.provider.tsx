@@ -2,6 +2,7 @@ import {
   contentIdentifier,
   type ObjectIdentifier,
   objectIdentifierKey,
+  sanitizeUploadFilename,
 } from '@lombokapp/utils'
 import React from 'react'
 
@@ -138,11 +139,14 @@ export const LocalFileCacheContextProvider = ({
 
   const uploadFile = React.useCallback(
     (folderId: string, objectKey: string, file: File) => {
+      // Sanitize the upload filename (leaf): "/" and "%2F" → "_".
       postMessage.current([
         'UPLOAD',
         {
           folderId,
-          objectIdentifier: contentIdentifier(objectKey),
+          objectIdentifier: contentIdentifier(
+            sanitizeUploadFilename(objectKey),
+          ),
           uploadFile: file,
         },
       ])

@@ -312,7 +312,7 @@ export const FolderObjectDetailScreen = ({
                   <AppUI
                     getAccessTokens={getAccessTokens}
                     appIdentifier={selectedContributedView.appIdentifier}
-                    pathAndQuery={`${selectedContributedView.path}?folderId=${folderId}&objectKey=${objectKey}`}
+                    pathAndQuery={`${selectedContributedView.path}?folderId=${folderId}&objectKey=${encodeURIComponent(objectKey)}`}
                     host={API_HOST}
                     scheme={protocol}
                   />

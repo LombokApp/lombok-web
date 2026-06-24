@@ -1,3 +1,4 @@
+import { hasEncodedForwardSlash } from '@lombokapp/utils'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
@@ -15,6 +16,10 @@ export const storageLocationInputDTOSchema = z
           (prefix) => prefix.at(0) !== '/' && prefix.at(-1) !== '/',
           'Prefix cannot start or end with "/".',
         )
+        .refine(
+          (prefix) => !hasEncodedForwardSlash(prefix),
+          'Prefix cannot contain "%2F".',
+        )
         .nullable(),
     }),
     z.object({
@@ -23,7 +28,13 @@ export const storageLocationInputDTOSchema = z
     z.object({
       userLocationId: z.guid(),
       userLocationBucketOverride: z.string(),
-      userLocationPrefixOverride: z.string().nullable(),
+      userLocationPrefixOverride: z
+        .string()
+        .refine(
+          (prefix) => !hasEncodedForwardSlash(prefix),
+          'Prefix cannot contain "%2F".',
+        )
+        .nullable(),
     }),
   ])
   .meta({ id: 'StorageLocationInput' })

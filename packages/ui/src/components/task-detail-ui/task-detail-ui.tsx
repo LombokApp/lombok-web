@@ -27,6 +27,7 @@ import {
   TooltipTrigger,
 } from '@lombokapp/ui-toolkit/components/tooltip'
 import { cn } from '@lombokapp/ui-toolkit/utils/tailwind'
+import { encodeObjectKeyPreservingSlashes } from '@lombokapp/utils'
 import {
   AlertCircle,
   Check,
@@ -1244,7 +1245,7 @@ export function TaskDetailUI({
                             Object:{' '}
                             {isFolderOwner ? (
                               <Link
-                                to={`/folders/${taskData.targetLocation.folderId}/objects/${taskData.targetLocation.objectKey}`}
+                                to={`/folders/${taskData.targetLocation.folderId}/objects/${encodeObjectKeyPreservingSlashes(taskData.targetLocation.objectKey)}`}
                                 className="text-primary hover:underline"
                               >
                                 {taskData.targetLocation.objectKey}

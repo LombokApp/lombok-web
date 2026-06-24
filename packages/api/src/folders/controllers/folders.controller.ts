@@ -327,7 +327,7 @@ export class FoldersController {
     }
     const result = await this.folderService.getFolderObjectAsUser(req.user, {
       folderId,
-      objectKey: decodeURIComponent(objectKey),
+      objectKey,
     })
     return {
       folderObject: transformFolderObjectToDTO(result),
@@ -348,7 +348,7 @@ export class FoldersController {
     }
     await this.folderService.deleteFolderObjectAsUser(req.user, {
       folderId,
-      objectKey: decodeURIComponent(objectKey),
+      objectKey,
     })
   }
 
@@ -391,7 +391,7 @@ export class FoldersController {
     const folderObject =
       await this.folderService.refreshFolderObjectS3MetadataAsUser(req.user, {
         folderId,
-        objectKey: decodeURIComponent(objectKey),
+        objectKey,
       })
 
     return {

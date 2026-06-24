@@ -1,10 +1,6 @@
 import type { LombokApiClient, paths } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
-import {
-  encodeS3ObjectKey,
-  type ObjectIdentifier,
-  objectIdentifierKey,
-} from '@lombokapp/utils'
+import { type ObjectIdentifier, objectIdentifierKey } from '@lombokapp/utils'
 import createFetchClient from 'openapi-fetch'
 
 export enum LogLevel {
@@ -242,7 +238,7 @@ const maybeSendBatch = (folderId: string) => {
                 )
               : undefined
             if (entry?.callbacks.resolve) {
-              entry.callbacks.resolve(result)
+              entry.callbacks.resolve(result.url)
             }
           })
         }
@@ -356,6 +352,9 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         if (!uploadSlot) {
           return
         }
+        // The server may have sanitized the key (e.g. "%2F" → "_") on PUT.
+        // Use the resolved key it returned for progress display and refresh.
+        const resolvedObjectKey = uploadSlot.objectKey
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest()
 
@@ -368,7 +367,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
                 'UPLOAD_PROGRESS',
                 {
                   progress: percentCompleted,
-                  objectKey: uploadFile.name,
+                  objectKey: resolvedObjectKey,
                 },
               ])
             }
@@ -386,7 +385,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
             reject(e instanceof Error ? e : new Error(String(e)))
           })
 
-          xhr.open('PUT', uploadSlot)
+          xhr.open('PUT', uploadSlot.url)
           xhr.setRequestHeader('Content-Type', uploadFile.type)
           xhr.setRequestHeader('Content-Encoding', 'base64')
           xhr.send(uploadFile)
@@ -399,7 +398,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
             params: {
               path: {
                 folderId,
-                objectKey: encodeS3ObjectKey(objectIdentifier.objectKey),
+                objectKey: resolvedObjectKey,
               },
             },
           },
@@ -409,7 +408,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
           level: LogLevel.INFO,
           folderId,
           objectIdentifier: objectIdentifierKey(objectIdentifier),
-          message: `Upload of '${objectIdentifier.objectKey}' complete`,
+          message: `Upload of '${resolvedObjectKey}' complete`,
         })
       })
   } else if (message[0] === 'GET_PRESIGNED_DOWNLOAD_URL') {

@@ -1,5 +1,5 @@
 import type { SignedURLsRequestMethod } from '@lombokapp/types'
-import { encodeS3ObjectKey } from '@lombokapp/utils'
+import { encodeObjectKeyPreservingSlashes } from '@lombokapp/utils'
 import aws4 from 'aws4'
 
 export function createS3PresignedUrls(
@@ -37,7 +37,10 @@ export function createS3PresignedUrls(
         service: 's3',
         region: request.region,
         method: request.method,
-        path: `/${request.bucket}/${encodeS3ObjectKey(request.objectKey)}?${queryString}`,
+        // Encode the key for the signed path while preserving real "/"
+        // separators. A literal "%2F" in the key thus becomes "%252F", so S3
+        // decodes it once back to the verbatim "%2F" key (rather than to "/").
+        path: `/${request.bucket}/${encodeObjectKeyPreservingSlashes(request.objectKey)}?${queryString}`,
         host: hostnames[request.endpoint],
         signQuery: true,
       },

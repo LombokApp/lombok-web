@@ -21,6 +21,7 @@ import {
   mediaTypeFromMimeType,
   mimeFromExtension,
   type ObjectIdentifier,
+  replaceEncodedForwardSlashes,
   safeZodParse,
 } from '@lombokapp/utils'
 import {
@@ -105,6 +106,14 @@ export interface ContentMetadataPayload {
 export interface SignedURLsRequest {
   objectIdentifier: ObjectIdentifier
   method: SignedURLsRequestMethod
+  // Only honored for PUT: keep the literal key (including any "%2F") unchanged.
+  dontReplaceEncodedForwardSlashes?: boolean
+}
+
+export interface SignedURLResult {
+  url: string
+  // Resolved object key the URL targets (reflects any PUT "%2F" replacement).
+  objectKey: string
 }
 
 export enum FolderObjectSort {
@@ -1238,21 +1247,17 @@ export class FolderService {
       folderId: string
       urls: SignedURLsRequest[]
     },
-  ): Promise<string[]> {
+  ): Promise<SignedURLResult[]> {
     const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
 
-    return createS3PresignedUrls(
-      urls.map(({ objectIdentifier, method }) => {
+    // Resolve each request to its final (relative) object key, applying the
+    // PUT-only "%2F" → "_" sanitization unless explicitly opted out.
+    const resolved = urls.map(
+      ({ objectIdentifier, method, dontReplaceEncodedForwardSlashes }) => {
         const isMetadata = objectIdentifier.kind === 'metadata'
         const location = isMetadata
           ? folder.metadataLocation
           : folder.contentLocation
-        const absoluteObjectKey = isMetadata
-          ? joinStoragePrefix(
-              location.prefix,
-              `${objectIdentifier.objectKey}/${objectIdentifier.metadataHash}`,
-            )
-          : joinStoragePrefix(location.prefix, objectIdentifier.objectKey)
 
         // deny access to write operations for anyone without edit perms
         if (
@@ -1270,15 +1275,41 @@ export class FolderService {
           throw new FolderMetadataWriteUnauthorisedException()
         }
 
+        // Default-sanitize "%2F" on PUT (key creation); GET/HEAD/metadata pass
+        // through literally since those keys were read back from S3.
+        const resolvedObjectKey =
+          method === SignedURLsRequestMethod.PUT &&
+          !dontReplaceEncodedForwardSlashes
+            ? replaceEncodedForwardSlashes(objectIdentifier.objectKey)
+            : objectIdentifier.objectKey
+
+        const absoluteObjectKey = isMetadata
+          ? joinStoragePrefix(
+              location.prefix,
+              `${resolvedObjectKey}/${objectIdentifier.metadataHash}`,
+            )
+          : joinStoragePrefix(location.prefix, resolvedObjectKey)
+
         return {
-          ...location,
-          region: location.region,
-          method,
-          objectKey: absoluteObjectKey,
-          expirySeconds: 3600,
+          resolvedObjectKey,
+          signRequest: {
+            ...location,
+            region: location.region,
+            method,
+            objectKey: absoluteObjectKey,
+            expirySeconds: 3600,
+          },
         }
-      }),
+      },
     )
+
+    const signedUrls = createS3PresignedUrls(resolved.map((r) => r.signRequest))
+
+    return resolved.map((r, i) => ({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      url: signedUrls[i]!,
+      objectKey: r.resolvedObjectKey,
+    }))
   }
 
   async queueReindexFolderAsUser(actor: User, folderId: string) {
