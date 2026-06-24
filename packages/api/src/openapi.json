@@ -11600,6 +11600,12 @@
                 "$ref": "#/components/schemas/MobileQueryBinding"
               }
             }
+          },
+          "pollQueries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobilePollBinding"
+            }
           }
         },
         "required": [
@@ -11760,6 +11766,37 @@
         },
         "required": [
           "name"
+        ],
+        "additionalProperties": false
+      },
+      "MobilePollBinding": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/MobileQueryRef"
+          },
+          "targetPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "loadingPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "intervalSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "whilePath": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "query",
+          "targetPath",
+          "intervalSeconds",
+          "whilePath"
         ],
         "additionalProperties": false
       },

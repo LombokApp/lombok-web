@@ -17,7 +17,12 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
@@ -53,6 +58,7 @@ export class ServerController {
   ) {}
 
   @Get('/settings')
+  @ApiOperation({ summary: 'Get the server settings object.' })
   async getServerSettings(
     @Req() req: express.Request,
   ): Promise<SettingsGetResponse> {
@@ -67,6 +73,7 @@ export class ServerController {
   }
 
   @Put('/settings/:settingKey')
+  @ApiOperation({ summary: 'Set a setting in the server settings objects.' })
   async setServerSetting(
     @Req() req: express.Request,
     @Param('settingKey') settingKey: string,
@@ -92,6 +99,7 @@ export class ServerController {
   }
 
   @Delete('/settings/:settingKey')
+  @ApiOperation({ summary: 'Reset a setting in the server settings objects.' })
   async resetServerSetting(
     @Req() req: express.Request,
     @Param('settingKey') settingKey: string,
@@ -116,6 +124,10 @@ export class ServerController {
   }
 
   @Get('/metrics')
+  @ApiOperation({
+    summary:
+      'Get server metrics including user counts, folder counts, and storage statistics.',
+  })
   async getServerMetrics(
     @Req() req: express.Request,
   ): Promise<ServerMetricsResponse> {
@@ -127,6 +139,11 @@ export class ServerController {
   }
 
   @Get('/metrics/activity')
+  @ApiOperation({
+    summary:
+      'Get a unified activity time-series (events, tasks, task duration, or logs),\n' +
+      'fixed-bucketed over a rolling window and optionally partitioned by app.',
+  })
   async getServerActivityMetrics(
     @Req() req: express.Request,
     @Query() query: ActivityMetricsQueryDTO,
@@ -145,6 +162,9 @@ export class ServerController {
   }
 
   @Post('/icon')
+  @ApiOperation({
+    summary: 'Upload (or replace) the server icon shown across the platform.',
+  })
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
   )
@@ -173,6 +193,7 @@ export class ServerController {
 
   @Delete('/icon')
   @HttpCode(204)
+  @ApiOperation({ summary: 'Remove the server icon.' })
   async deleteServerIcon(@Req() req: express.Request): Promise<void> {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()

@@ -2380,6 +2380,7 @@ export interface components {
             actionMap?: {
                 [key: string]: components["schemas"]["MobileQueryBinding"][];
             };
+            pollQueries?: components["schemas"]["MobilePollBinding"][];
         };
         MobileComponent: {
             id: string;
@@ -2418,6 +2419,13 @@ export interface components {
                     fromPath: string;
                 } | components["schemas"]["JsonSerializableValue"];
             };
+        };
+        MobilePollBinding: {
+            query: components["schemas"]["MobileQueryRef"];
+            targetPath: string;
+            loadingPath?: string;
+            intervalSeconds: number;
+            whilePath: string;
         };
         JsonSchema07Object: {
             /** @constant */
