@@ -306,22 +306,26 @@ export class FolderService {
     }
   }
 
-  async createFolder({
-    userId,
-    body,
-  }: {
-    body: {
-      // this is called with two target configurations (for content and metadata) which are each either:
-      //  - The builtin (embedded) provision, selected with `{ builtin: true }`
-      //  - A whole new location, meaning no existing location id, but all the other required properties
-      //  - A location id of another of the user's locations, plus a bucket & prefix to replace the ones of that location
-      //  - A reference to a server storage provision (in which case no overrides are allowed)
-      name: string
-      contentLocation: StorageTargetInputDTO
-      metadataLocation: StorageTargetInputDTO
-    }
-    userId: string
-  }): Promise<Folder> {
+  async createFolder(
+    {
+      userId,
+      body,
+    }: {
+      body: {
+        // this is called with two target configurations (for content and metadata) which are each either:
+        //  - The builtin (embedded) provision, selected with `{ builtin: true }`
+        //  - A whole new location, meaning no existing location id, but all the other required properties
+        //  - A location id of another of the user's locations, plus a bucket & prefix to replace the ones of that location
+        //  - A reference to a server storage provision (in which case no overrides are allowed)
+        name: string
+        contentLocation: StorageTargetInputDTO
+        metadataLocation: StorageTargetInputDTO
+      }
+      userId: string
+    },
+    tx?: OrmService['db'],
+  ): Promise<Folder> {
+    const db = tx ?? this.ormService.db
     // create the ID ahead of time so we can also include
     // it in the prefix of the folders data location
     // (in the case of a Server provided location for a user folder)
@@ -340,7 +344,7 @@ export class FolderService {
       } else if (safeZodParse(locationInput, customLocationPayloadSchema)) {
         // user has input a custom location
         location = (
-          await this.ormService.db
+          await db
             .insert(storageLocationsTable)
             .values({
               ...locationInput,
@@ -363,17 +367,18 @@ export class FolderService {
         )[0]
       } else if (safeZodParse(locationInput, existingUserLocationSchema)) {
         // user has provided another location ID they apparently own, and a bucket + prefix override
-        const existingLocation =
-          await this.ormService.db.query.storageLocationsTable.findFirst({
+        const existingLocation = await db.query.storageLocationsTable.findFirst(
+          {
             where: and(
               eq(storageLocationsTable.kind, 'USER'),
               eq(storageLocationsTable.userId, userId),
               eq(storageLocationsTable.id, locationInput.userLocationId),
             ),
-          })
+          },
+        )
         if (existingLocation) {
           location = (
-            await this.ormService.db
+            await db
               .insert(storageLocationsTable)
               .values({
                 id: crypto.randomUUID(),
@@ -420,7 +425,7 @@ export class FolderService {
               : `.lombok_folder_backup_${prospectiveFolderId}`
 
         location = (
-          await this.ormService.db
+          await db
             .insert(storageLocationsTable)
             .values({
               id: crypto.randomUUID(),
@@ -467,7 +472,7 @@ export class FolderService {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const folder = (
-      await this.ormService.db
+      await db
         .insert(foldersTable)
         .values({
           id: prospectiveFolderId,
@@ -482,7 +487,7 @@ export class FolderService {
         .returning()
     )[0]!
 
-    await this.checkAndUpdateFolderAccessError(folder.id)
+    await this.checkAndUpdateFolderAccessError(folder.id, tx)
 
     return this.attachResolvedLocations({
       ...folder,
@@ -524,8 +529,12 @@ export class FolderService {
     return this.attachResolvedLocations(folder) as T
   }
 
-  async checkAndUpdateFolderAccessError(folderId: string): Promise<void> {
-    const folderRow = await this.ormService.db.query.foldersTable.findFirst({
+  async checkAndUpdateFolderAccessError(
+    folderId: string,
+    tx?: OrmService['db'],
+  ): Promise<void> {
+    const db = tx ?? this.ormService.db
+    const folderRow = await db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
       with: {
         contentLocation: true,
@@ -623,7 +632,7 @@ export class FolderService {
       }
     }
 
-    await this.ormService.db
+    await db
       .update(foldersTable)
       .set({ accessError: accessError ?? null, updatedAt: new Date() })
       .where(eq(foldersTable.id, folderId))

@@ -11,6 +11,7 @@ import React from 'react'
 import { ImageUploader } from '@/src/components/image-uploader/image-uploader'
 import { usePublicSettingsContext } from '@/src/contexts/public-settings'
 import { $apiClient } from '@/src/services/api'
+import { stageUpload } from '@/src/services/staging-upload'
 
 export function ServerIconCard() {
   const { settings, refetch } = usePublicSettingsContext()
@@ -25,10 +26,9 @@ export function ServerIconCard() {
 
   const handleUpload = React.useCallback(
     async (file: File) => {
-      const formData = new FormData()
-      formData.append('file', file)
+      const stagingKey = await stageUpload(file, 'server-icon')
       const { response } = await $apiClient.POST('/api/v1/server/icon', {
-        body: formData as unknown as undefined,
+        body: { stagingKey },
       })
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as {

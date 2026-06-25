@@ -13,6 +13,7 @@ import { DockerModule } from 'src/docker/docker.module'
 import { LogModule } from 'src/log/log.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
+import { StorageModule } from 'src/storage/storage.module'
 
 import { StorageProvisionsController } from './controllers/external-storage-provisions.controller'
 import { PublicController } from './controllers/public.controller'
@@ -32,6 +33,7 @@ import { StorageProvisionService } from './services/storage-provision.service'
     forwardRef(() => LogModule),
     forwardRef(() => DockerModule),
     forwardRef(() => SocketModule),
+    StorageModule,
   ],
   controllers: [
     PublicController,

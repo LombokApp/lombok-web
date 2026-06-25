@@ -165,4 +165,12 @@ for _bucket in $CORS_BUCKETS; do
     su-exec "$APP_USER" bun /usr/src/app/packages/api/cmd/garage-set-cors.ts
 done
 
-echo "Garage key, buckets and CORS setup complete."
+# Lifecycle: reap abandoned staged uploads (whose follow-up create/update
+# request never arrived) — the whole uploads bucket expires after 1 day.
+GARAGE_S3_ACCESS_KEY_ID="$GARAGE_S3_ACCESS_KEY_ID" \
+GARAGE_S3_SECRET_KEY="$GARAGE_S3_SECRET_KEY" \
+GARAGE_S3_BUCKET="$GARAGE_UPLOADS_BUCKET" \
+GARAGE_S3_ENDPOINT="$GARAGE_S3_ENDPOINT" \
+  su-exec "$APP_USER" bun /usr/src/app/packages/api/cmd/garage-set-lifecycle.ts
+
+echo "Garage key, buckets, CORS and lifecycle setup complete."

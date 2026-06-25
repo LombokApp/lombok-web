@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,13 +7,10 @@ import {
   Post,
   Put,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
   UsePipes,
 } from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
@@ -22,7 +18,8 @@ import {
   AllowedActor,
   AuthGuardConfig,
 } from 'src/auth/guards/auth.guard-config'
-import { MAX_IMAGE_UPLOAD_BYTES } from 'src/shared/utils'
+import { StagingKeyInputDTO } from 'src/storage/dto/staging-upload.dto'
+import { StagingUploadService } from 'src/storage/staging-upload.service'
 
 import type { ViewerGetResponse } from '../dto/responses/viewer-get-response.dto'
 import { transformUserToDTO } from '../dto/transforms/user.transforms'
@@ -43,6 +40,7 @@ export class ViewerController {
   constructor(
     private readonly userService: UserService,
     private readonly userAvatarService: UserAvatarService,
+    private readonly stagingUploadService: StagingUploadService,
   ) {}
 
   @Get()
@@ -74,28 +72,23 @@ export class ViewerController {
   }
 
   @Post('/avatar')
-  @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
-  )
-  @ApiConsumes('multipart/form-data')
   async setViewerAvatar(
     @Req() req: express.Request,
-    @UploadedFile()
-    file: { buffer?: Buffer; mimetype: string; size: number } | undefined,
+    @Body() body: StagingKeyInputDTO,
   ): Promise<ViewerGetResponse> {
-    if (!file?.buffer) {
-      throw new BadRequestException({
-        code: 'image_upload_empty',
-        message: 'No file was uploaded',
-      })
-    }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const actor = req.user!
-    await this.userAvatarService.setAvatar(actor.id, {
-      mimetype: file.mimetype,
-      size: file.size,
-      buffer: file.buffer,
-    })
+    const file = await this.stagingUploadService.fetchStagedUpload(
+      actor.id,
+      body.stagingKey,
+      'user-avatar',
+    )
+    await this.userAvatarService.setAvatar(actor.id, file)
+    await this.stagingUploadService.deleteStagedUpload(
+      actor.id,
+      body.stagingKey,
+      'user-avatar',
+    )
     const user = await this.userService.getUserById({ id: actor.id })
     return { user: transformUserToDTO(user) }
   }

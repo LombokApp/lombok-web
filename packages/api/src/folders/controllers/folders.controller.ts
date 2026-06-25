@@ -1,6 +1,5 @@
 import { FolderPermissionEnum } from '@lombokapp/types'
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,15 +13,11 @@ import {
   Query,
   Req,
   UnauthorizedException,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
   UsePipes,
 } from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
 import {
   ApiBearerAuth,
-  ApiConsumes,
   ApiExtraModels,
   ApiOperation,
   ApiTags,
@@ -41,8 +36,10 @@ import {
   AuthGuardConfig,
 } from 'src/auth/guards/auth.guard-config'
 import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { OrmService } from 'src/orm/orm.service'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
-import { MAX_IMAGE_UPLOAD_BYTES } from 'src/shared/utils'
+import { StagingKeyInputDTO } from 'src/storage/dto/staging-upload.dto'
+import { StagingUploadService } from 'src/storage/staging-upload.service'
 
 import {
   ContentMetadataEntryDTO,
@@ -93,6 +90,8 @@ export class FoldersController {
     private readonly appService: AppService,
     private readonly appCustomSettingsService: AppCustomSettingsService,
     private readonly folderIconService: FolderIconService,
+    private readonly stagingUploadService: StagingUploadService,
+    private readonly ormService: OrmService,
   ) {}
 
   // Declared before `/:folderId` so `starred` isn't captured by the UUID-parsed folder route.
@@ -237,10 +236,37 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const folder = await this.folderService.createFolder({
-      userId: req.user.id,
-      body,
+    const userId = req.user.id
+    // Fetch the staged icon first so a bad/missing reference fails before any
+    // writes. Folder creation + icon application run in one transaction so an
+    // icon failure rolls the folder back; the staged object is deleted only
+    // once everything commits.
+    const stagedIcon = body.iconStagingKey
+      ? await this.stagingUploadService.fetchStagedUpload(
+          userId,
+          body.iconStagingKey,
+          'folder-icon',
+        )
+      : undefined
+
+    const folder = await this.ormService.db.transaction(async (tx) => {
+      const created = await this.folderService.createFolder(
+        { userId, body },
+        tx,
+      )
+      if (stagedIcon) {
+        await this.folderIconService.applyIcon(created.id, stagedIcon, tx)
+      }
+      return created
     })
+
+    if (body.iconStagingKey) {
+      await this.stagingUploadService.deleteStagedUpload(
+        userId,
+        body.iconStagingKey,
+        'folder-icon',
+      )
+    }
 
     return {
       folder: transformFolderToDTO(folder),
@@ -504,31 +530,28 @@ export class FoldersController {
   }
 
   @Post('/:folderId/icon')
-  @ApiOperation({ summary: 'Upload (or replace) a folder icon image.' })
-  @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES } }),
-  )
-  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Set (or replace) a folder icon from a staged upload.',
+  })
   async setFolderIcon(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
-    @UploadedFile()
-    file: { buffer?: Buffer; mimetype: string; size: number } | undefined,
+    @Body() body: StagingKeyInputDTO,
   ): Promise<FolderUpdateResponseDTO> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    if (!file?.buffer) {
-      throw new BadRequestException({
-        code: 'icon_upload_empty',
-        message: 'No file was uploaded',
-      })
-    }
-    await this.folderIconService.setIcon(req.user, folderId, {
-      mimetype: file.mimetype,
-      size: file.size,
-      buffer: file.buffer,
-    })
+    const file = await this.stagingUploadService.fetchStagedUpload(
+      req.user.id,
+      body.stagingKey,
+      'folder-icon',
+    )
+    await this.folderIconService.setIcon(req.user, folderId, file)
+    await this.stagingUploadService.deleteStagedUpload(
+      req.user.id,
+      body.stagingKey,
+      'folder-icon',
+    )
     const { folder } = await this.folderService.getFolderAsUser(
       req.user,
       folderId,

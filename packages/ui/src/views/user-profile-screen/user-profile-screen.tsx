@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import React from 'react'
 
 import { $api, $apiClient } from '@/src/services/api'
+import { stageUpload } from '@/src/services/staging-upload'
 
 import { ImageUploader } from '../../components/image-uploader/image-uploader'
 import type { ProfileUserFormValues } from '../../components/profile-user-form/profile-user-form'
@@ -49,10 +50,9 @@ export function UserProfileScreen() {
 
   const handleAvatarUpload = React.useCallback(
     async (file: File) => {
-      const formData = new FormData()
-      formData.append('file', file)
+      const stagingKey = await stageUpload(file, 'user-avatar')
       const { response } = await $apiClient.POST('/api/v1/viewer/avatar', {
-        body: formData as unknown as undefined,
+        body: { stagingKey },
       })
       if (!response.ok) {
         const body = (await response.json().catch(() => ({}))) as {

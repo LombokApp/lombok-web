@@ -25,6 +25,11 @@ export const coreConfig = registerAs('core', () => {
       // overrides these (via the coreConfig DI provider) to namespace per suite.
       S3_SERVER_STORAGE_BUCKET: z.string().default('server-storage'),
       S3_PROVISIONS_BUCKET: z.string().default('provisions'),
+      // MUST stay 'uploads' in production: nginx.conf hardcodes ^/uploads/{tier}/
+      // per-tier client_max_body_size caps for staged uploads. Changing it would
+      // drop those edge caps (requests fall through to the unlimited s3 default).
+      // Only the e2e harness overrides this — it talks to S3/MinIO directly,
+      // never through nginx.
       S3_UPLOADS_BUCKET: z.string().default('uploads'),
     }),
   )
