@@ -47,8 +47,6 @@ describe('Folder Check Access', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
-
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken,
@@ -78,8 +76,6 @@ describe('Folder Check Access', () => {
       username: 'chkother',
       password: '123',
     })
-
-    await testModule!.setServerStorageLocation()
 
     const { folder } = await createTestFolder({
       testModule: testModule!,

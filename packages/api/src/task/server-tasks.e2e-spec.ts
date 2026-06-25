@@ -69,8 +69,6 @@ describe('Server Tasks List & Get', () => {
       admin: true,
     })
 
-    await testModule!.setServerStorageLocation()
-
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken,

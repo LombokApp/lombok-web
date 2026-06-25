@@ -28,7 +28,7 @@ describe('Server - Storage Provisions', () => {
     })
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/storage-provisions',
+      '/api/v1/server/external-storage-provisions',
       {
         body: {
           accessKeyId: 'dummyaccesskeyid',
@@ -62,7 +62,7 @@ describe('Server - Storage Provisions', () => {
     })
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/storage-provisions',
+      '/api/v1/server/external-storage-provisions',
       {
         body: {
           accessKeyId: 'dummyaccesskeyid',
@@ -90,7 +90,7 @@ describe('Server - Storage Provisions', () => {
       throw new Error('No provision id')
     }
     const updateProvisionResponse = await apiClient(accessToken).PUT(
-      '/api/v1/server/storage-provisions/{storageProvisionId}',
+      '/api/v1/server/external-storage-provisions/{storageProvisionId}',
       {
         params: { path: { storageProvisionId: provisionId } },
         body: {
@@ -145,7 +145,7 @@ describe('Server - Storage Provisions', () => {
     })
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/storage-provisions',
+      '/api/v1/server/external-storage-provisions',
       {
         body: {
           accessKeyId: 'dummyaccesskeyid',
@@ -173,13 +173,13 @@ describe('Server - Storage Provisions', () => {
       throw new Error('No provision id')
     }
     const deleteProvisionResponse = await apiClient(accessToken).DELETE(
-      '/api/v1/server/storage-provisions/{storageProvisionId}',
+      '/api/v1/server/external-storage-provisions/{storageProvisionId}',
       { params: { path: { storageProvisionId: provisionId } } },
     )
     expect(deleteProvisionResponse.response.status).toEqual(200)
 
     const listProvisionsResponse = await apiClient(accessToken).GET(
-      '/api/v1/server/storage-provisions',
+      '/api/v1/server/external-storage-provisions',
       {},
     )
 

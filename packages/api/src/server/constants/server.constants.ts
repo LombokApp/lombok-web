@@ -2,15 +2,10 @@ import {
   emailProviderObfuscatedSchema,
   emailProviderSchema,
   redactedSecret,
-  serverStorageSchema,
-  serverStorageSchemaWithSecret,
-  storageProvisionSchema,
-  storageProvisionWithSecretSchema,
 } from '@lombokapp/types'
 import { z } from 'zod'
 
 import { searchConfigSchema } from '../dto/search-config.dto'
-import { serverStorageInputSchema } from '../dto/server-storage-input.dto'
 
 // Google OAuth configuration schema
 export const googleOAuthConfigSchema = z.object({
@@ -48,8 +43,6 @@ export const defineServerSettingsEntry = <
 ): ServerSettingsEntry<T, I, R> => entry
 
 export enum ServerConfigKey {
-  STORAGE_PROVISIONS = 'STORAGE_PROVISIONS',
-  SERVER_STORAGE = 'SERVER_STORAGE',
   SIGNUP_ENABLED = 'SIGNUP_ENABLED',
   SIGNUP_PERMISSIONS = 'SIGNUP_PERMISSIONS',
   SERVER_HOSTNAME = 'SERVER_HOSTNAME',
@@ -61,48 +54,6 @@ export enum ServerConfigKey {
 
 export const serverIconSettingSchema = z.object({
   updatedAt: z.iso.datetime(),
-})
-
-export const STORAGE_PROVISIONS_CONFIG = defineServerSettingsEntry({
-  key: ServerConfigKey.STORAGE_PROVISIONS,
-  private: true,
-  default: [],
-  dbSchema: storageProvisionWithSecretSchema.array(),
-  inputSchema: z.never(),
-  responseSchema: storageProvisionSchema.array(),
-  transformForResponse: (value) => {
-    if (!Array.isArray(value)) {
-      return value
-    }
-    return value.map((storageProvision) => ({
-      id: storageProvision.id,
-      label: storageProvision.label,
-      accessKeyId: storageProvision.accessKeyId,
-      secretAccessKey: null,
-      bucket: storageProvision.bucket,
-      accessKeyHashId: storageProvision.accessKeyHashId,
-      description: storageProvision.description,
-      endpoint: storageProvision.endpoint,
-      provisionTypes: storageProvision.provisionTypes,
-      region: storageProvision.region,
-      prefix: storageProvision.prefix,
-    }))
-  },
-})
-
-export const SERVER_STORAGE_CONFIG = defineServerSettingsEntry({
-  key: ServerConfigKey.SERVER_STORAGE,
-  private: true,
-  default: null,
-  dbSchema: serverStorageSchemaWithSecret,
-  inputSchema: serverStorageInputSchema,
-  responseSchema: serverStorageSchema,
-  transformForResponse: (value) => {
-    if (!value) {
-      return value
-    }
-    return { ...value, secretAccessKey: null }
-  },
 })
 
 export const SIGNUP_ENABLED_CONFIG = defineServerSettingsEntry({
@@ -218,8 +169,9 @@ export const SERVER_ICON_CONFIG = defineServerSettingsEntry({
 })
 
 export const CONFIGURATION_KEYS: ServerSettingsEntry<z.ZodType>[] = [
-  STORAGE_PROVISIONS_CONFIG,
-  SERVER_STORAGE_CONFIG,
+  // Storage provisions are no longer a server setting — External provisions live
+  // in the `external_storage_provisions` table and the builtin provision is
+  // synthesized in memory. Server storage is always the embedded S3 service.
   SIGNUP_ENABLED_CONFIG,
   SIGNUP_PERMISSIONS_CONFIG,
   SERVER_HOSTNAME_CONFIG,

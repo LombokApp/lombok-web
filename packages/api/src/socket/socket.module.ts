@@ -16,7 +16,7 @@ import { FoldersModule } from 'src/folders/folders.module'
 import { FolderService } from 'src/folders/services/folder.service'
 import { LogModule } from 'src/log/log.module'
 import { ServerModule } from 'src/server/server.module'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import { StorageModule } from 'src/storage/storage.module'
 
 import { AppSocketGateway } from './app/app-socket.gateway'
@@ -56,7 +56,7 @@ import { UserSocketService } from './user/user-socket.service'
     FolderService,
     EventService,
     AppService,
-    ServerConfigurationService,
+    StorageProvisionService,
   ],
   exports: [
     UserSocketService,

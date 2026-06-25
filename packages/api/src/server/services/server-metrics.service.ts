@@ -1,6 +1,6 @@
 import { StorageProvisionWithSecret } from '@lombokapp/types'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { and, eq, gte, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, eq, gte, isNotNull, isNull, or, sql } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { sessionsTable } from 'src/auth/entities/session.entity'
 import { eventsTable } from 'src/event/entities/event.entity'
@@ -13,6 +13,7 @@ import type { User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 
 import { ServerConfigurationService } from './server-configuration.service'
+import { StorageProvisionService } from './storage-provision.service'
 
 function generateStorageProvisionsSummary(
   allUserStorageProvisions: StorageProvisionWithSecret[],
@@ -40,6 +41,7 @@ export class ServerMetricsService {
   constructor(
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly storageProvisionService: StorageProvisionService,
   ) {}
 
   async getServerMetrics(actor: User) {
@@ -229,9 +231,11 @@ export class ServerMetricsService {
         )
     )[0]!
 
-    // Get count of user storage provisions (count of storage locations with providerType = 'SERVER')
+    // Get count of user storage provisions (count of storage locations with kind = 'SERVER')
     const allStorageProvisions =
-      await this.serverConfigurationService.listStorageProvisionsAsUser(actor)
+      await this.storageProvisionService.listExternalStorageProvisionsAsUser(
+        actor,
+      )
 
     // Get total persisted size (sum of folderObject.sizeBytes for all folders)
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -245,11 +249,18 @@ export class ServerMetricsService {
           foldersTable,
           eq(folderObjectsTable.folderId, foldersTable.id),
         )
-        .innerJoin(
+        .leftJoin(
           storageLocationsTable,
           eq(foldersTable.contentLocationId, storageLocationsTable.id),
         )
-        .where(eq(storageLocationsTable.providerType, 'SERVER'))
+        // SERVER-provisioned folders, plus builtin-backed folders whose content
+        // location is NULL (the embedded provision).
+        .where(
+          or(
+            eq(storageLocationsTable.kind, 'SERVER'),
+            isNull(foldersTable.contentLocationId),
+          ),
+        )
     )[0]!
 
     return {

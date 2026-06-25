@@ -57,8 +57,6 @@ describe('Server - Settings', () => {
         EMAIL_PROVIDER_CONFIG: null,
         GOOGLE_OAUTH_CONFIG: null,
         SERVER_HOSTNAME: null,
-        STORAGE_PROVISIONS: [],
-        SERVER_STORAGE: null,
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
         SIGNUP_PERMISSIONS: [],
@@ -92,8 +90,6 @@ describe('Server - Settings', () => {
     expect(newSettingsResponse.data).toEqual({
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
-        STORAGE_PROVISIONS: [],
-        SERVER_STORAGE: null,
         GOOGLE_OAUTH_CONFIG: null,
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
@@ -130,8 +126,6 @@ describe('Server - Settings', () => {
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
         GOOGLE_OAUTH_CONFIG: null,
-        STORAGE_PROVISIONS: [],
-        SERVER_STORAGE: null,
         SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
         SERVER_ICON: null,
         SERVER_HOSTNAME: null,
@@ -142,8 +136,6 @@ describe('Server - Settings', () => {
   })
 
   it(`should set and reset the SEARCH_CONFIG server setting`, async () => {
-    await testModule?.setServerStorageLocation()
-
     const {
       session: { accessToken },
     } = await createTestUser(testModule!, {
@@ -263,8 +255,6 @@ describe('Server - Settings', () => {
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
         GOOGLE_OAUTH_CONFIG: null,
-        STORAGE_PROVISIONS: [],
-        SERVER_STORAGE: null,
         SIGNUP_ENABLED: true,
         SEARCH_CONFIG: { app: null },
         SERVER_HOSTNAME: null,
@@ -285,8 +275,6 @@ describe('Server - Settings', () => {
       settings: {
         EMAIL_PROVIDER_CONFIG: null,
         GOOGLE_OAUTH_CONFIG: null,
-        STORAGE_PROVISIONS: [],
-        SERVER_STORAGE: null,
         SERVER_HOSTNAME: null,
         SEARCH_CONFIG: { app: null },
         SIGNUP_ENABLED: true,
@@ -321,8 +309,6 @@ describe('Server - Settings', () => {
     )
     expect(newSettingsResponse.data).toEqual({
       settings: {
-        STORAGE_PROVISIONS: [],
-        SERVER_STORAGE: null,
         EMAIL_PROVIDER_CONFIG: null,
         GOOGLE_OAUTH_CONFIG: null,
         SERVER_HOSTNAME: null,
@@ -659,8 +645,6 @@ describe('Server - Settings', () => {
     })
 
     it('should reject setting SEARCH_CONFIG with disabled app', async () => {
-      await testModule?.setServerStorageLocation()
-
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -730,8 +714,6 @@ describe('Server - Settings', () => {
     })
 
     it('should reject setting SEARCH_CONFIG with non-existent worker', async () => {
-      await testModule?.setServerStorageLocation()
-
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -792,8 +774,6 @@ describe('Server - Settings', () => {
     })
 
     it('should reject setting SEARCH_CONFIG with unauthorized worker', async () => {
-      await testModule?.setServerStorageLocation()
-
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -861,8 +841,6 @@ describe('Server - Settings', () => {
     })
 
     it('should successfully set SEARCH_CONFIG with valid app and worker', async () => {
-      await testModule?.setServerStorageLocation()
-
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -934,8 +912,6 @@ describe('Server - Settings', () => {
     })
 
     it('should clear SEARCH_CONFIG when app is disabled', async () => {
-      await testModule?.setServerStorageLocation()
-
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {
@@ -1013,8 +989,6 @@ describe('Server - Settings', () => {
     })
 
     it('should clear SEARCH_CONFIG when app is uninstalled', async () => {
-      await testModule?.setServerStorageLocation()
-
       const {
         session: { accessToken },
       } = await createTestUser(testModule!, {

@@ -138,7 +138,6 @@ describe('Notification Settings', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -193,7 +192,6 @@ describe('Notification Settings', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({

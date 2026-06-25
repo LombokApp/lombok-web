@@ -331,7 +331,7 @@ export const StorageProvisionForm = (props: StorageProvisionFormProps) => {
             />
           </div>
           <div className="flex gap-2">
-            <Button variant="soft" onClick={onCancel}>
+            <Button type="button" variant="soft" onClick={onCancel}>
               Cancel
             </Button>
             <Button type="submit">

@@ -24,7 +24,9 @@ describe('Storage Provisions List & Detail', () => {
   })
 
   it('should require authentication for list', async () => {
-    const res = await apiClient().GET('/api/v1/server/storage-provisions')
+    const res = await apiClient().GET(
+      '/api/v1/server/external-storage-provisions',
+    )
     expect(res.response.status).toBe(401)
   })
 
@@ -41,22 +43,25 @@ describe('Storage Provisions List & Detail', () => {
     const bucketName = await testModule!.initMinioTestBucket()
 
     // Create a provision first
-    await apiClient(accessToken).POST('/api/v1/server/storage-provisions', {
-      body: {
-        accessKeyId: s3Config.accessKeyId,
-        secretAccessKey: s3Config.secretAccessKey,
-        endpoint: s3Config.endpoint,
-        bucket: bucketName,
-        region: s3Config.region,
-        prefix: null,
-        label: 'test-provision',
-        description: 'Test',
-        provisionTypes: ['CONTENT'],
+    await apiClient(accessToken).POST(
+      '/api/v1/server/external-storage-provisions',
+      {
+        body: {
+          accessKeyId: s3Config.accessKeyId,
+          secretAccessKey: s3Config.secretAccessKey,
+          endpoint: s3Config.endpoint,
+          bucket: bucketName,
+          region: s3Config.region,
+          prefix: null,
+          label: 'test-provision',
+          description: 'Test',
+          provisionTypes: ['CONTENT'],
+        },
       },
-    })
+    )
 
     const res = await apiClient(accessToken).GET(
-      '/api/v1/server/storage-provisions',
+      '/api/v1/server/external-storage-provisions',
     )
     expect(res.response.status).toBe(200)
     expect(res.data?.result).toBeArray()
@@ -76,7 +81,7 @@ describe('Storage Provisions List & Detail', () => {
     const bucketName = await testModule!.initMinioTestBucket()
 
     const createRes = await apiClient(accessToken).POST(
-      '/api/v1/server/storage-provisions',
+      '/api/v1/server/external-storage-provisions',
       {
         body: {
           accessKeyId: s3Config.accessKeyId,
@@ -94,7 +99,7 @@ describe('Storage Provisions List & Detail', () => {
     const provisionId = createRes.data!.result[0]!.id
 
     const res = await apiClient(accessToken).GET(
-      '/api/v1/server/storage-provisions/{storageProvisionId}',
+      '/api/v1/server/external-storage-provisions/{storageProvisionId}',
       { params: { path: { storageProvisionId: provisionId } } },
     )
     expect(res.response.status).toBe(200)
@@ -112,7 +117,7 @@ describe('Storage Provisions List & Detail', () => {
     })
 
     const res = await apiClient(accessToken).GET(
-      '/api/v1/server/storage-provisions/{storageProvisionId}',
+      '/api/v1/server/external-storage-provisions/{storageProvisionId}',
       { params: { path: { storageProvisionId: crypto.randomUUID() } } },
     )
     expect(res.response.status).toBe(404)

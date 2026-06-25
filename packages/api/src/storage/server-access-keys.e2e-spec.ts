@@ -41,7 +41,7 @@ describe('Server Access Keys', () => {
     const s3Config = testModule!.testS3ClientConfig()
 
     const createProvisionResponse = await apiClient(accessToken).POST(
-      '/api/v1/server/storage-provisions',
+      '/api/v1/server/external-storage-provisions',
       {
         body: {
           accessKeyId: s3Config.accessKeyId,
@@ -59,7 +59,7 @@ describe('Server Access Keys', () => {
     if (!createProvisionResponse.data) {
       throw new Error('No data')
     }
-    const storageProvisionId = createProvisionResponse.data.result[0]?.id
+    const storageProvisionId = createProvisionResponse.data.result[0]!.id
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: 'Test Folder',
@@ -75,16 +75,16 @@ describe('Server Access Keys', () => {
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: '__dummyfolder__',
-        contentLocation: { storageProvisionId: storageProvisionId! },
-        metadataLocation: { storageProvisionId: storageProvisionId! },
+        contentLocation: { storageProvisionId },
+        metadataLocation: { storageProvisionId },
       },
     })
 
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: '__dummyfolder2__',
-        contentLocation: { storageProvisionId: storageProvisionId! },
-        metadataLocation: { storageProvisionId: storageProvisionId! },
+        contentLocation: { storageProvisionId },
+        metadataLocation: { storageProvisionId },
       },
     })
 

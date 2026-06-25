@@ -51,8 +51,6 @@ describe('Folder Object Delete', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
-
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken,
@@ -102,8 +100,6 @@ describe('Folder Object Delete', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
-
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken: ownerToken,
@@ -148,8 +144,6 @@ describe('Folder Object Delete', () => {
       username: 'delmissing',
       password: '123',
     })
-
-    await testModule!.setServerStorageLocation()
 
     const { folder } = await createTestFolder({
       testModule: testModule!,

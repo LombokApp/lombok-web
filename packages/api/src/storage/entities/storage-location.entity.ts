@@ -6,7 +6,7 @@ export const storageLocationsTable = pgTable(
   {
     id: uuid('id').primaryKey(),
     accessKeyHashId: text('access_key_hash_id').notNull(),
-    providerType: text('provider_type').notNull().$type<'SERVER' | 'USER'>(),
+    kind: text('kind').notNull().$type<'SERVER' | 'USER'>(),
     label: text('label').notNull(),
     endpoint: text('endpoint').notNull(),
     endpointDomain: text('endpoint_domain').notNull(),
@@ -24,11 +24,11 @@ export const storageLocationsTable = pgTable(
   (table) => [
     index('storage_locations_user_id_idx').on(table.userId),
     index('storage_locations_access_key_hash_id_idx').on(table.accessKeyHashId),
-    index('storage_locations_provider_type_idx').on(table.providerType),
-    index('storage_locations_access_key_user_provider_idx').on(
+    index('storage_locations_kind_idx').on(table.kind),
+    index('storage_locations_access_key_user_kind_idx').on(
       table.accessKeyHashId,
       table.userId,
-      table.providerType,
+      table.kind,
     ),
   ],
 )

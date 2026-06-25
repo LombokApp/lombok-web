@@ -12,6 +12,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 
+import { rewriteToInternalEndpoint } from './embedded-s3'
 import { createS3PresignedUrls } from './s3.utils'
 
 export const transformFolderObjectToInternal = (
@@ -76,7 +77,8 @@ export const configureS3Client = ({
 }) => {
   return new S3Client({
     credentials: { accessKeyId, secretAccessKey },
-    endpoint,
+    // Server-side calls to the embedded builtin S3 go over loopback.
+    endpoint: rewriteToInternalEndpoint(endpoint),
     region: region ?? 'auto',
     forcePathStyle: true,
   })
@@ -140,7 +142,7 @@ export class S3Service {
     // Work around by issuing a ranged GET (0-0) to fetch headers only.
     const [url] = this.createS3PresignedUrls([
       {
-        endpoint,
+        endpoint: rewriteToInternalEndpoint(endpoint),
         region,
         accessKeyId,
         secretAccessKey,
@@ -221,7 +223,7 @@ export class S3Service {
         accessKeyId,
         secretAccessKey,
         region,
-        endpoint,
+        endpoint: rewriteToInternalEndpoint(endpoint),
         bucket,
         objectKey,
         method: SignedURLsRequestMethod.GET,
@@ -263,7 +265,7 @@ export class S3Service {
         accessKeyId,
         secretAccessKey,
         region,
-        endpoint,
+        endpoint: rewriteToInternalEndpoint(endpoint),
         bucket,
         objectKey,
         method: SignedURLsRequestMethod.DELETE,

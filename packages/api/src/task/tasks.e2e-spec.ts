@@ -13,6 +13,7 @@ import {
   buildTestModule,
   createTestFolder,
   createTestUser,
+  TEST_S3_ENDPOINT,
 } from 'src/test/test.util'
 import { usersTable } from 'src/users/entities/user.entity'
 
@@ -330,7 +331,7 @@ describe('Task lifecycle', () => {
     })
     expect(typeof childTask?.data.fileUrl).toBe('string')
     expect(childTask?.data.fileUrl).toStartWith(
-      `http://127.0.0.1:9000/${testFolder.folder.contentLocation.bucket}/file.txt?X-Amz-Expires=3600&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Date=`,
+      `${TEST_S3_ENDPOINT}/${testFolder.folder.contentLocation.bucket}/file.txt?X-Amz-Expires=3600&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Date=`,
     )
   })
 

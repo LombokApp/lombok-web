@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import {
   cropAndResizeImage,
   IMAGE_SIZES,
@@ -48,13 +48,12 @@ export class FolderIconService {
   constructor(
     private readonly ormService: OrmService,
     private readonly folderService: FolderService,
-    private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly storageProvisionService: StorageProvisionService,
     private readonly s3Service: S3Service,
   ) {}
 
   private async requireServerStorage(): Promise<ServerStorage> {
-    const serverStorage =
-      await this.serverConfigurationService.getServerStorage()
+    const serverStorage = await this.storageProvisionService.getServerStorage()
     if (!serverStorage) {
       throw new NotImplementedException('Server storage not configured')
     }

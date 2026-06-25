@@ -61,10 +61,8 @@ import {
 } from 'src/docker/services/durable-tunnel.service'
 import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
-import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
+import type { Folder } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
-import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
-import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderOperationForbiddenException } from 'src/folders/exceptions/folder-operation-forbidden.exception'
 import { FolderService } from 'src/folders/services/folder.service'
 import { logEntriesTable } from 'src/log/entities/log-entry.entity'
@@ -72,12 +70,12 @@ import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
 import { SEARCH_CONFIG } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import { uploadFile } from 'src/shared/utils'
 import {
   APP_RUNTIME_WORKER_SOCKET_STATE,
   AppSocketService,
 } from 'src/socket/app/app-socket.service'
-import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
@@ -164,6 +162,7 @@ export class AppService {
     private readonly jwtService: JWTService,
     private readonly sessionService: SessionService,
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly storageProvisionService: StorageProvisionService,
     private readonly kvService: KVService,
     private readonly s3Service: S3Service,
     @Inject(forwardRef(() => CoreTaskService)) _coreTaskService,
@@ -524,33 +523,20 @@ export class AppService {
       metadataHash: string
     }[],
   ) {
-    const folders: Record<string, FolderWithoutLocations | undefined> = {}
+    const folders: Record<string, Folder | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
       await Promise.all(
         requests.map(async (request) => {
-          const folder =
+          const folder: Folder =
             folders[request.folderId] ??
-            (await this.ormService.db.query.foldersTable.findFirst({
-              where: eq(folderObjectsTable.id, request.folderId),
+            (await this.folderService.getFolder({
+              folderId: request.folderId,
+              includeMetadataLocation: true,
             }))
           folders[request.folderId] = folder
 
-          if (!folder) {
-            throw new FolderNotFoundException()
-          }
-
-          const metadataLocation =
-            await this.ormService.db.query.storageLocationsTable.findFirst({
-              where: eq(storageLocationsTable.id, folder.metadataLocationId),
-            })
-
-          if (!metadataLocation) {
-            throw new NotFoundException(
-              undefined,
-              `Storage location not found by id "${folder.metadataLocationId}"`,
-            )
-          }
+          const metadataLocation = folder.metadataLocation
           return {
             method: request.method,
             objectKey: joinStoragePrefix(
@@ -606,8 +592,7 @@ export class AppService {
       userId?: string
     }[],
   ) {
-    const serverStorage =
-      await this.serverConfigurationService.getServerStorage()
+    const serverStorage = await this.storageProvisionService.getServerStorage()
     if (!serverStorage) {
       throw new Error('Server storage not found')
     }
@@ -638,8 +623,7 @@ export class AppService {
     options: { prefix?: string; continuationToken?: string },
   ) {
     const { app } = await this.getAppAsUser(actor, appIdentifier)
-    const serverStorage =
-      await this.serverConfigurationService.getServerStorage()
+    const serverStorage = await this.storageProvisionService.getServerStorage()
     if (!serverStorage) {
       throw new Error('Server storage not found')
     }
@@ -686,8 +670,7 @@ export class AppService {
     requests: { objectKey: string; method: SignedURLsRequestMethod }[],
   ) {
     const { app } = await this.getAppAsUser(actor, appIdentifier)
-    const serverStorage =
-      await this.serverConfigurationService.getServerStorage()
+    const serverStorage = await this.storageProvisionService.getServerStorage()
     if (!serverStorage) {
       throw new Error('Server storage not found')
     }
@@ -747,16 +730,10 @@ export class AppService {
     }[] = []
 
     for (const folderId of folderIds) {
-      const folder = await this.ormService.db.query.foldersTable.findFirst({
-        where: eq(foldersTable.id, folderId),
-        with: {
-          contentLocation: true,
-          metadataLocation: true,
-        },
+      const folder = await this.folderService.getFolder({
+        folderId,
+        includeContentLocation: true,
       })
-      if (!folder) {
-        throw new FolderNotFoundException()
-      }
       const folderRequests = presignedUrlRequestsByFolderId[folderId]
 
       if (!folderRequests) {
@@ -821,7 +798,7 @@ export class AppService {
     }
 
     const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorage()
+      await this.storageProvisionService.getServerStorage()
     if (!serverStorageLocation) {
       throw new NotImplementedException(
         'Server storage location not configured',
@@ -870,7 +847,7 @@ export class AppService {
     }
 
     const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorage()
+      await this.storageProvisionService.getServerStorage()
 
     if (!serverStorageLocation) {
       throw new NotImplementedException(
@@ -1086,7 +1063,7 @@ export class AppService {
     //    prefix must match — the previous implementation used `${id}/` and
     //    deleted nothing.
     const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorage()
+      await this.storageProvisionService.getServerStorage()
     if (serverStorageLocation) {
       const basePrefix = serverStorageLocation.prefix
         ? `${serverStorageLocation.prefix.replace(/\/+$/, '')}/`
@@ -1166,7 +1143,7 @@ export class AppService {
     )
 
     const serverStorageLocation =
-      await this.serverConfigurationService.getServerStorage()
+      await this.storageProvisionService.getServerStorage()
     const appRequiresStorage = assetManifestEntryPaths.length > 0
 
     if (appRequiresStorage && !serverStorageLocation) {

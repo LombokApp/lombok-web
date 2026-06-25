@@ -1,5 +1,10 @@
-# Garage config for the dev + e2e containers (single-node, local only).
-# Not for production — rpc_secret below is a throwaway dev value.
+# Garage config (single-node) for every build: dev, e2e, and production.
+# This is a single embedded node whose RPC is bound to loopback only, so the
+# static rpc_secret below is never reachable off-host and is acceptable in
+# production. The S3 API bind address is templated per-environment
+# ({{GARAGE_API_BIND_ADDR}}, substituted by garage-provision.sh): loopback-only
+# in production (all access goes through nginx), all-interfaces in dev/e2e where
+# the host reaches it directly over a port mapping.
 metadata_dir = "/var/lib/garage/meta"
 data_dir = "/var/lib/garage/data"
 db_engine = "sqlite"
@@ -14,5 +19,5 @@ rpc_secret = "0000000000000000000000000000000000000000000000000000000000000000"
 # "auto" matches the SigV4 region the app already signs presigned URLs with
 # (DEV_S3_REGION / test harness both use "auto"), so no app-side region change.
 s3_region = "auto"
-# Bind on 9000 so DEV_S3_ENDPOINT=http://<host>:9000 is unchanged from MinIO.
-api_bind_addr = "[::]:9000"
+# Templated: 127.0.0.1:9000 in production, [::]:9000 in dev/e2e. See header.
+api_bind_addr = "{{GARAGE_API_BIND_ADDR}}"

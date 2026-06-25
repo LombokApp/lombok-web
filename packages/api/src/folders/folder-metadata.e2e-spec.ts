@@ -44,7 +44,6 @@ describe('Folder Metadata & Check Access', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -85,7 +84,6 @@ describe('Folder Metadata & Check Access', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -118,7 +116,6 @@ describe('Folder Metadata & Check Access', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({

@@ -32,9 +32,7 @@ describe('Apps Installation via Zip', () => {
     })
   })
 
-  beforeEach(async () => {
-    await testModule?.setServerStorageLocation()
-  })
+  beforeEach(async () => {})
 
   afterEach(async () => {
     await testModule?.resetAppState()

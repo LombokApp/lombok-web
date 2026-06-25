@@ -9,6 +9,12 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositori
   echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
   apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools exiv2 su-exec zip unzip nsjail
 
+# Embedded Garage (S3) — present in every downstream stage (dev, test, release, standalone).
+COPY --from=garage /garage /usr/local/bin/garage
+COPY packages/api/cmd/garage.toml /etc/garage.toml
+RUN mkdir -p /var/lib/garage/meta /var/lib/garage/data && \
+  chown -R bun:bun /var/lib/garage
+
 
 FROM base AS dev
 
@@ -25,19 +31,12 @@ RUN apk add --no-cache \
   postgresql-pgvector && \
   rm -rf /var/cache/apk/*
 
-COPY --from=garage /garage /usr/local/bin/garage
-COPY packages/api/cmd/garage.toml /etc/garage.toml
-
 # Set up PostgreSQL
 RUN mkdir -p /var/lib/postgresql/data && \
   chown -R postgres:postgres /var/lib/postgresql && \
   mkdir /run/postgresql && \
   chown -R postgres:postgres /run/postgresql && \
   su-exec postgres initdb -D /var/lib/postgresql/data
-
-# Set up Garage data directories
-RUN mkdir -p /var/lib/garage/meta /var/lib/garage/data && \
-  chown -R bun:bun /var/lib/garage
 
 RUN chown -R bun:bun . && su-exec bun bun install --frozen-lockfile
 

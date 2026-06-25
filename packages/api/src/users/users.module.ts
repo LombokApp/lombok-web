@@ -1,6 +1,8 @@
 import { forwardRef, Global, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { AuthModule } from 'src/auth/auth.module'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { coreConfig } from 'src/core/config'
+import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import { S3Service } from 'src/storage/s3.service'
 
 import { UserAvatarController } from './controllers/user-avatar.controller'
@@ -16,10 +18,10 @@ import { UserService } from './services/users.service'
     UserService,
     UserAvatarService,
     S3Service,
-    ServerConfigurationService,
+    StorageProvisionService,
   ],
   exports: [UserService, UserAvatarService],
-  imports: [forwardRef(() => AuthModule)],
+  imports: [forwardRef(() => AuthModule), ConfigModule.forFeature(coreConfig)],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class UsersModule {}

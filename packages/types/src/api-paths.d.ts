@@ -400,15 +400,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/storage-provisions": {
+    "/api/v1/server/external-storage-provisions": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List the storage provisions. */
-        get: operations["StorageProvisions_listStorageProvisions"];
+        /** List the external storage provisions. */
+        get: operations["StorageProvisions_listExternalStorageProvisions"];
         put?: never;
         /** Create a new user storage provision. */
         post: operations["StorageProvisions_createUserStorageProvision"];
@@ -418,7 +418,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/server/storage-provisions/{storageProvisionId}": {
+    "/api/v1/server/external-storage-provisions/{storageProvisionId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -432,25 +432,6 @@ export interface paths {
         post?: never;
         /** Delete a storage provision by id. */
         delete: operations["StorageProvisions_deleteStorageProvision"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/server/server-storage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the server storage location. */
-        get: operations["ServerStorage_getServerStorageLocation"];
-        put?: never;
-        /** Create a new server provision. */
-        post: operations["ServerStorage_setServerStorageLocation"];
-        /** Delete any set server storage location. */
-        delete: operations["ServerStorage_deleteServerStorageLocation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2784,15 +2765,6 @@ export interface components {
         };
         SettingsGetResponse: {
             settings: {
-                STORAGE_PROVISIONS: components["schemas"]["StorageProvision"][] | null;
-                SERVER_STORAGE: {
-                    accessKeyHashId: string;
-                    accessKeyId: string;
-                    endpoint: string;
-                    bucket: string;
-                    region: string;
-                    prefix: string | null;
-                } | null;
                 SIGNUP_ENABLED: boolean | null;
                 SIGNUP_PERMISSIONS: string[] | null;
                 SERVER_HOSTNAME: string | null;
@@ -2898,25 +2870,6 @@ export interface components {
             region?: string;
             prefix?: string | null;
             provisionTypes?: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-        };
-        ServerStorageLocationGetResponse: {
-            serverStorageLocation?: {
-                accessKeyHashId: string;
-                accessKeyId: string;
-                endpoint: string;
-                bucket: string;
-                region: string;
-                prefix: string | null;
-            };
-        };
-        ServerStorageInputDTO: {
-            accessKeyId: string;
-            secretAccessKey: string;
-            /** Format: uri */
-            endpoint: string;
-            bucket: string;
-            region: string;
-            prefix: string | null;
         };
         DockerHostsStateResponse: {
             hosts: {
@@ -3053,8 +3006,8 @@ export interface components {
             /** Format: uuid */
             ownerId: string;
             name: string;
-            metadataLocation: components["schemas"]["StorageLocation"];
-            contentLocation: components["schemas"]["StorageLocation"];
+            metadataLocation: components["schemas"]["StorageTarget"];
+            contentLocation: components["schemas"]["StorageTarget"];
             accessError?: {
                 message: string;
                 code: string;
@@ -3065,13 +3018,37 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        StorageLocation: {
+        StorageTarget: {
+            /** @constant */
+            kind: "BUILTIN";
+            label: string;
+            endpoint: string;
+            region: string;
+            bucket: string;
+            prefix: string | null;
+            accessKeyId: string;
+            accessKeyHashId: string;
+        } | {
+            /** @constant */
+            kind: "SERVER";
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             userId?: string;
-            /** @enum {string} */
-            providerType: "SERVER" | "USER";
+            label: string;
+            endpoint: string;
+            region: string;
+            bucket: string;
+            prefix: string | null;
+            accessKeyId: string;
+            accessKeyHashId: string;
+        } | {
+            /** @constant */
+            kind: "USER";
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId?: string;
             label: string;
             endpoint: string;
             region: string;
@@ -3105,7 +3082,10 @@ export interface components {
                 starred: boolean;
             }[];
         };
-        StorageLocationInput: {
+        StorageTargetInput: {
+            /** @constant */
+            builtin: true;
+        } | {
             accessKeyId: string;
             secretAccessKey: string;
             endpoint: string;
@@ -3123,8 +3103,8 @@ export interface components {
         };
         FolderCreateInputDTO: {
             name: string;
-            metadataLocation: components["schemas"]["StorageLocationInput"];
-            contentLocation: components["schemas"]["StorageLocationInput"];
+            metadataLocation: components["schemas"]["StorageTargetInput"];
+            contentLocation: components["schemas"]["StorageTargetInput"];
         };
         FolderCreateResponse: {
             folder: components["schemas"]["Folder"];
@@ -4211,20 +4191,6 @@ export interface components {
                 };
             };
         };
-        StorageProvision: {
-            /** Format: uuid */
-            id: string;
-            accessKeyHashId: string;
-            endpoint: string;
-            bucket: string;
-            region: string;
-            accessKeyId: string;
-            secretAccessKey: string | null;
-            prefix: string | null;
-            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-            label: string;
-            description: string;
-        };
         ContainerTarget: {
             /** @constant */
             type: "instance";
@@ -4360,6 +4326,20 @@ export interface components {
             data: unknown;
             /** Format: date-time */
             createdAt: string;
+        };
+        StorageProvision: {
+            /** Format: uuid */
+            id: string;
+            accessKeyHashId: string;
+            endpoint: string;
+            bucket: string;
+            region: string;
+            accessKeyId: string;
+            secretAccessKey: string | null;
+            prefix: string | null;
+            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+            label: string;
+            description: string;
         };
         RuntimeWorkers: {
             hash: string;
@@ -5575,7 +5555,7 @@ export interface operations {
             };
         };
     };
-    StorageProvisions_listStorageProvisions: {
+    StorageProvisions_listExternalStorageProvisions: {
         parameters: {
             query?: {
                 provisionType?: "CONTENT" | "METADATA" | "REDUNDANCY";
@@ -5755,119 +5735,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["StorageProvisionsListResponse"];
                 };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    ServerStorage_getServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    ServerStorage_setServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServerStorageInputDTO"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
-                };
-            };
-            /** @description Server Error */
-            "5XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-            /** @description Client Error */
-            "4XX": {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDTO"];
-                };
-            };
-        };
-    };
-    ServerStorage_deleteServerStorageLocation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Server Error */
             "5XX": {

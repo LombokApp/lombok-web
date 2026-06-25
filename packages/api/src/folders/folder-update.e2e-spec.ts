@@ -44,8 +44,6 @@ describe('Folder Update (Rename)', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
-
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken,
@@ -70,8 +68,6 @@ describe('Folder Update (Rename)', () => {
       username: 'persistrn',
       password: '123',
     })
-
-    await testModule!.setServerStorageLocation()
 
     const { folder } = await createTestFolder({
       testModule: testModule!,
@@ -108,8 +104,6 @@ describe('Folder Update (Rename)', () => {
       username: 'rnother',
       password: '123',
     })
-
-    await testModule!.setServerStorageLocation()
 
     const { folder } = await createTestFolder({
       testModule: testModule!,

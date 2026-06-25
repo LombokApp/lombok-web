@@ -69,7 +69,7 @@ describe('Access Keys', () => {
       TEST_S3_ACCESS_KEY_ID,
     )
     expect(listAccessKeysResponse.data.result[0]?.endpointDomain).toEqual(
-      '127.0.0.1:9000',
+      new URL(TEST_S3_ENDPOINT).host,
     )
     expect(listAccessKeysResponse.data.result[0]?.folderCount).toEqual(1)
   })

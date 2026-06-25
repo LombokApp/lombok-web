@@ -66,7 +66,6 @@ describe('Folder Logs', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -97,7 +96,6 @@ describe('Folder Logs', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -136,7 +134,6 @@ describe('Folder Logs', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -166,7 +163,6 @@ describe('Folder Logs', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -191,7 +187,6 @@ describe('Folder Logs', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder: folder1 } = await createTestFolder({

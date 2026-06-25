@@ -30,6 +30,7 @@ export const storageProvisionsTableColumns = (
   {
     id: 'link',
     cell: ({ row }) => {
+      // The builtin provision is not editable — no row-level edit affordance.
       return (
         <div className="size-0 max-w-0 overflow-hidden">
           <Link
@@ -53,10 +54,12 @@ export const storageProvisionsTableColumns = (
     ),
     cell: ({ row }) => (
       <div className="flex flex-col">
-        <div className="w-[150px] truncate font-medium">
-          {row.original.label || (
-            <span className="italic opacity-50">No Label</span>
-          )}
+        <div className="flex w-[150px] items-center gap-1 font-medium">
+          <span className="truncate">
+            {row.original.label || (
+              <span className="italic opacity-50">No Label</span>
+            )}
+          </span>
         </div>
         <div className="w-[150px] truncate text-xs opacity-60">
           {row.original.description}
@@ -78,6 +81,7 @@ export const storageProvisionsTableColumns = (
     cell: ({ row: { original: provision } }) => (
       <div className="flex items-center gap-2 font-normal">
         <span>{provision.accessKeyId}</span>
+        {/* Builtin credentials are managed by the platform — not rotatable here. */}
         <Button
           className="relative"
           size="xs"

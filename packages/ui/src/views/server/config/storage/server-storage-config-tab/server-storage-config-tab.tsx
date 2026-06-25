@@ -12,7 +12,6 @@ import { AccessKeyRotateModal } from '@/src/components/access-key-rotate-modal/a
 import { $api } from '@/src/services/api'
 
 import { ServerAccessKeysTable } from '../server-access-keys/server-access-keys-table/server-access-keys-table.view'
-import { ServerStorageLocation } from '../server-storage-location/server-storage-location.view'
 import { UserStorageProvisions } from '../storage-provisions/storage-provisions.view'
 
 export function ServerStorageConfigTab() {
@@ -83,27 +82,11 @@ export function ServerStorageConfigTab() {
       />
       <Card>
         <CardHeader>
-          <CardTitle>Server Storage Location</CardTitle>
+          <CardTitle>External Storage Provisions</CardTitle>
           <CardDescription>
-            Designate an S3 location where your server can store server level
-            data, like app assets and payloads.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="w-full">
-            <ServerStorageLocation
-              openRotateModal={openRotateModal}
-              refreshKey={refreshKey}
-            />
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>User Storage Provisions</CardTitle>
-          <CardDescription>
-            Designate S3 locations that are provided to your users as managed
-            storage options for new folders.
+            Designate external S3 locations that are offered to your users as
+            managed storage options for new folders, alongside the built-in
+            storage provided by this instance.
           </CardDescription>
         </CardHeader>
         <CardContent>

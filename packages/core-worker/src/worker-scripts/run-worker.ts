@@ -717,6 +717,12 @@ const platformAwareMounts = await (async () => {
   if (await fs.exists('/etc/resolv.conf')) {
     flags.push('--bindmount_ro=/etc/resolv.conf:/etc/resolv.conf')
   }
+  // /etc/hosts so the worker resolves the same hostnames the host does — e.g.
+  // the builtin S3 endpoint (s3.<platform_host>) it fetches objects from, which
+  // on dev/e2e maps to loopback via /etc/hosts rather than real DNS.
+  if (await fs.exists('/etc/hosts')) {
+    flags.push('--bindmount_ro=/etc/hosts:/etc/hosts')
+  }
 
   // tsconfig for worker transpile
   if (

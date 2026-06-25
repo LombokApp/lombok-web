@@ -12,6 +12,7 @@ import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { ServerModule } from 'src/server/server.module'
+import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 import { TaskModule } from 'src/task/task.module'
@@ -45,6 +46,7 @@ import { FolderIconService } from './services/folder-icon.service'
     AppCustomSettingsService,
     LogEntryService,
     ReindexFolderProcessor,
+    StorageProvisionService,
   ],
   exports: [FolderService, FolderIconService, ReindexFolderProcessor],
 })

@@ -98,13 +98,20 @@ echo ""
 echo "================================================"
 echo "Garage"
 echo "================================================"
+# Auto-generated key (every environment). The provisioner creates the three
+# system buckets plus a demo "external-demo" bucket the seed wires up as an
+# example External provision.
 APP_USER="$APP_USER" \
-GARAGE_S3_ACCESS_KEY_ID="${DEV_S3_ACCESS_KEY_ID}" \
-GARAGE_S3_SECRET_KEY="${DEV_S3_SECRET_ACCESS_KEY}" \
-GARAGE_S3_BUCKET="${DEV_S3_BUCKET_NAME}" \
 GARAGE_S3_KEY_NAME="lombokdev" \
-GARAGE_LOG_LEVEL="${DEV_S3_LOG_LEVEL:-error}" \
+GARAGE_EXTRA_BUCKETS="external-demo" \
+GARAGE_LOG_LEVEL="${GARAGE_LOG_LEVEL:-error}" \
   sh ./packages/api/cmd/garage-provision.sh
+
+# Hand the builtin credentials to the API + seed (both run below) so they derive
+# the embedded server storage + builtin provision (see storage/embedded-s3.ts).
+. /var/lib/garage/.lombok-builtin-key
+export EMBEDDED_S3_ACCESS_KEY_ID EMBEDDED_S3_SECRET_ACCESS_KEY
+export EMBEDDED_S3_REGION="auto"
 echo ""
 echo "================================================"
 echo "Install dependencies"

@@ -39,7 +39,6 @@ describe('Folder Shares Management', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -74,7 +73,6 @@ describe('Folder Shares Management', () => {
 
     const targetUserId = await getViewerUserId(shareTarget)
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
@@ -136,7 +134,6 @@ describe('Folder Shares Management', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
     await testModule!.initMinioTestBucket()
 
     const { folder } = await createTestFolder({
