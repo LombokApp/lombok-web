@@ -28,12 +28,21 @@ const storageProvisionSelectionSchema = z.object({
   storageProvisionId: z.string(),
 })
 
+// The builtin (embedded) target is selected with `{ builtin: true }`, not its id.
+const builtinSelectionSchema = z.object({
+  builtin: z.literal(true),
+})
+
 const formSchema = z.object({
   name: z.string().min(1, {
     message: 'Name must be at least 1 characters.',
   }),
-  contentLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
-  metadataLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
+  contentLocation: s3LocationSchema
+    .or(storageProvisionSelectionSchema)
+    .or(builtinSelectionSchema),
+  metadataLocation: s3LocationSchema
+    .or(storageProvisionSelectionSchema)
+    .or(builtinSelectionSchema),
 })
 
 export type FolderFormValues = z.infer<typeof formSchema>
@@ -50,6 +59,8 @@ export const CreateFolderForm = ({
   const [formConfig, setFormConfig] = useState({
     useCustomContentLocation: false,
     useCustomMetadataLocation: false,
+    useBuiltinContentLocation: false,
+    useBuiltinMetadataLocation: false,
     useStorageProvisionContentLocation: false,
     useStorageProvisionMetadataLocation: false,
   })
@@ -60,11 +71,36 @@ export const CreateFolderForm = ({
     },
   })
 
+  const handleContentLocationBuiltinSelection = useCallback(() => {
+    setFormConfig((_c) => ({
+      ..._c,
+      useCustomContentLocation: false,
+      useBuiltinContentLocation: true,
+      useStorageProvisionContentLocation: false,
+    }))
+    form.setValue('contentLocation', {
+      builtin: true,
+    })
+  }, [form])
+
+  const handleMetadataLocationBuiltinSelection = useCallback(() => {
+    setFormConfig((_c) => ({
+      ..._c,
+      useCustomContentLocation: false,
+      useBuiltinMetadataLocation: true,
+      useStorageProvisionContentLocation: false,
+    }))
+    form.setValue('metadataLocation', {
+      builtin: true,
+    })
+  }, [form])
+
   const handleContentLocationStorageProvisionSelection = useCallback(
     (storageProvision: StorageProvision) => {
       setFormConfig((_c) => ({
         ..._c,
         useCustomContentLocation: false,
+        useBuiltinContentLocation: false,
         useStorageProvisionContentLocation: true,
       }))
       form.setValue('contentLocation', {
@@ -79,6 +115,7 @@ export const CreateFolderForm = ({
       setFormConfig((_c) => ({
         ..._c,
         useCustomMetadataLocation: false,
+        useBuiltinMetadataLocation: false,
         useStorageProvisionMetadataLocation: true,
       }))
       form.setValue('metadataLocation', {
@@ -97,6 +134,7 @@ export const CreateFolderForm = ({
     setFormConfig((_c) => ({
       ..._c,
       useCustomContentLocation: false,
+      useBuiltinContentLocation: false,
       useStorageProvisionContentLocation: false,
     }))
     form.resetField('contentLocation')
@@ -106,6 +144,7 @@ export const CreateFolderForm = ({
     setFormConfig((_c) => ({
       ..._c,
       useCustomMetadataLocation: false,
+      useBuiltinMetadataLocation: false,
       useStorageProvision: false,
     }))
     form.resetField('metadataLocation')
@@ -134,6 +173,7 @@ export const CreateFolderForm = ({
       setFormConfig((_c) => ({
         ..._c,
         useCustomContentLocation: true,
+        useBuiltinContentLocation: false,
         useStorageProvisionContentLocation: false,
       }))
     },
@@ -147,6 +187,7 @@ export const CreateFolderForm = ({
       setFormConfig((_c) => ({
         ..._c,
         useCustomMetadataLocation: true,
+        useBuiltinMetadataLocation: false,
         useStorageProvisionMetadataLocation: false,
       }))
     },
@@ -161,10 +202,18 @@ export const CreateFolderForm = ({
     ? formValues.metadataLocation.storageProvisionId
     : undefined
 
-  const serverProvisionMetadataLocationLabel = serverProvisionMetadataLocationId
-    ? (storageProvisions.find((l) => (l.id = serverProvisionMetadataLocationId))
-        ?.label ?? '')
-    : ''
+  const builtinLabel = 'Built-in storage'
+
+  const serverProvisionMetadataLocationLabel = safeZodParse(
+    formValues.metadataLocation,
+    builtinSelectionSchema,
+  )
+    ? builtinLabel
+    : serverProvisionMetadataLocationId
+      ? (storageProvisions.find(
+          (l) => l.id === serverProvisionMetadataLocationId,
+        )?.label ?? '')
+      : ''
   const serverProvisionContentLocationId = safeZodParse(
     formValues.contentLocation,
     storageProvisionSelectionSchema,
@@ -172,10 +221,16 @@ export const CreateFolderForm = ({
     ? formValues.contentLocation.storageProvisionId
     : undefined
 
-  const serverProvisionContentLocationLabel = serverProvisionContentLocationId
-    ? (storageProvisions.find((l) => (l.id = serverProvisionContentLocationId))
-        ?.label ?? '')
-    : ''
+  const serverProvisionContentLocationLabel = safeZodParse(
+    formValues.contentLocation,
+    builtinSelectionSchema,
+  )
+    ? builtinLabel
+    : serverProvisionContentLocationId
+      ? (storageProvisions.find(
+          (l) => l.id === serverProvisionContentLocationId,
+        )?.label ?? '')
+      : ''
 
   const metadataLocation = form.getValues().metadataLocation
   const customMetadataLocationDescription: string =
@@ -252,6 +307,15 @@ export const CreateFolderForm = ({
                   <X className="size-4 opacity-50" />
                 </Button>
               </div>
+            ) : formConfig.useBuiltinContentLocation ? (
+              <div className="flex items-center">
+                <Badge variant={'outline'} className="p-2 px-3">
+                  {builtinLabel}
+                </Badge>
+                <Button variant="link" onClick={handleContentLocationRemove}>
+                  <X className="size-4 opacity-50" />
+                </Button>
+              </div>
             ) : formConfig.useStorageProvisionContentLocation ? (
               <div className="flex items-center">
                 <Badge variant={'outline'} className="p-2 px-3">
@@ -275,6 +339,7 @@ export const CreateFolderForm = ({
                   storageProvisions={storageProvisions.filter((p) =>
                     p.provisionTypes.includes('CONTENT'),
                   )}
+                  onSelectBuiltin={handleContentLocationBuiltinSelection}
                   onSelectCustom={handleCustomContentLocationEditStart}
                   onSelectStorageProvision={
                     handleContentLocationStorageProvisionSelection
@@ -316,6 +381,15 @@ export const CreateFolderForm = ({
                 <X className="size-4 opacity-50" />
               </Button>
             </div>
+          ) : formConfig.useBuiltinMetadataLocation ? (
+            <div className="flex items-center">
+              <Badge variant={'outline'} className="p-2 px-3">
+                {builtinLabel}
+              </Badge>
+              <Button variant="link" onClick={handleContentLocationRemove}>
+                <X className="size-4 opacity-50" />
+              </Button>
+            </div>
           ) : formConfig.useStorageProvisionMetadataLocation ? (
             <div className="flex items-center">
               <Badge variant={'outline'} className="p-2 px-3">
@@ -339,6 +413,7 @@ export const CreateFolderForm = ({
                 storageProvisions={storageProvisions.filter((p) =>
                   p.provisionTypes.includes('METADATA'),
                 )}
+                onSelectBuiltin={handleMetadataLocationBuiltinSelection}
                 onSelectCustom={handleCustomMetadataLocationEditStart}
                 onSelectStorageProvision={
                   handleMetadataLocationStorageProvisionSelection

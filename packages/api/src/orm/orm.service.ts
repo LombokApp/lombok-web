@@ -73,6 +73,7 @@ import {
   mcpUserSettingsTable,
 } from '../mcp/entities/mcp-user-settings.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
+import { externalStorageProvisionsTable } from '../storage/entities/external-storage-provision.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { tasksTable } from '../task/entities/task.entity'
 import { usersTable } from '../users/entities/user.entity'
@@ -88,6 +89,7 @@ export const dbSchema = {
   sessionsTable,
   userIdentitiesTable,
   storageLocationsTable,
+  externalStorageProvisionsTable,
   serverSettingsTable,
   foldersTable,
   foldersRelations,

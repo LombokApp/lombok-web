@@ -1,5 +1,7 @@
 import { StorageProvisionTypeEnum } from '@lombokapp/types'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { eq } from 'drizzle-orm'
+import { foldersTable } from 'src/folders/entities/folder.entity'
 import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
@@ -335,8 +337,8 @@ describe('Folders', () => {
       provisionTypes: [StorageProvisionTypeEnum.CONTENT],
     }
 
-    const _storageProvision = await apiClient(accessToken).POST(
-      '/api/v1/server/storage-provisions',
+    const newStorageProvisionsResponse = await apiClient(accessToken).POST(
+      '/api/v1/server/external-storage-provisions',
       {
         body: {
           label: storageProvisionInput.label,
@@ -351,9 +353,12 @@ describe('Folders', () => {
         },
       },
     )
-    const provisionId = _storageProvision.data?.result[0]?.id
-    if (!provisionId) {
-      throw new Error('No provision id')
+
+    expect(newStorageProvisionsResponse.response.status).toBe(201)
+    expect(newStorageProvisionsResponse.data?.result.length).toBe(1)
+    const newProvision = newStorageProvisionsResponse.data?.result[0]
+    if (!newProvision) {
+      throw new Error('No new provision')
     }
 
     const folderCreateResponse = await apiClient(accessToken).POST(
@@ -362,17 +367,17 @@ describe('Folders', () => {
         body: {
           name: 'My Folder',
           contentLocation: {
-            storageProvisionId: provisionId,
+            storageProvisionId: newProvision.id,
           },
           metadataLocation: {
-            storageProvisionId: provisionId,
+            storageProvisionId: newProvision.id,
           },
         },
       },
     )
     expect(folderCreateResponse.response.status).toBe(201)
     // validate content location
-    expect(folderCreateResponse.data?.folder.contentLocation.providerType).toBe(
+    expect(folderCreateResponse.data?.folder.contentLocation.kind).toBe(
       'SERVER',
     )
     expect(folderCreateResponse.data?.folder.contentLocation.endpoint).toBe(
@@ -392,9 +397,9 @@ describe('Folders', () => {
     )
 
     // validate metadata location
-    expect(
-      folderCreateResponse.data?.folder.metadataLocation.providerType,
-    ).toBe('SERVER')
+    expect(folderCreateResponse.data?.folder.metadataLocation.kind).toBe(
+      'SERVER',
+    )
     expect(folderCreateResponse.data?.folder.metadataLocation.endpoint).toBe(
       storageProvisionInput.endpoint,
     )
@@ -444,9 +449,7 @@ describe('Folders', () => {
     )
     expect(folderCreateResponse.response.status).toBe(201)
     // validate content location
-    expect(folderCreateResponse.data?.folder.contentLocation.providerType).toBe(
-      'USER',
-    )
+    expect(folderCreateResponse.data?.folder.contentLocation.kind).toBe('USER')
     expect(folderCreateResponse.data?.folder.contentLocation.endpoint).toBe(
       storageLocationInput.endpoint,
     )
@@ -463,9 +466,7 @@ describe('Folders', () => {
       storageLocationInput.prefix,
     )
     // metadata content location
-    expect(
-      folderCreateResponse.data?.folder.metadataLocation.providerType,
-    ).toBe('USER')
+    expect(folderCreateResponse.data?.folder.metadataLocation.kind).toBe('USER')
     expect(folderCreateResponse.data?.folder.metadataLocation.endpoint).toBe(
       storageLocationInput.endpoint,
     )
@@ -506,8 +507,8 @@ describe('Folders', () => {
       provisionTypes: [StorageProvisionTypeEnum.CONTENT],
     }
 
-    const _storageProvision = await apiClient(accessToken).POST(
-      '/api/v1/server/storage-provisions',
+    const newStorageProvisionsResponse = await apiClient(accessToken).POST(
+      '/api/v1/server/external-storage-provisions',
       {
         body: {
           label: storageProvisionInput.label,
@@ -522,20 +523,23 @@ describe('Folders', () => {
         },
       },
     )
-    const provisionId = _storageProvision.data?.result[0]?.id
-    if (!provisionId) {
-      throw new Error('No provision id')
+    expect(newStorageProvisionsResponse.response.status).toBe(201)
+    expect(newStorageProvisionsResponse.data?.result.length).toBe(1)
+    const newProvision = newStorageProvisionsResponse.data?.result[0]
+    if (!newProvision) {
+      throw new Error('No new provision')
     }
+
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
       {
         body: {
           name: 'My Folder',
           contentLocation: {
-            storageProvisionId: provisionId,
+            storageProvisionId: newProvision.id,
           },
           metadataLocation: {
-            storageProvisionId: provisionId,
+            storageProvisionId: newProvision.id,
           },
         },
       },
@@ -1101,6 +1105,52 @@ describe('Folders', () => {
 
     expect(folderGetResponse.response.status).toEqual(200)
     expect(folderGetResponse.data?.folder.name).toEqual(maxLengthName)
+  })
+
+  it(`stores NULL locations for a builtin-provision-backed folder and resolves them`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule!, {
+      username: 'builtinuser',
+      password: '123',
+      admin: true,
+    })
+
+    const folderCreateResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders',
+      {
+        body: {
+          name: 'Builtin Folder',
+          contentLocation: { builtin: true },
+          metadataLocation: { builtin: true },
+        },
+      },
+    )
+    expect(folderCreateResponse.response.status).toBe(201)
+    const folder = folderCreateResponse.data!.folder
+
+    // Locations are synthesized in memory from the embedded provision.
+    expect(folder.contentLocation.kind).toBe('BUILTIN')
+    expect(folder.contentLocation.bucket).toBe(
+      testModule!.services.coreConfig.s3SystemBuckets.provisions,
+    )
+    expect(folder.contentLocation.prefix).toBe(
+      `.lombok_provision__user_${folder.ownerId}_folder_${folder.id}/.lombok_folder_content_${folder.id}`,
+    )
+    expect(folder.metadataLocation.bucket).toBe(
+      testModule!.services.coreConfig.s3SystemBuckets.provisions,
+    )
+    expect(folder.metadataLocation.prefix).toBe(
+      `.lombok_provision__user_${folder.ownerId}_folder_${folder.id}/.lombok_folder_metadata_${folder.id}`,
+    )
+
+    // Stored columns are NULL — NULL means "the builtin default".
+    const row =
+      await testModule!.services.ormService.db.query.foldersTable.findFirst({
+        where: eq(foldersTable.id, folder.id),
+      })
+    expect(row?.contentLocationId).toBeNull()
+    expect(row?.metadataLocationId).toBeNull()
   })
 
   afterAll(async () => {

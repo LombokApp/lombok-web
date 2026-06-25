@@ -19,41 +19,41 @@ import { ZodValidationPipe } from 'nestjs-zod'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { ApiStandardErrorResponses } from 'src/shared/decorators/api-standard-error-responses.decorator'
 
+import { ExternalStorageProvisionsListQueryParamsDTO } from '../dto/external-storage-provisions-list-query-params.dto'
 import { StorageProvisionGetResponse } from '../dto/responses/storage-provision-get-response.dto'
 import { StorageProvisionsListResponse } from '../dto/responses/storage-provision-list-response.dto'
 import {
   StorageProvisionInputDTO,
   StorageProvisionUpdateDTO,
 } from '../dto/storage-provision-input.dto'
-import { StorageProvisionsListQueryParamsDTO } from '../dto/storage-provisions-list-query-params.dto'
-import { transformStorageProvisionToDTO } from '../dto/transforms/storage-provision.transforms'
-import { ServerConfigurationService } from '../services/server-configuration.service'
+import { transformStorageProvisionToDTO } from '../dto/transforms/external-storage-provision.transforms'
+import { StorageProvisionService } from '../services/storage-provision.service'
 
-@Controller('/api/v1/server/storage-provisions')
-@ApiTags('StorageProvisions')
+@Controller('/api/v1/server/external-storage-provisions')
+@ApiTags('ExternalStorageProvisions')
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
 @ApiStandardErrorResponses()
 export class StorageProvisionsController {
   constructor(
-    private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly storageProvisionService: StorageProvisionService,
   ) {}
 
   /**
-   * List the storage provisions.
+   * List the external storage provisions.
    */
   @Get()
-  async listStorageProvisions(
+  async listExternalStorageProvisions(
     @Req() req: express.Request,
-    @Query() queryParams: StorageProvisionsListQueryParamsDTO,
+    @Query() queryParams: ExternalStorageProvisionsListQueryParamsDTO,
   ): Promise<StorageProvisionsListResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
 
     const result =
-      await this.serverConfigurationService.listStorageProvisionsAsUser(
+      await this.storageProvisionService.listExternalStorageProvisionsAsUser(
         req.user,
         queryParams,
       )
@@ -76,7 +76,7 @@ export class StorageProvisionsController {
     }
 
     const result =
-      await this.serverConfigurationService.getStorageProvisionById(
+      await this.storageProvisionService.getStorageProvisionById(
         storageProvisionId,
       )
     if (!result) {
@@ -99,13 +99,13 @@ export class StorageProvisionsController {
       throw new UnauthorizedException()
     }
 
-    await this.serverConfigurationService.createStorageProvisionAsAdmin(
+    await this.storageProvisionService.createStorageProvisionAsAdmin(
       req.user,
       serverProvision,
     )
 
     const listResult =
-      await this.serverConfigurationService.listStorageProvisionsAsUser(
+      await this.storageProvisionService.listExternalStorageProvisionsAsUser(
         req.user,
       )
 
@@ -127,14 +127,14 @@ export class StorageProvisionsController {
       throw new UnauthorizedException()
     }
 
-    await this.serverConfigurationService.updateStorageProvisionAsAdmin(
+    await this.storageProvisionService.updateStorageProvisionAsAdmin(
       req.user,
       storageProvisionId,
       storageProvision,
     )
 
     const listResult =
-      await this.serverConfigurationService.listStorageProvisionsAsUser(
+      await this.storageProvisionService.listExternalStorageProvisionsAsUser(
         req.user,
       )
     const result = {
@@ -154,12 +154,12 @@ export class StorageProvisionsController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    await this.serverConfigurationService.deleteStorageProvisionAsAdmin(
+    await this.storageProvisionService.deleteStorageProvisionAsAdmin(
       req.user,
       storageProvisionId,
     )
     const listResult =
-      await this.serverConfigurationService.listStorageProvisionsAsUser(
+      await this.storageProvisionService.listExternalStorageProvisionsAsUser(
         req.user,
       )
     return {

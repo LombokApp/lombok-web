@@ -16,7 +16,7 @@ import { S3Service } from 'src/storage/s3.service'
 
 import { SERVER_ICON_CONFIG } from '../constants/server.constants'
 import { serverSettingsTable } from '../entities/server-configuration.entity'
-import { ServerConfigurationService } from './server-configuration.service'
+import { StorageProvisionService } from './storage-provision.service'
 
 interface ServerStorage {
   accessKeyId: string
@@ -44,13 +44,12 @@ function buildServerIconKey(
 export class ServerIconService {
   constructor(
     private readonly ormService: OrmService,
-    private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly storageProvisionService: StorageProvisionService,
     private readonly s3Service: S3Service,
   ) {}
 
   private async requireServerStorage(): Promise<ServerStorage> {
-    const serverStorage =
-      await this.serverConfigurationService.getServerStorage()
+    const serverStorage = await this.storageProvisionService.getServerStorage()
     if (!serverStorage) {
       throw new NotImplementedException('Server storage not configured')
     }

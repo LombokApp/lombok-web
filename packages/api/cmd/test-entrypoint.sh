@@ -36,6 +36,11 @@ fi
 
 APP_UI_HOST=${APP_UI_HOST:-"http://127.0.0.1:3001"}
 
+# Resolve the builtin S3 vhost to loopback so the in-container harness, browser
+# and (bind-mounted /etc/hosts) core-worker sandbox all reach Garage via nginx.
+grep -q "s3.${PLATFORM_HOST}" /etc/hosts || \
+  echo "127.0.0.1 s3.${PLATFORM_HOST}" >> /etc/hosts
+
 # ── NGINX ──────────────────────────────────────────────────
 echo "================================================"
 echo "NGINX"
@@ -116,19 +121,26 @@ echo ""
 echo "================================================"
 echo "Garage"
 echo "================================================"
-# Fixed test credentials (Garage requires GK-prefixed keys + 64-hex secrets).
-# The harness mints per-suite buckets over S3, so the key is granted createBucket.
-export TEST_S3_ACCESS_KEY_ID="GKcafebabecafebabecafebabe"
-export TEST_S3_SECRET_ACCESS_KEY="cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe"
-
+# Auto-generated key (granted createBucket so the harness can mint per-suite
+# namespaced buckets over S3). The provisioner creates the three system buckets;
+# the harness namespaces its own per suite and overrides the coreConfig provider.
 APP_USER="$APP_USER" \
-GARAGE_S3_ACCESS_KEY_ID="$TEST_S3_ACCESS_KEY_ID" \
-GARAGE_S3_SECRET_KEY="$TEST_S3_SECRET_ACCESS_KEY" \
-GARAGE_S3_BUCKET="lomboktestbucket" \
 GARAGE_S3_KEY_NAME="lomboktest" \
 GARAGE_KEY_CREATE_BUCKET="1" \
 GARAGE_LOG_LEVEL="${GARAGE_LOG_LEVEL:-error}" \
   sh ./packages/api/cmd/garage-provision.sh
+
+# Hand the builtin credentials to the harness (it reads process.env.EMBEDDED_S3_*).
+. /var/lib/garage/.lombok-builtin-key
+export EMBEDDED_S3_ACCESS_KEY_ID EMBEDDED_S3_SECRET_ACCESS_KEY
+export EMBEDDED_S3_REGION="auto"
+# nginx serves S3 on :8080 here (the logical PLATFORM_PORT is 3000, the backend
+# port), so pin the embedded S3 endpoint to the nginx port the browser/workers use.
+export EMBEDDED_S3_ENDPOINT="http://s3.${PLATFORM_HOST}:8080"
+# The harness drives the Garage CLI to mint per-suite buckets; point it at the
+# rendered runtime config (the shipped /etc/garage.toml still has the
+# {{GARAGE_API_BIND_ADDR}} placeholder, which the CLI can't parse).
+export GARAGE_CONFIG_FILE="/var/lib/garage/garage.runtime.toml"
 
 # ── Tests ───────────────────────────────────────────────────
 echo ""

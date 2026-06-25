@@ -1,6 +1,6 @@
 import type { Folder } from 'src/folders/entities/folder.entity'
 import { buildImageUrls } from 'src/shared/utils'
-import { transformStorageLocationToDTO } from 'src/storage/dto/transforms/storage-location.transforms'
+import { transformStorageTargetToDTO } from 'src/storage/dto/transforms/storage-target.transforms'
 
 import type { FolderDTO } from '../folder.dto'
 
@@ -9,8 +9,8 @@ export function transformFolderToDTO(folder: Folder): FolderDTO {
     id: folder.id,
     name: folder.name,
     ownerId: folder.ownerId,
-    contentLocation: transformStorageLocationToDTO(folder.contentLocation),
-    metadataLocation: transformStorageLocationToDTO(folder.metadataLocation),
+    contentLocation: transformStorageTargetToDTO(folder.contentLocation),
+    metadataLocation: transformStorageTargetToDTO(folder.metadataLocation),
     accessError: folder.accessError,
     icon: buildImageUrls(
       `/api/v1/folders/${folder.id}/icon`,

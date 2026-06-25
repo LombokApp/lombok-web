@@ -6,6 +6,7 @@ import type {
   PreviewMetadata,
   S3ObjectInternal,
   StorageProvisionType,
+  StorageProvisionWithSecret,
 } from '@lombokapp/types'
 import {
   CORE_IDENTIFIER,
@@ -56,12 +57,13 @@ import { eventsTable } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { transformFolderObjectToDTO } from 'src/folders/dto/transforms/folder-object.transforms'
 import { OrmService } from 'src/orm/orm.service'
-import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import type { ImageUrls } from 'src/shared/utils/image-url.util'
 import { buildImageUrls } from 'src/shared/utils/image-url.util'
 import { RealtimeService } from 'src/socket/realtime.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
-import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
+import { StorageTargetInputDTO } from 'src/storage/dto/storage-target-input.dto'
+import { buildEmbeddedStorageProvision } from 'src/storage/embedded-s3'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage-location-not-found.exceptions'
@@ -78,7 +80,11 @@ import { z } from 'zod'
 
 import { FolderShareDTO } from '../dto/folder-share.dto'
 import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
-import type { Folder } from '../entities/folder.entity'
+import type {
+  Folder,
+  FolderStorageTarget,
+  FolderWithoutLocations,
+} from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
 import { folderObjectsTable } from '../entities/folder-object.entity'
@@ -153,6 +159,10 @@ export interface FolderObjectUpdate {
   mimeType?: string
 }
 
+const builtinTargetPayloadSchema = z.object({
+  builtin: z.literal(true),
+})
+
 const customLocationPayloadSchema = z.object({
   accessKeyId: z.string(),
   secretAccessKey: z.string(),
@@ -202,7 +212,7 @@ export class FolderService {
     @Inject(coreConfig.KEY)
     _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
-    private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly storageProvisionService: StorageProvisionService,
   ) {
     this.s3Service = _s3Service as S3Service
     this.coreTaskService = _coreTaskService as CoreTaskService
@@ -213,18 +223,102 @@ export class FolderService {
     this.coreConfig = _coreConfig
   }
 
+  /**
+   * Resolve a folder's storage location to its addressing fields. External/custom/
+   * user locations have a stored row (`rawRow`); a builtin-backed folder stores
+   * NULL and is resolved in memory from the embedded builtin provision plus a
+   * folder-derived prefix, with no row id (`id`/`userId` are null).
+   */
+  private resolveFolderLocation(
+    folder: FolderWithoutLocations,
+    kind: 'content' | 'metadata',
+    rawRow: StorageLocation | null | undefined,
+  ): FolderStorageTarget {
+    if (rawRow) {
+      return rawRow
+    }
+
+    const builtinProvision = this.getFolderBuiltinProvisionOrThrow({
+      userId: folder.ownerId,
+      folderId: folder.id,
+    })
+
+    function normalisePrefix(prefix: string): string {
+      return prefix.endsWith('/') ? prefix : `${prefix}/`
+    }
+
+    const prefixSuffix =
+      kind === 'metadata'
+        ? `.lombok_folder_metadata_${folder.id}`
+        : `.lombok_folder_content_${folder.id}`
+    const prefix = builtinProvision.prefix
+      ? `${normalisePrefix(builtinProvision.prefix)}${prefixSuffix}`
+      : prefixSuffix
+    return {
+      id: null,
+      userId: null,
+      kind: 'BUILTIN',
+      accessKeyHashId: builtinProvision.accessKeyHashId,
+      label: `Built-in storage`,
+      endpoint: builtinProvision.endpoint,
+      region: builtinProvision.region,
+      accessKeyId: builtinProvision.accessKeyId,
+      secretAccessKey: builtinProvision.secretAccessKey,
+      bucket: builtinProvision.bucket,
+      prefix,
+    }
+  }
+
+  /** The folder specific version of the always-present builtin (embedded Garage) provision; throws if absent. */
+  private getFolderBuiltinProvisionOrThrow(provisionContext: {
+    userId: string
+    folderId: string
+  }): Omit<StorageProvisionWithSecret, 'id' | 'userId'> {
+    const builtin = buildEmbeddedStorageProvision(
+      this.coreConfig.s3SystemBuckets.provisions,
+      provisionContext,
+    )
+    if (!builtin) {
+      throw new Error('Embedded storage is not configured')
+    }
+    return builtin
+  }
+
+  /** Attach resolved content + metadata locations to a folder row. */
+  private attachResolvedLocations(
+    folder: FolderWithoutLocations & {
+      contentLocation?: StorageLocation | null
+      metadataLocation?: StorageLocation | null
+    },
+  ): Folder {
+    return {
+      ...folder,
+      contentLocation: this.resolveFolderLocation(
+        folder,
+        'content',
+        folder.contentLocation,
+      ),
+      metadataLocation: this.resolveFolderLocation(
+        folder,
+        'metadata',
+        folder.metadataLocation,
+      ),
+    }
+  }
+
   async createFolder({
     userId,
     body,
   }: {
     body: {
-      // this is called with two location configurations (for content and metadata) which are each either:
+      // this is called with two target configurations (for content and metadata) which are each either:
+      //  - The builtin (embedded) provision, selected with `{ builtin: true }`
       //  - A whole new location, meaning no existing location id, but all the other required properties
       //  - A location id of another of the user's locations, plus a bucket & prefix to replace the ones of that location
       //  - A reference to a server storage provision (in which case no overrides are allowed)
       name: string
-      contentLocation: StorageLocationInputDTO
-      metadataLocation: StorageLocationInputDTO
+      contentLocation: StorageTargetInputDTO
+      metadataLocation: StorageTargetInputDTO
     }
     userId: string
   }): Promise<Folder> {
@@ -233,12 +327,17 @@ export class FolderService {
     // (in the case of a Server provided location for a user folder)
     const prospectiveFolderId = crypto.randomUUID()
     const now = new Date()
+    // Returns null when the builtin target is chosen — builtin-backed folders
+    // store NULL location columns and resolve in memory.
     const buildLocation = async (
       storageProvisionType: StorageProvisionType,
-      locationInput: StorageLocationInputDTO,
-    ): Promise<StorageLocation> => {
+      locationInput: StorageTargetInputDTO,
+    ): Promise<StorageLocation | null> => {
       let location: StorageLocation | undefined
-      if (safeZodParse(locationInput, customLocationPayloadSchema)) {
+      if (safeZodParse(locationInput, builtinTargetPayloadSchema)) {
+        // Builtin (embedded) provision → store NULL; resolved in memory.
+        return null
+      } else if (safeZodParse(locationInput, customLocationPayloadSchema)) {
         // user has input a custom location
         location = (
           await this.ormService.db
@@ -255,7 +354,7 @@ export class FolderService {
               prefix: locationInput.prefix ?? '',
               id: crypto.randomUUID(),
               label: `${locationInput.endpoint} - ${locationInput.accessKeyId}`,
-              providerType: 'USER',
+              kind: 'USER',
               userId,
               createdAt: now,
               updatedAt: now,
@@ -267,7 +366,7 @@ export class FolderService {
         const existingLocation =
           await this.ormService.db.query.storageLocationsTable.findFirst({
             where: and(
-              eq(storageLocationsTable.providerType, 'USER'),
+              eq(storageLocationsTable.kind, 'USER'),
               eq(storageLocationsTable.userId, userId),
               eq(storageLocationsTable.id, locationInput.userLocationId),
             ),
@@ -279,7 +378,7 @@ export class FolderService {
               .values({
                 id: crypto.randomUUID(),
                 label: existingLocation.label,
-                providerType: 'USER',
+                kind: 'USER',
                 userId,
                 endpoint: existingLocation.endpoint,
                 endpointDomain: new URL(existingLocation.endpoint).host,
@@ -305,7 +404,7 @@ export class FolderService {
       } else if (safeZodParse(locationInput, serverProvisionPayloadSchema)) {
         // user has provided a reference to a server supplied storage provision
         const storageProvision =
-          await this.serverConfigurationService.getStorageProvisionById(
+          await this.storageProvisionService.getStorageProvisionById(
             locationInput.storageProvisionId,
           )
 
@@ -326,7 +425,7 @@ export class FolderService {
             .values({
               id: crypto.randomUUID(),
               label: `SERVER:${storageProvision.id}`,
-              providerType: 'SERVER',
+              kind: 'SERVER',
               userId,
               endpoint: storageProvision.endpoint,
               endpointDomain: new URL(storageProvision.endpoint).host,
@@ -373,8 +472,9 @@ export class FolderService {
         .values({
           id: prospectiveFolderId,
           name: body.name,
-          contentLocationId: contentLocation.id,
-          metadataLocationId: metadataLocation.id,
+          // NULL for builtin-backed locations (resolved in memory).
+          contentLocationId: contentLocation?.id ?? null,
+          metadataLocationId: metadataLocation?.id ?? null,
           ownerId: userId,
           createdAt: now,
           updatedAt: now,
@@ -384,11 +484,11 @@ export class FolderService {
 
     await this.checkAndUpdateFolderAccessError(folder.id)
 
-    return {
-      ...(await this.getFolder({ folderId: folder.id })),
+    return this.attachResolvedLocations({
+      ...folder,
       contentLocation,
       metadataLocation,
-    }
+    })
   }
 
   async getFolder<
@@ -406,33 +506,36 @@ export class FolderService {
           : Folder,
   >({
     folderId,
-    includeContentLocation,
   }: {
     folderId: string
     includeContentLocation?: C
     includeMetadataLocation?: M
   }): Promise<T> {
+    // Always resolve both locations (cheap) so the returned Folder is fully
+    // populated regardless of the include flags — builtin-backed folders have
+    // NULL columns and must be synthesized in memory.
     const folder = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
-      with: includeContentLocation ? { contentLocation: true } : undefined,
+      with: { contentLocation: true, metadataLocation: true },
     })
     if (!folder) {
       throw new FolderNotFoundException()
     }
-    return folder as T
+    return this.attachResolvedLocations(folder) as T
   }
 
   async checkAndUpdateFolderAccessError(folderId: string): Promise<void> {
-    const folder = await this.ormService.db.query.foldersTable.findFirst({
+    const folderRow = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
       with: {
         contentLocation: true,
         metadataLocation: true,
       },
     })
-    if (!folder) {
+    if (!folderRow) {
       throw new FolderNotFoundException()
     }
+    const folder = this.attachResolvedLocations(folderRow)
 
     let accessError: { message: string; code: string } | undefined
 
@@ -604,17 +707,7 @@ export class FolderService {
 
     return {
       result: folders.map(({ totalCount, starred, ...folder }) => ({
-        folder: {
-          ...folder,
-          // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-          contentLocation: folder.contentLocation as NonNullable<
-            typeof folder.contentLocation
-          >,
-          // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-          metadataLocation: folder.metadataLocation as NonNullable<
-            typeof folder.metadataLocation
-          >,
-        },
+        folder: this.attachResolvedLocations(folder),
         permissions:
           folder.ownerId === actor.id
             ? OWNER_PERMISSIONS
@@ -788,7 +881,7 @@ export class FolderService {
     permissions: FolderPermissionName[]
     starred: boolean
   }> {
-    const folder = await this.ormService.db.query.foldersTable.findFirst({
+    const folderRow = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
       with: {
         contentLocation: true,
@@ -796,9 +889,10 @@ export class FolderService {
       },
     })
 
-    if (!folder) {
+    if (!folderRow) {
       throw new FolderNotFoundException()
     }
+    const folder = this.attachResolvedLocations(folderRow)
 
     const preference =
       await this.ormService.db.query.folderUserPreferencesTable.findFirst({
@@ -1409,16 +1503,7 @@ export class FolderService {
   ): Promise<FolderObject> {
     const { folder } = await this.getFolderAsUser(actor, folderId)
 
-    const contentStorageLocation =
-      await this.ormService.db.query.storageLocationsTable.findFirst({
-        where: eq(storageLocationsTable.id, folder.contentLocationId),
-      })
-
-    if (!contentStorageLocation) {
-      throw new NotFoundException(
-        `Storage location not found by id "${folder.contentLocationId}"`,
-      )
-    }
+    const contentStorageLocation = folder.contentLocation
 
     const absoluteObjectKey = `${contentStorageLocation.prefix}${contentStorageLocation.prefix.endsWith('/') ? '' : '/'}${objectKey}`
 

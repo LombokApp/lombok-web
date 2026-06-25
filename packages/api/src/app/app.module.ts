@@ -8,6 +8,7 @@ import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { StorageProvisionService } from 'src/server/services/storage-provision.service'
 import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
 import { StorageModule } from 'src/storage/storage.module'
@@ -39,6 +40,7 @@ import { AppRuntimeTriggerService } from './services/app-runtime-trigger.service
     AppRuntimeTriggerService,
     S3Service,
     ServerConfigurationService,
+    StorageProvisionService,
   ],
   exports: [AppService, AppCustomSettingsService, AppRuntimeTriggerService],
 })

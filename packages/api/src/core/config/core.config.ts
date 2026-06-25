@@ -21,6 +21,11 @@ export const coreConfig = registerAs('core', () => {
       CORE_WORKER_LOG_CHANNELS: z.string().optional(),
       CORE_WORKER_LOG_PRETTY: z.string().refine(isBoolean).optional(),
       BRIDGE_TUNNEL_DOMAIN: z.string().optional(),
+      // Fixed-name system buckets in the embedded S3 service. The e2e harness
+      // overrides these (via the coreConfig DI provider) to namespace per suite.
+      S3_SERVER_STORAGE_BUCKET: z.string().default('server-storage'),
+      S3_PROVISIONS_BUCKET: z.string().default('provisions'),
+      S3_UPLOADS_BUCKET: z.string().default('uploads'),
     }),
   )
 
@@ -44,5 +49,10 @@ export const coreConfig = registerAs('core', () => {
     coreWorkerLogPretty:
       env.CORE_WORKER_LOG_PRETTY === '1' ||
       env.CORE_WORKER_LOG_PRETTY === 'true',
+    s3SystemBuckets: {
+      serverStorage: env.S3_SERVER_STORAGE_BUCKET,
+      provisions: env.S3_PROVISIONS_BUCKET,
+      uploads: env.S3_UPLOADS_BUCKET,
+    },
   }
 })

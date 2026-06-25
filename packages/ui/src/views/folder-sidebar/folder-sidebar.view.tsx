@@ -68,7 +68,7 @@ export function FolderSidebar({
                           <KeyRound className="size-5" />
                         </dt>
                         <dd className={cn('text-sm leading-6')}>
-                          {folder.contentLocation.providerType === 'USER' ? (
+                          {folder.contentLocation.kind === 'USER' ? (
                             <a
                               className="underline"
                               href={`/access-keys/${folder.contentLocation.accessKeyHashId}`}

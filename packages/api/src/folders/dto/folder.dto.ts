@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
 import { imageUrlsDTOSchema } from 'src/shared/dto/image-urls.dto'
-import { storageLocationDTOSchema } from 'src/storage/dto/storage-location.dto'
+import { storageTargetDTOSchema } from 'src/storage/dto/storage-target.dto'
 import { z } from 'zod'
 
 export const folderDTOSchema = z
@@ -8,8 +8,8 @@ export const folderDTOSchema = z
     id: z.guid(),
     ownerId: z.guid(),
     name: z.string(),
-    metadataLocation: storageLocationDTOSchema,
-    contentLocation: storageLocationDTOSchema,
+    metadataLocation: storageTargetDTOSchema,
+    contentLocation: storageTargetDTOSchema,
     accessError: z
       .object({
         message: z.string(),

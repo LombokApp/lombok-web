@@ -6,6 +6,6 @@ export const storageProvisionsListQueryParamsSchema = z.object({
   provisionType: StorageProvisionTypeZodEnum.optional(),
 })
 
-export class StorageProvisionsListQueryParamsDTO extends createZodDto(
+export class ExternalStorageProvisionsListQueryParamsDTO extends createZodDto(
   storageProvisionsListQueryParamsSchema,
 ) {}

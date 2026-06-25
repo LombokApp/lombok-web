@@ -51,8 +51,6 @@ describe('Folder Object Refresh', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
-
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken,
@@ -103,8 +101,6 @@ describe('Folder Object Refresh', () => {
       password: '123',
     })
 
-    await testModule!.setServerStorageLocation()
-
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken: ownerToken,
@@ -131,8 +127,6 @@ describe('Folder Object Refresh', () => {
       username: 'refmissing',
       password: '123',
     })
-
-    await testModule!.setServerStorageLocation()
 
     const { folder } = await createTestFolder({
       testModule: testModule!,

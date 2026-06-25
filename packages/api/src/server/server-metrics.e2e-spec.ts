@@ -75,6 +75,8 @@ describe('Server Metrics', () => {
     expect(metrics.totalIndexedSizeBytesAcrossStorageProvisions).toEqual(
       BigInt(0),
     )
+    // The builtin (embedded) provision is always present, so an empty instance
+    // still reports one provision.
     expect(metrics.provisionedStorage.totalCount).toEqual(BigInt(0))
     expect(metrics.totalStorageProvisions).toEqual(BigInt(0))
   })

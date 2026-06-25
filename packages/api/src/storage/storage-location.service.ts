@@ -1,10 +1,5 @@
 import { S3ServiceException } from '@aws-sdk/client-s3'
-import {
-  accessKeySchema,
-  accessKeyWithSecretSchema,
-  ServerStorageLocation,
-  ServerStorageWithSecret,
-} from '@lombokapp/types'
+import { accessKeySchema, accessKeyWithSecretSchema } from '@lombokapp/types'
 import {
   BadRequestException,
   Injectable,
@@ -15,17 +10,13 @@ import { and, count, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
 import { parseSort } from 'src/core/utils/sort.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
-import {
-  SERVER_STORAGE_CONFIG,
-  STORAGE_PROVISIONS_CONFIG,
-} from 'src/server/constants/server.constants'
-import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { User } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
 import { buildAccessKeyHashId } from './access-key.utils'
 import { RotateAccessKeyInputDTO } from './dto/rotate-access-key-input.dto'
+import { externalStorageProvisionsTable } from './entities/external-storage-provision.entity'
 import { storageLocationsTable } from './entities/storage-location.entity'
 
 export enum AccessKeySort {
@@ -89,7 +80,7 @@ export class StorageLocationService {
       )
       .where(
         and(
-          eq(storageLocationsTable.providerType, 'USER'),
+          eq(storageLocationsTable.kind, 'USER'),
           eq(storageLocationsTable.userId, actor.id),
         ),
       )
@@ -111,7 +102,7 @@ export class StorageLocationService {
       .from(storageLocationsTable)
       .where(
         and(
-          eq(storageLocationsTable.providerType, 'USER'),
+          eq(storageLocationsTable.kind, 'USER'),
           eq(storageLocationsTable.userId, actor.id),
         ),
       )
@@ -145,7 +136,7 @@ export class StorageLocationService {
       .where(
         and(
           eq(foldersTable.ownerId, actor.id),
-          eq(storageLocationsTable.providerType, 'USER'),
+          eq(storageLocationsTable.kind, 'USER'),
         ),
       )
 
@@ -184,7 +175,7 @@ export class StorageLocationService {
     const where = and(
       eq(storageLocationsTable.accessKeyHashId, input.accessKeyHashId),
       eq(storageLocationsTable.userId, actor.id),
-      eq(storageLocationsTable.providerType, 'USER'),
+      eq(storageLocationsTable.kind, 'USER'),
     )
 
     const accessKeyLocation =
@@ -219,7 +210,7 @@ export class StorageLocationService {
         where: and(
           eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
           eq(storageLocationsTable.userId, actor.id),
-          eq(storageLocationsTable.providerType, 'USER'),
+          eq(storageLocationsTable.kind, 'USER'),
         ),
       })
     // TODO: if user has deleted their folders, this could be undefined, right?
@@ -261,7 +252,7 @@ export class StorageLocationService {
       await this.ormService.db.query.storageLocationsTable.findFirst({
         where: and(
           eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
-          eq(storageLocationsTable.providerType, 'SERVER'),
+          eq(storageLocationsTable.kind, 'SERVER'),
         ),
       })
     // TODO: if no user has created a folder using this access key, this could be undefined, right?
@@ -297,7 +288,7 @@ export class StorageLocationService {
     const where = and(
       eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
       eq(storageLocationsTable.userId, actor.id),
-      eq(storageLocationsTable.providerType, 'USER'),
+      eq(storageLocationsTable.kind, 'USER'),
     )
     const accessKeyLocation =
       await this.ormService.db.query.storageLocationsTable.findFirst({
@@ -339,7 +330,7 @@ export class StorageLocationService {
     }
     const where = and(
       eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
-      eq(storageLocationsTable.providerType, 'SERVER'),
+      eq(storageLocationsTable.kind, 'SERVER'),
     )
     const accessKeyLocation =
       await this.ormService.db.query.storageLocationsTable.findFirst({
@@ -401,7 +392,7 @@ export class StorageLocationService {
         foldersTable,
         eq(foldersTable.contentLocationId, storageLocationsTable.id),
       )
-      .where(and(eq(storageLocationsTable.providerType, 'SERVER')))
+      .where(and(eq(storageLocationsTable.kind, 'SERVER')))
       .offset(offset ?? 0)
       .limit(limit ?? 25)
       .orderBy(...parseSort(storageLocationsTable, sort))
@@ -418,7 +409,7 @@ export class StorageLocationService {
         ] as unknown as SQLWrapper), // TODO: not sure why this type hack is necessary
       })
       .from(storageLocationsTable)
-      .where(and(eq(storageLocationsTable.providerType, 'SERVER')))
+      .where(and(eq(storageLocationsTable.kind, 'SERVER')))
 
     const folderCounts = await this.ormService.db
       .select({
@@ -449,7 +440,7 @@ export class StorageLocationService {
       .where(
         and(
           eq(foldersTable.ownerId, actor.id),
-          eq(storageLocationsTable.providerType, 'SERVER'),
+          eq(storageLocationsTable.kind, 'SERVER'),
         ),
       )
 
@@ -488,7 +479,7 @@ export class StorageLocationService {
       // the where clause for all storage locations owned by the server and matching the given input
       const where = and(
         eq(storageLocationsTable.accessKeyHashId, input.accessKeyHashId),
-        eq(storageLocationsTable.providerType, 'SERVER'),
+        eq(storageLocationsTable.kind, 'SERVER'),
       )
 
       const accessKeyLocation = await tx.query.storageLocationsTable.findFirst({
@@ -515,59 +506,23 @@ export class StorageLocationService {
         })
         .where(where)
 
-      // Also update any saved server settings that reference this access key
-      const now = new Date()
-
-      // Update SERVER_STORAGE (single record)
-      const existingServerStorage =
-        await tx.query.serverSettingsTable.findFirst({
-          where: eq(serverSettingsTable.key, SERVER_STORAGE_CONFIG.key),
+      // Also update any External storage provisions that reference this key.
+      // (Builtin-backed folders use the embedded key, which is not rotatable
+      // here — they have NULL locations and never match the SERVER where clause.)
+      await tx
+        .update(externalStorageProvisionsTable)
+        .set({
+          accessKeyId: input.newAccessKey.accessKeyId,
+          secretAccessKey: input.newAccessKey.secretAccessKey,
+          accessKeyHashId: computedNewHashId,
+          updatedAt: new Date(),
         })
-      type ServerStorageValue = ServerStorageLocation & {
-        secretAccessKey: string
-      }
-      const serverStorageValue = existingServerStorage?.value as
-        | ServerStorageValue
-        | undefined
-      if (serverStorageValue?.accessKeyHashId === input.accessKeyHashId) {
-        await tx
-          .update(serverSettingsTable)
-          .set({
-            value: {
-              ...serverStorageValue,
-              accessKeyId: input.newAccessKey.accessKeyId,
-              secretAccessKey: input.newAccessKey.secretAccessKey,
-              accessKeyHashId: computedNewHashId,
-            },
-            updatedAt: now,
-          })
-          .where(eq(serverSettingsTable.key, SERVER_STORAGE_CONFIG.key))
-      }
-
-      // Update STORAGE_PROVISIONS (array, possibly many records)
-      const existingProvisions = await tx.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key),
-      })
-      const provisionsRaw = existingProvisions?.value
-      if (Array.isArray(provisionsRaw) && provisionsRaw.length > 0) {
-        const updatedProvisions: ServerStorageWithSecret[] = (
-          provisionsRaw as ServerStorageWithSecret[]
-        ).map((prov) =>
-          prov.accessKeyHashId === input.accessKeyHashId
-            ? {
-                ...prov,
-                accessKeyId: input.newAccessKey.accessKeyId,
-                secretAccessKey: input.newAccessKey.secretAccessKey,
-                accessKeyHashId: computedNewHashId,
-              }
-            : prov,
+        .where(
+          eq(
+            externalStorageProvisionsTable.accessKeyHashId,
+            input.accessKeyHashId,
+          ),
         )
-
-        await tx
-          .update(serverSettingsTable)
-          .set({ value: updatedProvisions, updatedAt: now })
-          .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_CONFIG.key))
-      }
 
       return computedNewHashId
     })

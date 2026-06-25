@@ -14,16 +14,16 @@ import { LogModule } from 'src/log/log.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { S3Service } from 'src/storage/s3.service'
 
+import { StorageProvisionsController } from './controllers/external-storage-provisions.controller'
 import { PublicController } from './controllers/public.controller'
 import { ServerController } from './controllers/server.controller'
 import { ServerDockerHostsController } from './controllers/server-docker-hosts.controller'
 import { ServerIconController } from './controllers/server-icon.controller'
-import { ServerStorageController } from './controllers/server-storage.controller'
-import { StorageProvisionsController } from './controllers/storage-provisions.controller'
 import { ActivityMetricsService } from './services/activity-metrics.service'
 import { ServerConfigurationService } from './services/server-configuration.service'
 import { ServerIconService } from './services/server-icon.service'
 import { ServerMetricsService } from './services/server-metrics.service'
+import { StorageProvisionService } from './services/storage-provision.service'
 
 @Module({
   imports: [
@@ -38,7 +38,6 @@ import { ServerMetricsService } from './services/server-metrics.service'
     ServerController,
     ServerIconController,
     StorageProvisionsController,
-    ServerStorageController,
     ServerDockerHostsController,
   ],
   providers: [
@@ -47,6 +46,7 @@ import { ServerMetricsService } from './services/server-metrics.service'
     ServerMetricsService,
     ActivityMetricsService,
     S3Service,
+    StorageProvisionService,
   ],
   exports: [ServerConfigurationService, ServerIconService],
 })

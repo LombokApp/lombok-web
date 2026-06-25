@@ -260,8 +260,8 @@ CREATE TABLE "folder_user_preferences" (
 CREATE TABLE "folders" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
-	"content_location_id" uuid NOT NULL,
-	"metadata_location_id" uuid NOT NULL,
+	"content_location_id" uuid,
+	"metadata_location_id" uuid,
 	"owner_id" uuid NOT NULL,
 	"access_error" jsonb,
 	"icon_updated_at" timestamp with time zone,
@@ -351,10 +351,26 @@ CREATE TABLE "server_settings" (
 	"updated_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "external_storage_provisions" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"label" text NOT NULL,
+	"description" text NOT NULL,
+	"endpoint" text NOT NULL,
+	"bucket" text NOT NULL,
+	"region" text NOT NULL,
+	"access_key_id" text NOT NULL,
+	"secret_access_key" text NOT NULL,
+	"access_key_hash_id" text NOT NULL,
+	"prefix" text,
+	"provision_types" jsonb NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"updated_at" timestamp with time zone NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "storage_locations" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"access_key_hash_id" text NOT NULL,
-	"provider_type" text NOT NULL,
+	"kind" text NOT NULL,
 	"label" text NOT NULL,
 	"endpoint" text NOT NULL,
 	"endpoint_domain" text NOT NULL,
@@ -532,10 +548,11 @@ CREATE INDEX "notifications_user_id_created_at_idx" ON "notifications" USING btr
 CREATE INDEX "notifications_aggregation_key_idx" ON "notifications" USING btree ("aggregation_key");--> statement-breakpoint
 CREATE INDEX "notifications_target_location_folder_id_idx" ON "notifications" USING btree ("target_location_folder_id");--> statement-breakpoint
 CREATE INDEX "notifications_emitter_identifier_idx" ON "notifications" USING btree ("emitter_identifier");--> statement-breakpoint
+CREATE INDEX "external_storage_provisions_access_key_hash_id_idx" ON "external_storage_provisions" USING btree ("access_key_hash_id");--> statement-breakpoint
 CREATE INDEX "storage_locations_user_id_idx" ON "storage_locations" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "storage_locations_access_key_hash_id_idx" ON "storage_locations" USING btree ("access_key_hash_id");--> statement-breakpoint
-CREATE INDEX "storage_locations_provider_type_idx" ON "storage_locations" USING btree ("provider_type");--> statement-breakpoint
-CREATE INDEX "storage_locations_access_key_user_provider_idx" ON "storage_locations" USING btree ("access_key_hash_id","user_id","provider_type");--> statement-breakpoint
+CREATE INDEX "storage_locations_kind_idx" ON "storage_locations" USING btree ("kind");--> statement-breakpoint
+CREATE INDEX "storage_locations_access_key_user_kind_idx" ON "storage_locations" USING btree ("access_key_hash_id","user_id","kind");--> statement-breakpoint
 CREATE INDEX "tasks_trigger_kind_idx" ON "tasks" USING btree (("invocation" ->> 'kind'));--> statement-breakpoint
 CREATE INDEX "tasks_idempotency_key_idx" ON "tasks" USING btree ("owner_id","task_identifier","idempotency_key");--> statement-breakpoint
 CREATE INDEX "tasks_target_location_folder_id_idx" ON "tasks" USING btree ("target_location_folder_id");--> statement-breakpoint

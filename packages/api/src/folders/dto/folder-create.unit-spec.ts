@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'bun:test'
 import crypto from 'crypto'
-import { storageLocationInputDTOSchema } from 'src/storage/dto/storage-location-input.dto'
+import { storageTargetInputDTOSchema } from 'src/storage/dto/storage-target-input.dto'
 
-describe('StorageLocationInputDto object validation', () => {
+describe('StorageTargetInputDto object validation', () => {
+  it('validates the builtin target successfully', () => {
+    const result = storageTargetInputDTOSchema.safeParse({
+      builtin: true,
+    })
+    expect(result.success).toBe(true)
+  })
+
   it('validates a custom location successfully', () => {
-    const result = storageLocationInputDTOSchema.safeParse({
+    const result = storageTargetInputDTOSchema.safeParse({
       endpoint: 'http://some_endpoint',
       accessKeyId: 'some_key',
       secretAccessKey: 'some_secret',
@@ -16,16 +23,16 @@ describe('StorageLocationInputDto object validation', () => {
   })
 
   it('validates a storageProvisionId successfully', () => {
-    const result = storageLocationInputDTOSchema.safeParse({
+    const result = storageTargetInputDTOSchema.safeParse({
       storageProvisionId: crypto.randomUUID(),
     })
     expect(result.success).toBe(true)
   })
 
   it('should not be successful', () => {
-    const poopResult = storageLocationInputDTOSchema.safeParse({
+    const result = storageTargetInputDTOSchema.safeParse({
       poop: 'asdfsadsdaf',
     })
-    expect(poopResult.success).toBe(false)
+    expect(result.success).toBe(false)
   })
 })

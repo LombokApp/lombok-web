@@ -286,7 +286,6 @@ describe('Core Worker', () => {
       throw new Error('Test module not initialized')
     }
 
-    await testModule.setServerStorageLocation()
     const zipFileBuffer = fs.readFileSync(appBundleZipPath)
     const installedApp = await testModule.services.appService.handleAppInstall(
       {

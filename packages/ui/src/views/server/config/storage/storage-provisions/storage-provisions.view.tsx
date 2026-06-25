@@ -42,11 +42,11 @@ export function UserStorageProvisions({
   })
 
   const { data: storageProvisions, refetch: refetchStorageProvisions } =
-    $api.useQuery('get', '/api/v1/server/storage-provisions')
+    $api.useQuery('get', '/api/v1/server/external-storage-provisions')
 
   const addStorageProvisionMutation = $api.useMutation(
     'post',
-    '/api/v1/server/storage-provisions',
+    '/api/v1/server/external-storage-provisions',
     {
       onSuccess: () => refetchStorageProvisions(),
     },
@@ -54,7 +54,7 @@ export function UserStorageProvisions({
 
   const updateStorageProvisionMutation = $api.useMutation(
     'put',
-    '/api/v1/server/storage-provisions/{storageProvisionId}',
+    '/api/v1/server/external-storage-provisions/{storageProvisionId}',
     {
       onSuccess: () => refetchStorageProvisions(),
     },
@@ -62,7 +62,7 @@ export function UserStorageProvisions({
 
   const deleteStorageProvisionMutation = $api.useMutation(
     'delete',
-    '/api/v1/server/storage-provisions/{storageProvisionId}',
+    '/api/v1/server/external-storage-provisions/{storageProvisionId}',
     {
       onSuccess: () => refetchStorageProvisions(),
     },

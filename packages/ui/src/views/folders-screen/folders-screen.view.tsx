@@ -108,7 +108,7 @@ export const FoldersScreen = () => {
 
   const storageProvisionsQuery = $api.useQuery(
     'get',
-    '/api/v1/server/storage-provisions',
+    '/api/v1/server/external-storage-provisions',
     {},
     {
       enabled: false,

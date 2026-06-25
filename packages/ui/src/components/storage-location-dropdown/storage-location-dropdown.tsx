@@ -11,10 +11,12 @@ import {
 
 export function StorageLocationDropdown({
   storageProvisions,
+  onSelectBuiltin,
   onSelectStorageProvision,
   onSelectCustom,
 }: {
   storageProvisions: StorageProvision[]
+  onSelectBuiltin: () => void
   onSelectStorageProvision: (storageProvision: StorageProvision) => void
   onSelectCustom: () => void
 }) {
@@ -34,6 +36,11 @@ export function StorageLocationDropdown({
               {provision.label}
             </DropdownMenuItem>
           ))}
+        </DropdownMenuGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onSelect={onSelectBuiltin}>
+            Built-in storage
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={onSelectCustom}>

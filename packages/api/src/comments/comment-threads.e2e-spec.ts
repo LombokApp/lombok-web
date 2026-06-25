@@ -29,7 +29,6 @@ describe('Comment Threads & Reactions', () => {
   })
 
   async function setupFolderWithObject(accessToken: string) {
-    await testModule!.setServerStorageLocation()
     const { folder } = await createTestFolder({
       testModule: testModule!,
       accessToken,

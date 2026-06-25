@@ -12,6 +12,7 @@ import type { FolderDTO } from '@lombokapp/types'
 import { SignedURLsRequestMethod } from '@lombokapp/types'
 import { mimeFromExtension } from '@lombokapp/utils'
 import type { Type } from '@nestjs/common'
+import type * as nestjsConfig from '@nestjs/config'
 import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import crypto from 'crypto'
@@ -49,7 +50,6 @@ import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { TaskService } from 'src/task/services/task.service'
-import type { User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 
 import { coreConfig } from '../core/config'
@@ -59,11 +59,17 @@ import { NoPrefixConsoleLogger } from '../shared/no-prefix-console-logger'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
 
-export const TEST_S3_ACCESS_KEY_ID = process.env.TEST_S3_ACCESS_KEY_ID ?? ''
+// The single embedded Garage key (auto-generated, exported by test-entrypoint).
+export const TEST_S3_ACCESS_KEY_ID = process.env.EMBEDDED_S3_ACCESS_KEY_ID ?? ''
 export const TEST_S3_SECRET_ACCESS_KEY =
-  process.env.TEST_S3_SECRET_ACCESS_KEY ?? ''
-export const TEST_S3_ENDPOINT = 'http://127.0.0.1:9000'
-export const TEST_S3_REGION = 'auto'
+  process.env.EMBEDDED_S3_SECRET_ACCESS_KEY ?? ''
+// Reverse-proxied through nginx (s3.<host>:8080), matching prod/dev. The
+// in-container harness, browser and core-worker sandbox resolve s3.localhost to
+// loopback via /etc/hosts (added by test-entrypoint.sh). Pinned to the same
+// value as EMBEDDED_S3_ENDPOINT so builtin and ad-hoc locations agree.
+export const TEST_S3_ENDPOINT =
+  process.env.EMBEDDED_S3_ENDPOINT ?? 'http://s3.localhost:8080'
+export const TEST_S3_REGION = process.env.EMBEDDED_S3_REGION ?? 'auto'
 
 const execFileAsync = promisify(execFile)
 
@@ -72,8 +78,20 @@ const execFileAsync = promisify(execFile)
 // *unsigned* requests — i.e. the browser's CORS preflight — only through the
 // global namespace, so a key-local bucket returns no Access-Control-Allow-*
 // headers and the browser blocks the direct presigned upload.
+//
+// Point the CLI at the rendered runtime config: the shipped /etc/garage.toml
+// (the CLI's default) still carries the {{GARAGE_API_BIND_ADDR}} placeholder,
+// which the CLI can't parse. garage-provision.sh renders the substituted config
+// to /var/lib/garage/garage.runtime.toml.
 const garageCli = (...args: string[]) =>
-  execFileAsync('garage', args, { timeout: 10_000 })
+  execFileAsync('garage', args, {
+    timeout: 10_000,
+    env: {
+      ...process.env,
+      GARAGE_CONFIG_FILE:
+        process.env.GARAGE_CONFIG_FILE ?? '/var/lib/garage/garage.runtime.toml',
+    },
+  })
 
 const mockDockerClientService = buildMockDockerClientService()
 
@@ -100,6 +118,20 @@ export async function buildTestModule({
   }
   const dbName = `test_db_${testModuleKey}`
   const bucketsToRemove: string[] = []
+
+  // Per-suite namespaced system buckets, so suites sharing the single embedded
+  // Garage node don't collide. The coreConfig provider is overridden below to
+  // point the three system bucket names at these.
+  const suiteBucketSuffix = crypto
+    .createHash('sha256')
+    .update(testModuleKey)
+    .digest('hex')
+    .slice(0, 12)
+  const systemBuckets = {
+    serverStorage: `server-storage-${suiteBucketSuffix}`,
+    provisions: `provisions-${suiteBucketSuffix}`,
+    uploads: `uploads-${suiteBucketSuffix}`,
+  }
 
   const testS3AdminClient = () =>
     configureS3Client({
@@ -140,6 +172,50 @@ export async function buildTestModule({
       }),
     )
   }
+  // Create a named global-alias bucket via the Garage CLI, grant the test key
+  // full access, and (for browser-facing buckets) attach a permissive CORS rule.
+  const provisionNamedBucket = async (
+    bucketName: string,
+    { cors }: { cors: boolean },
+  ) => {
+    if (
+      await garageCli('bucket', 'info', bucketName).then(
+        () => false,
+        () => true,
+      )
+    ) {
+      await garageCli('bucket', 'create', bucketName)
+    }
+    await garageCli(
+      'bucket',
+      'allow',
+      '--read',
+      '--write',
+      '--owner',
+      bucketName,
+      '--key',
+      TEST_S3_ACCESS_KEY_ID,
+    )
+    if (cors) {
+      await testS3AdminClient().send(
+        new PutBucketCorsCommand({
+          Bucket: bucketName,
+          CORSConfiguration: {
+            CORSRules: [
+              {
+                AllowedOrigins: ['*'],
+                AllowedMethods: ['GET', 'PUT', 'HEAD', 'DELETE'],
+                AllowedHeaders: ['*'],
+                ExposeHeaders: ['ETag'],
+                MaxAgeSeconds: 3600,
+              },
+            ],
+          },
+        }),
+      )
+    }
+  }
+
   let httpServer: Server | undefined = undefined
 
   // Stable, suite-unique starting position for app install sequences. Hashing
@@ -175,7 +251,12 @@ export async function buildTestModule({
       },
       {
         token: coreConfig.KEY,
-        value: { ...coreConfig(), disableCoreWorker: !startCoreWorker },
+        value: {
+          ...coreConfig(),
+          disableCoreWorker: !startCoreWorker,
+          // Namespace the system buckets for this suite.
+          s3SystemBuckets: systemBuckets,
+        },
       },
       // Point the core worker's loopback at the port this suite listens on,
       // so its callbacks reach the test server rather than the prod default.
@@ -231,6 +312,9 @@ export async function buildTestModule({
     serverConfigurationService: await app.resolve(ServerConfigurationService),
     dockerWorkerHookService: await app.resolve(DockerWorkerHookService),
     coreTaskService: await app.resolve(CoreTaskService),
+    coreConfig: await app.resolve<nestjsConfig.ConfigType<typeof coreConfig>>(
+      coreConfig.KEY,
+    ),
     eventService: await app.resolve(EventService),
     taskService: await app.resolve(TaskService),
     folderService: await app.resolve(FolderService),
@@ -241,6 +325,20 @@ export async function buildTestModule({
 
   // Truncate the DB after app init (migrations/initialization complete)
   await services.ormService.truncateAllTestTables()
+
+  // Provision this suite's namespaced system buckets (the embedded server
+  // storage, builtin provision and staged uploads all resolve to these). Only
+  // the browser-facing ones get a CORS rule; server-storage is server-side only.
+  // These live for the whole suite — they are torn down at `shutdown`, NOT via
+  // `cleanupMinioTestBuckets` (which empties `bucketsToRemove` between tests).
+  const systemBucketNames = [
+    systemBuckets.serverStorage,
+    systemBuckets.provisions,
+    systemBuckets.uploads,
+  ]
+  await provisionNamedBucket(systemBuckets.serverStorage, { cors: false })
+  await provisionNamedBucket(systemBuckets.provisions, { cors: true })
+  await provisionNamedBucket(systemBuckets.uploads, { cors: true })
 
   async function initMinioTestBucket(
     createFiles: { objectKey: string; content: Buffer | string }[] = [],
@@ -318,23 +416,6 @@ export async function buildTestModule({
       }),
     )
     return bucketName
-  }
-
-  const setServerStorageLocation = async () => {
-    const bucketName = await initMinioTestBucket()
-    await services.serverConfigurationService.setServerStorageAsAdmin(
-      {
-        isAdmin: true,
-      } as User,
-      {
-        accessKeyId: TEST_S3_ACCESS_KEY_ID,
-        secretAccessKey: TEST_S3_SECRET_ACCESS_KEY,
-        endpoint: TEST_S3_ENDPOINT,
-        region: TEST_S3_REGION,
-        bucket: bucketName,
-        prefix: null,
-      },
-    )
   }
 
   return {
@@ -420,7 +501,11 @@ export async function buildTestModule({
     },
     apiClient: buildSupertestApiClient(app),
     shutdown: async () => {
-      await removeTestBuckets(bucketsToRemove.splice(0))
+      // Ad-hoc per-test buckets + the suite's long-lived system buckets.
+      await removeTestBuckets([
+        ...bucketsToRemove.splice(0),
+        ...systemBucketNames,
+      ])
       if (httpServer) {
         httpServer.close()
       }
@@ -471,7 +556,9 @@ export async function buildTestModule({
       return installedApp
     },
     installLocalAppBundles: async (limitTo: string[] | null = null) => {
-      await setServerStorageLocation()
+      // Server storage resolves from the embedded config + this suite's
+      // namespaced server-storage bucket (provisioned in buildTestModule), so
+      // there's nothing to seed here.
       const appBundlesPath = process.env.APP_BUNDLES_PATH
       if (!appBundlesPath) {
         throw new Error(
@@ -523,7 +610,6 @@ export async function buildTestModule({
       })
       return apps.length
     },
-    setServerStorageLocation,
     initMinioTestBucket,
     createS3PresignedUrls: (
       presignedRequests: {

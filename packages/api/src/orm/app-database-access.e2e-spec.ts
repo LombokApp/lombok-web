@@ -576,7 +576,7 @@ describe('ORM Schema Isolation', () => {
     const makeLocation = (label: string) => ({
       id: randomUUID(),
       accessKeyHashId: randomUUID(),
-      providerType: 'SERVER' as const,
+      kind: 'SERVER' as const,
       label,
       endpoint: 'https://example.com',
       endpointDomain: 'example.com',

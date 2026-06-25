@@ -1,36 +1,25 @@
-import type { StorageProvisionWithSecret } from '@lombokapp/types'
 import crypto from 'crypto'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import type { LombokDatabase } from 'src/orm/orm.service'
-import {
-  SERVER_STORAGE_CONFIG,
-  STORAGE_PROVISIONS_CONFIG,
-} from 'src/server/constants/server.constants'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
-import type { NewStorageLocation } from 'src/storage/entities/storage-location.entity'
-import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
+import { getEmbeddedS3Config } from 'src/storage/embedded-s3'
+import { externalStorageProvisionsTable } from 'src/storage/entities/external-storage-provision.entity'
 import type { NewUser } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 
-if (
-  !process.env.DEV_S3_ACCESS_KEY_ID ||
-  !process.env.DEV_S3_SECRET_ACCESS_KEY ||
-  !process.env.DEV_S3_BUCKET_NAME ||
-  !process.env.DEV_S3_PREFIX ||
-  !process.env.DEV_S3_REGION ||
-  !process.env.DEV_S3_ENDPOINT ||
-  !process.env.DEV_S3_LABEL
-) {
-  throw new Error('Set DEV_S3_* env vars before running the dev seed.')
-}
-
-const S3_CREDENTIALS = {
-  accessKeyId: process.env.DEV_S3_ACCESS_KEY_ID,
-  secretAccessKey: process.env.DEV_S3_SECRET_ACCESS_KEY,
-}
+// Dev demo bucket the seed wires up as an example External provision. Created by
+// the dev entrypoint via GARAGE_EXTRA_BUCKETS.
+const EXTERNAL_DEMO_BUCKET = 'external-demo'
 
 export async function seed(db: LombokDatabase): Promise<void> {
+  const embedded = getEmbeddedS3Config()
+  if (!embedded) {
+    throw new Error('Set EMBEDDED_S3_* env vars before running the dev seed.')
+  }
+
+  const SEED_DATE = new Date('2023-11-01 22:49:00.93')
+
   const USER_1_ID = 'ad619a15-7326-44e9-a68b-0170a3cf4a94'
   const USER_1_FOLDER_1_ID = '67137165-2df6-46a4-8770-ecc0deab39b5'
   const USER_1_FOLDER_2_ID = 'ea09b961-f7e0-4a24-899d-fe398edabe01'
@@ -48,8 +37,8 @@ export async function seed(db: LombokDatabase): Promise<void> {
       '664be0faf8a7bbd6bf7e8a040f4b585b6c54be10935c0135a02ba1495da972783aa73732dd0c47b7138a1eadb3bffc8a86a3011eca4fb376419f1f8310e5a2d2',
     isAdmin: true,
     emailVerified: true,
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
+    createdAt: SEED_DATE,
+    updatedAt: SEED_DATE,
     permissions: [],
   }
   const user: NewUser = {
@@ -62,160 +51,81 @@ export async function seed(db: LombokDatabase): Promise<void> {
       'a9f9f1a61728e5bef8b445b6f44e9600fd8265f19a8effedaa422d2202398158c0347aa0c691f5316bf73fcadcb9519017b0a1269936a1c844009edfe0f404b0',
     isAdmin: false,
     emailVerified: true,
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
+    createdAt: SEED_DATE,
+    updatedAt: SEED_DATE,
     permissions: [],
-  }
-
-  const data: NewUser[] = [admin, user]
-
-  function buildDevSeedLocation(
-    userId: string,
-    prefix = '',
-  ): NewStorageLocation {
-    return {
-      id: crypto.randomUUID(),
-      ...S3_CREDENTIALS,
-      bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
-      endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-      endpointDomain: new URL(process.env.DEV_S3_ENDPOINT ?? '').host,
-      accessKeyHashId: buildAccessKeyHashId({
-        ...S3_CREDENTIALS,
-        endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-        region: process.env.DEV_S3_REGION ?? '',
-      }),
-      label: `${process.env.DEV_S3_ENDPOINT} ${process.env.DEV_S3_REGION} ${process.env.DEV_S3_ACCESS_KEY_ID}`,
-      providerType: 'USER',
-      region: process.env.DEV_S3_REGION ?? '',
-      userId,
-      createdAt: new Date('2023-11-01 22:49:00.93'),
-      updatedAt: new Date('2023-11-01 22:49:00.93'),
-      prefix,
-    }
   }
 
   // eslint-disable-next-line no-console
   console.log('Seed start')
-  const locationsMap = {
-    user1Folder1Content: buildDevSeedLocation(
-      USER_1_ID,
-      'user-1-folder-1-prefix',
-    ),
-    user1Folder1Metadata: buildDevSeedLocation(
-      USER_1_ID,
-      `user-1-folder-1-prefix/.lombok_folder_metadata_${USER_1_FOLDER_1_ID}`,
-    ),
-    user1Folder2Content: buildDevSeedLocation(
-      USER_1_ID,
-      'user-1-folder-2-prefix',
-    ),
-    user1Folder2Metadata: buildDevSeedLocation(
-      USER_1_ID,
-      `user-1-folder-2-prefix/.lombok_folder_metadata_${USER_1_FOLDER_2_ID}`,
-    ),
-    admin1Folder1Content: buildDevSeedLocation(
-      ADMIN_1_ID,
-      'admin-1-folder-1-prefix',
-    ),
-    admin1Folder1Metadata: buildDevSeedLocation(
-      ADMIN_1_ID,
-      `admin-1-folder-1-prefix/.lombok_folder_metadata_${ADMIN_1_FOLDER_1_ID}`,
-    ),
-    admin1BigFolderContent: buildDevSeedLocation(ADMIN_1_ID, 'big-folder-test'),
-    admin1BigFolderMetadata: buildDevSeedLocation(
-      ADMIN_1_ID,
-      `big-folder-test/.lombok_folder_metadata_${ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID}`,
-    ),
-  }
-  const locations = Object.keys(locationsMap).map(
-    (locationName) => locationsMap[locationName as keyof typeof locationsMap],
-  )
 
-  await db.insert(usersTable).values(data)
-  await db.insert(storageLocationsTable).values(locations)
-  await db.insert(foldersTable).values({
-    id: USER_1_FOLDER_1_ID,
-    name: 'User1 Folder 1',
-    contentLocationId: locationsMap.user1Folder1Content.id,
-    metadataLocationId: locationsMap.user1Folder1Metadata.id,
-    ownerId: USER_1_ID,
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
-  })
-  await db.insert(foldersTable).values({
-    id: USER_1_FOLDER_2_ID,
-    name: 'User1 Folder 2',
-    contentLocationId: locationsMap.user1Folder2Content.id,
-    metadataLocationId: locationsMap.user1Folder2Metadata.id,
-    ownerId: USER_1_ID,
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
-  })
-  await db.insert(foldersTable).values({
-    id: ADMIN_1_FOLDER_1_ID,
-    name: 'Admin1 Folder',
-    contentLocationId: locationsMap.admin1Folder1Content.id,
-    metadataLocationId: locationsMap.admin1Folder1Metadata.id,
-    ownerId: ADMIN_1_ID,
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
-  })
-  await db.insert(foldersTable).values({
-    id: ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID,
-    name: 'Big Folder Test',
-    contentLocationId: locationsMap.admin1BigFolderContent.id,
-    metadataLocationId: locationsMap.admin1BigFolderMetadata.id,
-    ownerId: ADMIN_1_ID,
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
-  })
-  // add server storage provisions
-  const storageProvision: StorageProvisionWithSecret = {
-    ...S3_CREDENTIALS,
-    id: crypto.randomUUID(),
-    bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
-    description:
-      "An special dev only S3 location. Don't store anything sensitive here.",
-    label: process.env.DEV_S3_LABEL ?? '',
-    endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-    region: process.env.DEV_S3_REGION ?? '',
-    prefix: process.env.DEV_S3_PREFIX ?? null,
-    provisionTypes: ['CONTENT', 'METADATA'],
-    secretAccessKey: S3_CREDENTIALS.secretAccessKey,
-    accessKeyHashId: buildAccessKeyHashId({
-      accessKeyId: S3_CREDENTIALS.accessKeyId,
-      secretAccessKey: S3_CREDENTIALS.secretAccessKey,
-      region: process.env.DEV_S3_REGION ?? '',
-      endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-    }),
-  }
+  await db.insert(usersTable).values([admin, user])
 
-  await db.insert(serverSettingsTable).values({
-    key: STORAGE_PROVISIONS_CONFIG.key,
-    value: [storageProvision],
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
-  })
-
-  await db.insert(serverSettingsTable).values({
-    key: SERVER_STORAGE_CONFIG.key,
-    value: {
-      accessKeyHashId: buildAccessKeyHashId({
-        accessKeyId: S3_CREDENTIALS.accessKeyId,
-        secretAccessKey: S3_CREDENTIALS.secretAccessKey,
-        region: process.env.DEV_S3_REGION ?? '',
-        endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-      }),
-      accessKeyId: S3_CREDENTIALS.accessKeyId,
-      secretAccessKey: S3_CREDENTIALS.secretAccessKey,
-      bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
-      endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-      region: process.env.DEV_S3_REGION ?? '',
-      prefix: `${process.env.DEV_S3_PREFIX}/server-storage`,
+  // Demo folders are backed by the builtin (embedded) provision, so their
+  // location columns are NULL — the location is resolved in memory.
+  await db.insert(foldersTable).values([
+    {
+      id: USER_1_FOLDER_1_ID,
+      name: 'User1 Folder 1',
+      contentLocationId: null,
+      metadataLocationId: null,
+      ownerId: USER_1_ID,
+      createdAt: SEED_DATE,
+      updatedAt: SEED_DATE,
     },
-    createdAt: new Date('2023-11-01 22:49:00.93'),
-    updatedAt: new Date('2023-11-01 22:49:00.93'),
+    {
+      id: USER_1_FOLDER_2_ID,
+      name: 'User1 Folder 2',
+      contentLocationId: null,
+      metadataLocationId: null,
+      ownerId: USER_1_ID,
+      createdAt: SEED_DATE,
+      updatedAt: SEED_DATE,
+    },
+    {
+      id: ADMIN_1_FOLDER_1_ID,
+      name: 'Admin1 Folder',
+      contentLocationId: null,
+      metadataLocationId: null,
+      ownerId: ADMIN_1_ID,
+      createdAt: SEED_DATE,
+      updatedAt: SEED_DATE,
+    },
+    {
+      id: ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID,
+      name: 'Big Folder Test',
+      contentLocationId: null,
+      metadataLocationId: null,
+      ownerId: ADMIN_1_ID,
+      createdAt: SEED_DATE,
+      updatedAt: SEED_DATE,
+    },
+  ])
+
+  // One example External provision, pointing at the dev demo bucket. Uses the
+  // embedded key (same single Garage node), but a different bucket.
+  await db.insert(externalStorageProvisionsTable).values({
+    id: crypto.randomUUID(),
+    label: 'Garage (dev external)',
+    description:
+      "A dev-only External S3 provision. Don't store anything sensitive here.",
+    endpoint: embedded.endpoint,
+    bucket: EXTERNAL_DEMO_BUCKET,
+    region: embedded.region,
+    accessKeyId: embedded.accessKeyId,
+    secretAccessKey: embedded.secretAccessKey,
+    accessKeyHashId: buildAccessKeyHashId({
+      accessKeyId: embedded.accessKeyId,
+      secretAccessKey: embedded.secretAccessKey,
+      region: embedded.region,
+      endpoint: embedded.endpoint,
+    }),
+    prefix: null,
+    provisionTypes: ['CONTENT', 'METADATA'],
+    createdAt: SEED_DATE,
+    updatedAt: SEED_DATE,
   })
+
   // Mark seed as applied (used by db:seed:auto to skip re-seeding)
   await db.insert(serverSettingsTable).values({
     key: '_dev_seed_applied',

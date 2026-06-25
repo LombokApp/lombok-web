@@ -1671,9 +1671,9 @@
         ]
       }
     },
-    "/api/v1/server/storage-provisions": {
+    "/api/v1/server/external-storage-provisions": {
       "get": {
-        "operationId": "StorageProvisions_listStorageProvisions",
+        "operationId": "StorageProvisions_listExternalStorageProvisions",
         "parameters": [
           {
             "name": "provisionType",
@@ -1726,9 +1726,9 @@
             "bearer": []
           }
         ],
-        "summary": "List the storage provisions.",
+        "summary": "List the external storage provisions.",
         "tags": [
-          "StorageProvisions"
+          "ExternalStorageProvisions"
         ]
       },
       "post": {
@@ -1783,11 +1783,11 @@
         ],
         "summary": "Create a new user storage provision.",
         "tags": [
-          "StorageProvisions"
+          "ExternalStorageProvisions"
         ]
       }
     },
-    "/api/v1/server/storage-provisions/{storageProvisionId}": {
+    "/api/v1/server/external-storage-provisions/{storageProvisionId}": {
       "get": {
         "operationId": "StorageProvisions_getStorageProvision",
         "parameters": [
@@ -1839,7 +1839,7 @@
         ],
         "summary": "Get a storage provision by id.",
         "tags": [
-          "StorageProvisions"
+          "ExternalStorageProvisions"
         ]
       },
       "put": {
@@ -1903,7 +1903,7 @@
         ],
         "summary": "Update a server provision by id.",
         "tags": [
-          "StorageProvisions"
+          "ExternalStorageProvisions"
         ]
       },
       "delete": {
@@ -1957,147 +1957,7 @@
         ],
         "summary": "Delete a storage provision by id.",
         "tags": [
-          "StorageProvisions"
-        ]
-      }
-    },
-    "/api/v1/server/server-storage": {
-      "get": {
-        "operationId": "ServerStorage_getServerStorageLocation",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get the server storage location.",
-        "tags": [
-          "ServerStorage"
-        ]
-      },
-      "post": {
-        "operationId": "ServerStorage_setServerStorageLocation",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ServerStorageInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
-                }
-              }
-            }
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create a new server provision.",
-        "tags": [
-          "ServerStorage"
-        ]
-      },
-      "delete": {
-        "operationId": "ServerStorage_deleteServerStorageLocation",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "5XX": {
-            "description": "Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "Client Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete any set server storage location.",
-        "tags": [
-          "ServerStorage"
+          "ExternalStorageProvisions"
         ]
       }
     },
@@ -13348,53 +13208,6 @@
           "settings": {
             "type": "object",
             "properties": {
-              "STORAGE_PROVISIONS": {
-                "type": [
-                  "array",
-                  "null"
-                ],
-                "items": {
-                  "$ref": "#/components/schemas/StorageProvision"
-                }
-              },
-              "SERVER_STORAGE": {
-                "type": [
-                  "object",
-                  "null"
-                ],
-                "properties": {
-                  "accessKeyHashId": {
-                    "type": "string"
-                  },
-                  "accessKeyId": {
-                    "type": "string"
-                  },
-                  "endpoint": {
-                    "type": "string"
-                  },
-                  "bucket": {
-                    "type": "string"
-                  },
-                  "region": {
-                    "type": "string"
-                  },
-                  "prefix": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "minLength": 1
-                  }
-                },
-                "required": [
-                  "accessKeyHashId",
-                  "accessKeyId",
-                  "endpoint",
-                  "bucket",
-                  "region",
-                  "prefix"
-                ]
-              },
               "SIGNUP_ENABLED": {
                 "type": [
                   "boolean",
@@ -13585,8 +13398,6 @@
               }
             },
             "required": [
-              "STORAGE_PROVISIONS",
-              "SERVER_STORAGE",
               "SIGNUP_ENABLED",
               "SIGNUP_PERMISSIONS",
               "SERVER_HOSTNAME",
@@ -13890,86 +13701,6 @@
             }
           }
         }
-      },
-      "ServerStorageLocationGetResponse": {
-        "type": "object",
-        "properties": {
-          "serverStorageLocation": {
-            "type": "object",
-            "properties": {
-              "accessKeyHashId": {
-                "type": "string"
-              },
-              "accessKeyId": {
-                "type": "string"
-              },
-              "endpoint": {
-                "type": "string"
-              },
-              "bucket": {
-                "type": "string"
-              },
-              "region": {
-                "type": "string"
-              },
-              "prefix": {
-                "type": [
-                  "string",
-                  "null"
-                ],
-                "minLength": 1
-              }
-            },
-            "required": [
-              "accessKeyHashId",
-              "accessKeyId",
-              "endpoint",
-              "bucket",
-              "region",
-              "prefix"
-            ]
-          }
-        }
-      },
-      "ServerStorageInputDTO": {
-        "type": "object",
-        "properties": {
-          "accessKeyId": {
-            "type": "string",
-            "minLength": 1
-          },
-          "secretAccessKey": {
-            "type": "string",
-            "minLength": 1
-          },
-          "endpoint": {
-            "type": "string",
-            "format": "uri"
-          },
-          "bucket": {
-            "type": "string",
-            "minLength": 1
-          },
-          "region": {
-            "type": "string",
-            "minLength": 1
-          },
-          "prefix": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "minLength": 1
-          }
-        },
-        "required": [
-          "accessKeyId",
-          "secretAccessKey",
-          "endpoint",
-          "bucket",
-          "region",
-          "prefix"
-        ]
       },
       "DockerHostsStateResponse": {
         "type": "object",
@@ -14465,10 +14196,10 @@
             "type": "string"
           },
           "metadataLocation": {
-            "$ref": "#/components/schemas/StorageLocation"
+            "$ref": "#/components/schemas/StorageTarget"
           },
           "contentLocation": {
-            "$ref": "#/components/schemas/StorageLocation"
+            "$ref": "#/components/schemas/StorageTarget"
           },
           "accessError": {
             "type": [
@@ -14512,62 +14243,162 @@
           "updatedAt"
         ]
       },
-      "StorageLocation": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-          },
-          "userId": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-          },
-          "providerType": {
-            "type": "string",
-            "enum": [
-              "SERVER",
-              "USER"
+      "StorageTarget": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "BUILTIN"
+              },
+              "label": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "accessKeyId": {
+                "type": "string"
+              },
+              "accessKeyHashId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "label",
+              "endpoint",
+              "region",
+              "bucket",
+              "prefix",
+              "accessKeyId",
+              "accessKeyHashId"
             ]
           },
-          "label": {
-            "type": "string"
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "SERVER"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+              },
+              "userId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+              },
+              "label": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "accessKeyId": {
+                "type": "string"
+              },
+              "accessKeyHashId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "label",
+              "endpoint",
+              "region",
+              "bucket",
+              "prefix",
+              "accessKeyId",
+              "accessKeyHashId"
+            ]
           },
-          "endpoint": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "bucket": {
-            "type": "string"
-          },
-          "prefix": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "minLength": 1
-          },
-          "accessKeyId": {
-            "type": "string"
-          },
-          "accessKeyHashId": {
-            "type": "string"
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "USER"
+              },
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+              },
+              "userId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+              },
+              "label": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "accessKeyId": {
+                "type": "string"
+              },
+              "accessKeyHashId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "label",
+              "endpoint",
+              "region",
+              "bucket",
+              "prefix",
+              "accessKeyId",
+              "accessKeyHashId"
+            ]
           }
-        },
-        "required": [
-          "id",
-          "providerType",
-          "label",
-          "endpoint",
-          "region",
-          "bucket",
-          "prefix",
-          "accessKeyId",
-          "accessKeyHashId"
         ]
       },
       "FolderPermission": {
@@ -14678,8 +14509,20 @@
           "result"
         ]
       },
-      "StorageLocationInput": {
+      "StorageTargetInput": {
         "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "builtin": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "builtin"
+            ]
+          },
           {
             "type": "object",
             "properties": {
@@ -14762,10 +14605,10 @@
             "maxLength": 256
           },
           "metadataLocation": {
-            "$ref": "#/components/schemas/StorageLocationInput"
+            "$ref": "#/components/schemas/StorageTargetInput"
           },
           "contentLocation": {
-            "$ref": "#/components/schemas/StorageLocationInput"
+            "$ref": "#/components/schemas/StorageTargetInput"
           }
         },
         "required": [
@@ -19105,77 +18948,6 @@
           "contentMetadata"
         ]
       },
-      "StorageProvision": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
-          },
-          "accessKeyHashId": {
-            "type": "string"
-          },
-          "endpoint": {
-            "type": "string"
-          },
-          "bucket": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "accessKeyId": {
-            "type": "string"
-          },
-          "secretAccessKey": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "prefix": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "minLength": 1
-          },
-          "provisionTypes": {
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "CONTENT",
-                "METADATA",
-                "REDUNDANCY"
-              ]
-            }
-          },
-          "label": {
-            "type": "string",
-            "maxLength": 32
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 128
-          }
-        },
-        "required": [
-          "id",
-          "accessKeyHashId",
-          "endpoint",
-          "bucket",
-          "region",
-          "accessKeyId",
-          "secretAccessKey",
-          "prefix",
-          "provisionTypes",
-          "label",
-          "description"
-        ]
-      },
       "ContainerTarget": {
         "oneOf": [
           {
@@ -19708,6 +19480,77 @@
           "emitterIdentifier",
           "data",
           "createdAt"
+        ]
+      },
+      "StorageProvision": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"
+          },
+          "accessKeyHashId": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "accessKeyId": {
+            "type": "string"
+          },
+          "secretAccessKey": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prefix": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "provisionTypes": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CONTENT",
+                "METADATA",
+                "REDUNDANCY"
+              ]
+            }
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "id",
+          "accessKeyHashId",
+          "endpoint",
+          "bucket",
+          "region",
+          "accessKeyId",
+          "secretAccessKey",
+          "prefix",
+          "provisionTypes",
+          "label",
+          "description"
         ]
       },
       "RuntimeWorkers": {

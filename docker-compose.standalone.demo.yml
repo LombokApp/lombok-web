@@ -20,6 +20,7 @@ services:
       PRINT_CORE_WORKER_NSJAIL_VERBOSE_OUTPUT: true
     volumes:
       - ./.docker/postgres-standalone/:/var/lib/postgresql/data
+      - ./.docker/garage-standalone/:/var/lib/garage
     ports:
       - 8080:8080
       - 5436:5432

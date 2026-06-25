@@ -14,7 +14,44 @@ const sql = new Pool({
 })
 const db = drizzle(sql, { schema: dbSchema })
 
+// The entrypoint exports EMBEDDED_S3_* into its own process, but `dx db seed`
+// runs a separate `docker compose exec` that doesn't inherit those runtime
+// exports. The credentials are persisted on the Garage data volume, so load them
+// from there when absent (no-op outside the embedded-Garage container).
+function ensureEmbeddedS3Env(): void {
+  if (
+    process.env.EMBEDDED_S3_ACCESS_KEY_ID &&
+    process.env.EMBEDDED_S3_SECRET_ACCESS_KEY
+  ) {
+    return
+  }
+  try {
+    const content = fs.readFileSync(
+      '/var/lib/garage/.lombok-builtin-key',
+      'utf8',
+    )
+    for (const line of content.split('\n')) {
+      const idx = line.indexOf('=')
+      if (idx === -1) {
+        continue
+      }
+      const key = line.slice(0, idx).trim()
+      const value = line.slice(idx + 1).trim()
+      if (
+        (key === 'EMBEDDED_S3_ACCESS_KEY_ID' ||
+          key === 'EMBEDDED_S3_SECRET_ACCESS_KEY') &&
+        !process.env[key]
+      ) {
+        process.env[key] = value
+      }
+    }
+  } catch {
+    // Not present — leave env as-is; the seed surfaces a clear error if it needs it.
+  }
+}
+
 async function main(): Promise<void> {
+  ensureEmbeddedS3Env()
   const client = await sql.connect()
   try {
     // Create dev-only flags table if it doesn't exist (outside Drizzle migrations)

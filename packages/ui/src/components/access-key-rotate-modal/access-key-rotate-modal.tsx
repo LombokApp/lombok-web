@@ -71,8 +71,7 @@ export const AccessKeyRotateModal = ({
                   This rotation updates the credentials everywhere they are used
                   on the server:
                   <ul className="ml-5 list-disc">
-                    <li>Server Storage Location</li>
-                    <li>User Storage Provisions</li>
+                    <li>External storage provisions</li>
                     <li>User folders using those provisions</li>
                   </ul>
                 </>
